@@ -40,6 +40,7 @@ import phylonet.tree.util.Trees;
 public class MGDInference_DP {
 	private static boolean _print = true;
 	private static boolean optimizeDuploss = false;
+	private static boolean rooted = true;
 
 	public static void main(String[] args) {
 		if ((args == null) || args.length == 0 || (args[0].equals("-h")) || (args.length < 1)) {
@@ -47,7 +48,7 @@ public class MGDInference_DP {
 			return;
 		}
 		Map taxonMap = null;
-		List trees = null;
+		List<Tree> trees = null;
 		String output = null;
 		boolean explore = false;
 		double proportion = 0.0D;
@@ -70,24 +71,27 @@ public class MGDInference_DP {
 
 					trees = new ArrayList();
 					// String line;
-					int i=0;
 					while ((line = br.readLine()) != null) {
-						System.out.println(i++);
 						Set<String> previousTreeTaxa = new HashSet<String>();
 						if (line.length() > 0) {
 							NewickReader nr = new NewickReader(
 									new StringReader(line));
-							STITree gt = new STITree(true);
-							nr.readTree(gt);
-							if (previousTreeTaxa.isEmpty()) {
-								previousTreeTaxa.addAll(Arrays.asList(gt.getLeaves()));
-							} else {
-								if (! previousTreeTaxa.containsAll(Arrays.asList(gt.getLeaves()))) {
-									throw new RuntimeException("Not all trees are on the same set of taxa: "
-											+gt.getLeaves() + "\n"+ previousTreeTaxa);
+							if (rooted) {
+								STITree gt = new STITree(true);
+								nr.readTree(gt);							
+								if (previousTreeTaxa.isEmpty()) {
+									previousTreeTaxa.addAll(Arrays.asList(gt.getLeaves()));
+								} else {
+									if (! previousTreeTaxa.containsAll(Arrays.asList(gt.getLeaves()))) {
+										throw new RuntimeException("Not all trees are on the same set of taxa: "
+												+gt.getLeaves() + "\n"+ previousTreeTaxa);
+									}
 								}
+								trees.add(gt);
+							} else {
+								Tree tr = nr.readTree();
+								trees.add(tr);
 							}
-							trees.add(gt);
 						}
 					}
 					br.close();
@@ -280,7 +284,7 @@ public class MGDInference_DP {
 				.println("This tool infers the species tree from rooted gene trees despite lineage sorting.");
 		System.out.println("Usage is:");
 		System.out
-				.println("\tinfer_st -m MGD -i input [-e proportion] [-x] [-b threshold] [-a mapping] [-ur] [-t time] [-o output]");
+				.println("\tinfer_st -m MGD -i input [-e proportion] [-a mapping] [-dl] [-t time] [-o output]");
 		System.out
 				.println("\t-i gene tree file: The file containing gene trees. (required)");
 		System.out
@@ -302,7 +306,9 @@ public class MGDInference_DP {
 		System.out
 				.println("\t-o species tree file: The file to store the species tree. (optional)");
 		System.out
-				.println("\t-dl optimize duploss instead of duplications");		
+				.println("\t-dl optimize duploss instead of duplications");
+		System.out
+				.println("\t-u treat input gene trees as unrooted");				
 		System.out.println();
 	}
 
@@ -310,7 +316,7 @@ public class MGDInference_DP {
 		_print = print;
 	}
 
-	private Map<STITreeCluster,Vertex> vertexToCluster;
+	private Map<STITreeCluster,Vertex> clusterToVertex;
 
 	public List<Solution> inferSpeciesTree(List<Tree> trees, boolean explore,
 			double proportion, boolean exhaust, double bootstrap,
@@ -331,7 +337,10 @@ public class MGDInference_DP {
 
 		}
 
-		Collapse.CollapseDescriptor cd = doCollapse(trees);
+		Collapse.CollapseDescriptor cd = null;
+		if (true || rooted) {			
+			cd = doCollapse(trees);
+		}
 
 		List<String> taxalist = new ArrayList<String>();
 		for (Tree tr : trees) {
@@ -362,18 +371,27 @@ public class MGDInference_DP {
 		}
 		List<Solution> solutions;
 		
-		DuplicationWeightCounter counter = new DuplicationWeightCounter(taxa);
+		DuplicationWeightCounter counter = new DuplicationWeightCounter(taxa,rooted);
 		counter.computeTreeSTBipartitions(trees, taxa, null, clusters);
-		
-		counter.addExtraBipartitions(clusters, taxa);
-		
-		counter.calculateWeights(taxa);
+				
+	
+		//counter.addExtraBipartitions(clusters, taxa);
 		
 		if (_print) {
+			System.out.println("STBs formed in "
+					+ (System.currentTimeMillis() - startTime) / 1000.0D
+					+ " secs");
+		}		
+
+
+		counter.calculateWeights(taxa);
+
+		if (false && _print) {
 			System.out.println("Trees weights calculated in "
 					+ (System.currentTimeMillis() - startTime) / 1000.0D
 					+ " secs");
 		}		
+
 		if (explore) {
 			solutions = null;//findTreesByClique(clusters, taxa, proportion);
 			throw new RuntimeException("Not Implemented");
@@ -396,7 +414,9 @@ public class MGDInference_DP {
 			}
 		}
 
-		restoreCollapse(solutions, cd);
+		if (true || rooted) {
+			restoreCollapse(solutions, cd);
+		}
 		return (List<Solution>) solutions;
 	}
 
@@ -459,13 +479,13 @@ public class MGDInference_DP {
 		
 		List<Solution> solutions;
 		
-		DuplicationWeightCounter counter = new DuplicationWeightCounter(gtTaxa,stTaxa);
+		DuplicationWeightCounter counter = new DuplicationWeightCounter(gtTaxa,stTaxa,rooted);
 		
-		counter.computeTreeSTBipartitions(trees, stTaxa, taxonMap, clusters);
-		
-		counter.addExtraBipartitions(clusters, stTaxa);
+		counter.computeTreeSTBipartitions(trees, stTaxa, taxonMap, clusters);		
 
 		counter.calculateWeights(stTaxa);
+		
+		counter.addExtraBipartitions(clusters, stTaxa);
 		
 		if (explore) {
 			solutions = null;//findTreesByClique(clusters, taxa, proportion);
@@ -510,23 +530,36 @@ public class MGDInference_DP {
 	}
 
 	private List<Solution> findTreesByDP(Map<Integer, Set<Vertex>> clusters,
-			String[] stTaxa, int maxEL, DuplicationWeightCounter counter, List<Tree> trees, Map<String, String> taxonMap) {
+			String[] stTaxa, int sigmaN, DuplicationWeightCounter counter, List<Tree> trees, Map<String, String> taxonMap) {
 		List<Solution> solutions = new ArrayList<Solution>();
 
-		vertexToCluster = new HashMap<STITreeCluster, Vertex>();
+		
+/*		clusterToVertex = new HashMap<STITreeCluster, Vertex>();
 		for (Set<Vertex> vs: clusters.values()) {
 			for (Vertex vertex : vs) {
-				vertexToCluster.put(vertex._cluster,vertex);
+				clusterToVertex.put(vertex._cluster,vertex);
+			}			
+		}				
+		Vertex all = (Vertex) clusters.get(Integer
+				.valueOf(stTaxa.length)).toArray()[0];			
+		computeMinCost(clusters, all, sigmaN, counter,trees, taxonMap);
+		
+		System.out.println("first round finished, adding new STBs");
+		counter.addExtraBipartitions(clusters, stTaxa);
+*/		
+		clusterToVertex = new HashMap<STITreeCluster, Vertex>();
+		for (Set<Vertex> vs: clusters.values()) {
+			for (Vertex vertex : vs) {
+				vertex._max_score = -1;
+				clusterToVertex.put(vertex._cluster,vertex);
 			}			
 		}		
 		
-		// SIA: recursively compute the costs (start from root)
 		Vertex all = (Vertex) clusters.get(Integer
 				.valueOf(stTaxa.length)).toArray()[0];
-		System.out.println("maxEL: " + maxEL);
+		System.out.println("maxEL: " + sigmaN);
 		
-		
-		int x = computeMinCost(clusters, all, maxEL, counter,trees, taxonMap);
+		computeMinCost(clusters, all, sigmaN, counter,trees, taxonMap);
 
 		List minClusters = new LinkedList();
 		List coals = new LinkedList();
@@ -547,7 +580,7 @@ public class MGDInference_DP {
 			Vertex pe = (Vertex) minVertices.pop();
 
 			minClusters.add(pe._cluster);
-			int k = maxEL/(stTaxa.length-1);
+			int k = sigmaN/(stTaxa.length-1);
 			
 			if (pe._min_rc != null) {
 				minVertices.push(pe._min_rc);
@@ -967,7 +1000,9 @@ public class MGDInference_DP {
 		// SIA: here they simply find internal vertices, and add
 		// them (with their weights) to *clusters* hashmap
 		for (Tree tr : trees) {
-			for (Iterator clustersIt = tr.getClusters(taxa, false)
+			for (Iterator clustersIt = (
+					rooted ? 
+					tr.getClusters(taxa, false):tr.getBipartitionClusters(taxa,false))
 					.iterator(); clustersIt.hasNext();) {
 				STITreeCluster tc = (STITreeCluster) clustersIt.next();
 				int tc_size = tc.getClusterSize();			
@@ -1029,6 +1064,7 @@ public class MGDInference_DP {
 		}
 		System.out.println("Number of Clusters considered: " +s);
 		
+		//System.out.println(clusters);
 		return maxEL;
 	}
 
@@ -1053,8 +1089,9 @@ public class MGDInference_DP {
 		} else {
 			v._el_num = 0;
 		}
-		// SIA: base case for singelton clusters. 
-		if (v._cluster.getClusterSize() <= 1) {
+		// SIA: base case for singelton clusters.
+		int clusterSize = v._cluster.getClusterSize();
+		if (clusterSize <= 1) {
 			// SIA: TODO: this is 0, right?
 			v._min_cost = 0;
 			v._max_score = maxEL - v._el_num;
@@ -1065,43 +1102,46 @@ public class MGDInference_DP {
 		// SIA: here goes the recursion
 		Set<STBipartition> clusterBiPartitions = counter.getClusterBiPartitions(v._cluster);
 		
+		//STBipartition bestSTB = null;
+		
+		//System.err.println(v._cluster);
+		
 		for (STBipartition stb: clusterBiPartitions) {
 
-			Vertex lv = vertexToCluster.get(stb.cluster1);
-			Vertex rv = vertexToCluster.get(stb.cluster2);
+			Vertex lv = clusterToVertex.get(stb.cluster1);
+			Vertex rv = clusterToVertex.get(stb.cluster2);
 			
 			if (lv == null || rv == null) {
-				System.out.println("There is no STB for one half of : " + stb);
+				//System.out.println("There is no STB for one half of : " + stb);
 				continue;
 			}
 
-			if ((lv._cluster.isDisjoint(rv._cluster))
-					&& (v._cluster.containsCluster(rv._cluster))
-					&& (counter.BiPartitionExists(lv._cluster, rv._cluster))) {
+			int lscore = computeMinCost(clusters, lv, sigmaNs, counter,trees,taxonMap);
+			int rscore = computeMinCost(clusters, rv, sigmaNs, counter,trees,taxonMap);
 
-				int lscore = computeMinCost(clusters, lv, sigmaNs, counter,trees,taxonMap);
-				int rscore = computeMinCost(clusters, rv, sigmaNs, counter,trees,taxonMap);
+			int w = counter.getBiPartitionDPWeight(lv._cluster, rv._cluster);
 
-				int w = counter.getBiPartitionDPWeight(lv._cluster, rv._cluster);
+			int z = optimizeDuploss? 3 : 1;
 
-				int z = optimizeDuploss? 3 : 1;
+			int c = z*w - v._el_num;
 
-				int c = z*w - v._el_num;
+			if ((v._max_score != -1)
+					&& (lscore + rscore + c + maxEL
+							<= v._max_score)){
+				continue;
+			}							
+			v._max_score = (lscore + rscore + c) + maxEL;
+			v._min_cost = sigmaNs - (c + lv._max_score + rv._max_score - 2*maxEL);
+			//stem.out.println(maxEL - (z*w + lv._max_score + rv._max_score));
+			v._min_lc = lv;
+			v._min_rc = rv;				
+			//bestSTB = stb;
+		}
 
-				if ((v._max_score != -1)
-						&& (lscore + rscore + c + maxEL
-								<= v._max_score)){
-					continue;
-				}							
-				v._max_score = (lscore + rscore + c) + maxEL;
-				v._min_cost = sigmaNs - (c + lv._max_score + rv._max_score - 2*maxEL);
-				//stem.out.println(maxEL - (z*w + lv._max_score + rv._max_score));
-				v._min_lc = lv;
-				v._min_rc = rv;
-			}
-		}						
-
-	
+/*		if (clusterSize > 5){
+			counter.addGoodSTB(bestSTB, clusterSize);
+		}
+*/	
 		return v._max_score - maxEL;
 	}
 
