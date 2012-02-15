@@ -361,21 +361,22 @@ public class MGDInference_DP {
 		System.out.println("taxa size: " + index);
 
 		Map<Integer,Set<Vertex>> clusters = new HashMap<Integer, Set<Vertex>>();
-		if (!exhaust) {
+		/*if (!exhaust) {
 			//SIA: we are here
 			computeTreeClusters(trees, taxa, clusters);
 			//computeTreeSTBipartitions(trees, taxa, clusters);
 		} else {
 			throw new RuntimeException("Not Implemented");
 			//maxEL = computeAllClusters(trees, taxa, clusters);
-		}
+		}*/
 		List<Solution> solutions;
 		
 		DuplicationWeightCounter counter = new DuplicationWeightCounter(taxa,rooted);
-		counter.computeTreeSTBipartitions(trees, taxa, null, clusters);
+		
+		counter.computeTreeSTBipartitions(trees, null, clusters);
 				
 	
-		//counter.addExtraBipartitions(clusters, taxa);
+		counter.addExtraBipartitions(clusters, taxa);
 		
 		if (_print) {
 			System.out.println("STBs formed in "
@@ -481,7 +482,7 @@ public class MGDInference_DP {
 		
 		DuplicationWeightCounter counter = new DuplicationWeightCounter(gtTaxa,stTaxa,rooted);
 		
-		counter.computeTreeSTBipartitions(trees, stTaxa, taxonMap, clusters);		
+		counter.computeTreeSTBipartitions(trees, taxonMap, clusters);		
 
 		counter.calculateWeights(stTaxa);
 		
@@ -995,6 +996,7 @@ public class MGDInference_DP {
 
 	protected int computeTreeClusters(List<Tree> trees, String[] taxa,
 			Map<Integer, Set<Vertex>> clusters) {
+		
 		int maxEL = 0;
 		
 		// SIA: here they simply find internal vertices, and add
@@ -1119,7 +1121,7 @@ public class MGDInference_DP {
 			int lscore = computeMinCost(clusters, lv, sigmaNs, counter,trees,taxonMap);
 			int rscore = computeMinCost(clusters, rv, sigmaNs, counter,trees,taxonMap);
 
-			int w = counter.getBiPartitionDPWeight(lv._cluster, rv._cluster);
+			int w = counter.getBiPartitionDPWeight(lv._cluster, rv._cluster, v._cluster);
 
 			int z = optimizeDuploss? 3 : 1;
 
