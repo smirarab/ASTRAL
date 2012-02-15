@@ -338,7 +338,7 @@ public class MGDInference_DP {
 		}
 
 		Collapse.CollapseDescriptor cd = null;
-		if (true || rooted) {			
+		if (rooted) {			
 			cd = doCollapse(trees);
 		}
 
@@ -415,7 +415,7 @@ public class MGDInference_DP {
 			}
 		}
 
-		if (true || rooted) {
+		if (rooted) {
 			restoreCollapse(solutions, cd);
 		}
 		return (List<Solution>) solutions;
