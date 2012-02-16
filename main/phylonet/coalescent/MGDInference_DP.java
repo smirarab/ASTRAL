@@ -1072,8 +1072,8 @@ public class MGDInference_DP {
 */
 	private int computeMinCost(Map<Integer, Set<Vertex>> clusters, Vertex v,
 			int sigmaNs, DuplicationWeightCounter counter, List<Tree> trees, Map<String, String> taxonMap) {
-		// SIA: Already calculated. Don't re-calculate.
 		int maxEL = 1000000000;
+		// SIA: Already calculated. Don't re-calculate.
 		if (v._max_score != -1) {
 			return v._max_score - maxEL;
 		}
@@ -1101,13 +1101,10 @@ public class MGDInference_DP {
 			return v._max_score - maxEL;
 		}
 		
-		// SIA: here goes the recursion
 		Set<STBipartition> clusterBiPartitions = counter.getClusterBiPartitions(v._cluster);
 		
 		//STBipartition bestSTB = null;
-		
-		//System.err.println(v._cluster);
-		
+				
 		for (STBipartition stb: clusterBiPartitions) {
 
 			Vertex lv = clusterToVertex.get(stb.cluster1);
