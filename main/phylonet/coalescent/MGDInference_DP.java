@@ -40,7 +40,7 @@ import phylonet.tree.util.Trees;
 public class MGDInference_DP {
 	private static boolean _print = true;
 	private static boolean optimizeDuploss = false;
-	private static boolean rooted = true;
+	private static boolean rooted = false;
 
 	public static void main(String[] args) {
 		if ((args == null) || args.length == 0 || (args[0].equals("-h")) || (args.length < 1)) {
@@ -994,7 +994,7 @@ public class MGDInference_DP {
 		return maxEL;
 	}
 
-	protected int computeTreeClusters(List<Tree> trees, String[] taxa,
+	/*protected int computeTreeClusters(List<Tree> trees, String[] taxa,
 			Map<Integer, Set<Vertex>> clusters) {
 		
 		int maxEL = 0;
@@ -1069,7 +1069,7 @@ public class MGDInference_DP {
 		//System.out.println(clusters);
 		return maxEL;
 	}
-
+*/
 	private int computeMinCost(Map<Integer, Set<Vertex>> clusters, Vertex v,
 			int sigmaNs, DuplicationWeightCounter counter, List<Tree> trees, Map<String, String> taxonMap) {
 		// SIA: Already calculated. Don't re-calculate.
@@ -1082,10 +1082,10 @@ public class MGDInference_DP {
 			if (v._el_num == -1) {
 				if (taxonMap == null) {
 					v._el_num = DeepCoalescencesCounter.getClusterCoalNum(
-							trees, v._cluster, true);
+							trees, v._cluster, rooted);
 				} else {
 					v._el_num = DeepCoalescencesCounter.getClusterCoalNum(
-							trees, v._cluster, taxonMap, true);
+							trees, v._cluster, taxonMap, rooted);
 				}
 			}
 		} else {
