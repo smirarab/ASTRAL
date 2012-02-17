@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,32 +14,26 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 
 import phylonet.coalescent.DuplicationWeightCounter.STBipartition;
-import phylonet.maxclique.MaxClique;
 import phylonet.tree.io.NewickReader;
 import phylonet.tree.io.ParseException;
 import phylonet.tree.model.MutableTree;
-import phylonet.tree.model.TMutableNode;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STINode;
 import phylonet.tree.model.sti.STITree;
 import phylonet.tree.model.sti.STITreeCluster;
-import phylonet.tree.model.sti.STITreeClusterWD;
 import phylonet.tree.util.Collapse;
-import phylonet.tree.util.Collapse.CollapseDescriptor;
-import phylonet.tree.util.PostTraversal;
 import phylonet.tree.util.Trees;
 
 
 public class MGDInference_DP {
 	private static boolean _print = true;
 	private static boolean optimizeDuploss = false;
-	private static boolean rooted = false;
+	private static boolean rooted = true;
 
 	public static void main(String[] args) {
 		if ((args == null) || args.length == 0 || (args[0].equals("-h")) || (args.length < 1)) {
@@ -58,6 +51,7 @@ public class MGDInference_DP {
 		boolean unresolved = false;
 		long startTime = System.currentTimeMillis();
 		String line;
+		BufferedReader treesbr = null;
 		try {
 			List<String[]> options = getOptions(args);
 			for (String[] option : options) {
@@ -65,36 +59,12 @@ public class MGDInference_DP {
 					if (option.length != 2) {
 						printUsage();
 						return;
-					}
-					BufferedReader br = new BufferedReader(new FileReader(
+					}					
+					treesbr = new BufferedReader(new FileReader(
 							option[1]));
 
 					trees = new ArrayList();
 					// String line;
-					while ((line = br.readLine()) != null) {
-						Set<String> previousTreeTaxa = new HashSet<String>();
-						if (line.length() > 0) {
-							NewickReader nr = new NewickReader(
-									new StringReader(line));
-							if (rooted) {
-								STITree gt = new STITree(true);
-								nr.readTree(gt);							
-								if (previousTreeTaxa.isEmpty()) {
-									previousTreeTaxa.addAll(Arrays.asList(gt.getLeaves()));
-								} else {
-									if (! previousTreeTaxa.containsAll(Arrays.asList(gt.getLeaves()))) {
-										throw new RuntimeException("Not all trees are on the same set of taxa: "
-												+gt.getLeaves() + "\n"+ previousTreeTaxa);
-									}
-								}
-								trees.add(gt);
-							} else {
-								Tree tr = nr.readTree();
-								trees.add(tr);
-							}
-						}
-					}
-					br.close();
 				} else if (option[0].equals("-a")) {
 					if (option.length != 2) {
 						printUsage();
@@ -179,6 +149,12 @@ public class MGDInference_DP {
 						return;
 					}
 					unresolved = true;
+				} else if (option[0].equals("-u")) {
+					if ((option.length != 1) || (time != -1.0D)) {
+						printUsage();
+						return;
+					}
+					rooted = false;
 				} else if (option[0].equals("-t")) {
 					if ((option.length != 2) || (unresolved)) {
 						printUsage();
@@ -208,11 +184,38 @@ public class MGDInference_DP {
 				}
 			}
 
-			if (trees == null) {
+			if (treesbr == null) {
 				System.err.println("The input file has not been specified.");
 				printUsage();
 				return;
 			}
+			
+			System.out.println("Gene trees are treated as " + (rooted?"rooted":"unrooted"));
+			while ((line = treesbr.readLine()) != null) {
+				Set<String> previousTreeTaxa = new HashSet<String>();
+				if (line.length() > 0) {
+					NewickReader nr = new NewickReader(
+							new StringReader(line));
+					if (rooted) {
+						STITree gt = new STITree(true);
+						nr.readTree(gt);							
+						if (previousTreeTaxa.isEmpty()) {
+							previousTreeTaxa.addAll(Arrays.asList(gt.getLeaves()));
+						} else {
+							if (! previousTreeTaxa.containsAll(Arrays.asList(gt.getLeaves()))) {
+								throw new RuntimeException("Not all trees are on the same set of taxa: "
+										+gt.getLeaves() + "\n"+ previousTreeTaxa);
+							}
+						}
+						trees.add(gt);
+					} else {
+						Tree tr = nr.readTree();
+						trees.add(tr);
+					}
+				}
+			}
+			treesbr.close();
+		
 		} catch (IOException e) {
 			System.err.println("Error when reading trees. The function exits.");
 			System.err.println(e.getMessage());
@@ -288,21 +291,7 @@ public class MGDInference_DP {
 		System.out
 				.println("\t-i gene tree file: The file containing gene trees. (required)");
 		System.out
-				.println("\t-e explority: A set of inferred species trees will be returned. (optional)");
-		System.out
-				.println("\t              The set of inferred trees have extra lineages in the range specified by PROPORTION.");
-		System.out
-				.println("\t              The default value of PROPORTION is 0.");
-		System.out
-				.println("\t-x exhausted search: Using all clusters instead of clusters induced from gene trees. (optional)");
-		System.out
 				.println("\t-a mapping file: The file containing the mapping from alleles to speceis if multiple alleles sampled. (optional)");
-		System.out
-				.println("\t-b bootstrap threshold: the threshold value should be between 0 and 1. (optional)");
-		System.out
-				.println("\t-ur unresolved allowed: allow non-binary species tree. (optional)");
-		System.out
-				.println("\t-t time(in minute): if non-binary species tree is not allowed, users can specify the maximum time to search the tree space. (optional)");
 		System.out
 				.println("\t-o species tree file: The file to store the species tree. (optional)");
 		System.out
