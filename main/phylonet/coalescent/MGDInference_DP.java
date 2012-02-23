@@ -287,7 +287,7 @@ public class MGDInference_DP {
 				.println("This tool infers the species tree from rooted gene trees despite lineage sorting.");
 		System.out.println("Usage is:");
 		System.out
-				.println("\tinfer_st -m MGD -i input [-e proportion] [-a mapping] [-dl] [-t time] [-o output]");
+				.println("\t-i input [-e proportion] [-a mapping] [-dl] [-o output]");
 		System.out
 				.println("\t-i gene tree file: The file containing gene trees. (required)");
 		System.out
