@@ -413,6 +413,7 @@ public class MGDInference_DP {
 	public List<Solution> inferSpeciesTree(List<Tree> trees,
 			Map<String, String> taxonMap, boolean explore, double proportion,
 			boolean exhaust, double bootstrap, boolean unresolved, double time) {
+		long startTime = System.currentTimeMillis();
 		if ((trees == null) || (trees.size() == 0)) {
 			System.err
 					.println("Empty list of trees. The function returns a null tree.");
@@ -475,6 +476,12 @@ public class MGDInference_DP {
 		counter.calculateWeights(stTaxa);
 		
 		counter.addExtraBipartitions(clusters, stTaxa);
+		
+		if (_print) {
+			System.out.println("STBs formed in "
+					+ (System.currentTimeMillis() - startTime) / 1000.0D
+					+ " secs");
+		}		
 		
 		maxEL = optimizeDuploss ? sigmaN + 2 * (stTaxa.length - 1) * trees.size() : sigmaN;
 		
