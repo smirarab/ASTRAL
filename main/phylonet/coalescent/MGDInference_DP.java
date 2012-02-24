@@ -457,25 +457,26 @@ public class MGDInference_DP {
 		Map<Integer,Set<Vertex>> clusters = new HashMap<Integer, Set<Vertex>>();
 		int maxEL;
 		
-		if (!exhaust) {
+/*		if (!exhaust) {
 			maxEL = computeTreeClusters(trees, stTaxa, gtTaxa, taxonMap,
 					clusters);
 		} else{
 			//maxEL = computeAllClusters(trees, stTaxa, taxonMap, clusters);
 			throw new RuntimeException("Not Implemented");
 		}
-		
-		maxEL = optimizeDuploss ? maxEL + 2 * (stTaxa.length - 1) * trees.size() : maxEL;
+*/				
 		
 		List<Solution> solutions;
 		
 		DuplicationWeightCounter counter = new DuplicationWeightCounter(gtTaxa,stTaxa,rooted);
 		
-		counter.computeTreeSTBipartitions(trees, taxonMap, clusters);		
-
+		int sigmaN = counter.computeTreeSTBipartitions(trees, taxonMap, clusters);
+				
 		counter.calculateWeights(stTaxa);
 		
 		counter.addExtraBipartitions(clusters, stTaxa);
+		
+		maxEL = optimizeDuploss ? sigmaN + 2 * (stTaxa.length - 1) * trees.size() : sigmaN;
 		
 		if (explore) {
 			solutions = null;//findTreesByClique(clusters, taxa, proportion);
@@ -779,10 +780,10 @@ public class MGDInference_DP {
 		return solutions;
 	}
 */
-	private int computeTreeClusters(List<Tree> trees, String[] stTaxa,
+/*	private int computeTreeClusters(List<Tree> trees, String[] stTaxa,
 			String[] gtTaxa, Map<String, String> taxonMap,
 			Map<Integer, Set<Vertex>> clusters) {
-/*		int maxEL = 0;
+		int maxEL = 0;
 		for (Tree tr : trees) {
 			for (Iterator localIterator2 = tr.getClusters(gtTaxa, false)
 					.iterator(); localIterator2.hasNext();) {
@@ -887,7 +888,7 @@ public class MGDInference_DP {
 		}
 		maxEL++;
 		clusters.put(Integer.valueOf(1), l1);
-		return maxEL;*/
+		return maxEL;
 		
 		int maxEL = 0;
 		// SIA: here they simply find internal vertices, and add
@@ -921,18 +922,18 @@ public class MGDInference_DP {
 				if (!l.contains(nv)) {
 					//me
 					nv._el_num = -1;
-/*					nv._el_num = DeepCoalescencesCounter.getClusterCoalNum(
+					nv._el_num = DeepCoalescencesCounter.getClusterCoalNum(
 							trees, tc, true);
 					if (nv._el_num > maxEL) {
 						maxEL = nv._el_num;
 					}
-*/					//me
-/*					nv._el_num = DeepCoalescencesCounter.getClusterCoalNum(
+					//me
+					nv._el_num = DeepCoalescencesCounter.getClusterCoalNum(
 							trees, tc, true);
 					if (nv._el_num > maxEL) {
 						maxEL = nv._el_num;
 					}
-*/					nv._min_cost = -1;
+					nv._min_cost = -1;
 
 					l.add(nv);	
 				}
@@ -982,7 +983,7 @@ public class MGDInference_DP {
 		
 		return maxEL;
 	}
-
+*/
 	/*protected int computeTreeClusters(List<Tree> trees, String[] taxa,
 			Map<Integer, Set<Vertex>> clusters) {
 		

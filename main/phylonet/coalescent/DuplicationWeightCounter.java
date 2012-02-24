@@ -39,9 +39,10 @@ public class DuplicationWeightCounter {
 		}
 	}
 	
-	void computeTreeSTBipartitions(List<Tree> trees, 
+	int computeTreeSTBipartitions(List<Tree> trees, 
 			Map<String, String> taxonMap, Map<Integer, Set<Vertex>> clusters) {
 
+		int sigmaN = 0;
 		int k = trees.size();
 		String[] leaves = stTaxa;
 		int n = leaves.length;
@@ -72,6 +73,7 @@ public class DuplicationWeightCounter {
 		addToClusters(clusters, v, leaves.length);
 				
 		for (Tree tr : trees) {
+			sigmaN += tr.getLeafCount() - 1;
 			Map<TNode,STITreeCluster> map = new HashMap<TNode, STITreeCluster>(n);
 			for (Iterator<TNode> nodeIt = tr.postTraverse()
 					.iterator(); nodeIt.hasNext();) {
@@ -175,6 +177,7 @@ public class DuplicationWeightCounter {
 			s += clusters.get(c).size();
 		}
 		System.out.println("Number of gene tree Clusters: " +s);
+		return sigmaN;
 	}
 
 	private void addSTB(Map<Integer, Set<Vertex>> clusters,
