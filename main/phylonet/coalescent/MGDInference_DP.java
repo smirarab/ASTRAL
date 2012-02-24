@@ -1101,6 +1101,9 @@ public class MGDInference_DP {
 		Set<STBipartition> clusterBiPartitions = counter.getClusterBiPartitions(v._cluster);
 		
 		//STBipartition bestSTB = null;
+		if (clusterBiPartitions == null) {
+			System.err.println("Error: the following cluster has no STBs: " + v._cluster);	
+		}		
 				
 		for (STBipartition stb: clusterBiPartitions) {
 
