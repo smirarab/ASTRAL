@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -34,24 +33,35 @@ public class MGDInference_DP {
 	private static boolean _print = true;
 	private static boolean optimizeDuploss = false;
 	private static boolean rooted = true;
+	
+	private List<Tree> trees;
+	private List<Tree> extraTrees = null;
+	private Map<STITreeCluster,Vertex> clusterToVertex;
+
+	public MGDInference_DP(List<Tree> trees, List<Tree> extraTrees) {
+		super();
+		this.trees = trees;
+		this.extraTrees = extraTrees;
+	}
 
 	public static void main(String[] args) {
 		if ((args == null) || args.length == 0 || (args[0].equals("-h")) || (args.length < 1)) {
 			printUsage();
 			return;
 		}
-		Map taxonMap = null;
+		Map taxonMap = null;	
 		List<Tree> trees = null;
+		List<Tree> extraTrees = null;
 		String output = null;
-		boolean explore = false;
-		double proportion = 0.0D;
-		boolean exhaust = false;
+//		boolean explore = false;
+//		double proportion = 0.0D;
+//		boolean exhaust = false;
 		double bootstrap = 1.0D;
 		double time = -1.0D;
 		boolean unresolved = false;
 		long startTime = System.currentTimeMillis();
 		String line;
-		BufferedReader treesbr = null;
+		BufferedReader treeBufferReader = null;
 		try {
 			List<String[]> options = getOptions(args);
 			for (String[] option : options) {
@@ -60,11 +70,30 @@ public class MGDInference_DP {
 						printUsage();
 						return;
 					}					
-					treesbr = new BufferedReader(new FileReader(
+					treeBufferReader = new BufferedReader(new FileReader(
 							option[1]));
 
 					trees = new ArrayList();
 					// String line;
+				} else if (option[0].equals("-ex")) {
+					if (option.length != 2) {
+						printUsage();
+						return;
+					}					
+					BufferedReader buffer = new BufferedReader(new FileReader(
+							option[1]));
+
+					extraTrees = new ArrayList();
+					// String line;					
+					while ((line = buffer.readLine()) != null) {
+						if (line.length() > 0) {
+							NewickReader nr = new NewickReader(
+									new StringReader(line));
+							STITree gt = new STITree(true);
+							nr.readTree(gt);							
+							trees.add(gt);
+						}
+					}
 				} else if (option[0].equals("-a")) {
 					if (option.length != 2) {
 						printUsage();
@@ -108,17 +137,17 @@ public class MGDInference_DP {
 						printUsage();
 						return;
 					}
-					exhaust = true;
+					//exhaust = true;
 				} else if (option[0].equals("-e")) {
 					if (option.length > 2) {
 						printUsage();
 						return;
 					}
-					explore = true;
+					//explore = true;
 					if (option.length != 2)
 						continue;
 					try {
-						proportion = Double.parseDouble(option[1]);
+						//proportion = Double.parseDouble(option[1]);
 					} catch (NumberFormatException e) {
 						System.err.println("Error in reading parameter");
 						printUsage();
@@ -184,14 +213,14 @@ public class MGDInference_DP {
 				}
 			}
 
-			if (treesbr == null) {
+			if (treeBufferReader == null) {
 				System.err.println("The input file has not been specified.");
 				printUsage();
 				return;
 			}
 			
 			System.out.println("Gene trees are treated as " + (rooted?"rooted":"unrooted"));
-			while ((line = treesbr.readLine()) != null) {
+			while ((line = treeBufferReader.readLine()) != null) {
 				Set<String> previousTreeTaxa = new HashSet<String>();
 				if (line.length() > 0) {
 					NewickReader nr = new NewickReader(
@@ -214,7 +243,7 @@ public class MGDInference_DP {
 					}
 				}
 			}
-			treesbr.close();
+			treeBufferReader.close();
 		
 		} catch (IOException e) {
 			System.err.println("Error when reading trees. The function exits.");
@@ -241,16 +270,9 @@ public class MGDInference_DP {
 		}
 
 		startTime = System.currentTimeMillis();
-		MGDInference_DP inference = new MGDInference_DP();
-		List<Solution> solutions;
-		if (taxonMap == null) {
-			solutions = inference.inferSpeciesTree(trees, explore, proportion,
-					exhaust, bootstrap, unresolved, time);
-		} else {
-			//throw new RuntimeException("Not Implemented");
-			solutions = inference.inferSpeciesTree(trees, taxonMap, explore,
-					proportion, exhaust, bootstrap, unresolved, time);
-		}
+		MGDInference_DP inference = new MGDInference_DP(trees, extraTrees);
+		
+		List<Solution> solutions = inference.inferSpeciesTree(taxonMap);
 
 		if (_print) {
 			System.out.println("Optimal tree inferred in "
@@ -287,7 +309,7 @@ public class MGDInference_DP {
 				.println("This tool infers the species tree from rooted gene trees despite lineage sorting.");
 		System.out.println("Usage is:");
 		System.out
-				.println("\t-i input [-e proportion] [-a mapping] [-dl] [-o output]");
+				.println("\tMGDInference_DP -i input [-a mapping] [-dl] [ur] [-o output] [-ex extra_trees]");
 		System.out
 				.println("\t-i gene tree file: The file containing gene trees. (required)");
 		System.out
@@ -303,20 +325,16 @@ public class MGDInference_DP {
 
 	public static void setPrinting(boolean print) {
 		_print = print;
-	}
+	}	
 
-	private Map<STITreeCluster,Vertex> clusterToVertex;
-
-	public List<Solution> inferSpeciesTree(List<Tree> trees, boolean explore,
-			double proportion, boolean exhaust, double bootstrap,
-			boolean unresolved, double time) {
+	public List<Solution> inferSpeciesTree() {
 		
 		long startTime = System.currentTimeMillis();
 		if ((trees == null) || (trees.size() == 0)) {
 			throw new IllegalArgumentException("empty or null list of trees");
 		}
 
-		if (bootstrap < 1.0D) {
+/*		if (bootstrap < 1.0D) {
 			for (Tree tr : trees) {
 				if (Trees.handleBootStrapInTree(tr, bootstrap) == -1) {
 					throw new IllegalArgumentException(
@@ -324,7 +342,7 @@ public class MGDInference_DP {
 				}
 			}
 
-		}
+		}*/
 
 		Collapse.CollapseDescriptor cd = null;
 		if (rooted) {			
@@ -382,27 +400,27 @@ public class MGDInference_DP {
 					+ " secs");
 		}		
 
-		if (explore) {
+/*		if (explore) {
 			solutions = null;//findTreesByClique(clusters, taxa, proportion);
 			throw new RuntimeException("Not Implemented");
-		} else {
-			int maxEL;
-			//SIA: we are here
-			maxEL = (taxa.length - 1) * trees.size();  
-			maxEL = optimizeDuploss ? maxEL + 2 * (taxa.length - 1) * trees.size() : maxEL;
-			solutions = findTreesByDP(clusters, taxa, maxEL,counter,trees, null);
-		}
-
+		} else {*/
+		int maxEL;
+		
+		maxEL = (taxa.length - 1) * trees.size();  
+		maxEL = optimizeDuploss ? maxEL + 2 * (taxa.length - 1) * trees.size() : maxEL;
+		solutions = findTreesByDP(clusters, taxa, maxEL,counter,trees, null);
+//		}
+/*
 		if (!unresolved) {
 			time *= 60.0D;
 			for (Solution sol : solutions) {
 				if (!Trees.isBinary(sol._st)) {
 					throw new RuntimeException("Where did we get unresolved trees from?");
-/*					sol._totalCoals = (tryBinaryResolutions(sol._st, time,
+					sol._totalCoals = (tryBinaryResolutions(sol._st, time,
 							taxa, trees, null) + sol._totalCoals);
-*/				}
+				}
 			}
-		}
+		}*/
 
 		if (rooted) {
 			restoreCollapse(solutions, cd);
@@ -410,53 +428,70 @@ public class MGDInference_DP {
 		return (List<Solution>) solutions;
 	}
 
-	public List<Solution> inferSpeciesTree(List<Tree> trees,
-			Map<String, String> taxonMap, boolean explore, double proportion,
-			boolean exhaust, double bootstrap, boolean unresolved, double time) {
+	public List<Solution> inferSpeciesTree(Map<String, String> taxonMap) {
 		long startTime = System.currentTimeMillis();
+		
+		String[] gtTaxa;
+		String[] stTaxa;
+		Collapse.CollapseDescriptor  cd = null;
+		
 		if ((trees == null) || (trees.size() == 0)) {
-			System.err
-					.println("Empty list of trees. The function returns a null tree.");
-			return null;
+			throw new IllegalArgumentException("empty or null list of trees");
 		}
 
-		String error = Trees.checkMapping(trees, taxonMap);
-		if (error != null) {
-			throw new RuntimeException("Gene trees have leaf named " + error
-					+ "that hasn't been defined in the mapping file");
-		}
+		if (taxonMap != null) {
+			String error = Trees.checkMapping(trees, taxonMap);
+			if (error != null) {
+				throw new RuntimeException("Gene trees have leaf named " + error
+						+ "that hasn't been defined in the mapping file");
+			}
 
-		if (bootstrap < 1.0D) {
+			List temp1 = new LinkedList();
+			List temp2 = new LinkedList();
+			for (String s : taxonMap.keySet()) {
+				temp1.add(s);
+				if (!((List) temp2).contains(taxonMap.get(s))) {
+					((List) temp2).add((String) taxonMap.get(s));
+				}
+			}
+			gtTaxa = new String[temp1.size()];			
+			stTaxa = new String[temp2.size()];
+
+			for (int i = 0; i < gtTaxa.length; i++) {
+				gtTaxa[i] = ((String) temp1.get(i));
+			}
+			for (int i = 0; i < stTaxa.length; i++) {
+				stTaxa[i] = ((String) ((List) temp2).get(i));
+			}
+		} else {			
+			cd = null;
+			if (rooted) {			
+				cd = doCollapse(trees);
+			}
+
+			List<String> taxalist = new ArrayList<String>();
 			for (Tree tr : trees) {
-				if (Trees.handleBootStrapInTree(tr, bootstrap) == -1) {
-					throw new IllegalArgumentException(
-							"Input gene trees have nodes that don't have bootstrap value");
+				for (TNode node : tr.postTraverse()) {
+					if ((node.isLeaf())
+							&& (!taxalist.contains(node.getName()))) {
+						taxalist.add(node.getName());
+					}
 				}
 			}
 
-		}
+			stTaxa = new String[taxalist.size()];
 
-		List temp1 = new LinkedList();
-		Object temp2 = new LinkedList();
-		for (String s : taxonMap.keySet()) {
-			temp1.add(s);
-			if (!((List) temp2).contains(taxonMap.get(s))) {
-				((List) temp2).add((String) taxonMap.get(s));
+			int index = 0;
+			for (String taxon : taxalist) {
+				stTaxa[(index++)] = taxon;
 			}
+			gtTaxa = stTaxa;
 		}
-
-		String[] gtTaxa = new String[temp1.size()];
-		String[] stTaxa = new String[((List) temp2).size()];
-
-		for (int i = 0; i < gtTaxa.length; i++) {
-			gtTaxa[i] = ((String) temp1.get(i));
-		}
-		for (int i = 0; i < stTaxa.length; i++) {
-			stTaxa[i] = ((String) ((List) temp2).get(i));
-		}
-
+		
+		System.out.println("Number of taxa: " + stTaxa.length);
+		
 		Map<Integer,Set<Vertex>> clusters = new HashMap<Integer, Set<Vertex>>();
-		int maxEL;
+
 		
 /*		if (!exhaust) {
 			maxEL = computeTreeClusters(trees, stTaxa, gtTaxa, taxonMap,
@@ -473,8 +508,6 @@ public class MGDInference_DP {
 		
 		int sigmaN = counter.computeTreeSTBipartitions(trees, taxonMap, clusters);
 				
-		counter.calculateWeights(stTaxa);
-		
 		counter.addExtraBipartitions(clusters, stTaxa);
 		
 		if (_print) {
@@ -483,29 +516,33 @@ public class MGDInference_DP {
 					+ " secs");
 		}		
 		
-		maxEL = optimizeDuploss ? sigmaN + 2 * (stTaxa.length - 1) * trees.size() : sigmaN;
+		//counter.calculateWeights(stTaxa);
 		
-		if (explore) {
+		int maxEL = optimizeDuploss ? sigmaN + 2 * (stTaxa.length - 1) * trees.size() : sigmaN;
+		
+		/*		if (explore) {
 			solutions = null;//findTreesByClique(clusters, taxa, proportion);
 			throw new RuntimeException("Not Implemented");
-		} else {
-			//SIA: we are here
-/*			if (DUPLOSS){
-				maxEL = 3*(stTaxa.length - 1) * trees.size();  // 3 is for duploss 
-			} */
+		} else {*/			
 			// System.out.println("maxEL: " + maxEL + taxa.length + trees.size());
-			solutions = findTreesByDP(clusters, stTaxa, maxEL, counter,trees, taxonMap);
-		}
+		
+		solutions = findTreesByDP(clusters, stTaxa, maxEL, counter,trees, taxonMap);
+		
+		//}
 
-		if (!unresolved) {
+/*		if (!unresolved) {
 			time *= 60.0D;
 			for (Solution sol : solutions) {
 				if (!Trees.isBinary(sol._st)) {
 					throw new RuntimeException("Where did we get unresolved trees from?");
-/*					sol._totalCoals = (tryBinaryResolutions(sol._st, time,
+					sol._totalCoals = (tryBinaryResolutions(sol._st, time,
 							stTaxa, trees, taxonMap) + sol._totalCoals);
-*/				}
+				}
 			}
+		}*/
+		
+		if (taxonMap != null && rooted) {
+			restoreCollapse(solutions, cd);
 		}
 
 		return (List<Solution>) solutions;
@@ -1103,6 +1140,7 @@ public class MGDInference_DP {
 		//STBipartition bestSTB = null;
 		if (clusterBiPartitions == null) {
 			System.err.println("Error: the following cluster has no STBs: " + v._cluster);	
+			throw new RuntimeException("Error: the following cluster has no STBs: " + v._cluster);
 		}		
 				
 		for (STBipartition stb: clusterBiPartitions) {

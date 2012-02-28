@@ -177,6 +177,9 @@ public class DuplicationWeightCounter {
 			s += clusters.get(c).size();
 		}
 		System.out.println("Number of gene tree Clusters: " +s);
+		
+		weights = new HashMap<STBipartition, Integer>(STBCountInGeneTrees.size());
+		
 		return sigmaN;
 	}
 
@@ -315,8 +318,7 @@ public class DuplicationWeightCounter {
 		}
 	}
 
-	void calculateWeights(String[] leaves) {
-		weights = new HashMap<STBipartition, Integer>(STBCountInGeneTrees.size());
+	void calculateWeights(String[] leaves) {		
 		/*weights.putAll(STBCountInGeneTrees);						
 		
 		for (int i = leaves.length; i > 1; i--) {
