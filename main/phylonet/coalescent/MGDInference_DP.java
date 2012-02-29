@@ -415,7 +415,7 @@ public class MGDInference_DP {
 					+ " secs");
 		}		
 		
-		//counter.calculateWeights(stTaxa);
+		counter.calculateWeights(trees);
 		
 		sigmaNs = optimizeDuploss ? sigmaN + 2 * (stTaxa.length - 1) * trees.size() : sigmaN;
 				
@@ -462,7 +462,7 @@ public class MGDInference_DP {
 		System.out.println("first round finished, adding new STBs");
 		counter.addExtraBipartitions(clusters, stTaxa);
 */		
-		clusterToVertex = new HashMap<STITreeCluster, Vertex>();
+		clusterToVertex = new HashMap<STITreeCluster, Vertex>(sigmaNs);
 		for (Set<Vertex> vs: clusters.values()) {
 			for (Vertex vertex : vs) {
 				vertex._max_score = -1;
@@ -475,6 +475,8 @@ public class MGDInference_DP {
 		System.out.println("Sigma N: " + sigmaNs);
 		
 		computeMinCost(all);
+		
+		System.out.println("domination calcs:" + counter.cnt);
 
 		List minClusters = new LinkedList();
 		List coals = new LinkedList();
@@ -504,7 +506,7 @@ public class MGDInference_DP {
 				minVertices.push(pe._min_lc);
 			}
 			if (pe._min_lc != null && pe._min_rc != null) {
-				coals.add(pe._min_cost);
+				coals.add(pe._c);
 			} else {
 				coals.add(0);
 			}
@@ -513,7 +515,7 @@ public class MGDInference_DP {
 					minVertices.push(v);
 				}
 			}
-		}
+		}		
 		Solution sol = new Solution();
 		if ((minClusters == null) || (minClusters.isEmpty())) {
 			Object tr = new STITree();
@@ -627,7 +629,8 @@ public class MGDInference_DP {
 			v._min_cost = sigmaNs - (c + lv._max_score + rv._max_score - 2*maxEL);
 			//stem.out.println(maxEL - (z*w + lv._max_score + rv._max_score));
 			v._min_lc = lv;
-			v._min_rc = rv;				
+			v._min_rc = rv;
+			v._c = c;
 			//bestSTB = stb;
 		}
 
@@ -932,6 +935,7 @@ public class MGDInference_DP {
 		public  int _el_num = -1;
 		public int _min_cost = -1;
 		public int _max_score = -1;
+		public int _c = 0;
 		public Vertex _min_lc = this._min_rc = null;
 		public Vertex _min_rc;
 		public List<Vertex> _subcl = null;
