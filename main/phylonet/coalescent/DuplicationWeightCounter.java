@@ -221,7 +221,7 @@ public class DuplicationWeightCounter {
 		}
 	}
 	
-	void addExtraBipartitions(Map<Integer, Set<Vertex>> clusters, String[] stTaxa) {
+	void addExtraBipartitionsByHeuristics(Map<Integer, Set<Vertex>> clusters) {
 		HashSet<STBipartition> bipToAddToX = new HashSet<STBipartition>();
 		//goodSTBs = X;
 		//if (true) return;
@@ -262,6 +262,73 @@ public class DuplicationWeightCounter {
 			s += clusters.get(c).size();
 		}
 		System.out.println("Number of Clusters After Addition: " +s);
+
+	}
+
+	void addExtraBipartitionsByInput(Map<Integer, Set<Vertex>> clusters,
+			List<Tree> extraTrees) {
+		
+		if (extraTrees == null) {
+			return;
+		}
+		
+		Vertex v;
+		for (Tree tr : extraTrees) {
+			Map<TNode,STITreeCluster> map = new HashMap<TNode, STITreeCluster>();
+			for (Iterator<TNode> nodeIt = tr.postTraverse()
+					.iterator(); nodeIt.hasNext();) {
+				TNode node = nodeIt.next();		        
+	            if(node.isLeaf())
+	            {
+	                String nodeName = node.getName();
+
+	                STITreeCluster tb = new STITreeCluster(stTaxa);
+	                tb.addLeaf(nodeName);	                	                	        			
+	        			
+        			map.put(node, tb);
+	                
+	            } else {
+	                int childCount = node.getChildCount();
+	                STITreeCluster childbslist[] = new STITreeCluster[childCount];
+			        BitSet bs = new BitSet(stTaxa.length);
+	                int index = 0;
+	                for(Iterator iterator3 = node.getChildren().iterator(); iterator3.hasNext();)
+	                {
+	                    TNode child = (TNode)iterator3.next();
+	                    childbslist[index++] = map.get(child);
+	                    bs.or(map.get(child).getCluster());
+	                }
+	                	                		                
+	                STITreeCluster cluster = new STITreeCluster(stTaxa);
+	                cluster.setCluster((BitSet) bs.clone());	
+	                
+	                int size = cluster.getClusterSize();
+	                
+        			v = new Vertex();
+        			v._cluster = cluster;
+        			v._el_num = -1; //me
+        			v._min_cost = -1;
+        			addToClusters(clusters, v, size);
+	                map.put(node, cluster);	                
+	                
+	                
+                	if (index > 2) {	                	
+	                	throw new RuntimeException("None bifurcating tree: "+
+	                			tr+ "\n" + node);
+	                }
+
+	                STITreeCluster l_cluster = childbslist[0];
+	                
+	                STITreeCluster r_cluster = childbslist[1];
+	                
+	                STBipartition stb = new STBipartition(l_cluster, r_cluster, cluster);
+	                
+	    			addSTBToX(clusters, stb);
+	              
+	            }	           
+			}
+
+		}
 
 	}
 

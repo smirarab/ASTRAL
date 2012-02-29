@@ -37,11 +37,16 @@ public class MGDInference_DP {
 	private List<Tree> trees;
 	private List<Tree> extraTrees = null;
 	private Map<STITreeCluster,Vertex> clusterToVertex;
-
-	public MGDInference_DP(List<Tree> trees, List<Tree> extraTrees) {
+	private Map<Integer, Set<Vertex>> clusters;
+	private int sigmaNs;
+	private DuplicationWeightCounter counter;
+	Map<String, String> taxonMap;
+	
+	public MGDInference_DP(List<Tree> trees, List<Tree> extraTrees, Map<String, String> taxonMap) {
 		super();
 		this.trees = trees;
 		this.extraTrees = extraTrees;
+		this.taxonMap = taxonMap;
 	}
 
 	public static void main(String[] args) {
@@ -270,9 +275,9 @@ public class MGDInference_DP {
 		}
 
 		startTime = System.currentTimeMillis();
-		MGDInference_DP inference = new MGDInference_DP(trees, extraTrees);
+		MGDInference_DP inference = new MGDInference_DP(trees, extraTrees, taxonMap);
 		
-		List<Solution> solutions = inference.inferSpeciesTree(taxonMap);
+		List<Solution> solutions = inference.inferSpeciesTree();
 
 		if (_print) {
 			System.out.println("Optimal tree inferred in "
@@ -329,7 +334,7 @@ public class MGDInference_DP {
 
 	
 
-	public List<Solution> inferSpeciesTree(Map<String, String> taxonMap) {
+	public List<Solution> inferSpeciesTree() {
 		long startTime = System.currentTimeMillis();
 		
 		String[] gtTaxa;
@@ -391,25 +396,18 @@ public class MGDInference_DP {
 		
 		System.out.println("Number of taxa: " + stTaxa.length);
 		
-		Map<Integer,Set<Vertex>> clusters = new HashMap<Integer, Set<Vertex>>();
-
-		
-/*		if (!exhaust) {
-			maxEL = computeTreeClusters(trees, stTaxa, gtTaxa, taxonMap,
-					clusters);
-		} else{
-			//maxEL = computeAllClusters(trees, stTaxa, taxonMap, clusters);
-			throw new RuntimeException("Not Implemented");
-		}
-*/				
+		clusters = new HashMap<Integer, Set<Vertex>>(stTaxa.length);
+	
 		
 		List<Solution> solutions;
-		
-		DuplicationWeightCounter counter = new DuplicationWeightCounter(gtTaxa,stTaxa,rooted);
+				
+		counter = new DuplicationWeightCounter(gtTaxa,stTaxa,rooted);
 		
 		int sigmaN = counter.computeTreeSTBipartitions(trees, taxonMap, clusters);
 				
-		counter.addExtraBipartitions(clusters, stTaxa);
+		counter.addExtraBipartitionsByInput(clusters, extraTrees);
+		
+		counter.addExtraBipartitionsByHeuristics(clusters);
 		
 		if (_print) {
 			System.out.println("STBs formed in "
@@ -419,28 +417,10 @@ public class MGDInference_DP {
 		
 		//counter.calculateWeights(stTaxa);
 		
-		int maxEL = optimizeDuploss ? sigmaN + 2 * (stTaxa.length - 1) * trees.size() : sigmaN;
+		sigmaNs = optimizeDuploss ? sigmaN + 2 * (stTaxa.length - 1) * trees.size() : sigmaN;
+				
+		solutions = findTreesByDP(stTaxa, counter,trees, taxonMap);
 		
-		/*		if (explore) {
-			solutions = null;//findTreesByClique(clusters, taxa, proportion);
-			throw new RuntimeException("Not Implemented");
-		} else {*/			
-			// System.out.println("maxEL: " + maxEL + taxa.length + trees.size());
-		
-		solutions = findTreesByDP(clusters, stTaxa, maxEL, counter,trees, taxonMap);
-		
-		//}
-
-/*		if (!unresolved) {
-			time *= 60.0D;
-			for (Solution sol : solutions) {
-				if (!Trees.isBinary(sol._st)) {
-					throw new RuntimeException("Where did we get unresolved trees from?");
-					sol._totalCoals = (tryBinaryResolutions(sol._st, time,
-							stTaxa, trees, taxonMap) + sol._totalCoals);
-				}
-			}
-		}*/
 		
 		if (taxonMap == null && rooted) {
 			restoreCollapse(solutions, cd);
@@ -465,8 +445,7 @@ public class MGDInference_DP {
 		}
 	}
 
-	private List<Solution> findTreesByDP(Map<Integer, Set<Vertex>> clusters,
-			String[] stTaxa, int sigmaN, DuplicationWeightCounter counter, List<Tree> trees, Map<String, String> taxonMap) {
+	private List<Solution> findTreesByDP(String[] stTaxa, DuplicationWeightCounter counter, List<Tree> trees, Map<String, String> taxonMap) {
 		List<Solution> solutions = new ArrayList<Solution>();
 
 		
@@ -493,9 +472,9 @@ public class MGDInference_DP {
 		
 		Vertex all = (Vertex) clusters.get(Integer
 				.valueOf(stTaxa.length)).toArray()[0];
-		System.out.println("maxEL: " + sigmaN);
+		System.out.println("Sigma N: " + sigmaNs);
 		
-		computeMinCost(clusters, all, sigmaN, counter,trees, taxonMap);
+		computeMinCost(all);
 
 		List minClusters = new LinkedList();
 		List coals = new LinkedList();
@@ -516,7 +495,7 @@ public class MGDInference_DP {
 			Vertex pe = (Vertex) minVertices.pop();
 
 			minClusters.add(pe._cluster);
-			int k = sigmaN/(stTaxa.length-1);
+			//int k = sigmaNs/(stTaxa.length-1);
 			
 			if (pe._min_rc != null) {
 				minVertices.push(pe._min_rc);
@@ -581,8 +560,7 @@ public class MGDInference_DP {
 		return (List<Solution>) (List<Solution>) solutions;
 	}
 
-	private int computeMinCost(Map<Integer, Set<Vertex>> clusters, Vertex v,
-			int sigmaNs, DuplicationWeightCounter counter, List<Tree> trees, Map<String, String> taxonMap) {
+	private int computeMinCost(Vertex v) {
 		// TODO: fix this. 
 		int maxEL = 1000000000;
 		// Already calculated. Don't re-calculate.
@@ -631,8 +609,8 @@ public class MGDInference_DP {
 				continue;
 			}
 
-			int lscore = computeMinCost(clusters, lv, sigmaNs, counter,trees,taxonMap);
-			int rscore = computeMinCost(clusters, rv, sigmaNs, counter,trees,taxonMap);
+			int lscore = computeMinCost(lv);
+			int rscore = computeMinCost(rv);
 
 			int w = counter.getBiPartitionDPWeight(lv._cluster, rv._cluster, v._cluster);
 
