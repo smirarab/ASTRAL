@@ -28,21 +28,21 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.util.Collapse;
 import phylonet.tree.util.Trees;
 
-
 public class MGDInference_DP {
 	private static boolean _print = true;
 	private static boolean optimizeDuploss = false;
 	private static boolean rooted = true;
-	
+
 	private List<Tree> trees;
 	private List<Tree> extraTrees = null;
-	private Map<STITreeCluster,Vertex> clusterToVertex;
+	private Map<STITreeCluster, Vertex> clusterToVertex;
 	private Map<Integer, Set<Vertex>> clusters;
 	private int sigmaNs;
 	private DuplicationWeightCounter counter;
 	Map<String, String> taxonMap;
-	
-	public MGDInference_DP(List<Tree> trees, List<Tree> extraTrees, Map<String, String> taxonMap) {
+
+	public MGDInference_DP(List<Tree> trees, List<Tree> extraTrees,
+			Map<String, String> taxonMap) {
 		super();
 		this.trees = trees;
 		this.extraTrees = extraTrees;
@@ -50,17 +50,18 @@ public class MGDInference_DP {
 	}
 
 	public static void main(String[] args) {
-		if ((args == null) || args.length == 0 || (args[0].equals("-h")) || (args.length < 1)) {
+		if ((args == null) || args.length == 0 || (args[0].equals("-h"))
+				|| (args.length < 1)) {
 			printUsage();
 			return;
 		}
-		Map<String, String> taxonMap = null;	
+		Map<String, String> taxonMap = null;
 		List<Tree> trees = null;
 		List<Tree> extraTrees = null;
 		String output = null;
-//		boolean explore = false;
-//		double proportion = 0.0D;
-//		boolean exhaust = false;
+		// boolean explore = false;
+		// double proportion = 0.0D;
+		// boolean exhaust = false;
 		double bootstrap = 1.0D;
 		double time = -1.0D;
 		boolean unresolved = false;
@@ -74,7 +75,7 @@ public class MGDInference_DP {
 					if (option.length != 2) {
 						printUsage();
 						return;
-					}					
+					}
 					treeBufferReader = new BufferedReader(new FileReader(
 							option[1]));
 
@@ -84,18 +85,18 @@ public class MGDInference_DP {
 					if (option.length != 2) {
 						printUsage();
 						return;
-					}					
+					}
 					BufferedReader buffer = new BufferedReader(new FileReader(
 							option[1]));
 
 					extraTrees = new ArrayList();
-					// String line;					
+					// String line;
 					while ((line = buffer.readLine()) != null) {
 						if (line.length() > 0) {
 							NewickReader nr = new NewickReader(
 									new StringReader(line));
 							STITree gt = new STITree(true);
-							nr.readTree(gt);							
+							nr.readTree(gt);
 							trees.add(gt);
 						}
 					}
@@ -142,17 +143,17 @@ public class MGDInference_DP {
 						printUsage();
 						return;
 					}
-					//exhaust = true;
+					// exhaust = true;
 				} else if (option[0].equals("-e")) {
 					if (option.length > 2) {
 						printUsage();
 						return;
 					}
-					//explore = true;
+					// explore = true;
 					if (option.length != 2)
 						continue;
 					try {
-						//proportion = Double.parseDouble(option[1]);
+						// proportion = Double.parseDouble(option[1]);
 					} catch (NumberFormatException e) {
 						System.err.println("Error in reading parameter");
 						printUsage();
@@ -223,22 +224,26 @@ public class MGDInference_DP {
 				printUsage();
 				return;
 			}
-			
-			System.out.println("Gene trees are treated as " + (rooted?"rooted":"unrooted"));
+
+			System.out.println("Gene trees are treated as "
+					+ (rooted ? "rooted" : "unrooted"));
 			while ((line = treeBufferReader.readLine()) != null) {
 				Set<String> previousTreeTaxa = new HashSet<String>();
 				if (line.length() > 0) {
-					NewickReader nr = new NewickReader(
-							new StringReader(line));
+					NewickReader nr = new NewickReader(new StringReader(line));
 					if (rooted) {
 						STITree gt = new STITree(true);
-						nr.readTree(gt);							
+						nr.readTree(gt);
 						if (previousTreeTaxa.isEmpty()) {
-							previousTreeTaxa.addAll(Arrays.asList(gt.getLeaves()));
+							previousTreeTaxa.addAll(Arrays.asList(gt
+									.getLeaves()));
 						} else {
-							if (! previousTreeTaxa.containsAll(Arrays.asList(gt.getLeaves()))) {
-								throw new RuntimeException("Not all trees are on the same set of taxa: "
-										+gt.getLeaves() + "\n"+ previousTreeTaxa);
+							if (!previousTreeTaxa.containsAll(Arrays.asList(gt
+									.getLeaves()))) {
+								throw new RuntimeException(
+										"Not all trees are on the same set of taxa: "
+												+ gt.getLeaves() + "\n"
+												+ previousTreeTaxa);
 							}
 						}
 						trees.add(gt);
@@ -249,7 +254,7 @@ public class MGDInference_DP {
 				}
 			}
 			treeBufferReader.close();
-		
+
 		} catch (IOException e) {
 			System.err.println("Error when reading trees. The function exits.");
 			System.err.println(e.getMessage());
@@ -275,20 +280,24 @@ public class MGDInference_DP {
 		}
 
 		startTime = System.currentTimeMillis();
-		MGDInference_DP inference = new MGDInference_DP(trees, extraTrees, taxonMap);
-		
+		MGDInference_DP inference = new MGDInference_DP(trees, extraTrees,
+				taxonMap);
+
 		List<Solution> solutions = inference.inferSpeciesTree();
 
 		if (_print) {
 			System.out.println("Optimal tree inferred in "
 					+ (System.currentTimeMillis() - startTime) / 1000.0D
-					+ " secs");			
+					+ " secs");
 		}
 
 		if ((output == null) && (_print)) {
 			for (Solution s : solutions)
-				System.out.println(s._st.toStringWD() + " \n" + s._totalCoals
-						+ (optimizeDuploss? " duplication+loss":" duplicatins") + " in total");
+				System.out.println(s._st.toStringWD()
+						+ " \n"
+						+ s._totalCoals
+						+ (optimizeDuploss ? " duplication+loss"
+								: " duplicatins") + " in total");
 		} else
 			try {
 				FileWriter fw = new FileWriter(output);
@@ -321,26 +330,22 @@ public class MGDInference_DP {
 				.println("\t-a mapping file: The file containing the mapping from alleles to speceis if multiple alleles sampled. (optional)");
 		System.out
 				.println("\t-o species tree file: The file to store the species tree. (optional)");
-		System.out
-				.println("\t-dl optimize duploss instead of duplications");
-		System.out
-				.println("\t-u treat input gene trees as unrooted");				
+		System.out.println("\t-dl optimize duploss instead of duplications");
+		System.out.println("\t-u treat input gene trees as unrooted");
 		System.out.println();
 	}
 
 	public static void setPrinting(boolean print) {
 		_print = print;
-	}	
-
-	
+	}
 
 	public List<Solution> inferSpeciesTree() {
 		long startTime = System.currentTimeMillis();
-		
+
 		String[] gtTaxa;
 		String[] stTaxa;
-		Collapse.CollapseDescriptor  cd = null;
-		
+		Collapse.CollapseDescriptor cd = null;
+
 		if ((trees == null) || (trees.size() == 0)) {
 			throw new IllegalArgumentException("empty or null list of trees");
 		}
@@ -348,7 +353,8 @@ public class MGDInference_DP {
 		if (taxonMap != null) {
 			String error = Trees.checkMapping(trees, taxonMap);
 			if (error != null) {
-				throw new RuntimeException("Gene trees have leaf named " + error
+				throw new RuntimeException("Gene trees have leaf named "
+						+ error
 						+ "that hasn't been defined in the mapping file");
 			}
 
@@ -360,7 +366,7 @@ public class MGDInference_DP {
 					((List) temp2).add((String) taxonMap.get(s));
 				}
 			}
-			gtTaxa = new String[temp1.size()];			
+			gtTaxa = new String[temp1.size()];
 			stTaxa = new String[temp2.size()];
 
 			for (int i = 0; i < gtTaxa.length; i++) {
@@ -369,17 +375,16 @@ public class MGDInference_DP {
 			for (int i = 0; i < stTaxa.length; i++) {
 				stTaxa[i] = ((String) ((List) temp2).get(i));
 			}
-		} else {			
+		} else {
 			cd = null;
-			if (rooted) {			
+			if (rooted) {
 				cd = doCollapse(trees);
 			}
 
 			List<String> taxalist = new ArrayList<String>();
 			for (Tree tr : trees) {
 				for (TNode node : tr.postTraverse()) {
-					if ((node.isLeaf())
-							&& (!taxalist.contains(node.getName()))) {
+					if ((node.isLeaf()) && (!taxalist.contains(node.getName()))) {
 						taxalist.add(node.getName());
 					}
 				}
@@ -393,35 +398,35 @@ public class MGDInference_DP {
 			}
 			gtTaxa = stTaxa;
 		}
-		
+
 		System.out.println("Number of taxa: " + stTaxa.length);
-		
+
 		clusters = new HashMap<Integer, Set<Vertex>>(stTaxa.length);
-	
-		
+
 		List<Solution> solutions;
-				
-		counter = new DuplicationWeightCounter(gtTaxa,stTaxa,rooted);
-		
-		int sigmaN = counter.computeTreeSTBipartitions(trees, taxonMap, clusters);
-				
+
+		counter = new DuplicationWeightCounter(gtTaxa, stTaxa, rooted);
+
+		int sigmaN = counter.computeTreeSTBipartitions(trees, taxonMap,
+				clusters);
+
 		counter.addExtraBipartitionsByInput(clusters, extraTrees);
-		
+
 		counter.addExtraBipartitionsByHeuristics(clusters);
-		
+
 		if (_print) {
 			System.out.println("STBs formed in "
 					+ (System.currentTimeMillis() - startTime) / 1000.0D
 					+ " secs");
-		}		
-		
-		counter.calculateWeights(trees);
-		
-		sigmaNs = optimizeDuploss ? sigmaN + 2 * (stTaxa.length - 1) * trees.size() : sigmaN;
-				
-		solutions = findTreesByDP(stTaxa, counter,trees, taxonMap);
-		
-		
+		}
+
+		counter.preCalculateWeights(trees);
+
+		sigmaNs = optimizeDuploss ? sigmaN + 2 * (stTaxa.length - 1)
+				* trees.size() : sigmaN;
+
+		solutions = findTreesByDP(stTaxa, counter, trees, taxonMap);
+
 		if (taxonMap == null && rooted) {
 			restoreCollapse(solutions, cd);
 		}
@@ -445,38 +450,43 @@ public class MGDInference_DP {
 		}
 	}
 
-	private List<Solution> findTreesByDP(String[] stTaxa, DuplicationWeightCounter counter, List<Tree> trees, Map<String, String> taxonMap) {
+	private List<Solution> findTreesByDP(String[] stTaxa,
+			DuplicationWeightCounter counter, List<Tree> trees,
+			Map<String, String> taxonMap) {
 		List<Solution> solutions = new ArrayList<Solution>();
 
-		
-/*		clusterToVertex = new HashMap<STITreeCluster, Vertex>();
-		for (Set<Vertex> vs: clusters.values()) {
-			for (Vertex vertex : vs) {
-				clusterToVertex.put(vertex._cluster,vertex);
-			}			
-		}				
-		Vertex all = (Vertex) clusters.get(Integer
-				.valueOf(stTaxa.length)).toArray()[0];			
-		computeMinCost(clusters, all, sigmaN, counter,trees, taxonMap);
-		
-		System.out.println("first round finished, adding new STBs");
-		counter.addExtraBipartitions(clusters, stTaxa);
-*/		
+		/*
+		 * clusterToVertex = new HashMap<STITreeCluster, Vertex>(); for
+		 * (Set<Vertex> vs: clusters.values()) { for (Vertex vertex : vs) {
+		 * clusterToVertex.put(vertex._cluster,vertex); } } Vertex all =
+		 * (Vertex) clusters.get(Integer .valueOf(stTaxa.length)).toArray()[0];
+		 * computeMinCost(clusters, all, sigmaN, counter,trees, taxonMap);
+		 * 
+		 * System.out.println("first round finished, adding new STBs");
+		 * counter.addExtraBipartitions(clusters, stTaxa);
+		 */
 		clusterToVertex = new HashMap<STITreeCluster, Vertex>(sigmaNs);
-		for (Set<Vertex> vs: clusters.values()) {
+		for (Set<Vertex> vs : clusters.values()) {
 			for (Vertex vertex : vs) {
 				vertex._max_score = -1;
-				clusterToVertex.put(vertex._cluster,vertex);
-			}			
-		}		
-		
-		Vertex all = (Vertex) clusters.get(Integer
-				.valueOf(stTaxa.length)).toArray()[0];
+				clusterToVertex.put(vertex._cluster, vertex);
+			}
+		}
+
+		Vertex all = (Vertex) clusters.get(Integer.valueOf(stTaxa.length))
+				.toArray()[0];
 		System.out.println("Sigma N: " + sigmaNs);
-		
-		computeMinCost(all);
-		
-		System.out.println("domination calcs:" + counter.cnt);
+
+		System.out.println("Size of largest cluster: " +all._cluster.getClusterSize());
+
+		try {
+			computeMinCost(all);
+		} catch (CannotResolveException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		//System.out.println("domination calcs:" + counter.cnt);
 
 		List minClusters = new LinkedList();
 		List coals = new LinkedList();
@@ -497,8 +507,8 @@ public class MGDInference_DP {
 			Vertex pe = (Vertex) minVertices.pop();
 
 			minClusters.add(pe._cluster);
-			//int k = sigmaNs/(stTaxa.length-1);
-			
+			// int k = sigmaNs/(stTaxa.length-1);
+
 			if (pe._min_rc != null) {
 				minVertices.push(pe._min_rc);
 			}
@@ -515,7 +525,7 @@ public class MGDInference_DP {
 					minVertices.push(v);
 				}
 			}
-		}		
+		}
 		Solution sol = new Solution();
 		if ((minClusters == null) || (minClusters.isEmpty())) {
 			Object tr = new STITree();
@@ -562,15 +572,15 @@ public class MGDInference_DP {
 		return (List<Solution>) (List<Solution>) solutions;
 	}
 
-	private int computeMinCost(Vertex v) {
-		// TODO: fix this. 
+	private int computeMinCost(Vertex v) throws CannotResolveException {
+		// TODO: fix this.
 		int maxEL = 1000000000;
 		// Already calculated. Don't re-calculate.
 		if (v._max_score != -1) {
 			return v._max_score - maxEL;
 		}
 		// If in duploss mode, need to get MDC cost as well
-		if (optimizeDuploss) {			
+		if (optimizeDuploss) {
 			if (v._el_num == -1) {
 				if (taxonMap == null) {
 					v._el_num = DeepCoalescencesCounter.getClusterCoalNum(
@@ -589,116 +599,121 @@ public class MGDInference_DP {
 			// SIA: TODO: this is 0, right?
 			v._min_cost = 0;
 			v._max_score = maxEL - v._el_num;
-			v._min_lc = (v._min_rc = null);			
+			v._min_lc = (v._min_rc = null);
 			return v._max_score - maxEL;
 		}
-		
-		Set<STBipartition> clusterBiPartitions = counter.getClusterBiPartitions(v._cluster);
-		
-		//STBipartition bestSTB = null;
+
+		Set<STBipartition> clusterBiPartitions = counter
+				.getClusterBiPartitions(v._cluster);
+
+		// STBipartition bestSTB = null;
 		if (clusterBiPartitions == null) {
-			System.err.println("Error: the following cluster has no STBs: " + v._cluster);	
-			throw new RuntimeException("Error: the following cluster has no STBs: " + v._cluster);
-		}		
-				
-		for (STBipartition stb: clusterBiPartitions) {
+			if (v._cluster.getClusterSize() <= 500) {
+				STITreeCluster c1 = new STITreeCluster(v._cluster.getTaxa());
+				c1.addLeaf(v._cluster.getClusterLeaves()[0]);
+				STITreeCluster c2 = new STITreeCluster(v._cluster.getTaxa());
+				for (int i = 1; i < v._cluster.getClusterSize(); i++) {
+					c2.addLeaf(v._cluster.getClusterLeaves()[i]);
+				}
+				if (clusters.get(c2.getClusterSize()).contains(c2)) {
+					STBipartition stb = new STBipartition(c1, c2, v._cluster);
+					clusterBiPartitions = new HashSet<STBipartition>(1);
+					clusterBiPartitions.add(stb);
+					System.out.println("Adding: " + stb);
+				}
+			}
+		}
+		
+		if (clusterBiPartitions == null) {
+			System.out.println("Warn: the following cluster ( " + v._cluster.getClusterSize()+" taxa ) has no STBs:\n"
+					+ v._cluster);
+			throw new CannotResolveException(v._cluster.toString());
+		}
+
+		for (STBipartition stb : clusterBiPartitions) {
 
 			Vertex lv = clusterToVertex.get(stb.cluster1);
 			Vertex rv = clusterToVertex.get(stb.cluster2);
-			
-			if (lv == null || rv == null) {
-				//System.out.println("There is no STB for one half of : " + stb);
+
+			/*
+			 * if (lv == null || rv == null) {
+			 * //System.out.println("There is no STB for one half of : " + stb);
+			 * continue; }
+			 */
+
+			try {
+
+				int lscore = computeMinCost(lv);
+				int rscore = computeMinCost(rv);
+
+				int w = counter.getBiPartitionDPWeight(lv._cluster,
+						rv._cluster, v._cluster);
+
+				int z = optimizeDuploss ? 3 : 1;
+
+				int c = z * w - v._el_num;
+
+				if ((v._max_score != -1)
+						&& (lscore + rscore + c + maxEL <= v._max_score)) {
+					continue;
+				}
+				v._max_score = (lscore + rscore + c) + maxEL;
+				v._min_cost = sigmaNs
+						- (c + lv._max_score + rv._max_score - 2 * maxEL);
+				// stem.out.println(maxEL - (z*w + lv._max_score +
+				// rv._max_score));
+				v._min_lc = lv;
+				v._min_rc = rv;
+				v._c = c;
+			} catch (CannotResolveException c) {
 				continue;
 			}
 
-			int lscore = computeMinCost(lv);
-			int rscore = computeMinCost(rv);
-
-			int w = counter.getBiPartitionDPWeight(lv._cluster, rv._cluster, v._cluster);
-
-			int z = optimizeDuploss? 3 : 1;
-
-			int c = z*w - v._el_num;
-
-			if ((v._max_score != -1)
-					&& (lscore + rscore + c + maxEL
-							<= v._max_score)){
-				continue;
-			}							
-			v._max_score = (lscore + rscore + c) + maxEL;
-			v._min_cost = sigmaNs - (c + lv._max_score + rv._max_score - 2*maxEL);
-			//stem.out.println(maxEL - (z*w + lv._max_score + rv._max_score));
-			v._min_lc = lv;
-			v._min_rc = rv;
-			v._c = c;
-			//bestSTB = stb;
+			// bestSTB = stb;
+		}
+		if (v._min_lc == null) {
+			System.out.println("WARN: No Resolution found for ( " + v._cluster.getClusterSize()+" taxa ):\n"
+					+ v._cluster);
+			throw new CannotResolveException(v._cluster.toString());
 		}
 
-/*		if (clusterSize > 5){
-			counter.addGoodSTB(bestSTB, clusterSize);
-		}
-*/	
+		/*
+		 * if (clusterSize > 5){ counter.addGoodSTB(bestSTB, clusterSize); }
+		 */
 		return v._max_score - maxEL;
 	}
 
-	
-	
-/*	private int computeAllClusters(List<Tree> trees, String[] stTaxa,
-			Map<String, String> taxonMap, Map<Integer, List<Vertex>> clusters) {
-		int n = stTaxa.length;
-		int maxEL = 0;
-		if (n <= 0) {
-			System.err.println("Empty list of taxa.");
-			return -1;
-		}
-
-		BitSet counter = new BitSet(n);
-		boolean done = false;
-
-		while (!done) {
-			int i = 0;
-			while ((i < n) && (counter.get(i))) {
-				counter.clear(i);
-				i++;
-			}
-			if (i >= n) {
-				done = true;
-			} else {
-				counter.set(i, true);
-
-				STITreeCluster tc = new STITreeCluster(stTaxa);
-				tc.setCluster((BitSet) counter.clone());
-				Vertex v = new Vertex();
-				v._cluster = tc;
-				if (taxonMap == null) {
-					v._el_num = DuplicationWeightCounter.getClusterCoalNum(
-							trees, tc, true);
-				} else {
-					v._el_num = DuplicationWeightCounter.getClusterCoalNum(
-							trees, tc, taxonMap, true);
-				}
-				if (v._el_num > maxEL) {
-					maxEL = v._el_num;
-				}
-
-				int size = tc.getClusterSize();
-				List l = (List) clusters.get(Integer.valueOf(size));
-				if (l == null) {
-					l = new LinkedList();
-				}
-
-				l.add(v);
-				clusters.put(Integer.valueOf(size), l);
-			}
-		}
-		maxEL++;
-		return maxEL;
-	}*/
+	/*
+	 * private int computeAllClusters(List<Tree> trees, String[] stTaxa,
+	 * Map<String, String> taxonMap, Map<Integer, List<Vertex>> clusters) { int
+	 * n = stTaxa.length; int maxEL = 0; if (n <= 0) {
+	 * System.err.println("Empty list of taxa."); return -1; }
+	 * 
+	 * BitSet counter = new BitSet(n); boolean done = false;
+	 * 
+	 * while (!done) { int i = 0; while ((i < n) && (counter.get(i))) {
+	 * counter.clear(i); i++; } if (i >= n) { done = true; } else {
+	 * counter.set(i, true);
+	 * 
+	 * STITreeCluster tc = new STITreeCluster(stTaxa); tc.setCluster((BitSet)
+	 * counter.clone()); Vertex v = new Vertex(); v._cluster = tc; if (taxonMap
+	 * == null) { v._el_num = DuplicationWeightCounter.getClusterCoalNum( trees,
+	 * tc, true); } else { v._el_num =
+	 * DuplicationWeightCounter.getClusterCoalNum( trees, tc, taxonMap, true); }
+	 * if (v._el_num > maxEL) { maxEL = v._el_num; }
+	 * 
+	 * int size = tc.getClusterSize(); List l = (List)
+	 * clusters.get(Integer.valueOf(size)); if (l == null) { l = new
+	 * LinkedList(); }
+	 * 
+	 * l.add(v); clusters.put(Integer.valueOf(size), l); } } maxEL++; return
+	 * maxEL; }
+	 */
 
 	private int computeAllClusters(List<Tree> trees, String[] stTaxa,
 			Map<Integer, List<Vertex>> clusters) {
 		throw new RuntimeException("Not Implemented");
-		//return computeAllClusters(trees, stTaxa, null, clusters);
+		// return computeAllClusters(trees, stTaxa, null, clusters);
 	}
 
 	protected static List<String[]> getOptions(String[] args) {
@@ -736,203 +751,111 @@ public class MGDInference_DP {
 		return total;
 	}
 
-/*	private int tryBinaryResolutions(Tree tr, double time, String[] taxa,
-			List<Tree> gts, Map<String, String> taxonMap) {
-		List nodelist = new ArrayList();
-		List degreelist = new ArrayList();
-		int totalResolutions = 0;
-		for (Iterator iterator = (new PostTraversal(tr.getRoot())).iterator(); iterator
-				.hasNext();) {
-			TNode node = (TNode) iterator.next();
-			int childCount = node.getChildCount();
-			if (childCount > 2) {
-				nodelist.add(node);
-				int resolutionsNumber = getResolutionsNumber(childCount);
-				degreelist.add(Integer.valueOf(resolutionsNumber));
-				totalResolutions += resolutionsNumber;
-			}
-		}
-		int addedxl = 0;
-		for (int i = 0; i < nodelist.size(); i++) {
-			TNode unresolvedNode = (TNode) nodelist.get(i);
-			Map id2node = new HashMap();
-			for (TNode child : unresolvedNode.getChildren()) {
-				id2node.put(Integer.valueOf(child.getID()), child);
-			}
-			Integer[] childIDs = (Integer[]) id2node.keySet().toArray(
-					new Integer[0]);
-			Object cluster2xl = new HashMap();
-			double endtime;
-			if (time == -1.0D) {
-				endtime = -1.0D;
-			} else {
-				endtime = time
-						* (((Integer) degreelist.get(i)).intValue() / totalResolutions)
-						* 1000.0D + System.currentTimeMillis();
-			}
-			Solution sol = addMoreLeaves(null, childIDs, 0, id2node, taxa, gts,
-					taxonMap, endtime, (Map) cluster2xl);
-			TNode parent = unresolvedNode.getParent();
-			int xl = ((Integer) ((STINode) unresolvedNode).getData())
-					.intValue();
-			((STINode) unresolvedNode).removeNode();
-			if (parent != null) {
-				TNode newnode = ((STINode) parent).createChild(sol.getTree()
-						.getRoot());
-				((STINode) newnode).setData(Integer.valueOf(xl));
-			} else {
-				for (TNode child : sol.getTree().getRoot().getChildren()) {
-					((STINode) tr.getRoot()).createChild(child);
-				}
-			}
-			addedxl += sol.getCoalNum();
-		}
-		return addedxl;
-	}*/
+	/*
+	 * private int tryBinaryResolutions(Tree tr, double time, String[] taxa,
+	 * List<Tree> gts, Map<String, String> taxonMap) { List nodelist = new
+	 * ArrayList(); List degreelist = new ArrayList(); int totalResolutions = 0;
+	 * for (Iterator iterator = (new PostTraversal(tr.getRoot())).iterator();
+	 * iterator .hasNext();) { TNode node = (TNode) iterator.next(); int
+	 * childCount = node.getChildCount(); if (childCount > 2) {
+	 * nodelist.add(node); int resolutionsNumber =
+	 * getResolutionsNumber(childCount);
+	 * degreelist.add(Integer.valueOf(resolutionsNumber)); totalResolutions +=
+	 * resolutionsNumber; } } int addedxl = 0; for (int i = 0; i <
+	 * nodelist.size(); i++) { TNode unresolvedNode = (TNode) nodelist.get(i);
+	 * Map id2node = new HashMap(); for (TNode child :
+	 * unresolvedNode.getChildren()) {
+	 * id2node.put(Integer.valueOf(child.getID()), child); } Integer[] childIDs
+	 * = (Integer[]) id2node.keySet().toArray( new Integer[0]); Object
+	 * cluster2xl = new HashMap(); double endtime; if (time == -1.0D) { endtime
+	 * = -1.0D; } else { endtime = time (((Integer)
+	 * degreelist.get(i)).intValue() / totalResolutions) 1000.0D +
+	 * System.currentTimeMillis(); } Solution sol = addMoreLeaves(null,
+	 * childIDs, 0, id2node, taxa, gts, taxonMap, endtime, (Map) cluster2xl);
+	 * TNode parent = unresolvedNode.getParent(); int xl = ((Integer) ((STINode)
+	 * unresolvedNode).getData()) .intValue(); ((STINode)
+	 * unresolvedNode).removeNode(); if (parent != null) { TNode newnode =
+	 * ((STINode) parent).createChild(sol.getTree() .getRoot()); ((STINode)
+	 * newnode).setData(Integer.valueOf(xl)); } else { for (TNode child :
+	 * sol.getTree().getRoot().getChildren()) { ((STINode)
+	 * tr.getRoot()).createChild(child); } } addedxl += sol.getCoalNum(); }
+	 * return addedxl; }
+	 */
 
-/*	private Solution addMoreLeaves(STITree<Integer> preTree,
-			Integer[] leavesid, int index, Map<Integer, TNode> id2node,
-			String[] taxa, List<Tree> gts, Map<String, String> taxonMap,
-			double endTime, Map<BitSet, Integer> cluster2xl) {
-		if (preTree == null) {
-			preTree = new STITree(false);
-			STINode root = preTree.getRoot();
-			STINode newnode = root.createChild();
-			newnode.setData(leavesid[(index++)]);
-			STINode innode = root.createChild();
-			newnode = innode.createChild();
-			newnode.setData(leavesid[(index++)]);
-			newnode = innode.createChild();
-			newnode.setData(leavesid[(index++)]);
-		}
-		Solution sol = null;
-		if (index == leavesid.length) {
-			sol = tryAllRootings(preTree, id2node, taxa, gts, taxonMap,
-					endTime, cluster2xl);
-		} else {
-			int id = leavesid[(index++)].intValue();
-			for (Iterator iterator = (new PostTraversal(preTree.getRoot()))
-					.iterator(); iterator.hasNext();) {
-				TNode n = (TNode) iterator.next();
-				if (!n.isLeaf()) {
-					if (n.getChildCount() != 2) {
-						throw new RuntimeException("Not binary!");
-					}
-					Iterator it = n.getChildren().iterator();
-					for (int i = 0; i < 2; i++) {
-						STINode child = (STINode) it.next();
-						STITree newTree = new STITree(preTree);
-						TNode peerChild = newTree.getNode(child.getID());
-						TNode peerParent = peerChild.getParent();
-						STINode newchild = ((STINode) peerParent).createChild();
-						newchild.adoptChild((TMutableNode) peerChild);
-						STINode newnode = newchild.createChild();
-						newnode.setData(Integer.valueOf(id));
-						Solution thissol = addMoreLeaves(newTree, leavesid,
-								index, id2node, taxa, gts, taxonMap, endTime,
-								cluster2xl);
-						if ((sol == null)
-								|| (sol.getCoalNum() > thissol.getCoalNum())) {
-							sol = thissol;
-						}
-						double now = System.currentTimeMillis();
-						if ((endTime != -1.0D) && (now > endTime)) {
-							return sol;
-						}
-						if (n.isRoot()) {
-							break;
-						}
-					}
-				}
-			}
-		}
-		return sol;
-	}*/
+	/*
+	 * private Solution addMoreLeaves(STITree<Integer> preTree, Integer[]
+	 * leavesid, int index, Map<Integer, TNode> id2node, String[] taxa,
+	 * List<Tree> gts, Map<String, String> taxonMap, double endTime, Map<BitSet,
+	 * Integer> cluster2xl) { if (preTree == null) { preTree = new
+	 * STITree(false); STINode root = preTree.getRoot(); STINode newnode =
+	 * root.createChild(); newnode.setData(leavesid[(index++)]); STINode innode
+	 * = root.createChild(); newnode = innode.createChild();
+	 * newnode.setData(leavesid[(index++)]); newnode = innode.createChild();
+	 * newnode.setData(leavesid[(index++)]); } Solution sol = null; if (index ==
+	 * leavesid.length) { sol = tryAllRootings(preTree, id2node, taxa, gts,
+	 * taxonMap, endTime, cluster2xl); } else { int id =
+	 * leavesid[(index++)].intValue(); for (Iterator iterator = (new
+	 * PostTraversal(preTree.getRoot())) .iterator(); iterator.hasNext();) {
+	 * TNode n = (TNode) iterator.next(); if (!n.isLeaf()) { if
+	 * (n.getChildCount() != 2) { throw new RuntimeException("Not binary!"); }
+	 * Iterator it = n.getChildren().iterator(); for (int i = 0; i < 2; i++) {
+	 * STINode child = (STINode) it.next(); STITree newTree = new
+	 * STITree(preTree); TNode peerChild = newTree.getNode(child.getID()); TNode
+	 * peerParent = peerChild.getParent(); STINode newchild = ((STINode)
+	 * peerParent).createChild(); newchild.adoptChild((TMutableNode) peerChild);
+	 * STINode newnode = newchild.createChild();
+	 * newnode.setData(Integer.valueOf(id)); Solution thissol =
+	 * addMoreLeaves(newTree, leavesid, index, id2node, taxa, gts, taxonMap,
+	 * endTime, cluster2xl); if ((sol == null) || (sol.getCoalNum() >
+	 * thissol.getCoalNum())) { sol = thissol; } double now =
+	 * System.currentTimeMillis(); if ((endTime != -1.0D) && (now > endTime)) {
+	 * return sol; } if (n.isRoot()) { break; } } } } } return sol; }
+	 */
 
-/*	private Solution tryAllRootings(Tree subtree, Map<Integer, TNode> id2node,
-			String[] taxa, List<Tree> gts, Map<String, String> taxonMap,
-			double endTime, Map<BitSet, Integer> cluster2xl) {
-		Solution sol = new Solution();
-		sol._totalCoals = -1;
-		for (Tree rootedsubtree : subtree.getAllRootingTrees()) {
-			TNode peerNode;
-			for (Iterator iterator1 = (new PostTraversal(rootedsubtree
-					.getRoot())).iterator(); iterator1.hasNext();) {
-				TNode replacingNode = (TNode) iterator1.next();
-				if (replacingNode.isLeaf()) {
-					int id = ((Integer) ((STINode) replacingNode).getData())
-							.intValue();
-					peerNode = (TNode) id2node.get(Integer.valueOf(id));
-					if (peerNode.isLeaf()) {
-						((STINode) replacingNode).setName(peerNode.getName());
-					} else {
-						for (TNode child : peerNode.getChildren()) {
-							((STINode) replacingNode).createChild(child);
-						}
-						((STINode) replacingNode).setName("");
-					}
-
-					((STINode) replacingNode)
-							.setData((Integer) ((STINode) peerNode).getData());
-				}
-
-			}
-
-			int xl = 0;
-			Object map = new HashMap();
-			for (Iterator iterator2 = (new PostTraversal(rootedsubtree
-					.getRoot())).iterator(); iterator2.hasNext();) {
-				TNode node = (TNode) iterator2.next();
-				BitSet bs = new BitSet();
-				if (node.isLeaf()) {
-					for (int i = 0; i < taxa.length; i++) {
-						if (node.getName().equals(taxa[i])) {
-							bs.set(i);
-							break;
-						}
-					}
-					((Map) map).put(node, bs);
-				} else {
-					for (TNode child : node.getChildren()) {
-						BitSet childCluster = (BitSet) ((Map) map).get(child);
-						bs.or(childCluster);
-					}
-					((Map) map).put(node, bs);
-				}
-				if (!node.isRoot()) {
-					Integer el = (Integer) ((STINode) node).getData();
-					if (el == null) {
-						el = (Integer) cluster2xl.get(bs);
-						if (el == null) {
-							STITreeCluster tc = new STITreeCluster(taxa);
-							tc.setCluster(bs);
-							if (taxonMap == null) {
-								el = Integer.valueOf(DuplicationWeightCounter
-										.getClusterCoalNum(gts, tc, true));
-							} else {
-								el = Integer.valueOf(DuplicationWeightCounter
-										.getClusterCoalNum(gts, tc, taxonMap,
-												true));
-							}
-							cluster2xl.put(bs, el);
-						}
-						((STINode) node).setData(el);
-						xl += el.intValue();
-					}
-				}
-			}
-
-			if ((sol.getCoalNum() == -1) || (sol.getCoalNum() > xl)) {
-				sol._totalCoals = xl;
-				sol._st = rootedsubtree;
-			}
-		}
-		return (Solution) sol;
-	}*/
+	/*
+	 * private Solution tryAllRootings(Tree subtree, Map<Integer, TNode>
+	 * id2node, String[] taxa, List<Tree> gts, Map<String, String> taxonMap,
+	 * double endTime, Map<BitSet, Integer> cluster2xl) { Solution sol = new
+	 * Solution(); sol._totalCoals = -1; for (Tree rootedsubtree :
+	 * subtree.getAllRootingTrees()) { TNode peerNode; for (Iterator iterator1 =
+	 * (new PostTraversal(rootedsubtree .getRoot())).iterator();
+	 * iterator1.hasNext();) { TNode replacingNode = (TNode) iterator1.next();
+	 * if (replacingNode.isLeaf()) { int id = ((Integer) ((STINode)
+	 * replacingNode).getData()) .intValue(); peerNode = (TNode)
+	 * id2node.get(Integer.valueOf(id)); if (peerNode.isLeaf()) { ((STINode)
+	 * replacingNode).setName(peerNode.getName()); } else { for (TNode child :
+	 * peerNode.getChildren()) { ((STINode) replacingNode).createChild(child); }
+	 * ((STINode) replacingNode).setName(""); }
+	 * 
+	 * ((STINode) replacingNode) .setData((Integer) ((STINode)
+	 * peerNode).getData()); }
+	 * 
+	 * }
+	 * 
+	 * int xl = 0; Object map = new HashMap(); for (Iterator iterator2 = (new
+	 * PostTraversal(rootedsubtree .getRoot())).iterator();
+	 * iterator2.hasNext();) { TNode node = (TNode) iterator2.next(); BitSet bs
+	 * = new BitSet(); if (node.isLeaf()) { for (int i = 0; i < taxa.length;
+	 * i++) { if (node.getName().equals(taxa[i])) { bs.set(i); break; } } ((Map)
+	 * map).put(node, bs); } else { for (TNode child : node.getChildren()) {
+	 * BitSet childCluster = (BitSet) ((Map) map).get(child);
+	 * bs.or(childCluster); } ((Map) map).put(node, bs); } if (!node.isRoot()) {
+	 * Integer el = (Integer) ((STINode) node).getData(); if (el == null) { el =
+	 * (Integer) cluster2xl.get(bs); if (el == null) { STITreeCluster tc = new
+	 * STITreeCluster(taxa); tc.setCluster(bs); if (taxonMap == null) { el =
+	 * Integer.valueOf(DuplicationWeightCounter .getClusterCoalNum(gts, tc,
+	 * true)); } else { el = Integer.valueOf(DuplicationWeightCounter
+	 * .getClusterCoalNum(gts, tc, taxonMap, true)); } cluster2xl.put(bs, el); }
+	 * ((STINode) node).setData(el); xl += el.intValue(); } } }
+	 * 
+	 * if ((sol.getCoalNum() == -1) || (sol.getCoalNum() > xl)) {
+	 * sol._totalCoals = xl; sol._st = rootedsubtree; } } return (Solution) sol;
+	 * }
+	 */
 
 	static class Vertex {
 		public STITreeCluster _cluster = null;
-		public  int _el_num = -1;
+		public int _el_num = -1;
 		public int _min_cost = -1;
 		public int _max_score = -1;
 		public int _c = 0;
@@ -948,8 +871,8 @@ public class MGDInference_DP {
 		}
 
 		@Override
-		public boolean equals(Object obj) {			
-			return ((Vertex)obj)._cluster.equals(this._cluster);
+		public boolean equals(Object obj) {
+			return ((Vertex) obj)._cluster.equals(this._cluster);
 		}
 
 		@Override
