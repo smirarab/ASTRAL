@@ -420,7 +420,13 @@ public class MGDInference_DP {
 					+ " secs");
 		}
 
-		counter.preCalculateWeights(trees);
+		counter.preCalculateWeights(trees, taxonMap);
+		
+		if (_print) {
+			System.out.println("Weights pre-caluclated after "
+					+ (System.currentTimeMillis() - startTime) / 1000.0D
+					+ " secs");
+		}
 
 		sigmaNs = optimizeDuploss ? sigmaN + 2 * (stTaxa.length - 1)
 				* trees.size() : sigmaN;
