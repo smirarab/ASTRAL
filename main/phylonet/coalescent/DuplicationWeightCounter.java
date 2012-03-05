@@ -466,7 +466,6 @@ public class DuplicationWeightCounter {
 				}
 			}
 		}
-		System.out.println("weights calculated");
 	}
 	
 	int calculateMissingWeight(STBipartition biggerSTB) {
