@@ -422,16 +422,16 @@ public class DuplicationWeightCounter {
 			}
 		}*/
 		if (rooted && taxonMap == null &&
-				stTaxa.length > trees.size()) calculateWeightsByLCA(trees);
+				stTaxa.length > trees.size()) calculateWeightsByLCA(trees,trees);
 	}
 
-	private void calculateWeightsByLCA (List<Tree> trees)
+	void calculateWeightsByLCA (List<Tree> stTrees,List<Tree> gtTrees)
 	{
 		HashMap<STBipartition, Set<STBipartition>> alreadyProcessed = new HashMap<STBipartition, Set<STBipartition>>();
 		
-		for (Tree stTree:trees){
+		for (Tree stTree:stTrees){
 			SchieberVishkinLCA lcaLookup = new SchieberVishkinLCA(stTree);			
-			for (Tree gtTree: trees) {
+			for (Tree gtTree: gtTrees) {
 				Stack<TNode> stack = new Stack<TNode>();
 				for (TNode gtNode : gtTree.postTraverse()) {
 					if (gtNode.isLeaf()) {
@@ -445,14 +445,14 @@ public class DuplicationWeightCounter {
 							// LCA in stTree dominates gtNode in gene tree gtTree
 							STBipartition stSTB = (STBipartition) ((STINode)lca).getData();
 							STBipartition gtSTB = (STBipartition) ((STINode)gtNode).getData();
-							Set<STBipartition> set = alreadyProcessed.get(gtSTB);
+							Set<STBipartition> alreadyProcessedSTBs = alreadyProcessed.get(gtSTB);
 							
-							if (set == null) {
-								set = new HashSet<STBipartition>(trees.size()/4);
-								alreadyProcessed.put(gtSTB, set);
+							if (alreadyProcessedSTBs == null) {
+								alreadyProcessedSTBs = new HashSet<STBipartition>(gtTrees.size()/4);
+								alreadyProcessed.put(gtSTB, alreadyProcessedSTBs);
 							}
 							
-							if (set.contains(stSTB)) {
+							if (alreadyProcessedSTBs.contains(stSTB)) {
 								continue;
 							}
 							
@@ -460,7 +460,7 @@ public class DuplicationWeightCounter {
 									(weights.containsKey(stSTB)?
 											weights.get(stSTB):0) 
 											+ STBCountInGeneTrees.get(gtSTB));							
-							set.add(stSTB);
+							alreadyProcessedSTBs.add(stSTB);
 						}
 					}									
 				}

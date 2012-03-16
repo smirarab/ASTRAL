@@ -97,7 +97,7 @@ public class MGDInference_DP {
 									new StringReader(line));
 							STITree gt = new STITree(true);
 							nr.readTree(gt);
-							trees.add(gt);
+							extraTrees.add(gt);
 						}
 					}
 				} else if (option[0].equals("-a")) {
@@ -377,7 +377,7 @@ public class MGDInference_DP {
 			}
 		} else {
 			cd = null;
-			if (rooted) {
+			if (rooted & extraTrees == null & taxonMap == null) {
 				cd = doCollapse(trees);
 			}
 
@@ -411,6 +411,8 @@ public class MGDInference_DP {
 				clusters);
 
 		counter.addExtraBipartitionsByInput(clusters, extraTrees);
+		
+		counter.calculateWeightsByLCA(extraTrees,trees);
 
 		counter.addExtraBipartitionsByHeuristics(clusters);
 
@@ -433,7 +435,7 @@ public class MGDInference_DP {
 
 		solutions = findTreesByDP(stTaxa, counter, trees, taxonMap);
 
-		if (taxonMap == null && rooted) {
+		if (taxonMap == null && rooted && extraTrees == null) {
 			restoreCollapse(solutions, cd);
 		}
 
@@ -486,6 +488,7 @@ public class MGDInference_DP {
 		System.out.println("Size of largest cluster: " +all._cluster.getClusterSize());
 
 		try {
+			//vertexStack.push(all);
 			computeMinCost(all);
 		} catch (CannotResolveException e) {
 			// TODO Auto-generated catch block
@@ -578,9 +581,12 @@ public class MGDInference_DP {
 		return (List<Solution>) (List<Solution>) solutions;
 	}
 
+	//private Stack<Vertex> vertexStack = new Stack<Vertex>();
+	int maxEL = 1000000000;
+	
 	private int computeMinCost(Vertex v) throws CannotResolveException {
-		// TODO: fix this.
-		int maxEL = 1000000000;
+
+		// TODO: fix this.		
 		// Already calculated. Don't re-calculate.
 		if (v._max_score != -1) {
 			return v._max_score - maxEL;
@@ -600,21 +606,22 @@ public class MGDInference_DP {
 			v._el_num = 0;
 		}
 		// SIA: base case for singelton clusters.
-		int clusterSize = v._cluster.getClusterSize();
-		if (clusterSize <= 1) {
-			// SIA: TODO: this is 0, right?
-			v._min_cost = 0;
-			v._max_score = maxEL - v._el_num;
-			v._min_lc = (v._min_rc = null);
-			return v._max_score - maxEL;
+		{
+			int clusterSize = v._cluster.getClusterSize();
+			if (clusterSize <= 1) {
+				// SIA: TODO: this is 0, right?
+				v._min_cost = 0;
+				v._max_score = maxEL - v._el_num;
+				v._min_lc = (v._min_rc = null);
+				return v._max_score - maxEL;
+			}
 		}
-
 		Set<STBipartition> clusterBiPartitions = counter
 				.getClusterBiPartitions(v._cluster);
 
 		// STBipartition bestSTB = null;
 		if (clusterBiPartitions == null) {
-			if (v._cluster.getClusterSize() <= 500) {
+			if (v._cluster.getClusterSize() <= 2) {
 				STITreeCluster c1 = new STITreeCluster(v._cluster.getTaxa());
 				c1.addLeaf(v._cluster.getClusterLeaves()[0]);
 				STITreeCluster c2 = new STITreeCluster(v._cluster.getTaxa());
@@ -649,8 +656,12 @@ public class MGDInference_DP {
 
 			try {
 
+				//vertexStack.push(lv);
 				int lscore = computeMinCost(lv);
+				//vertexStack.pop();
+				//vertexStack.push(rv);
 				int rscore = computeMinCost(rv);
+				//vertexStack.pop();
 
 				int w = counter.getBiPartitionDPWeight(lv._cluster,
 						rv._cluster, v._cluster);
