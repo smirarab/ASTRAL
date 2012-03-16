@@ -352,7 +352,7 @@ public class DuplicationWeightCounter {
 
 	}
 
-	private STBipartition tryToAdd(STBipartition stb1, STBipartition stb2, Set<STBipartition> bipToAddToX)
+	private STBipartition tryAddingExtraSTB_AndreRule(STBipartition stb1, STBipartition stb2, Set<STBipartition> bipToAddToX)
 	{
 		if (stb1.equals(stb2)) return null;
 		if ( stb1.isDominatedBy(stb2) || stb2.isDominatedBy(stb1) )
