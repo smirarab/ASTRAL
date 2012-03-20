@@ -410,9 +410,12 @@ public class MGDInference_DP {
 		int sigmaN = counter.computeTreeSTBipartitions(trees, taxonMap,
 				clusters);
 
-		counter.addExtraBipartitionsByInput(clusters, extraTrees);
+		if (extraTrees != null) {
 		
-		counter.calculateWeightsByLCA(extraTrees,trees);
+			counter.addExtraBipartitionsByInput(clusters, extraTrees);		
+			counter.calculateWeightsByLCA(extraTrees,trees);
+			
+		}
 
 		counter.addExtraBipartitionsByHeuristics(clusters);
 
