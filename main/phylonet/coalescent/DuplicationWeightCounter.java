@@ -439,6 +439,10 @@ public class DuplicationWeightCounter {
 					} else {
 						TNode rightLCA = stack.pop();
 						TNode leftLCA = stack.pop();
+						if (rightLCA == null || leftLCA == null) {
+							stack.push(null);
+							continue;
+						}
 						TNode lca = lcaLookup.getLCA(leftLCA, rightLCA);
 						stack.push(lca);
 						if (lca != leftLCA && lca != rightLCA) {
