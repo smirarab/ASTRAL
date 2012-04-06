@@ -68,6 +68,11 @@ public class DuplicationWeightCounter {
 		STITreeCluster all = clusters.get(n).iterator().next()._cluster;
 				
 		for (Tree tr : trees) {			
+			String[] treeLeaves = tr.getLeaves();			
+			STITreeCluster treeAll = new STITreeCluster(leaves);
+			for (int i = 0; i < treeLeaves.length; i++) {
+				treeAll.addLeaf(treeLeaves[i]);
+			}		
 			sigmaN += tr.getLeafCount() - 1;
 			Map<TNode,STITreeCluster> map = new HashMap<TNode, STITreeCluster>(n);
 			for (Iterator<TNode> nodeIt = tr.postTraverse()
@@ -86,7 +91,7 @@ public class DuplicationWeightCounter {
         			map.put(node, tb);
 	                
 	                if (!extraTreeRooted) {
-		                addSTBToX(clusters, tb, tb.complementaryCluster(), all);
+		                addSTBToX(clusters, tb, treeComplementary(treeAll, tb), null);
 	                }
 	            } else {
 	                int childCount = node.getChildCount();
@@ -126,7 +131,7 @@ public class DuplicationWeightCounter {
 			                
 			                STITreeCluster r_cluster = childbslist[1];
 			                
-			                STITreeCluster allMinuslAndr_cluster = cluster.complementaryCluster();
+			                STITreeCluster allMinuslAndr_cluster = treeComplementary(treeAll, cluster);
 			                		                
 			                STITreeCluster lAndr_cluster = cluster;
 			                
@@ -157,6 +162,12 @@ public class DuplicationWeightCounter {
 			}
 
 		}
+	}
+	
+	private STITreeCluster treeComplementary(STITreeCluster treeAll, STITreeCluster c){
+		STITreeCluster res = c.complementaryCluster();
+		res.getCluster().and(treeAll.getCluster());
+		return res;
 	}
 	
 	int computeTreeSTBipartitions(List<Tree> trees, 
@@ -193,6 +204,11 @@ public class DuplicationWeightCounter {
 		addToClusters(clusters, all, leaves.length);
 				
 		for (Tree tr : trees) {			
+			String[] treeLeaves = tr.getLeaves();			
+			STITreeCluster treeAll = new STITreeCluster(leaves);
+			for (int i = 0; i < treeLeaves.length; i++) {
+				treeAll.addLeaf(treeLeaves[i]);
+			}			
 			sigmaN += tr.getLeafCount() - 1;
 			Map<TNode,STITreeCluster> map = new HashMap<TNode, STITreeCluster>(n);
 			for (Iterator<TNode> nodeIt = tr.postTraverse()
@@ -213,7 +229,7 @@ public class DuplicationWeightCounter {
         			map.put(node, tb);
 	                
 	                if (!rooted) {
-		                addSTB(clusters, tb, tb.complementaryCluster(), all, node);
+		                addSTB(clusters, tb, treeComplementary(treeAll, tb), null, node);
 	                }
 	            } else {
 	                int childCount = node.getChildCount();
@@ -254,7 +270,7 @@ public class DuplicationWeightCounter {
 			                
 			                STITreeCluster r_cluster = childbslist[1];
 			                
-			                STITreeCluster allMinuslAndr_cluster = cluster.complementaryCluster();
+			                STITreeCluster allMinuslAndr_cluster = treeComplementary(treeAll, cluster);
 			                		                
 			                STITreeCluster lAndr_cluster = cluster;
 			                
