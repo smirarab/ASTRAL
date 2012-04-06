@@ -338,7 +338,7 @@ public class MGDInference_DP {
 				.println("This tool infers the species tree from rooted gene trees despite lineage sorting.");
 		System.out.println("Usage is:");
 		System.out
-				.println("\tMGDInference_DP -i input [-a mapping] [-dl] [ur] [-o output] [-ex extra_trees]");
+				.println("\tMGDInference_DP -i input [-a mapping] [-dl] [-u] [-ex extra_trees] [-xu] [-o output] ");
 		System.out
 				.println("\t-i gene tree file: The file containing gene trees. (required)");
 		System.out
@@ -347,6 +347,8 @@ public class MGDInference_DP {
 				.println("\t-o species tree file: The file to store the species tree. (optional)");
 		System.out.println("\t-dl optimize duploss instead of duplications");
 		System.out.println("\t-u treat input gene trees as unrooted");
+		System.out.println("\t-ex provide extra trees to add to set of STBs searched");
+		System.out.println("\t-xu treat extra trees input gene trees as unrooted");
 		System.out.println();
 	}
 
@@ -657,11 +659,8 @@ public class MGDInference_DP {
 					+ v._cluster);
 			throw new CannotResolveException(v._cluster.toString());
 		}
-
 		for (STBipartition stb : clusterBiPartitions) {
 
-			System.out.println(stb);
-			
 			Vertex lv = clusterToVertex.get(stb.cluster1);
 			Vertex rv = clusterToVertex.get(stb.cluster2);
 
@@ -700,7 +699,7 @@ public class MGDInference_DP {
 				v._min_rc = rv;
 				v._c = c;				
 			} catch (CannotResolveException c) {
-				continue;
+				System.err.println("Warn: cannot resolve: " + c.getMessage());
 			}
 
 			// bestSTB = stb;
