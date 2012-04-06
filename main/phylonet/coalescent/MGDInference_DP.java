@@ -32,6 +32,7 @@ public class MGDInference_DP {
 	private static boolean _print = true;
 	private static boolean optimizeDuploss = false;
 	private static boolean rooted = true;
+	private static boolean extrarooted = true;
 
 	private List<Tree> trees;
 	private List<Tree> extraTrees = null;
@@ -68,6 +69,7 @@ public class MGDInference_DP {
 		long startTime = System.currentTimeMillis();
 		String line;
 		BufferedReader treeBufferReader = null;
+		BufferedReader extraTreebuffer = null;
 		try {
 			List<String[]> options = getOptions(args);
 			for (String[] option : options) {
@@ -85,21 +87,11 @@ public class MGDInference_DP {
 					if (option.length != 2) {
 						printUsage();
 						return;
-					}
-					BufferedReader buffer = new BufferedReader(new FileReader(
+					}					
+					extraTreebuffer = new BufferedReader(new FileReader(
 							option[1]));
 
-					extraTrees = new ArrayList();
-					// String line;
-					while ((line = buffer.readLine()) != null) {
-						if (line.length() > 0) {
-							NewickReader nr = new NewickReader(
-									new StringReader(line));
-							STITree gt = new STITree(true);
-							nr.readTree(gt);
-							extraTrees.add(gt);
-						}
-					}
+					extraTrees = new ArrayList();					
 				} else if (option[0].equals("-a")) {
 					if (option.length != 2) {
 						printUsage();
@@ -190,6 +182,12 @@ public class MGDInference_DP {
 						return;
 					}
 					rooted = false;
+				} else if (option[0].equals("-xu")) {
+					if ((option.length != 1) || (time != -1.0D)) {
+						printUsage();
+						return;
+					}
+					extrarooted = false;
 				} else if (option[0].equals("-t")) {
 					if ((option.length != 2) || (unresolved)) {
 						printUsage();
@@ -255,6 +253,23 @@ public class MGDInference_DP {
 			}
 			treeBufferReader.close();
 
+			if (extraTreebuffer != null) {
+				while ((line = extraTreebuffer.readLine()) != null) {
+					if (line.length() > 0) {					
+						NewickReader nr = new NewickReader(
+								new StringReader(line));
+						if (extrarooted) {
+							STITree gt = new STITree(true);
+							nr.readTree(gt);
+							extraTrees.add(gt);
+						} else {
+							Tree tr = nr.readTree();
+							extraTrees.add(tr);
+						}
+					}
+				}				
+				extraTreebuffer.close();
+			}
 		} catch (IOException e) {
 			System.err.println("Error when reading trees. The function exits.");
 			System.err.println(e.getMessage());
@@ -410,11 +425,8 @@ public class MGDInference_DP {
 		int sigmaN = counter.computeTreeSTBipartitions(trees, taxonMap,
 				clusters);
 
-		if (extraTrees != null) {
-		
-			counter.addExtraBipartitionsByInput(clusters, extraTrees);		
-			counter.calculateWeightsByLCA(extraTrees,trees);
-			
+		if (extraTrees != null) {		
+			counter.addExtraBipartitionsByInput(clusters, extraTrees,taxonMap,extrarooted);					
 		}
 
 		counter.addExtraBipartitionsByHeuristics(clusters);
@@ -425,7 +437,7 @@ public class MGDInference_DP {
 					+ " secs");
 		}
 
-		counter.preCalculateWeights(trees, taxonMap);
+		counter.preCalculateWeights(trees, extraTrees, taxonMap);
 		
 		if (_print) {
 			System.out.println("Weights pre-caluclated after "
@@ -514,10 +526,11 @@ public class MGDInference_DP {
 				minVertices.push(v);
 			}
 		}
-
+		System.out.println(minVertices);
 		while (!minVertices.isEmpty()) {
 			Vertex pe = (Vertex) minVertices.pop();
-
+			//System.out.println(pe._min_rc);
+			//System.out.println(pe._min_lc);
 			minClusters.add(pe._cluster);
 			// int k = sigmaNs/(stTaxa.length-1);
 
@@ -588,7 +601,6 @@ public class MGDInference_DP {
 	int maxEL = 1000000000;
 	
 	private int computeMinCost(Vertex v) throws CannotResolveException {
-
 		// TODO: fix this.		
 		// Already calculated. Don't re-calculate.
 		if (v._max_score != -1) {
@@ -631,23 +643,25 @@ public class MGDInference_DP {
 				for (int i = 1; i < v._cluster.getClusterSize(); i++) {
 					c2.addLeaf(v._cluster.getClusterLeaves()[i]);
 				}
-				if (clusters.get(c2.getClusterSize()).contains(c2)) {
+				if (clusterToVertex.containsKey(c2)) {
 					STBipartition stb = new STBipartition(c1, c2, v._cluster);
 					clusterBiPartitions = new HashSet<STBipartition>(1);
 					clusterBiPartitions.add(stb);
-					System.out.println("Adding: " + stb);
+					System.err.println("Adding: " + stb);
 				}
 			}
 		}
 		
 		if (clusterBiPartitions == null) {
-			System.out.println("Warn: the following cluster ( " + v._cluster.getClusterSize()+" taxa ) has no STBs:\n"
+			System.err.println("Warn: the following cluster ( " + v._cluster.getClusterSize()+" taxa ) has no STBs:\n"
 					+ v._cluster);
 			throw new CannotResolveException(v._cluster.toString());
 		}
 
 		for (STBipartition stb : clusterBiPartitions) {
 
+			System.out.println(stb);
+			
 			Vertex lv = clusterToVertex.get(stb.cluster1);
 			Vertex rv = clusterToVertex.get(stb.cluster2);
 
@@ -684,7 +698,7 @@ public class MGDInference_DP {
 				// rv._max_score));
 				v._min_lc = lv;
 				v._min_rc = rv;
-				v._c = c;
+				v._c = c;				
 			} catch (CannotResolveException c) {
 				continue;
 			}

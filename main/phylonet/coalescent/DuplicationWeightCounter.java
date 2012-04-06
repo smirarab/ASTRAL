@@ -54,6 +54,210 @@ public class DuplicationWeightCounter {
 		}
 	}
 	
+	void addExtraBipartitionsByInput(Map<Integer, Set<Vertex>> clusters,
+			List<Tree> extraTrees) {
+		
+		if (extraTrees == null) {
+			return;
+		}
+		
+		Vertex v;
+		for (Tree tr : extraTrees) {
+			Map<TNode,STITreeCluster> map = new HashMap<TNode, STITreeCluster>();
+			for (Iterator<TNode> nodeIt = tr.postTraverse()
+					.iterator(); nodeIt.hasNext();) {
+				TNode node = nodeIt.next();		        
+	            if(node.isLeaf())
+	            {
+	                String nodeName = node.getName();
+	                
+	                STITreeCluster tb = new STITreeCluster(stTaxa);
+	                tb.addLeaf(nodeName);	                	                	        			
+	        			
+        			map.put(node, tb);
+	                
+	            } else {
+	                int childCount = node.getChildCount();
+	                STITreeCluster childbslist[] = new STITreeCluster[childCount];
+			        BitSet bs = new BitSet(stTaxa.length);
+	                int index = 0;
+	                for(Iterator iterator3 = node.getChildren().iterator(); iterator3.hasNext();)
+	                {
+	                    TNode child = (TNode)iterator3.next();
+	                    childbslist[index++] = map.get(child);
+	                    bs.or(map.get(child).getCluster());
+	                }
+	                	                		                
+	                STITreeCluster cluster = new STITreeCluster(stTaxa);
+	                cluster.setCluster((BitSet) bs.clone());	
+	                
+	                int size = cluster.getClusterSize();
+	                
+        			addToClusters(clusters, cluster, size);
+	                map.put(node, cluster);	                
+	                
+	                
+                	if (index > 2) {	                	
+	                	throw new RuntimeException("None bifurcating tree: "+
+	                			tr+ "\n" + node);
+	                }
+
+	                STITreeCluster l_cluster = childbslist[0];
+	                
+	                STITreeCluster r_cluster = childbslist[1];
+	                
+	                STBipartition stb = new STBipartition(l_cluster, r_cluster, cluster);
+	                
+	    			addSTBToX(clusters, stb);
+	              
+	            }	           
+			}
+
+		}
+
+	}
+
+	void addExtraBipartitionsByInput(Map<Integer, Set<Vertex>> clusters,
+			List<Tree> trees,Map<String, String> taxonMap , boolean extraTreeRooted) {
+
+		int sigmaN = 0;
+		int k = trees.size();
+		String[] leaves = stTaxa;
+		int n = leaves.length;
+		
+		STITreeCluster all = clusters.get(n).iterator().next()._cluster;
+				
+		for (Tree tr : trees) {			
+			sigmaN += tr.getLeafCount() - 1;
+			Map<TNode,STITreeCluster> map = new HashMap<TNode, STITreeCluster>(n);
+			for (Iterator<TNode> nodeIt = tr.postTraverse()
+					.iterator(); nodeIt.hasNext();) {
+				TNode node = nodeIt.next();		        
+	            if(node.isLeaf())
+	            {
+	                String nodeName = node.getName();
+	                if (taxonMap != null) {
+	                	nodeName = taxonMap.get(nodeName);
+	                }
+
+	                STITreeCluster tb = new STITreeCluster(leaves);
+	                tb.addLeaf(nodeName);	               
+
+        			map.put(node, tb);
+	                
+	                if (!extraTreeRooted) {
+		                addSTBToX(clusters, tb, tb.complementaryCluster(), all);
+	                }
+	            } else {
+	                int childCount = node.getChildCount();
+	                STITreeCluster childbslist[] = new STITreeCluster[childCount];
+			        BitSet bs = new BitSet(leaves.length);
+	                int index = 0;
+	                for(Iterator iterator3 = node.getChildren().iterator(); iterator3.hasNext();)
+	                {
+	                    TNode child = (TNode)iterator3.next();
+	                    childbslist[index++] = map.get(child);
+	                    bs.or(map.get(child).getCluster());
+	                }
+	                	                		                
+	                STITreeCluster cluster = new STITreeCluster(leaves);
+	                cluster.setCluster((BitSet) bs.clone());	
+	                
+	                int size = cluster.getClusterSize();
+	                
+	                map.put(node, cluster);	                
+	                
+	                
+	                if (extraTreeRooted) {
+
+	                	if (index > 2) {	                	
+		                	throw new RuntimeException("None bifurcating tree: "+
+		                			tr+ "\n" + node);
+		                }
+
+		                STITreeCluster l_cluster = childbslist[0];
+		                
+		                STITreeCluster r_cluster = childbslist[1];
+		                		                
+		                addSTBToX(clusters, l_cluster, r_cluster, cluster);
+	                } else {		                	
+	                	if (childCount == 2) {
+			                STITreeCluster l_cluster = childbslist[0];
+			                
+			                STITreeCluster r_cluster = childbslist[1];
+			                
+			                STITreeCluster allMinuslAndr_cluster = cluster.complementaryCluster();
+			                		                
+			                STITreeCluster lAndr_cluster = cluster;
+			                
+			                // add Vertex STBs
+			                addSTBToX(clusters, l_cluster, r_cluster, cluster);
+			                addSTBToX(clusters, r_cluster, allMinuslAndr_cluster, l_cluster.complementaryCluster());
+			                addSTBToX(clusters, l_cluster, allMinuslAndr_cluster, r_cluster.complementaryCluster());
+			                
+			                // Add the Edge STB
+			                addSTBToX(clusters, lAndr_cluster, allMinuslAndr_cluster,  all);
+
+	                	} else if (childCount == 3 && node.isRoot()) {
+			                STITreeCluster l_cluster = childbslist[0];
+			                
+			                STITreeCluster m_cluster =  childbslist[1];
+			                
+			                STITreeCluster r_cluster = childbslist[2];
+
+			                addSTBToX(clusters, l_cluster, r_cluster, m_cluster.complementaryCluster());
+			                addSTBToX(clusters, r_cluster, m_cluster, l_cluster.complementaryCluster());
+			                addSTBToX(clusters, l_cluster, m_cluster, r_cluster.complementaryCluster());
+	                	} else {
+	                		throw new RuntimeException("None bifurcating tree: "+
+		                			tr+ "\n" + node);	
+	                	}	                	
+	                }
+	            }	           
+			}
+
+		}
+
+	}
+	
+	private void addSTBToX(Map<Integer, Set<Vertex>> clusters,
+			STITreeCluster l_cluster, STITreeCluster r_cluster,
+			STITreeCluster cluster) {
+		
+		int size = cluster.getClusterSize();
+		if (l_cluster.isDisjoint(r_cluster)) {
+			
+			STBipartition stb = new STBipartition(l_cluster, r_cluster, cluster);		
+			
+			addSTBToX(clusters, stb);	
+		} else {
+			// This case could happen for multiple-copy
+			BitSet and  = (BitSet) l_cluster.getCluster().clone();
+			and.and(r_cluster.getCluster());
+			
+			BitSet l_Minus_r  = (BitSet) and.clone();
+			l_Minus_r.xor(l_cluster.getCluster());
+			STITreeCluster lmr = new STITreeCluster(stTaxa);
+			lmr.setCluster(l_Minus_r);
+
+			BitSet r_Minus_l  = (BitSet) and.clone();
+			r_Minus_l.xor(r_cluster.getCluster());
+			STITreeCluster rml = new STITreeCluster(stTaxa);
+			rml.setCluster(r_Minus_l);	                	
+			
+			if (!rml.getCluster().isEmpty()) {
+				addToClusters(clusters, rml, rml.getClusterSize());
+				addSTBToX(clusters, new STBipartition(l_cluster, rml, cluster));
+			}
+			if (!lmr.getCluster().isEmpty()) {
+				addToClusters(clusters, lmr, lmr.getClusterSize());
+				addSTBToX(clusters, new STBipartition(lmr, r_cluster, cluster));
+			}
+		}
+	
+		
+	}
+
 	int computeTreeSTBipartitions(List<Tree> trees, 
 			Map<String, String> taxonMap, Map<Integer, Set<Vertex>> clusters) {
 
@@ -171,6 +375,9 @@ public class DuplicationWeightCounter {
 			                addSTB(clusters, l_cluster, r_cluster, m_cluster.complementaryCluster(), node);
 			                addSTB(clusters, r_cluster, m_cluster, l_cluster.complementaryCluster(), node);
 			                addSTB(clusters, l_cluster, m_cluster, r_cluster.complementaryCluster(), node);
+	                	} else {
+	                		throw new RuntimeException("None bifurcating tree: "+
+		                			tr+ "\n" + node);
 	                	}
 	                }
 	            }	           
@@ -191,6 +398,7 @@ public class DuplicationWeightCounter {
 		
 		return sigmaN;
 	}
+	
 	private double average(Collection<Set<STBipartition>> values) {
 		double sum = 0.0;
 		for (Set<STBipartition> set : values) {
@@ -289,69 +497,7 @@ public class DuplicationWeightCounter {
 */
 	}
 
-	void addExtraBipartitionsByInput(Map<Integer, Set<Vertex>> clusters,
-			List<Tree> extraTrees) {
-		
-		if (extraTrees == null) {
-			return;
-		}
-		
-		Vertex v;
-		for (Tree tr : extraTrees) {
-			Map<TNode,STITreeCluster> map = new HashMap<TNode, STITreeCluster>();
-			for (Iterator<TNode> nodeIt = tr.postTraverse()
-					.iterator(); nodeIt.hasNext();) {
-				TNode node = nodeIt.next();		        
-	            if(node.isLeaf())
-	            {
-	                String nodeName = node.getName();
-
-	                STITreeCluster tb = new STITreeCluster(stTaxa);
-	                tb.addLeaf(nodeName);	                	                	        			
-	        			
-        			map.put(node, tb);
-	                
-	            } else {
-	                int childCount = node.getChildCount();
-	                STITreeCluster childbslist[] = new STITreeCluster[childCount];
-			        BitSet bs = new BitSet(stTaxa.length);
-	                int index = 0;
-	                for(Iterator iterator3 = node.getChildren().iterator(); iterator3.hasNext();)
-	                {
-	                    TNode child = (TNode)iterator3.next();
-	                    childbslist[index++] = map.get(child);
-	                    bs.or(map.get(child).getCluster());
-	                }
-	                	                		                
-	                STITreeCluster cluster = new STITreeCluster(stTaxa);
-	                cluster.setCluster((BitSet) bs.clone());	
-	                
-	                int size = cluster.getClusterSize();
-	                
-        			addToClusters(clusters, cluster, size);
-	                map.put(node, cluster);	                
-	                
-	                
-                	if (index > 2) {	                	
-	                	throw new RuntimeException("None bifurcating tree: "+
-	                			tr+ "\n" + node);
-	                }
-
-	                STITreeCluster l_cluster = childbslist[0];
-	                
-	                STITreeCluster r_cluster = childbslist[1];
-	                
-	                STBipartition stb = new STBipartition(l_cluster, r_cluster, cluster);
-	                
-	    			addSTBToX(clusters, stb);
-	              
-	            }	           
-			}
-
-		}
-
-	}
-
+	
 	private STBipartition tryAddingExtraSTB_AndreRule(STBipartition stb1, STBipartition stb2, Set<STBipartition> bipToAddToX)
 	{
 		if (stb1.equals(stb2)) return null;
@@ -403,7 +549,7 @@ public class DuplicationWeightCounter {
 		}
 	}
 
-	void preCalculateWeights(List<Tree> trees, Map<String, String> taxonMap) {		
+	void preCalculateWeights(List<Tree> trees,List<Tree> extraTrees, Map<String, String> taxonMap) {		
 		/*weights.putAll(STBCountInGeneTrees);						
 		
 		for (int i = leaves.length; i > 1; i--) {
@@ -422,7 +568,12 @@ public class DuplicationWeightCounter {
 			}
 		}*/
 		if (rooted && taxonMap == null &&
-				stTaxa.length > trees.size()) calculateWeightsByLCA(trees,trees);
+				stTaxa.length > trees.size()) {
+			calculateWeightsByLCA(trees,trees);
+			if (extraTrees != null) {
+				calculateWeightsByLCA(extraTrees,trees);
+			}
+		}
 	}
 
 	void calculateWeightsByLCA (List<Tree> stTrees,List<Tree> gtTrees)
@@ -439,6 +590,7 @@ public class DuplicationWeightCounter {
 					} else {
 						TNode rightLCA = stack.pop();
 						TNode leftLCA = stack.pop();
+						// If gene trees are incomplete, we can have this case
 						if (rightLCA == null || leftLCA == null) {
 							stack.push(null);
 							continue;
