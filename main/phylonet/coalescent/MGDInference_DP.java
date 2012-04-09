@@ -527,8 +527,7 @@ public class MGDInference_DP {
 			for (Vertex v : all._subcl) {
 				minVertices.push(v);
 			}
-		}
-		System.out.println(minVertices);
+		}		
 		while (!minVertices.isEmpty()) {
 			Vertex pe = (Vertex) minVertices.pop();
 			//System.out.println(pe._min_rc);
@@ -638,18 +637,23 @@ public class MGDInference_DP {
 
 		// STBipartition bestSTB = null;
 		if (clusterBiPartitions == null) {
-			if (v._cluster.getClusterSize() <= 2) {
-				STITreeCluster c1 = new STITreeCluster(v._cluster.getTaxa());
-				c1.addLeaf(v._cluster.getClusterLeaves()[0]);
-				STITreeCluster c2 = new STITreeCluster(v._cluster.getTaxa());
-				for (int i = 1; i < v._cluster.getClusterSize(); i++) {
-					c2.addLeaf(v._cluster.getClusterLeaves()[i]);
-				}
-				if (clusterToVertex.containsKey(c2)) {
-					STBipartition stb = new STBipartition(c1, c2, v._cluster);
-					clusterBiPartitions = new HashSet<STBipartition>(1);
-					clusterBiPartitions.add(stb);
-					System.err.println("Adding: " + stb);
+			if (v._cluster.getClusterSize() <= 3) {
+				for (int j=0; j< v._cluster.getClusterSize(); j++){
+					STITreeCluster c1 = new STITreeCluster(v._cluster.getTaxa());
+					c1.addLeaf(v._cluster.getClusterLeaves()[j]);
+					STITreeCluster c2 = new STITreeCluster(v._cluster.getTaxa());
+					for (int i = 0; i < v._cluster.getClusterSize(); i++) {
+						if (i != j){
+							c2.addLeaf(v._cluster.getClusterLeaves()[i]);
+						}
+					}
+					if (clusterToVertex.containsKey(c2)) {
+						STBipartition stb = new STBipartition(c1, c2, v._cluster);
+						if (clusterBiPartitions == null)
+							clusterBiPartitions = new HashSet<STBipartition>(3);
+						clusterBiPartitions.add(stb);
+						System.err.println("Adding: " + stb);
+					}
 				}
 			}
 		}

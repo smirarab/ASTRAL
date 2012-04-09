@@ -162,6 +162,12 @@ public class DuplicationWeightCounter {
 			}
 
 		}
+		int s = 0;
+		for (Integer c: clusters.keySet()){
+			s += clusters.get(c).size();
+		}
+		System.out.println("Number of Clusters After additions from extra Trees: " +s);
+		System.out.println("Number of STBs After additions from extra Trees: " +STBCountInGeneTrees.size());
 	}
 	
 	private STITreeCluster treeComplementary(STITreeCluster treeAll, STITreeCluster c){
