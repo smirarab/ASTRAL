@@ -46,6 +46,8 @@ public class DuplicationWeightCounter {
 
 	private boolean rooted;
 	
+	private HashMap<STBipartition, Set<STBipartition>> alreadyProcessed = new HashMap<STBipartition, Set<STBipartition>>();
+	
 	private void addToClusters (Map<Integer, Set<Vertex>> clusters, STITreeCluster c, int size) {
 		Vertex nv = new Vertex();
 		nv._cluster = c;
@@ -91,7 +93,7 @@ public class DuplicationWeightCounter {
         			map.put(node, tb);
 	                
 	                if (!extraTreeRooted) {
-		                addSTBToX(clusters, tb, treeComplementary(treeAll, tb), null);
+		                addSTBToX(clusters, tb, treeComplementary(treeAll, tb), null,node);
 	                }
 	            } else {
 	                int childCount = node.getChildCount();
@@ -124,7 +126,7 @@ public class DuplicationWeightCounter {
 		                
 		                STITreeCluster r_cluster = childbslist[1];
 		                		                
-		                addSTBToX(clusters, l_cluster, r_cluster, cluster);
+		                addSTBToX(clusters, l_cluster, r_cluster, cluster,node);
 	                } else {		                	
 	                	if (childCount == 2) {
 			                STITreeCluster l_cluster = childbslist[0];
@@ -136,11 +138,11 @@ public class DuplicationWeightCounter {
 			                STITreeCluster lAndr_cluster = cluster;
 			                
 			                // add Vertex STBs
-			                addSTBToX(clusters, l_cluster, r_cluster, cluster);
+			                addSTBToX(clusters, l_cluster, r_cluster, cluster,node);
 			                if (allMinuslAndr_cluster.getClusterSize() != 0) {
-			                	addSTBToX(clusters, r_cluster, allMinuslAndr_cluster, null);
-			                	addSTBToX(clusters, l_cluster, allMinuslAndr_cluster, null);
-				                addSTBToX(clusters, lAndr_cluster, allMinuslAndr_cluster,  all);
+			                	addSTBToX(clusters, r_cluster, allMinuslAndr_cluster, null,node);
+			                	addSTBToX(clusters, l_cluster, allMinuslAndr_cluster, null,node);
+				                addSTBToX(clusters, lAndr_cluster, allMinuslAndr_cluster,  all,node);
 			                }			                
 
 	                	} else if (childCount == 3 && node.isRoot()) {
@@ -150,9 +152,9 @@ public class DuplicationWeightCounter {
 			                
 			                STITreeCluster r_cluster = childbslist[2];
 
-			                addSTBToX(clusters, l_cluster, r_cluster, null);
-			                addSTBToX(clusters, r_cluster, m_cluster, null);
-			                addSTBToX(clusters, l_cluster, m_cluster, null);
+			                addSTBToX(clusters, l_cluster, r_cluster, null,node);
+			                addSTBToX(clusters, r_cluster, m_cluster, null,node);
+			                addSTBToX(clusters, l_cluster, m_cluster, null,node);
 	                	} else {
 	                		throw new RuntimeException("None bifurcating tree: "+
 		                			tr+ "\n" + node);	
@@ -384,7 +386,7 @@ public class DuplicationWeightCounter {
 	
 	private void addSTBToX(Map<Integer, Set<Vertex>> clusters,
 			STITreeCluster l_cluster, STITreeCluster r_cluster,
-			STITreeCluster cluster) {
+			STITreeCluster cluster, TNode node) {
 		
 		if (cluster == null) {
 			cluster = new STITreeCluster(l_cluster);
@@ -393,7 +395,7 @@ public class DuplicationWeightCounter {
 		if (l_cluster.isDisjoint(r_cluster)) {
 			
 			STBipartition stb = new STBipartition(l_cluster, r_cluster, cluster);		
-			
+			((STINode)node).setData(stb);
 			addSTBToX(clusters, stb);	
 		} else {
 			// This case could happen for multiple-copy
@@ -546,11 +548,11 @@ public class DuplicationWeightCounter {
 				calculateWeightsByLCA(extraTrees,trees);
 			}
 		}
+		
 	}
 
 	void calculateWeightsByLCA (List<Tree> stTrees,List<Tree> gtTrees)
-	{
-		HashMap<STBipartition, Set<STBipartition>> alreadyProcessed = new HashMap<STBipartition, Set<STBipartition>>();
+	{		
 		
 		for (Tree stTree:stTrees){
 			SchieberVishkinLCA lcaLookup = new SchieberVishkinLCA(stTree);			
@@ -680,7 +682,7 @@ public class DuplicationWeightCounter {
 		}
 		@Override
 		public String toString() {		
-			return cluster1.toString()+"|"+cluster2.toString() + " on <"+c+">";
+			return cluster1.toString()+"|"+cluster2.toString();
 		}
 		public boolean isDominatedBy(STBipartition dominant) {
 			if (! dominant.c.containsCluster(this.c)) {
