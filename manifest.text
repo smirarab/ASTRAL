@@ -1,0 +1,2 @@
+Main-Class: phylonet.coalescent.MGDInference_DP
+Class-Path: main.jar

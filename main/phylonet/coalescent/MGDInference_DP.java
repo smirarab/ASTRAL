@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -17,9 +16,11 @@ import java.util.Set;
 import java.util.Stack;
 
 import phylonet.coalescent.DuplicationWeightCounter.STBipartition;
+import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.io.NewickReader;
 import phylonet.tree.io.ParseException;
 import phylonet.tree.model.MutableTree;
+import phylonet.tree.model.TMutableNode;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STINode;
@@ -27,11 +28,13 @@ import phylonet.tree.model.sti.STITree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.util.Collapse;
 import phylonet.tree.util.Trees;
+import phylonet.util.BitSet;
 
 public class MGDInference_DP {
 	private static boolean _print = true;
 	private static boolean optimizeDuploss = false;
 	private static boolean rooted = true;
+	private static boolean fast = false;
 	private static boolean extrarooted = true;
 
 	private List<Tree> trees;
@@ -176,6 +179,12 @@ public class MGDInference_DP {
 						return;
 					}
 					unresolved = true;
+				} else if (option[0].equals("-f")) {
+					if ((option.length != 1)) {
+						printUsage();
+						return;
+					}
+					fast = true;
 				} else if (option[0].equals("-u")) {
 					if ((option.length != 1) || (time != -1.0D)) {
 						printUsage();
@@ -338,7 +347,7 @@ public class MGDInference_DP {
 				.println("This tool infers the species tree from rooted gene trees despite lineage sorting.");
 		System.out.println("Usage is:");
 		System.out
-				.println("\tMGDInference_DP -i input [-a mapping] [-dl] [-u] [-ex extra_trees] [-xu] [-o output] ");
+				.println("\tMGDInference_DP -i input [-a mapping] [-dl] [-u] [-ex extra_trees] [-xu] [-o output] [-f] ");
 		System.out
 				.println("\t-i gene tree file: The file containing gene trees. (required)");
 		System.out
@@ -349,6 +358,7 @@ public class MGDInference_DP {
 		System.out.println("\t-u treat input gene trees as unrooted");
 		System.out.println("\t-ex provide extra trees to add to set of STBs searched");
 		System.out.println("\t-xu treat extra trees input gene trees as unrooted");
+		System.out.println("\t-f perform fast and less-accurate subtree-bipartition based search.");
 		System.out.println();
 	}
 
@@ -394,7 +404,7 @@ public class MGDInference_DP {
 			}
 		} else {
 			cd = null;
-			if (rooted & extraTrees == null & taxonMap == null) {
+			if (rooted & extraTrees == null & taxonMap == null && false) {
 				cd = doCollapse(trees);
 			}
 
@@ -452,7 +462,7 @@ public class MGDInference_DP {
 
 		solutions = findTreesByDP(stTaxa, counter, trees, taxonMap);
 
-		if (taxonMap == null && rooted && extraTrees == null) {
+		if (taxonMap == null && rooted && extraTrees == null && false) {
 			restoreCollapse(solutions, cd);
 		}
 
@@ -475,6 +485,67 @@ public class MGDInference_DP {
 		}
 	}
 
+	  public static Tree buildTreeFromClusters(List<STITreeCluster> clusters)
+	  {
+	    if ((clusters == null) || (clusters.size() == 0)) {
+	      System.err.println("Empty list of clusters. The function returns a null tree.");
+	      return null;
+	    }
+
+	    MutableTree tree = new STITree();
+
+	    String[] taxa = ((STITreeCluster)clusters.get(0)).getTaxa();
+	    for (int i = 0; i < taxa.length; i++) {
+	      tree.getRoot().createChild(taxa[i]);
+	    }
+
+	    for (STITreeCluster tc : clusters) {
+	      if ((tc.getClusterSize() <= 1) || (tc.getClusterSize() == tc.getTaxa().length))
+	      {
+	        continue;
+	      }
+
+	      Set clusterLeaves = new HashSet();
+	      TNode node;
+	      for (String l : tc.getClusterLeaves()) {
+	        node = tree.getNode(l);
+	        clusterLeaves.add(node);
+	      }
+
+	      SchieberVishkinLCA lcaFinder = new SchieberVishkinLCA(tree);
+	      TNode lca = lcaFinder.getLCA(clusterLeaves);
+
+	      Object movedChildren = new LinkedList();
+	      for (TNode child : lca.getChildren()) {
+	        BitSet childCluster = new BitSet(taxa.length);
+	        for (TNode cl : child.getLeaves()) {
+	          for (int i = 0; i < taxa.length; i++) {
+	            if (taxa[i].equals(cl.getName())) {
+	              childCluster.set(i);
+	              break;
+	            }
+	          }
+	        }
+
+	        BitSet temp = (BitSet)childCluster.clone();
+	        temp.and(tc.getCluster());
+	        if (temp.equals(childCluster)) {
+	          ((List)movedChildren).add(child);
+	        }
+
+	      }
+
+	      STINode newChild = ((STINode)lca).createChild();
+
+	      while (!((List)movedChildren).isEmpty()) {
+	        newChild.adoptChild((TMutableNode)((List)movedChildren).get(0));
+	        ((List)movedChildren).remove(0);
+	      }
+	    }
+
+	    return (Tree)tree;
+	  }
+	  
 	private List<Solution> findTreesByDP(String[] stTaxa,
 			DuplicationWeightCounter counter, List<Tree> trees,
 			Map<String, String> taxonMap) {
@@ -560,7 +631,7 @@ public class MGDInference_DP {
 			}
 			sol._st = ((Tree) tr);
 		} else {
-			sol._st = Trees.buildTreeFromClusters(minClusters);
+			sol._st = buildTreeFromClusters(minClusters);
 		}
 
 		Object map = new HashMap();
@@ -598,11 +669,12 @@ public class MGDInference_DP {
 		return (List<Solution>) (List<Solution>) solutions;
 	}
 
-	//private Stack<Vertex> vertexStack = new Stack<Vertex>();
+	// TODO: fix this.	
 	int maxEL = 1000000000;
 	
 	private int computeMinCost(Vertex v) throws CannotResolveException {
-		// TODO: fix this.		
+
+		
 		// Already calculated. Don't re-calculate.
 		if (v._max_score != -1) {
 			return v._max_score - maxEL;
@@ -621,9 +693,11 @@ public class MGDInference_DP {
 		} else {
 			v._el_num = 0;
 		}
+		
+		int clusterSize = v._cluster.getClusterSize();
+		
 		// SIA: base case for singelton clusters.
 		{
-			int clusterSize = v._cluster.getClusterSize();
 			if (clusterSize <= 1) {
 				// SIA: TODO: this is 0, right?
 				v._min_cost = 0;
@@ -636,78 +710,125 @@ public class MGDInference_DP {
 				.getClusterBiPartitions(v._cluster);
 
 		// STBipartition bestSTB = null;
-		if (clusterBiPartitions == null) {
-			if (v._cluster.getClusterSize() <= 3) {
-				for (int j=0; j< v._cluster.getClusterSize(); j++){
-					STITreeCluster c1 = new STITreeCluster(v._cluster.getTaxa());
-					c1.addLeaf(v._cluster.getClusterLeaves()[j]);
-					STITreeCluster c2 = new STITreeCluster(v._cluster.getTaxa());
-					for (int i = 0; i < v._cluster.getClusterSize(); i++) {
-						if (i != j){
-							c2.addLeaf(v._cluster.getClusterLeaves()[i]);
+	 	if (fast) {	
+			if (clusterBiPartitions == null) {
+				if (v._cluster.getClusterSize() <= 3) {
+					for (int j=0; j< v._cluster.getClusterSize(); j++){
+						STITreeCluster c1 = new STITreeCluster(v._cluster.getTaxa());
+						c1.addLeaf(v._cluster.getClusterLeaves()[j]);
+						STITreeCluster c2 = new STITreeCluster(v._cluster.getTaxa());
+						for (int i = 0; i < v._cluster.getClusterSize(); i++) {
+							if (i != j){
+								c2.addLeaf(v._cluster.getClusterLeaves()[i]);
+							}
+						}
+						if (clusterToVertex.containsKey(c2)) {
+							STBipartition stb = new STBipartition(c1, c2, v._cluster);
+							if (clusterBiPartitions == null)
+								clusterBiPartitions = new HashSet<STBipartition>(3);
+							clusterBiPartitions.add(stb);
+							System.err.println("Adding: " + stb);
 						}
 					}
-					if (clusterToVertex.containsKey(c2)) {
-						STBipartition stb = new STBipartition(c1, c2, v._cluster);
-						if (clusterBiPartitions == null)
-							clusterBiPartitions = new HashSet<STBipartition>(3);
-						clusterBiPartitions.add(stb);
-						System.err.println("Adding: " + stb);
+				}
+			}
+	
+			if (clusterBiPartitions == null) {
+				System.err.println("Warn: the following cluster ( " + v._cluster.getClusterSize()+" taxa ) has no STBs:\n"
+						+ v._cluster);
+				throw new CannotResolveException(v._cluster.toString());
+			}
+			for (STBipartition stb : clusterBiPartitions) {
+	
+				Vertex lv = clusterToVertex.get(stb.cluster1);
+				Vertex rv = clusterToVertex.get(stb.cluster2);
+	
+				/*
+				 * if (lv == null || rv == null) {
+				 * //System.out.println("There is no STB for one half of : " + stb);
+				 * continue; }
+				 */
+	
+				try {
+	
+					//vertexStack.push(lv);
+					int lscore = computeMinCost(lv);
+					//vertexStack.pop();
+					//vertexStack.push(rv);
+					int rscore = computeMinCost(rv);
+					//vertexStack.pop();
+	
+					int w = counter.getBiPartitionDPWeight(lv._cluster,
+							rv._cluster, v._cluster);
+	
+					int z = optimizeDuploss ? 3 : 1;
+	
+					int c = z * w - v._el_num;
+	
+					if ((v._max_score != -1)
+							&& (lscore + rscore + c + maxEL <= v._max_score)) {
+						continue;
+					}
+					v._max_score = (lscore + rscore + c) + maxEL;
+					v._min_cost = sigmaNs
+							- (c + lv._max_score + rv._max_score - 2 * maxEL);
+					// stem.out.println(maxEL - (z*w + lv._max_score +
+					// rv._max_score));
+					v._min_lc = lv;
+					v._min_rc = rv;
+					v._c = c;				
+				} catch (CannotResolveException c) {
+					System.err.println("Warn: cannot resolve: " + c.getMessage());
+				}
+	
+				// bestSTB = stb;
+			}
+		} else {
+
+			for (int i = 1; i <= (clusterSize / 2); i++) {
+				Set<Vertex> leftList = clusters.get(i);
+				if (leftList != null) {
+					for (Vertex lv : leftList) {
+						if (v._cluster.containsCluster(lv._cluster)) {						
+	
+							Set<Vertex> rightList = clusters.get(clusterSize - i);
+							if (rightList != null) {							
+								for (Vertex rv : rightList) {
+									if (lv._cluster.isDisjoint(rv._cluster) && v._cluster.containsCluster(rv._cluster)) {
+										int lscore = computeMinCost(lv);
+										int rscore = computeMinCost(rv);
+	
+										int w = counter.getBiPartitionDPWeight(lv._cluster,
+												rv._cluster, v._cluster);
+	
+										int z = optimizeDuploss ? 3 : 1;
+	
+										int c = z * w - v._el_num;
+	
+										if ((v._max_score != -1)
+												&& (lscore + rscore + c + maxEL <= v._max_score)) {
+											continue;
+										}
+										v._max_score = (lscore + rscore + c) + maxEL;
+										v._min_cost = sigmaNs
+												- (c + lv._max_score + rv._max_score - 2 * maxEL);
+										// stem.out.println(maxEL - (z*w + lv._max_score +
+										// rv._max_score));
+										v._min_lc = lv;
+										v._min_rc = rv;
+										v._c = c;
+	
+										break;	// Already found the only pair of clusters whose union is v's cluster.
+									}
+								}
+							}
+						}
 					}
 				}
 			}
+	
 		}
 		
-		if (clusterBiPartitions == null) {
-			System.err.println("Warn: the following cluster ( " + v._cluster.getClusterSize()+" taxa ) has no STBs:\n"
-					+ v._cluster);
-			throw new CannotResolveException(v._cluster.toString());
-		}
-		for (STBipartition stb : clusterBiPartitions) {
-
-			Vertex lv = clusterToVertex.get(stb.cluster1);
-			Vertex rv = clusterToVertex.get(stb.cluster2);
-
-			/*
-			 * if (lv == null || rv == null) {
-			 * //System.out.println("There is no STB for one half of : " + stb);
-			 * continue; }
-			 */
-
-			try {
-
-				//vertexStack.push(lv);
-				int lscore = computeMinCost(lv);
-				//vertexStack.pop();
-				//vertexStack.push(rv);
-				int rscore = computeMinCost(rv);
-				//vertexStack.pop();
-
-				int w = counter.getBiPartitionDPWeight(lv._cluster,
-						rv._cluster, v._cluster);
-
-				int z = optimizeDuploss ? 3 : 1;
-
-				int c = z * w - v._el_num;
-
-				if ((v._max_score != -1)
-						&& (lscore + rscore + c + maxEL <= v._max_score)) {
-					continue;
-				}
-				v._max_score = (lscore + rscore + c) + maxEL;
-				v._min_cost = sigmaNs
-						- (c + lv._max_score + rv._max_score - 2 * maxEL);
-				// stem.out.println(maxEL - (z*w + lv._max_score +
-				// rv._max_score));
-				v._min_lc = lv;
-				v._min_rc = rv;
-				v._c = c;				
-			} catch (CannotResolveException c) {
-				System.err.println("Warn: cannot resolve: " + c.getMessage());
-			}
-
-			// bestSTB = stb;
-		}
 		if (v._min_lc == null) {
 			System.out.println("WARN: No Resolution found for ( " + v._cluster.getClusterSize()+" taxa ):\n"
 					+ v._cluster);
