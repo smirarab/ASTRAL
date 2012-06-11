@@ -21,6 +21,7 @@ import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STINode;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.util.BitSet;
+import phylonet.coalescent.MGDInference_DP.TaxonNameMap;
 
 public class DuplicationWeightCounter {
 	
@@ -60,7 +61,7 @@ public class DuplicationWeightCounter {
 	
 
 	void addExtraBipartitionsByInput(Map<Integer, Set<Vertex>> clusters,
-			List<Tree> trees,Map<String, String> taxonMap , boolean extraTreeRooted) {
+			List<Tree> trees,TaxonNameMap taxonMap , boolean extraTreeRooted) {
 
 		int sigmaN = 0;
 		int k = trees.size();
@@ -84,7 +85,7 @@ public class DuplicationWeightCounter {
 	            {
 	                String nodeName = node.getName();
 	                if (taxonMap != null) {
-	                	nodeName = taxonMap.get(nodeName);
+	                	nodeName = taxonMap.getTaxonName(nodeName);
 	                }
 
 	                STITreeCluster tb = new STITreeCluster(leaves);
@@ -179,7 +180,7 @@ public class DuplicationWeightCounter {
 	}
 	
 	int computeTreeSTBipartitions(List<Tree> trees, 
-			Map<String, String> taxonMap, Map<Integer, Set<Vertex>> clusters) {
+			TaxonNameMap taxonMap, Map<Integer, Set<Vertex>> clusters) {
 
 		int sigmaN = 0;
 		int k = trees.size();
@@ -226,7 +227,7 @@ public class DuplicationWeightCounter {
 	            {
 	                String nodeName = node.getName();
 	                if (taxonMap != null) {
-	                	nodeName = taxonMap.get(nodeName);
+	                	nodeName = taxonMap.getTaxonName(nodeName);
 	                }
 
 	                STITreeCluster tb = new STITreeCluster(leaves);
@@ -523,7 +524,7 @@ public class DuplicationWeightCounter {
 		}
 	}
 
-	void preCalculateWeights(List<Tree> trees,List<Tree> extraTrees, Map<String, String> taxonMap) {		
+	void preCalculateWeights(List<Tree> trees,List<Tree> extraTrees, TaxonNameMap taxonMap) {		
 		/*weights.putAll(STBCountInGeneTrees);						
 		
 		for (int i = leaves.length; i > 1; i--) {

@@ -43,16 +43,51 @@ public class MGDInference_DP {
 	private Map<Integer, Set<Vertex>> clusters;
 	private int sigmaNs;
 	private DuplicationWeightCounter counter;
-	Map<String, String> taxonMap;
+	private TaxonNameMap taxonNameMap = null;
+	
+	class TaxonNameMap {
+		Map<String, String> taxonMap;
+		String pattern = null;
+		String rep = null;
+		public TaxonNameMap (Map<String, String> taxonMap) {
+			this.taxonMap = taxonMap;
+		}
+		public TaxonNameMap (String pattern, String rep) {
+			this.pattern = pattern;
+			this.rep = rep;
+		}
+		public String getTaxonName(String geneName) {
+			if (pattern != null) {
+				return geneName.replaceAll(pattern,rep);
+			} else {
+				return taxonMap.get(geneName);
+			}
+		}		
+	}
+
+	public MGDInference_DP(List<Tree> trees, List<Tree> extraTrees) {
+		super();
+		this.trees = trees;
+		this.extraTrees = extraTrees;
+		this.taxonNameMap = null;
+	}
 
 	public MGDInference_DP(List<Tree> trees, List<Tree> extraTrees,
 			Map<String, String> taxonMap) {
 		super();
 		this.trees = trees;
 		this.extraTrees = extraTrees;
-		this.taxonMap = taxonMap;
+		this.taxonNameMap = new TaxonNameMap(taxonMap);
 	}
 
+	public MGDInference_DP(List<Tree> trees, List<Tree> extraTrees,
+			String pattern, String rep) {
+		super();
+		this.trees = trees;
+		this.extraTrees = extraTrees;
+		this.taxonNameMap = new TaxonNameMap (pattern, rep);
+	}
+	
 	public static void main(String[] args) {
 		if ((args == null) || args.length == 0 || (args[0].equals("-h"))
 				|| (args.length < 1)) {
@@ -60,6 +95,8 @@ public class MGDInference_DP {
 			return;
 		}
 		Map<String, String> taxonMap = null;
+		String rep = null;
+		String pattern = null;
 		List<Tree> trees = null;
 		List<Tree> extraTrees = null;
 		String output = null;
@@ -96,37 +133,42 @@ public class MGDInference_DP {
 
 					extraTrees = new ArrayList();					
 				} else if (option[0].equals("-a")) {
-					if (option.length != 2) {
+					if ( (option.length != 2) && (option.length != 3)) {
 						printUsage();
 						return;
 					}
-					BufferedReader br = new BufferedReader(new FileReader(
-							option[1]));
-
-					taxonMap = new HashMap<String, String>();
-					while ((line = br.readLine()) != null) {
-						// String line;
-						String[] mapString = line.trim().split(";");
-						for (String s : mapString) {
-							String species = s.substring(0, s.indexOf(":"))
-									.trim();
-							s = s.substring(s.indexOf(":") + 1);
-							String[] alleles = s.split(",");
-							for (String allele : alleles) {
-								allele = allele.trim();
-								if (taxonMap.containsKey(allele)) {
-									System.err
-											.println("The input file is not in correct format");
-									System.err
-											.println("An allele can only map to one species");
-									System.exit(-1);
-								} else {
-									taxonMap.put(allele, species);
+					if (option.length == 2) {
+						BufferedReader br = new BufferedReader(new FileReader(
+								option[1]));
+	
+						taxonMap = new HashMap<String, String>();
+						while ((line = br.readLine()) != null) {
+							// String line;
+							String[] mapString = line.trim().split(";");
+							for (String s : mapString) {
+								String species = s.substring(0, s.indexOf(":"))
+										.trim();
+								s = s.substring(s.indexOf(":") + 1);
+								String[] alleles = s.split(",");
+								for (String allele : alleles) {
+									allele = allele.trim();
+									if (taxonMap.containsKey(allele)) {
+										System.err
+												.println("The input file is not in correct format");
+										System.err
+												.println("An gene name can only map to one species");
+										System.exit(-1);
+									} else {
+										taxonMap.put(allele, species);
+									}
 								}
 							}
 						}
+						br.close();
+					} else {
+						pattern = option[1];
+						rep = option [2];
 					}
-					br.close();
 				} else if (option[0].equals("-o")) {
 					if (option.length != 2) {
 						printUsage();
@@ -304,8 +346,19 @@ public class MGDInference_DP {
 		}
 
 		startTime = System.currentTimeMillis();
-		MGDInference_DP inference = new MGDInference_DP(trees, extraTrees,
+		MGDInference_DP inference;
+		
+		
+		
+		if (rep != null) {			
+			inference = new MGDInference_DP(trees, extraTrees,
+				pattern, rep);
+		} else if (taxonMap != null) {
+			inference = new MGDInference_DP(trees, extraTrees,
 				taxonMap);
+		} else {
+			inference = new MGDInference_DP(trees, extraTrees);
+		}
 
 		List<Solution> solutions = inference.inferSpeciesTree();
 
@@ -351,7 +404,7 @@ public class MGDInference_DP {
 		System.out
 				.println("\t-i gene tree file: The file containing gene trees. (required)");
 		System.out
-				.println("\t-a mapping file: The file containing the mapping from alleles to speceis if multiple alleles sampled. (optional)");
+				.println("\t-a mapping file: The file containing the mapping from alleles to speceis if multiple alleles sampled. Or, you can specify two reqular expressions for automatic name conversion (optional)");
 		System.out
 				.println("\t-o species tree file: The file to store the species tree. (optional)");
 		System.out.println("\t-dl optimize duploss instead of duplications");
@@ -376,8 +429,8 @@ public class MGDInference_DP {
 		if ((trees == null) || (trees.size() == 0)) {
 			throw new IllegalArgumentException("empty or null list of trees");
 		}
-
-		if (taxonMap != null) {
+		if (taxonNameMap != null && taxonNameMap.taxonMap != null) {
+			Map<String,String> taxonMap = taxonNameMap.taxonMap;
 			String error = Trees.checkMapping(trees, taxonMap);
 			if (error != null) {
 				throw new RuntimeException("Gene trees have leaf named "
@@ -402,9 +455,31 @@ public class MGDInference_DP {
 			for (int i = 0; i < stTaxa.length; i++) {
 				stTaxa[i] = ((String) ((List) temp2).get(i));
 			}
+		} else if (taxonNameMap != null && taxonNameMap.taxonMap == null) {
+			
+			Set<String> taxalist = new HashSet<String>();
+			Set<String> genelist = new HashSet<String>();
+			for (Tree tr : trees) {
+				for (TNode node : tr.postTraverse()) {
+					genelist.add(node.getName());
+					taxalist.add(taxonNameMap.getTaxonName(node.getName()));
+				}
+			}
+
+			stTaxa = new String[taxalist.size()];
+			gtTaxa = new String[genelist.size()];
+
+			int index = 0;
+			for (String taxon : taxalist) {
+				stTaxa[(index++)] = taxon;
+			}
+			index = 0;
+			for (String gene : genelist) {
+				gtTaxa[(index++)] = gene;
+			}
 		} else {
 			cd = null;
-			if (rooted & extraTrees == null & taxonMap == null && false) {
+			if (rooted & extraTrees == null & taxonNameMap == null && false) {
 				cd = doCollapse(trees);
 			}
 
@@ -434,11 +509,11 @@ public class MGDInference_DP {
 
 		counter = new DuplicationWeightCounter(gtTaxa, stTaxa, rooted);
 
-		int sigmaN = counter.computeTreeSTBipartitions(trees, taxonMap,
+		int sigmaN = counter.computeTreeSTBipartitions(trees, taxonNameMap,
 				clusters);
 
 		if (extraTrees != null) {		
-			counter.addExtraBipartitionsByInput(clusters, extraTrees,taxonMap,extrarooted);					
+			counter.addExtraBipartitionsByInput(clusters, extraTrees,taxonNameMap,extrarooted);					
 		}
 
 		counter.addExtraBipartitionsByHeuristics(clusters);
@@ -449,7 +524,7 @@ public class MGDInference_DP {
 					+ " secs");
 		}
 
-		counter.preCalculateWeights(trees, extraTrees, taxonMap);
+		counter.preCalculateWeights(trees, extraTrees, taxonNameMap);
 		
 		if (_print) {
 			System.out.println("Weights pre-caluclated after "
@@ -460,9 +535,9 @@ public class MGDInference_DP {
 		sigmaNs = optimizeDuploss ? sigmaN + 2 * (stTaxa.length - 1)
 				* trees.size() : sigmaN;
 
-		solutions = findTreesByDP(stTaxa, counter, trees, taxonMap);
+		solutions = findTreesByDP(stTaxa, counter, trees, taxonNameMap);
 
-		if (taxonMap == null && rooted && extraTrees == null && false) {
+		if (taxonNameMap == null && rooted && extraTrees == null && false) {
 			restoreCollapse(solutions, cd);
 		}
 
@@ -548,7 +623,7 @@ public class MGDInference_DP {
 	  
 	private List<Solution> findTreesByDP(String[] stTaxa,
 			DuplicationWeightCounter counter, List<Tree> trees,
-			Map<String, String> taxonMap) {
+			TaxonNameMap taxonNameMap) {
 		List<Solution> solutions = new ArrayList<Solution>();
 
 		/*
@@ -682,12 +757,12 @@ public class MGDInference_DP {
 		// If in duploss mode, need to get MDC cost as well
 		if (optimizeDuploss) {
 			if (v._el_num == -1) {
-				if (taxonMap == null) {
+				if (taxonNameMap == null) {
 					v._el_num = DeepCoalescencesCounter.getClusterCoalNum(
 							trees, v._cluster, rooted);
 				} else {
 					v._el_num = DeepCoalescencesCounter.getClusterCoalNum(
-							trees, v._cluster, taxonMap, rooted);
+							trees, v._cluster, taxonNameMap, rooted);
 				}
 			}
 		} else {
