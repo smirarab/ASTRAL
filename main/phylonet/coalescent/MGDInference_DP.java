@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
+import javax.management.RuntimeErrorException;
+
 import phylonet.coalescent.DuplicationWeightCounter.STBipartition;
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.io.NewickReader;
@@ -57,8 +59,13 @@ public class MGDInference_DP {
 			this.rep = rep;
 		}
 		public String getTaxonName(String geneName) {
+			if (geneName == null || "".equals(geneName)) {
+				throw new RuntimeException("Empty name?");
+			}
 			if (pattern != null) {
-				return geneName.replaceAll(pattern,rep);
+				String s = geneName.replaceAll(pattern,rep);
+				//System.err.println("Mapped " + geneName + " to " + s);
+				return s;
 			} else {
 				return taxonMap.get(geneName);
 			}
@@ -274,35 +281,42 @@ public class MGDInference_DP {
 				return;
 			}
 
-			System.out.println("Gene trees are treated as "
+			System.err.println("Gene trees are treated as "
 					+ (rooted ? "rooted" : "unrooted"));
-			while ((line = treeBufferReader.readLine()) != null) {
-				Set<String> previousTreeTaxa = new HashSet<String>();
-				if (line.length() > 0) {
-					NewickReader nr = new NewickReader(new StringReader(line));
-					if (rooted) {
-						STITree gt = new STITree(true);
-						nr.readTree(gt);
-						if (previousTreeTaxa.isEmpty()) {
-							previousTreeTaxa.addAll(Arrays.asList(gt
-									.getLeaves()));
-						} else {
-							if (!previousTreeTaxa.containsAll(Arrays.asList(gt
-									.getLeaves()))) {
-								throw new RuntimeException(
-										"Not all trees are on the same set of taxa: "
-												+ gt.getLeaves() + "\n"
-												+ previousTreeTaxa);
+			int l = 0;
+			try {
+				while ((line = treeBufferReader.readLine()) != null) {
+					l++;
+					Set<String> previousTreeTaxa = new HashSet<String>();
+					if (line.length() > 0) {
+						NewickReader nr = new NewickReader(new StringReader(line));
+						if (rooted) {
+							STITree gt = new STITree(true);
+							nr.readTree(gt);
+							if (previousTreeTaxa.isEmpty()) {
+								previousTreeTaxa.addAll(Arrays.asList(gt
+										.getLeaves()));
+							} else {
+								if (!previousTreeTaxa.containsAll(Arrays.asList(gt
+										.getLeaves()))) {
+									throw new RuntimeException(
+											"Not all trees are on the same set of taxa: "
+													+ gt.getLeaves() + "\n"
+													+ previousTreeTaxa);
+								}
 							}
+							trees.add(gt);
+						} else {						
+							Tree tr = nr.readTree();
+							trees.add(tr);
 						}
-						trees.add(gt);
-					} else {
-						Tree tr = nr.readTree();
-						trees.add(tr);
 					}
 				}
-			}
-			treeBufferReader.close();
+				treeBufferReader.close();
+			} catch (ParseException e) {
+				treeBufferReader.close();
+				throw new RuntimeException("Failed to Parse Tree number: " + l ,e);
+			}			
 
 			if (extraTreebuffer != null) {
 				while ((line = extraTreebuffer.readLine()) != null) {
@@ -340,7 +354,7 @@ public class MGDInference_DP {
 		}
 
 		if (_print) {
-			System.out.println("Reading trees in "
+			System.err.println("Reading trees in "
 					+ (System.currentTimeMillis() - startTime) / 1000.0D
 					+ " secs");
 		}
@@ -363,7 +377,7 @@ public class MGDInference_DP {
 		List<Solution> solutions = inference.inferSpeciesTree();
 
 		if (_print) {
-			System.out.println("Optimal tree inferred in "
+			System.err.println("Optimal tree inferred in "
 					+ (System.currentTimeMillis() - startTime) / 1000.0D
 					+ " secs");
 		}
@@ -460,11 +474,13 @@ public class MGDInference_DP {
 			Set<String> taxalist = new HashSet<String>();
 			Set<String> genelist = new HashSet<String>();
 			for (Tree tr : trees) {
-				for (TNode node : tr.postTraverse()) {
-					genelist.add(node.getName());
-					taxalist.add(taxonNameMap.getTaxonName(node.getName()));
+				String[] leaves = tr.getLeaves();
+				for (int i = 0; i < leaves.length; i++) {
+					String leaf = leaves[i];				
+					genelist.add(leaf);
+					taxalist.add(taxonNameMap.getTaxonName(leaf));
 				}
-			}
+			}			
 
 			stTaxa = new String[taxalist.size()];
 			gtTaxa = new String[genelist.size()];
@@ -501,7 +517,8 @@ public class MGDInference_DP {
 			gtTaxa = stTaxa;
 		}
 
-		System.out.println("Number of taxa: " + stTaxa.length);
+		System.err.println("Number of taxa: " + stTaxa.length);
+		System.err.println("Taxa: " + Arrays.toString(stTaxa));
 
 		clusters = new HashMap<Integer, Set<Vertex>>(stTaxa.length);
 
@@ -519,7 +536,7 @@ public class MGDInference_DP {
 		counter.addExtraBipartitionsByHeuristics(clusters);
 
 		if (_print) {
-			System.out.println("STBs formed in "
+			System.err.println("STBs formed in "
 					+ (System.currentTimeMillis() - startTime) / 1000.0D
 					+ " secs");
 		}
@@ -527,7 +544,7 @@ public class MGDInference_DP {
 		counter.preCalculateWeights(trees, extraTrees, taxonNameMap);
 		
 		if (_print) {
-			System.out.println("Weights pre-caluclated after "
+			System.err.println("Weights pre-caluclated after "
 					+ (System.currentTimeMillis() - startTime) / 1000.0D
 					+ " secs");
 		}
@@ -646,9 +663,9 @@ public class MGDInference_DP {
 
 		Vertex all = (Vertex) clusters.get(Integer.valueOf(stTaxa.length))
 				.toArray()[0];
-		System.out.println("Sigma N: " + sigmaNs);
+		System.err.println("Sigma N: " + sigmaNs);
 
-		System.out.println("Size of largest cluster: " +all._cluster.getClusterSize());
+		System.err.println("Size of largest cluster: " +all._cluster.getClusterSize());
 
 		try {
 			//vertexStack.push(all);
@@ -905,7 +922,7 @@ public class MGDInference_DP {
 		}
 		
 		if (v._min_lc == null) {
-			System.out.println("WARN: No Resolution found for ( " + v._cluster.getClusterSize()+" taxa ):\n"
+			System.err.println("WARN: No Resolution found for ( " + v._cluster.getClusterSize()+" taxa ):\n"
 					+ v._cluster);
 			throw new CannotResolveException(v._cluster.toString());
 		}
