@@ -673,6 +673,7 @@ public class MGDInference_DP {
 		} catch (CannotResolveException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw new RuntimeException("Was not able to resolve trees ",e);
 		}
 
 		//System.out.println("domination calcs:" + counter.cnt);
@@ -766,7 +767,9 @@ public class MGDInference_DP {
 	
 	private int computeMinCost(Vertex v) throws CannotResolveException {
 
-		
+		if (v._max_score == -2) {
+			throw new CannotResolveException(v._cluster.toString());
+		}
 		// Already calculated. Don't re-calculate.
 		if (v._max_score != -1) {
 			return v._max_score - maxEL;
@@ -828,6 +831,7 @@ public class MGDInference_DP {
 			if (clusterBiPartitions == null) {
 				System.err.println("Warn: the following cluster ( " + v._cluster.getClusterSize()+" taxa ) has no STBs:\n"
 						+ v._cluster);
+				v._max_score = -2;
 				throw new CannotResolveException(v._cluster.toString());
 			}
 			for (STBipartition stb : clusterBiPartitions) {
@@ -886,7 +890,10 @@ public class MGDInference_DP {
 							Set<Vertex> rightList = clusters.get(clusterSize - i);
 							if (rightList != null) {							
 								for (Vertex rv : rightList) {
-									if (lv._cluster.isDisjoint(rv._cluster) && v._cluster.containsCluster(rv._cluster)) {
+									if (! (lv._cluster.isDisjoint(rv._cluster) && v._cluster.containsCluster(rv._cluster)) ) {
+										continue;
+									}
+									try {
 										int lscore = computeMinCost(lv);
 										int rscore = computeMinCost(rv);
 	
@@ -911,8 +918,10 @@ public class MGDInference_DP {
 										v._c = c;
 	
 										break;	// Already found the only pair of clusters whose union is v's cluster.
+									} catch (CannotResolveException c) {
+										//System.err.println("Warn: cannot resolve: " + c.getMessage());											
 									}
-								}
+								}								
 							}
 						}
 					}
@@ -924,6 +933,7 @@ public class MGDInference_DP {
 		if (v._min_lc == null) {
 			System.err.println("WARN: No Resolution found for ( " + v._cluster.getClusterSize()+" taxa ):\n"
 					+ v._cluster);
+			v._max_score = -2;
 			throw new CannotResolveException(v._cluster.toString());
 		}
 

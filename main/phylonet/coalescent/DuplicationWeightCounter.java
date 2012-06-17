@@ -602,7 +602,8 @@ public class DuplicationWeightCounter {
 	int calculateMissingWeight(STBipartition biggerSTB) {
 		//System.out.println("why am I here? "+biggerSTB);
 		Integer count = STBCountInGeneTrees.get(biggerSTB);
-		int weight = count != null? count : 0;
+		count = count != null? count : 0;
+		int weight = count;
 		for (int j = biggerSTB.c.getClusterSize() - 1; j > 1; j--) {			
 			Set<STBipartition> smallerSTBs = geneTreeSTBBySize.get(j);
 			for (STBipartition smallerSTB : smallerSTBs) {
