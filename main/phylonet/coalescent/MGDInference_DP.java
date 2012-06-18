@@ -718,6 +718,7 @@ public class MGDInference_DP {
 		}
 		Solution sol = new Solution();
 		if ((minClusters == null) || (minClusters.isEmpty())) {
+			System.err.println("WARN: empty minClusters set.");
 			Object tr = new STITree();
 			for (String s : stTaxa) {
 				((MutableTree) tr).getRoot().createChild(s);
@@ -726,10 +727,12 @@ public class MGDInference_DP {
 		} else {
 			sol._st = buildTreeFromClusters(minClusters);
 		}
-
+		System.err.println("SOL: " + sol._st);
+		System.err.println("coals: " + coals);
+		//System.err.println("min cluster: " + minClusters);
 		Object map = new HashMap();
 		for (TNode node : sol._st.postTraverse()) {
-			BitSet bs = new BitSet();
+			BitSet bs = new BitSet(stTaxa.length);
 			if (node.isLeaf()) {
 				for (int i = 0; i < stTaxa.length; i++) {
 					if (node.getName().equals(stTaxa[i])) {
@@ -745,12 +748,16 @@ public class MGDInference_DP {
 				}
 				((Map) map).put(node, bs);
 			}
+//            System.err.println("Node: "+node);
 			STITreeCluster c = new STITreeCluster(stTaxa);
 			c.setCluster(bs);
+//            System.err.println("m[0]: "+((STITreeCluster)minClusters.get(0)).toString2());
+//            System.err.println("C: "+c.toString2());
+//            System.err.println("Equals: "+((STITreeCluster)minClusters.get(0)).equals(c));
 			if (c.getClusterSize() == stTaxa.length) {
 				((STINode) node).setData(Integer.valueOf(0));
 			} else {
-				int pos = minClusters.indexOf(c);
+				int pos = minClusters.indexOf(c);                                
 				((STINode) node).setData((Integer) coals.get(pos));
 			}
 		}
