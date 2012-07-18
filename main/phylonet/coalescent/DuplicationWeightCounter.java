@@ -266,7 +266,6 @@ public class DuplicationWeightCounter {
 			}
 			int allInducedByGTSize = allInducedByGT.getClusterSize();
 			
-			System.err.println("Tree all is: "+gtAllCluster);
 			sigmaN += tr.getLeafCount() - 1;
 			Map<TNode,STITreeCluster> nodeToSTCluster = new HashMap<TNode, STITreeCluster>(n);
 			Map<TNode,STITreeCluster> nodeToGTCluster = new HashMap<TNode, STITreeCluster>(n);
@@ -371,7 +370,7 @@ public class DuplicationWeightCounter {
 
 		}
 		
-		System.err.println("STBs in gene trees (count): " + geneTreeSTBCount);
+		//System.err.println("STBs in gene trees (count): " + geneTreeSTBCount);
 		
 		int s = 0;
 		for (Integer c: geneTreeSTBCount.values()){
@@ -787,7 +786,7 @@ public class DuplicationWeightCounter {
 		
 		int calculateMissingWeight() {
 			//System.out.println("why am I here? "+biggerSTB);
-			System.err.print("Calculating weight for: " + biggerSTB);
+			//System.err.print("Calculating weight for: " + biggerSTB);
 			Integer count = geneTreeSTBCount.get(biggerSTB);
 			count = count != null? count : 0;
 			int weight = count;
@@ -799,23 +798,23 @@ public class DuplicationWeightCounter {
 					}
 				}			
 			}
-			System.err.print(" ... " + weight);
+			//System.err.print(" ... " + weight);
 			if (!rooted) {
 				for (STBipartition rootSTB : geneTreeRootSTBs.keySet()) {
 					int c = geneTreeRootSTBs.get(rootSTB);
 					STBipartition inducedSTB = biggerSTB.getInducedSTB(rootSTB.c);
 					if (inducedSTB.equals(rootSTB)){
 						weight -= 2 * c;
-						System.err.print(" .. (" + rootSTB +" )" +c+" "+ weight);
+						//System.err.print(" .. (" + rootSTB +" )" +c+" "+ weight);
 						if (inducedSTB.cluster1.getClusterSize() != 1 &&
 								inducedSTB.cluster2.getClusterSize() != 1) {
 							weight -= 2 * c;			
-							System.err.print(" . " + weight);
+							//System.err.print(" . " + weight);
 						}						
 					}
 				}
 			}
-			System.err.println();
+			//System.err.println();
 			weights.put(biggerSTB,weight);
 			//System.err.println("Weight of " + biggerSTB + " is " + weight);
 			return weight;

@@ -182,6 +182,9 @@ public class MGDInference_DP {
 					} else {
 						pattern = option[1];
 						rep = option [2];
+						if (rep.equals("/delete/")) {
+							rep = "";
+						}
 					}
 				} else if (option[0].equals("-o")) {
 					if (option.length != 2) {
@@ -694,8 +697,8 @@ public class MGDInference_DP {
 		}
 
 		if (_print) {
-			System.err.println("Weights are: "
-					+ counter.weights);
+			//System.err.println("Weights are: "
+				//	+ counter.weights);
 		}
 		//System.out.println("domination calcs:" + counter.cnt);
 
@@ -748,8 +751,8 @@ public class MGDInference_DP {
 		} else {
 			sol._st = buildTreeFromClusters(minClusters);
 		}
-		System.err.println("SOL: " + sol._st);
-		System.err.println("coals: " + coals);
+		//System.err.println("SOL: " + sol._st);
+		//System.err.println("coals: " + coals);
 		//System.err.println("min cluster: " + minClusters);
 		Object map = new HashMap();
 		for (TNode node : sol._st.postTraverse()) {
