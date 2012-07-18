@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.ForkJoinPool;
 
 import javax.management.RuntimeErrorException;
 
@@ -34,18 +35,18 @@ import phylonet.util.BitSet;
 
 public class MGDInference_DP {
 	private static boolean _print = true;
-	private static boolean optimizeDuploss = false;
-	private static boolean rooted = true;
-	private static boolean fast = false;
-	private static boolean extrarooted = true;
+	int optimizeDuploss = 1;
+	boolean rooted = true;
+	boolean fast = false;
+	boolean extrarooted = true;
 
-	private List<Tree> trees;
+	List<Tree> trees;
 	private List<Tree> extraTrees = null;
-	private Map<STITreeCluster, Vertex> clusterToVertex;
-	private Map<Integer, Set<Vertex>> clusters;
-	private int sigmaNs;
-	private DuplicationWeightCounter counter;
-	private TaxonNameMap taxonNameMap = null;
+	Map<STITreeCluster, Vertex> clusterToVertex;
+	Map<Integer, Set<Vertex>> clusters;
+	int sigmaNs;
+	DuplicationWeightCounter counter;
+	TaxonNameMap taxonNameMap = null;
 	
 	class TaxonNameMap {
 		Map<String, String> taxonMap;
@@ -101,6 +102,12 @@ public class MGDInference_DP {
 			printUsage();
 			return;
 		}
+		
+		boolean optimizeDuploss = false;
+		boolean rooted = true;
+		boolean fast = false;
+		boolean extrarooted = true;
+		
 		Map<String, String> taxonMap = null;
 		String rep = null;
 		String pattern = null;
@@ -373,6 +380,11 @@ public class MGDInference_DP {
 		} else {
 			inference = new MGDInference_DP(trees, extraTrees);
 		}
+		
+		inference.optimizeDuploss = optimizeDuploss ? 3 : 1;
+		inference.rooted = rooted;
+		inference.fast = fast;
+		inference.extrarooted = extrarooted;
 
 		List<Solution> solutions = inference.inferSpeciesTree();
 
@@ -524,13 +536,12 @@ public class MGDInference_DP {
 
 		List<Solution> solutions;
 
-		counter = new DuplicationWeightCounter(gtTaxa, stTaxa, rooted);
+		counter = new DuplicationWeightCounter(gtTaxa, stTaxa, rooted,taxonNameMap);
 
-		int sigmaN = counter.computeTreeSTBipartitions(trees, taxonNameMap,
-				clusters);
+		int sigmaN = counter.computeTreeSTBipartitions(trees, clusters);
 
 		if (extraTrees != null) {		
-			counter.addExtraBipartitionsByInput(clusters, extraTrees,taxonNameMap,extrarooted);					
+			counter.addExtraBipartitionsByInput(clusters, extraTrees,extrarooted);					
 		}
 
 		counter.addExtraBipartitionsByHeuristics(clusters);
@@ -541,7 +552,7 @@ public class MGDInference_DP {
 					+ " secs");
 		}
 
-		counter.preCalculateWeights(trees, extraTrees, taxonNameMap);
+		counter.preCalculateWeights(trees, extraTrees);
 		
 		if (_print) {
 			System.err.println("Weights pre-caluclated after "
@@ -549,7 +560,7 @@ public class MGDInference_DP {
 					+ " secs");
 		}
 
-		sigmaNs = optimizeDuploss ? sigmaN + 2 * (stTaxa.length - 1)
+		sigmaNs = optimizeDuploss == 3 ? sigmaN + 2 * (stTaxa.length - 1)
 				* trees.size() : sigmaN;
 
 		solutions = findTreesByDP(stTaxa, counter, trees, taxonNameMap);
@@ -669,13 +680,23 @@ public class MGDInference_DP {
 
 		try {
 			//vertexStack.push(all);
-			computeMinCost(all);
+			ComputeMinCostTask allTask = new ComputeMinCostTask(this,all);
+			ForkJoinPool pool = new ForkJoinPool(1);
+			pool.invoke(allTask);
+			Integer v = all._max_score;
+			if (v == -2) {
+				throw new CannotResolveException(all._cluster.toString());
+			}
 		} catch (CannotResolveException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			throw new RuntimeException("Was not able to resolve trees ",e);
+			throw new RuntimeException("Was not able to build a fully resolved tree ",e);
 		}
 
+		if (_print) {
+			System.err.println("Weights are: "
+					+ counter.weights);
+		}
 		//System.out.println("domination calcs:" + counter.cnt);
 
 		List minClusters = new LinkedList();
@@ -772,8 +793,8 @@ public class MGDInference_DP {
 	// TODO: fix this.	
 	int maxEL = 1000000000;
 	
-	private int computeMinCost(Vertex v) throws CannotResolveException {
-
+/*	private int computeMinCost(Vertex v) throws CannotResolveException {
+		
 		if (v._max_score == -2) {
 			throw new CannotResolveException(v._cluster.toString());
 		}
@@ -846,11 +867,11 @@ public class MGDInference_DP {
 				Vertex lv = clusterToVertex.get(stb.cluster1);
 				Vertex rv = clusterToVertex.get(stb.cluster2);
 	
-				/*
+				
 				 * if (lv == null || rv == null) {
 				 * //System.out.println("There is no STB for one half of : " + stb);
 				 * continue; }
-				 */
+				 
 	
 				try {
 	
@@ -944,12 +965,12 @@ public class MGDInference_DP {
 			throw new CannotResolveException(v._cluster.toString());
 		}
 
-		/*
+		
 		 * if (clusterSize > 5){ counter.addGoodSTB(bestSTB, clusterSize); }
-		 */
+		 
 		return v._max_score - maxEL;
 	}
-
+*/
 	/*
 	 * private int computeAllClusters(List<Tree> trees, String[] stTaxa,
 	 * Map<String, String> taxonMap, Map<Integer, List<Vertex>> clusters) { int

@@ -5,11 +5,12 @@ import java.io.PrintStream;
 import phylonet.util.BitSet;
 import java.util.Arrays;
 
+import javax.naming.NameNotFoundException;
+
 public class STITreeCluster
 {
   protected String[] _taxa;
   protected BitSet _cluster;
-  protected static BitSet ones;
 
   public STITreeCluster(String[] taxa)
   {
@@ -23,10 +24,6 @@ public class STITreeCluster
 
     this._taxa = taxa;
     this._cluster = new BitSet(taxa.length);
-    if (ones == null){
-    	ones  = new  BitSet(taxa.length);
-    	ones.set(0, taxa.length -1);
-    }
   }
 
   public STITreeCluster(STITreeCluster tc)
@@ -77,7 +74,7 @@ public class STITreeCluster
 
   public void addLeaf(String l)
   {
-    int i = 0;
+    int i = -1;
     for (i = 0; i < this._taxa.length; i++) {
       if (l.equals(this._taxa[i]))
       {
@@ -86,6 +83,8 @@ public class STITreeCluster
     }
     if (i < this._taxa.length)
       this._cluster.set(i);
+    else
+    	throw new RuntimeException(l +" not found in the taxon list");
   }
 
   public boolean equals(Object o)
@@ -209,7 +208,7 @@ public class STITreeCluster
   public STITreeCluster complementaryCluster() {
     STITreeCluster cc = new STITreeCluster(this._taxa);
     BitSet bs = (BitSet)this._cluster.clone();
-    bs.xor(ones);
+    bs.flip(0,this._taxa.length);
 /*    for (int i = 0; i < this._taxa.length; i++) {
       if (bs.get(i)) {
         bs.set(i, false);

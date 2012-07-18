@@ -412,7 +412,7 @@ public class BitSet
     			return false;
 		return true;
     }
-    
+
     public void xor(BitSet set)
     {
         int wordsInCommon = Math.min(wordsInUse, set.wordsInUse);
