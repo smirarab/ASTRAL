@@ -399,7 +399,7 @@ public class MGDInference_DP {
 
 		if ((output == null) && (_print)) {
 			for (Solution s : solutions)
-				System.out.println(s._st.toStringWD()
+				System.err.println(s._st.toStringWD()
 						+ " \n"
 						+ s._totalCoals
 						+ (optimizeDuploss ? " duplication+loss"
@@ -409,10 +409,10 @@ public class MGDInference_DP {
 				FileWriter fw = new FileWriter(output);
 				for (Solution s : solutions) {
 					if (_print) {
-						fw.write(s._st.toStringWD() + " \n" + s._totalCoals
+						System.err.print(s._st.toStringWD() + " \n" + s._totalCoals
 								+ " duplications in total\n");
 					} else {
-						fw.write(s._st.toString() + " \n" + s._totalCoals
+						System.err.print(s._st.toString() + " \n" + s._totalCoals
 								+ " duplications in total\n");
 					}
 				}
