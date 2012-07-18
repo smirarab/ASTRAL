@@ -409,11 +409,9 @@ public class MGDInference_DP {
 				FileWriter fw = new FileWriter(output);
 				for (Solution s : solutions) {
 					if (_print) {
-						System.err.print(s._st.toStringWD() + " \n" + s._totalCoals
-								+ " duplications in total\n");
+						fw.write(s._st.toStringWD() + " \n");
 					} else {
-						System.err.print(s._st.toString() + " \n" + s._totalCoals
-								+ " duplications in total\n");
+						fw.write(s._st.toString()+ " \n");
 					}
 				}
 				fw.close();
