@@ -397,7 +397,7 @@ public class MGDInference_DP {
 					+ " secs");
 		}
 
-		if ((output == null) && (_print)) {
+		if ((_print)) {
 			for (Solution s : solutions)
 				System.err.println(s._st.toStringWD()
 						+ " \n"
