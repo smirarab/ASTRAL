@@ -561,8 +561,9 @@ public class MGDInference_DP {
 					+ " secs");
 		}
 
-		sigmaNs = optimizeDuploss == 3 ? sigmaN + 2 * (stTaxa.length - 1)
-				* trees.size() : sigmaN;
+		sigmaNs = (optimizeDuploss == 3) ? 
+				sigmaN + 2 * (stTaxa.length - 1) * trees.size(): 
+				sigmaN;
 
 		solutions = findTreesByDP(stTaxa, counter, trees, taxonNameMap);
 
