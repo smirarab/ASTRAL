@@ -32,7 +32,7 @@ import phylonet.tree.util.Trees;
 import phylonet.util.BitSet;
 
 public class MGDInference_DP {
-	private static boolean _print = true;
+	static boolean _print = true;
 	int optimizeDuploss = 1;
 	boolean rooted = true;
 	boolean fast = false;
@@ -390,11 +390,11 @@ public class MGDInference_DP {
 
 		List<Solution> solutions = inference.inferSpeciesTree();
 
-		if (_print) {
+		//if (_print) {
 			System.err.println("Optimal tree inferred in "
 					+ (System.currentTimeMillis() - startTime) / 1000.0D
 					+ " secs");
-		}
+		//}
 
 		if ((_print)) {
 			for (Solution s : solutions)

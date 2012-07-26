@@ -835,6 +835,25 @@ public class DuplicationWeightCounter {
 		}
 		
 	}
+	public void addAllPossibleSubClusters(STITreeCluster cluster, Map<Integer, HashSet<Vertex>> containedVertecies) {
+		int size = cluster.getClusterSize();
+		for (int i = cluster.getCluster().nextSetBit(0); i>=0 ;i = cluster.getCluster().nextSetBit(i+1)){
+			STITreeCluster c = new STITreeCluster(cluster);
+			c.getCluster().clear(i);
+
+			Vertex nv = new Vertex();
+			nv._cluster = c;
+			if (!containedVertecies.get(size-1).contains(nv)){	
+				nv._min_cost = -1;
+				nv._el_num = -1; 			
+				containedVertecies.get(size-1).add(nv);
+				//System.err.println("Clusters: "+clusters);
+			}
+
+			addAllPossibleSubClusters(c);
+		}
+	}
+
 	public boolean addAllPossibleSubClusters(STITreeCluster cluster) {
 		int size = cluster.getClusterSize();
 		boolean ret = false;
@@ -846,7 +865,7 @@ public class DuplicationWeightCounter {
 		}
 		return ret;
 	}
-
+	
 	public Vertex getCompleteryVertx(Vertex x, STITreeCluster refCluster) {
 		STITreeCluster c = x._cluster;		
 		Vertex reverse = new Vertex();
