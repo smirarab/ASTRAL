@@ -16,9 +16,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.ForkJoinPool;
 
-import javax.management.RuntimeErrorException;
 
-import phylonet.coalescent.DuplicationWeightCounter.STBipartition;
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.io.NewickReader;
 import phylonet.tree.io.ParseException;
@@ -192,6 +190,7 @@ public class MGDInference_DP {
 						return;
 					}
 					output = option[1];
+					setPrinting (false);
 				} else if (option[0].equals("-x")) {
 					if (option.length != 1) {
 						printUsage();
@@ -399,7 +398,8 @@ public class MGDInference_DP {
 
 		if ((_print)) {
 			for (Solution s : solutions)
-				System.err.println(s._st.toStringWD()
+				System.out.println(
+					        s._st.toStringWD()
 						+ " \n"
 						+ s._totalCoals
 						+ (optimizeDuploss ? " duplication+loss"
@@ -408,11 +408,7 @@ public class MGDInference_DP {
 			try {
 				FileWriter fw = new FileWriter(output);
 				for (Solution s : solutions) {
-					if (_print) {
-						fw.write(s._st.toStringWD() + " \n");
-					} else {
-						fw.write(s._st.toString()+ " \n");
-					}
+					fw.write(s._st.toString()+ " \n");
 				}
 				fw.close();
 			} catch (IOException e) {
@@ -537,9 +533,9 @@ public class MGDInference_DP {
 
 		List<Solution> solutions;
 
-		counter = new DuplicationWeightCounter(gtTaxa, stTaxa, rooted,taxonNameMap);
+		counter = new DuplicationWeightCounter(gtTaxa, stTaxa, rooted,taxonNameMap, clusters);
 
-		int sigmaN = counter.computeTreeSTBipartitions(trees, clusters);
+		int sigmaN = counter.computeTreeSTBipartitions(trees);
 
 		if (extraTrees != null) {		
 			counter.addExtraBipartitionsByInput(clusters, extraTrees,extrarooted);					

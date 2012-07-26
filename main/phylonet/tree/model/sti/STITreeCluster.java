@@ -86,6 +86,21 @@ public class STITreeCluster
     else
     	throw new RuntimeException(l +" not found in the taxon list");
   }
+  
+  public void removeLeaf(String l)
+  {
+    int i = -1;
+    for (i = 0; i < this._taxa.length; i++) {
+      if (l.equals(this._taxa[i]))
+      {
+        break;
+      }
+    }
+    if (i < this._taxa.length)
+      this._cluster.clear(i);
+    else
+    	throw new RuntimeException(l +" not found in the taxon list");
+  }
 
   public boolean equals(Object o)
   {
