@@ -535,7 +535,7 @@ public class MGDInference_DP {
 
 		counter = new DuplicationWeightCounter(gtTaxa, stTaxa, rooted,taxonNameMap, clusters);
 
-		int sigmaN = counter.computeTreeSTBipartitions(trees);
+		int sigmaN = counter.computeTreeSTBipartitions(trees, optimizeDuploss == 3);
 
 		if (extraTrees != null) {		
 			counter.addExtraBipartitionsByInput(clusters, extraTrees,extrarooted);					
@@ -557,9 +557,7 @@ public class MGDInference_DP {
 					+ " secs");
 		}
 
-		sigmaNs = (optimizeDuploss == 3) ? 
-				sigmaN + 2 * (stTaxa.length - 1) * trees.size(): 
-				sigmaN;
+		sigmaNs = sigmaN;
 
 		solutions = findTreesByDP(stTaxa, counter, trees, taxonNameMap);
 
