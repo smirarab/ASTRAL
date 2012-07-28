@@ -1,6 +1,7 @@
 package phylonet.coalescent;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -52,33 +53,31 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 		// Already calculated. Don't re-calculate.
 		if (v._max_score != -1) {
 			return v._max_score - maxEL;
-		}		
-		// If in duploss mode, need to get MDC cost as well
-		if (inference.optimizeDuploss == 3) {
-			if (v._el_num == -1) {
-				if (taxonNameMap == null) {
-					v._el_num = DeepCoalescencesCounter.getClusterCoalNum(
-							trees, v._cluster, rooted);
-				} else {
-					v._el_num = DeepCoalescencesCounter.getClusterCoalNum(
-							trees, v._cluster, taxonNameMap, rooted);
-				}
-			}
-		} else {
-			v._el_num = 0;
-		}
+		}			
 		
-		int clusterSize = v._cluster.getClusterSize();
+		int clusterSize = v._cluster.getClusterSize();		
 		
 		// SIA: base case for singelton clusters.
-		{
-			if (clusterSize <= 1) {
-				// SIA: TODO: this is 0, right?
-				v._min_cost = 0;
-				v._max_score = maxEL - v._el_num;
-				v._min_lc = (v._min_rc = null);
-				return v._max_score - maxEL;
+		if (clusterSize <= 1) {
+			// SIA: TODO: this is 0, right?
+			if (inference.optimizeDuploss == 3) {
+				if (v._el_num == -1) {
+					if (taxonNameMap == null) {
+						v._el_num = DeepCoalescencesCounter.getClusterCoalNum(
+								trees, v._cluster, rooted);
+					} else {
+						v._el_num = DeepCoalescencesCounter.getClusterCoalNum(
+								trees, v._cluster, taxonNameMap, rooted);
+					}
+				}
+			} else {
+				v._el_num = 0;
 			}
+
+			v._min_cost = 0;
+			v._max_score = maxEL - v._el_num;
+			v._min_lc = (v._min_rc = null);
+			return v._max_score - maxEL;
 		}
 		Set<STBipartition> clusterBiPartitions = counter
 				.getClusterBiPartitions(v._cluster);
@@ -106,6 +105,10 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 					}
 				}
 			}
+
+			List<Integer> El = new ArrayList<Integer>();
+			for (int k = 0; k < trees.size(); k++) El.add(null);
+
 	
 			if (clusterBiPartitions == null) {
 				System.err.println("Warn: the following cluster ( " + v._cluster.getClusterSize()+" taxa ) has no STBs:\n"
@@ -140,6 +143,33 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 					if (w == null){						
 						worker3 = counter.new CalculateWeightTask(bi);
 						worker3.fork();
+					}
+					Integer e = 0;
+					// If in duploss mode, need to get MDC cost as well
+					if (inference.optimizeDuploss == 3) {
+						for (int k = 0; k < trees.size(); k++) {
+							Tree tr = trees.get(k);
+							STITreeCluster treeAll = inference.counter.treeAlls.get(k);
+							if (rv._cluster.isDisjoint(treeAll) || lv._cluster.isDisjoint(treeAll)) {
+								//System.err
+									//	.println("skipping "+bi+" for " +treeAll);
+								continue;
+							}
+							if ( El.get(k) == null ) {
+								if (taxonNameMap == null) {
+									El.set(k, DeepCoalescencesCounter.getClusterCoalNum_rooted(tr, v._cluster));
+								} else {
+									El.set(k, DeepCoalescencesCounter.getClusterCoalNum_rooted(tr, v._cluster,taxonNameMap));
+								}
+							} else {
+								//System.err
+								//		.println("Used cached");
+							}
+							e += El.get(k);
+							//System.err.println("E for " + v._cluster + " is "+e + " and k is  " + k);
+						}
+					} else {
+						v._el_num = 0;
 					}
 					
 					Integer rscore = worker2.compute();
@@ -210,6 +240,8 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 			}
 			boolean addedMore = false;
 			while (keeptrying) {
+				List<Integer> El = new ArrayList<Integer>();
+				for (int k = 0; k < trees.size(); k++) El.add(null);
 				for (int i = 1; i <= (clusterSize / 2); i++) {
 					List<Vertex> leftList = new ArrayList<Vertex>(containedVertecies.get(i));
 					if (leftList == null) {
@@ -276,8 +308,37 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 									w = weigthWork.join();
 								}
 
+								Integer e = 0;
+								// If in duploss mode, need to get MDC cost as well
+								if (inference.optimizeDuploss == 3) {
+									for (int k = 0; k < trees.size(); k++) {
+										Tree tr = trees.get(k);
+										STITreeCluster treeAll = inference.counter.treeAlls.get(k);
+										if (smallV._cluster.isDisjoint(treeAll) || bigv._cluster.isDisjoint(treeAll)) {
+											//System.err
+												//	.println("skipping "+bi+" for " +treeAll);
+											continue;
+										}
+										if ( El.get(k) == null ) {
+											if (taxonNameMap == null) {
+												El.set(k, DeepCoalescencesCounter.getClusterCoalNum_rooted(tr, v._cluster));
+											} else {
+												El.set(k, DeepCoalescencesCounter.getClusterCoalNum_rooted(tr, v._cluster,taxonNameMap));
+											}
+										} else {
+											//System.err
+											//		.println("Used cached");
+										}
+										e += El.get(k);
+										//System.err.println("E for " + v._cluster + " is "+e + " and k is  " + k);
+									}
+								} else {
+									v._el_num = 0;
+								}
 
-								int c = inference.optimizeDuploss * w - v._el_num;
+								//System.err.println("E for " + v._cluster + " is "+e);
+								
+								int c = inference.optimizeDuploss * w - e;
 
 								if ((v._max_score != -1)
 										&& (lscore + rscore + c + maxEL < v._max_score)) {

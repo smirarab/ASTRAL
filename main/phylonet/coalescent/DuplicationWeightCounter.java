@@ -229,6 +229,7 @@ public class DuplicationWeightCounter {
 		}
 		return stName;
 	}
+	List<STITreeCluster> treeAlls = new ArrayList< STITreeCluster>();
 	
 	int computeTreeSTBipartitions(List<Tree> trees, boolean duploss) {
 
@@ -263,20 +264,22 @@ public class DuplicationWeightCounter {
 		
 		addToClusters(all, leaves.length);
 				
-		for (Tree tr : trees) {			
+		for (int t = 0; t < trees.size(); t++ ) {			
+			Tree tr = trees.get(t);
 			
 			STITreeCluster allInducedByGT = new STITreeCluster(stTaxa);
 						
-			String[] gtLeaves = tr.getLeaves();			
+			String[] gtLeaves = tr.getLeaves();		
 			//STITreeCluster gtAllCluster = new STITreeCluster(gtLeaves);
 			for (int i = 0; i < gtLeaves.length; i++) {
 				String l = gtLeaves[i];
 				//gtAllCluster.addLeaf(l);
 				allInducedByGT.addLeaf(getSpeciesName(l));
 			}
+			treeAlls.add( allInducedByGT);
 			int allInducedByGTSize = allInducedByGT.getClusterSize();
-			
-			sigmaN += duploss ? (tr.getLeafCount() + 2 * allInducedByGTSize - 3)
+			sigmaN += duploss ? 
+					(tr.getLeafCount() + 2 * allInducedByGTSize - 3)
 					: (tr.getLeafCount() - 1);
 			
 			//System.err.println((tr.getLeafCount() - 1) + " "+ sigmaN);
