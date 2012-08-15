@@ -41,7 +41,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 		this.v = v;
 	}
 	
-	final int maxEL = Integer.MAX_VALUE;
+	final int maxEL = 10000000;
 	
 	private int computeMinCost() throws CannotResolveException {
 
