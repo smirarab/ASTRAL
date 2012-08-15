@@ -779,8 +779,8 @@ public class MGDInference_DP {
 			}
 		}
 
-		sol._totalCoals = all._min_cost;
-		System.out.println("total cost: " + all._min_cost);
+		sol._totalCoals = sigmaNs - all._max_score;
+		System.out.println("total cost: " + sol._totalCoals);
 		solutions.add(sol);
 
 		return (List<Solution>) (List<Solution>) solutions;
@@ -926,13 +926,15 @@ public class MGDInference_DP {
 	static class Vertex {
 		public STITreeCluster _cluster = null;
 		public int _el_num = -1;
-		public int _min_cost = -1;
+		//public int _min_cost = -1;
 		public int _max_score = -1;
 		public int _c = 0;
 		public Vertex _min_lc = this._min_rc = null;
 		public Vertex _min_rc;
 		public List<Vertex> _subcl = null;
-
+		// 0 for not, 1 for yes, 2 for failed
+		public char done = 0;
+		
 		public Vertex() {
 		}
 

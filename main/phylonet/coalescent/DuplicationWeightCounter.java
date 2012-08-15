@@ -64,7 +64,6 @@ public class DuplicationWeightCounter {
 		boolean ret = false;
 		nv._cluster = c;
 		if (!clusters.get(size).contains(nv)){	
-			nv._min_cost = -1;
 			nv._el_num = -1; 			
 			clusters.get(size).add(nv);
 			ret = true;
@@ -847,8 +846,7 @@ public class DuplicationWeightCounter {
 
 			Vertex nv = new Vertex();
 			nv._cluster = c;
-			if (!containedVertecies.get(size-1).contains(nv)){	
-				nv._min_cost = -1;
+			if (!containedVertecies.get(size-1).contains(nv)){					
 				nv._el_num = -1; 			
 				containedVertecies.get(size-1).add(nv);
 				//System.err.println("Clusters: "+clusters);
@@ -877,7 +875,6 @@ public class DuplicationWeightCounter {
 		reverse._cluster.getCluster().xor(c.getCluster());
 		int size = reverse._cluster.getClusterSize(); 
 		if (!clusters.get(size).contains(reverse)){	
-			reverse._min_cost = -1;
 			reverse._el_num = -1; 			
 			//clusters.get(size).add(reverse);
 			return reverse;
@@ -893,7 +890,6 @@ public class DuplicationWeightCounter {
 		reverse._cluster.getCluster().xor(c.getCluster());
 		int size = reverse._cluster.getClusterSize(); 
 		if (!clusters.get(size).contains(reverse)){	
-			reverse._min_cost = -1;
 			reverse._el_num = -1; 			
 			clusters.get(size).add(reverse);
 			return true;

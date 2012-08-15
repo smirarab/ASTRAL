@@ -41,7 +41,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 		this.v = v;
 	}
 	
-	final int maxEL = 10000000;
+	//final int maxEL = 10000000;
 	
 	private int computeMinCost() throws CannotResolveException {
 
@@ -51,12 +51,12 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 		TaxonNameMap taxonNameMap = inference.taxonNameMap;
 		
 		// -2 is used to indicate it cannot be resolved
-		if (v._max_score == -2) {
+		if (v.done == 2) {
 			throw new CannotResolveException(v._cluster.toString());
 		}
 		// Already calculated. Don't re-calculate.
-		if (v._max_score != -1) {
-			return v._max_score - maxEL;
+		if (v.done == 1) {
+			return v._max_score;
 		}
 
 		int clusterSize = v._cluster.getClusterSize();
@@ -78,10 +78,11 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 				v._el_num = 0;
 			}
 
-			v._min_cost = 0;
-			v._max_score = maxEL - v._el_num;
+			//v._min_cost = 0;
+			v._max_score = - v._el_num;
 			v._min_lc = (v._min_rc = null);
-			return v._max_score - maxEL;
+			v.done = 1;
+			return v._max_score;
 		}
 		Set<STBipartition> clusterBiPartitions = counter
 				.getClusterBiPartitions(v._cluster);
@@ -245,13 +246,13 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 								int c = inference.optimizeDuploss * w - e;
 
 								if ((v._max_score != -1)
-										&& (lscore + rscore + c + maxEL < v._max_score)) {
+										&& (lscore + rscore + c < v._max_score)) {
 									continue;
 								}
-								v._max_score = (lscore + rscore + c) + maxEL;
-								v._min_cost = inference.sigmaNs
-										- (c + smallV._max_score
-												+ bigv._max_score - 2 * maxEL);
+								v._max_score = (lscore + rscore + c);
+								//v._min_cost = inference.sigmaNs
+									//	- (c + smallV._max_score
+										//		+ bigv._max_score - 2 * maxEL);
 								// stem.out.println(maxEL - (z*w + lv._max_score
 								// +
 								// rv._max_score));
@@ -350,16 +351,17 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 						+ v._cluster.getClusterSize() + " taxa ):\n"
 						+ v._cluster);
 			}
-			v._max_score = -2;
+			v.done = 2;
 			throw new CannotResolveException(v._cluster.toString());
 		}
-		if (clusterSize > 450){
-			System.out.println(v+" \nis scored "+(v._max_score - maxEL) + " by \n"+v._min_lc + " \n"+v._min_rc);
+/*		if (clusterSize > 450){
+			System.out.println(v+" \nis scored "+(v._max_score ) + " by \n"+v._min_lc + " \n"+v._min_rc);
 		}
-		/*
+*/		/*
 		 * if (clusterSize > 5){ counter.addGoodSTB(bestSTB, clusterSize); }
 		 */
-		return v._max_score - maxEL;
+		v.done = 1;
+		return v._max_score ;
 	}
 
 	private void fast_STB_based_inference( 
@@ -489,12 +491,12 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 				int c = inference.optimizeDuploss * w - v._el_num;
 
 				if ((v._max_score != -1)
-						&& (lscore + rscore + c + maxEL <= v._max_score)) {
+						&& (lscore + rscore + c <= v._max_score)) {
 					continue;
 				}
-				v._max_score = (lscore + rscore + c) + maxEL;
-				v._min_cost = inference.sigmaNs
-						- (c + lv._max_score + rv._max_score - 2 * maxEL);
+				v._max_score = (lscore + rscore + c);
+/*				v._min_cost = inference.sigmaNs
+						- (c + lv._max_score + rv._max_score - 2 * maxEL);*/
 				// stem.out.println(maxEL - (z*w + lv._max_score +
 				// rv._max_score));
 				v._min_lc = lv;
