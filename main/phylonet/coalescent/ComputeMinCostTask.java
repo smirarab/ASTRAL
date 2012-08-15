@@ -313,7 +313,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 	
 						}*/
 						//System.err.println(maxSubClusters);
-						for (int i = clusterSize; i > 0; i--) {
+						for (int i = clusterSize - 1; i > 0; i--) {
 							List<Vertex> biggestSubClusters = new ArrayList<Vertex>();							
 							if (containedVertecies.get(i) == null) {
 								continue;
@@ -339,8 +339,6 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 							}
 	
 						}
-						// containedVertecies = newContainedVertecies;
-						// for now we don't have any extra strategy.
 					}
 				}
 			} while (tryAnotherTime); 
