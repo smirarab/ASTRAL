@@ -785,9 +785,6 @@ public class MGDInference_DP {
 
 		return (List<Solution>) (List<Solution>) solutions;
 	}
-
-	// TODO: fix this.	
-	int maxEL = 1000000000;
 	
 /*	private int computeMinCost(Vertex v) throws CannotResolveException {
 		
