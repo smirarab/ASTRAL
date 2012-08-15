@@ -925,15 +925,14 @@ public class MGDInference_DP {
 
 	static class Vertex {
 		public STITreeCluster _cluster = null;
-		public int _el_num = -1;
+		//public int _el_num = -1;
 		//public int _min_cost = -1;
 		public int _max_score = -1;
 		public int _c = 0;
 		public Vertex _min_lc = this._min_rc = null;
 		public Vertex _min_rc;
-		public List<Vertex> _subcl = null;
-		// 0 for not, 1 for yes, 2 for failed
-		public char done = 0;
+		public List<Vertex> _subcl = null;		
+		public byte _done = 0; // 0 for not, 1 for yes, 2 for failed
 		
 		public Vertex() {
 		}

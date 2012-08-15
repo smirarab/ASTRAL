@@ -51,37 +51,37 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 		TaxonNameMap taxonNameMap = inference.taxonNameMap;
 		
 		// -2 is used to indicate it cannot be resolved
-		if (v.done == 2) {
+		if (v._done == 2) {
 			throw new CannotResolveException(v._cluster.toString());
 		}
 		// Already calculated. Don't re-calculate.
-		if (v.done == 1) {
+		if (v._done == 1) {
 			return v._max_score;
 		}
+		//
 
 		int clusterSize = v._cluster.getClusterSize();
 
 		// SIA: base case for singelton clusters.
 		if (clusterSize <= 1) {
+			int _el_num = -1;
 			// SIA: TODO: this is 0, right?
 			if (inference.optimizeDuploss == 3) {
-				if (v._el_num == -1) {
-					if (taxonNameMap == null) {
-						v._el_num = DeepCoalescencesCounter.getClusterCoalNum(
-								trees, v._cluster, rooted);
-					} else {
-						v._el_num = DeepCoalescencesCounter.getClusterCoalNum(
-								trees, v._cluster, taxonNameMap, rooted);
-					}
+				if (taxonNameMap == null) {
+					_el_num = DeepCoalescencesCounter.getClusterCoalNum(
+							trees, v._cluster, rooted);
+				} else {
+					_el_num = DeepCoalescencesCounter.getClusterCoalNum(
+							trees, v._cluster, taxonNameMap, rooted);
 				}
 			} else {
-				v._el_num = 0;
+				_el_num = 0;
 			}
 
 			//v._min_cost = 0;
-			v._max_score = - v._el_num;
+			v._max_score = - _el_num;
 			v._min_lc = (v._min_rc = null);
-			v.done = 1;
+			v._done = 1;
 			return v._max_score;
 		}
 		Set<STBipartition> clusterBiPartitions = counter
@@ -237,7 +237,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 										// + k);
 									}
 								} else {
-									v._el_num = 0;
+									e = 0;
 								}
 
 								// System.err.println("E for " + v._cluster +
@@ -351,7 +351,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 						+ v._cluster.getClusterSize() + " taxa ):\n"
 						+ v._cluster);
 			}
-			v.done = 2;
+			v._done = 2;
 			throw new CannotResolveException(v._cluster.toString());
 		}
 /*		if (clusterSize > 450){
@@ -360,7 +360,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 */		/*
 		 * if (clusterSize > 5){ counter.addGoodSTB(bestSTB, clusterSize); }
 		 */
-		v.done = 1;
+		v._done = 1;
 		return v._max_score ;
 	}
 
@@ -468,7 +468,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 						// " is "+e + " and k is  " + k);
 					}
 				} else {
-					v._el_num = 0;
+					e = 0;
 				}
 
 				Integer rscore = worker2.compute();
@@ -488,7 +488,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 				// vertexStack.push(rv);
 				// vertexStack.pop();
 
-				int c = inference.optimizeDuploss * w - v._el_num;
+				int c = inference.optimizeDuploss * w - e;
 
 				if ((v._max_score != -1)
 						&& (lscore + rscore + c <= v._max_score)) {
