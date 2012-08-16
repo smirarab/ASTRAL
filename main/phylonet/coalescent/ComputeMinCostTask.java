@@ -1,8 +1,10 @@
 package phylonet.coalescent;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -97,8 +99,8 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 			boolean tryAnotherTime = false;
 			
 			// First find what clusters are contained in this cluster
-			Map<Integer, HashSet<Vertex>> containedVertecies = new HashMap<Integer, HashSet<Vertex>>();
-			for (int i = 1; i <= (clusterSize / 2); i++) {
+			ClusterCollection containedVertecies = inference.clusters.getContainedClusters(v._cluster);
+			/*for (int i = 1; i <= (clusterSize / 2); i++) {
 				List<Vertex> leftList = new ArrayList<Vertex>(
 						inference.clusters.get(i));
 				HashSet<Vertex> leftSet = new HashSet<Vertex>();
@@ -119,151 +121,132 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 						rightSet.add(bigv);
 					}
 				}
-			}
+			}*/
 				
 			do {
 				tryAnotherTime = false;
 				
-				for (int i = 1; i <= (clusterSize / 2); i++) {
-					List<Vertex> leftList = new ArrayList<Vertex>(
-							containedVertecies.get(i));
-					if (leftList.size() == 0) {
-						continue;
-					}
-					for (Vertex smallV : leftList) {
-						if (!v._cluster.containsCluster(smallV._cluster)) {
-							continue;
-						}
-						List<Vertex> rightList = new ArrayList<Vertex>(
-								containedVertecies.get(clusterSize - i));
-						if (rightList.size() == 0) {
-							continue;
-						}
-						for (Vertex bigv : rightList) {
-							if (!v._cluster.containsCluster(bigv._cluster)) {
-								continue;
-							}
-							if (!smallV._cluster.isDisjoint(bigv._cluster)) {
-								continue;
-							}
-							try {
-								ComputeMinCostTask smallWork = new ComputeMinCostTask(
-										inference, smallV);
-								ComputeMinCostTask bigWork = new ComputeMinCostTask(
-										inference, bigv);
-								CalculateWeightTask weigthWork = null;
+	
+				//System.out.println(containedVertecies.getClusterCount());
+				for (STBipartition bi : containedVertecies.getClusterResolutions(v._cluster)) {
+					try {
+							Vertex smallV = containedVertecies.getVertexForCluster(bi.cluster1);
+							Vertex bigv = containedVertecies.getVertexForCluster(bi.cluster2);
+							ComputeMinCostTask smallWork = new ComputeMinCostTask(
+									inference, smallV);
+							ComputeMinCostTask bigWork = new ComputeMinCostTask(
+									inference, bigv);
+							CalculateWeightTask weigthWork = null;
 
-								STBipartition bi = new STBipartition(
-										smallV._cluster, bigv._cluster,
-										v._cluster);
+							/*STBipartition bi = new STBipartition(
+									smallV._cluster, bigv._cluster,
+									v._cluster);*/
 
-								Integer w = counter
-										.getCalculatedBiPartitionDPWeight(bi);
-								if (w == null) {
-									weigthWork = counter.new CalculateWeightTask(
-											bi);
-									// MP_VERSION: smallWork.fork();
-									w = weigthWork.compute();									
-								}
-
+							Integer w = counter
+									.getCalculatedBiPartitionDPWeight(bi);
+							if (w == null) {
+								weigthWork = counter.new CalculateWeightTask(
+										bi);
 								// MP_VERSION: smallWork.fork();
-								Integer rscore = bigWork.compute();
-								
-								if (rscore == null) {
-									// MP_VERSION: weigthWork.cancel(false);
-									// MP_VERSION: smallWork.cancel(false);
-									throw new CannotResolveException(
-											bigv._cluster.toString());
-								}
-
-								Integer lscore;
-								// MP_VERSION: lscore = smallWork.join();
-								lscore = smallWork.compute();
-
-								if (lscore == null) {
-									// MP_VERSION: 	weigthWork.cancel(false);
-									throw new CannotResolveException(
-											smallV._cluster.toString());
-								}
-								// MP_VERSION: w = weigthWork.join();
-
-								Integer e = 0;
-								// If in duploss mode, need to get MDC cost as
-								// well
-								if (inference.optimizeDuploss == 3) {
-									for (int k = 0; k < trees.size(); k++) {
-										Tree tr = trees.get(k);
-										STITreeCluster treeAll = inference.counter.treeAlls
-												.get(k);
-										if (smallV._cluster.isDisjoint(treeAll)
-												|| bigv._cluster
-														.isDisjoint(treeAll)) {
-											// System.err
-											// .println("skipping "+bi+" for "
-											// +treeAll);
-											continue;
-										}
-										if (El.get(k) == null) {
-											if (taxonNameMap == null) {
-												El.set(k,
-														DeepCoalescencesCounter
-																.getClusterCoalNum_rooted(
-																		tr,
-																		v._cluster));
-											} else {
-												El.set(k,
-														DeepCoalescencesCounter
-																.getClusterCoalNum_rooted(
-																		tr,
-																		v._cluster,
-																		taxonNameMap));
-											}
-										} else {
-											// System.err
-											// .println("Used cached");
-										}
-										e += El.get(k);
-										// System.err.println("E for " +
-										// v._cluster + " is "+e + " and k is  "
-										// + k);
-									}
-								} else {
-									e = 0;
-								}
-
-								// System.err.println("E for " + v._cluster +
-								// " is "+e);
-
-								int c = inference.optimizeDuploss * w - e;
-
-								if ((v._max_score != -1)
-										&& (lscore + rscore + c < v._max_score)) {
-									continue;
-								}
-								v._max_score = (lscore + rscore + c);
-								//v._min_cost = inference.sigmaNs
-									//	- (c + smallV._max_score
-										//		+ bigv._max_score - 2 * maxEL);
-								// stem.out.println(maxEL - (z*w + lv._max_score
-								// +
-								// rv._max_score));
-								v._min_lc = smallV;
-								v._min_rc = bigv;
-								v._c = c;
-
-								break; // Already found the only pair of
-										// clusters whose union is v's cluster.
-							} catch (CannotResolveException c) {
-								// System.err.println("Warn: cannot resolve: " +
-								// c.getMessage());
+								w = weigthWork.compute();									
 							}
+
+							// MP_VERSION: smallWork.fork();
+							Integer rscore = bigWork.compute();
+							
+							if (rscore == null) {
+								// MP_VERSION: weigthWork.cancel(false);
+								// MP_VERSION: smallWork.cancel(false);
+								throw new CannotResolveException(
+										bigv._cluster.toString());
+							}
+
+							Integer lscore;
+							// MP_VERSION: lscore = smallWork.join();
+							lscore = smallWork.compute();
+
+							if (lscore == null) {
+								// MP_VERSION: 	weigthWork.cancel(false);
+								throw new CannotResolveException(
+										smallV._cluster.toString());
+							}
+							// MP_VERSION: w = weigthWork.join();
+
+							Integer e = 0;
+							// If in duploss mode, need to get MDC cost as
+							// well
+							if (inference.optimizeDuploss == 3) {
+								for (int k = 0; k < trees.size(); k++) {
+									Tree tr = trees.get(k);
+									STITreeCluster treeAll = inference.counter.treeAlls
+											.get(k);
+									if (smallV._cluster.isDisjoint(treeAll)
+											|| bigv._cluster
+													.isDisjoint(treeAll)) {
+										// System.err
+										// .println("skipping "+bi+" for "
+										// +treeAll);
+										continue;
+									}
+									if (El.get(k) == null) {
+										if (taxonNameMap == null) {
+											El.set(k,
+													DeepCoalescencesCounter
+															.getClusterCoalNum_rooted(
+																	tr,
+																	v._cluster));
+										} else {
+											El.set(k,
+													DeepCoalescencesCounter
+															.getClusterCoalNum_rooted(
+																	tr,
+																	v._cluster,
+																	taxonNameMap));
+										}
+									} else {
+										// System.err
+										// .println("Used cached");
+									}
+									e += El.get(k);
+									// System.err.println("E for " +
+									// v._cluster + " is "+e + " and k is  "
+									// + k);
+								}
+							} else {
+								e = 0;
+							}
+
+							// System.err.println("E for " + v._cluster +
+							// " is "+e);
+
+							int c = inference.optimizeDuploss * w - e;
+
+							if ((v._max_score != -1)
+									&& (lscore + rscore + c < v._max_score)) {
+								continue;
+							}
+							v._max_score = (lscore + rscore + c);
+							//v._min_cost = inference.sigmaNs
+								//	- (c + smallV._max_score
+									//		+ bigv._max_score - 2 * maxEL);
+							// stem.out.println(maxEL - (z*w + lv._max_score
+							// +
+							// rv._max_score));
+							v._min_lc = smallV;
+							v._min_rc = bigv;
+							v._c = c;
+
+							break; // Already found the only pair of
+									// clusters whose union is v's cluster.
+						} catch (CannotResolveException c) {
+							// System.err.println("Warn: cannot resolve: " +
+							// c.getMessage());
 						}
 					}
-				}
 				if (v._min_lc == null || v._min_rc == null) {
 					if (clusterSize <= 8) {
 						counter.addAllPossibleSubClusters(v._cluster,
-							containedVertecies);
+							inference.clusters);
 						tryAnotherTime = true;
 					} else if (clusterSize > 1) {
 						/*if (clusterSize > 20) {
@@ -305,32 +288,17 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 	
 						}*/
 						//System.err.println(maxSubClusters);
-						for (int i = clusterSize - 1; i > 0; i--) {
-							List<Vertex> biggestSubClusters = new ArrayList<Vertex>();							
-							if (containedVertecies.get(i) == null) {
-								continue;
-							}
-							biggestSubClusters.addAll(containedVertecies.get(i));
-							if (biggestSubClusters.size() == 0) {
-								continue;
-							}
-							int complementarySize  = clusterSize - i;
-							if (!containedVertecies.containsKey(complementarySize)) {
-								containedVertecies.put(complementarySize, new HashSet<Vertex>());
-	
-							}
-							HashSet<Vertex> complementarySizeClusterSet = 
-								containedVertecies.get(complementarySize);
-							int initialSize = complementarySizeClusterSet.size();
+						Iterator<Set<Vertex>> it = containedVertecies.getSubClusters();
+						if (it.hasNext()) {
+							Collection<Vertex> biggestSubClusters = it.next();
 							for (Vertex x : biggestSubClusters) {
-								complementarySizeClusterSet.add(counter.getCompleteryVertx(x, v._cluster));
+								int i = x._cluster.getClusterSize();
+								int complementarySize  = clusterSize - i;						
+				
+								tryAnotherTime |= containedVertecies.addCluster(counter.getCompleteryVertx(x, v._cluster),complementarySize);
 							}
-							if (initialSize  != complementarySizeClusterSet.size()){
-								tryAnotherTime = true;
-								break;
-							}
-	
 						}
+						
 					}
 				}
 			} while (tryAnotherTime); 
@@ -360,31 +328,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 			Set<STBipartition> clusterBiPartitions)
 			throws CannotResolveException {
 		TaxonNameMap taxonNameMap = inference.taxonNameMap;
-		if (clusterBiPartitions == null) {
-			if (v._cluster.getClusterSize() <= 3) {
-				for (int j = 0; j < v._cluster.getClusterSize(); j++) {
-					STITreeCluster c1 = new STITreeCluster(
-							v._cluster.getTaxa());
-					c1.addLeaf(v._cluster.getClusterLeaves()[j]);
-					STITreeCluster c2 = new STITreeCluster(
-							v._cluster.getTaxa());
-					for (int i = 0; i < v._cluster.getClusterSize(); i++) {
-						if (i != j) {
-							c2.addLeaf(v._cluster.getClusterLeaves()[i]);
-						}
-					}
-					if (inference.clusterToVertex.containsKey(c2)) {
-						STBipartition stb = new STBipartition(c1, c2,
-								v._cluster);
-						if (clusterBiPartitions == null)
-							clusterBiPartitions = new HashSet<STBipartition>(
-									3);
-						clusterBiPartitions.add(stb);
-						System.err.println("Adding: " + stb);
-					}
-				}
-			}
-		}
+
 
 		List<Integer> El = new ArrayList<Integer>();
 		for (int k = 0; k < trees.size(); k++)
@@ -399,8 +343,8 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 		}
 		for (STBipartition stb : clusterBiPartitions) {
 
-			Vertex lv = inference.clusterToVertex.get(stb.cluster1);
-			Vertex rv = inference.clusterToVertex.get(stb.cluster2);
+			Vertex lv = inference.clusters.getVertexForCluster(stb.cluster1);
+			Vertex rv = inference.clusters.getVertexForCluster(stb.cluster2);
 
 			/*
 			 * if (lv == null || rv == null) {

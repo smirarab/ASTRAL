@@ -40,8 +40,8 @@ public class MGDInference_DP {
 
 	List<Tree> trees;
 	private List<Tree> extraTrees = null;
-	Map<STITreeCluster, Vertex> clusterToVertex;
-	Map<Integer, Set<Vertex>> clusters;
+	//Map<STITreeCluster, Vertex> clusterToVertex;
+	ClusterCollection clusters;
 	int sigmaNs;
 	DuplicationWeightCounter counter;
 	TaxonNameMap taxonNameMap = null;
@@ -529,7 +529,7 @@ public class MGDInference_DP {
 		System.err.println("Number of taxa: " + stTaxa.length);
 		System.err.println("Taxa: " + Arrays.toString(stTaxa));
 
-		clusters = new HashMap<Integer, Set<Vertex>>(stTaxa.length);
+		clusters = new BasicClusterCollection(stTaxa.length);
 
 		List<Solution> solutions;
 
@@ -660,16 +660,15 @@ public class MGDInference_DP {
 		 * System.out.println("first round finished, adding new STBs");
 		 * counter.addExtraBipartitions(clusters, stTaxa);
 		 */
-		clusterToVertex = new HashMap<STITreeCluster, Vertex>(sigmaNs);
+/*		clusterToVertex = new HashMap<STITreeCluster, Vertex>(sigmaNs);
 		for (Set<Vertex> vs : clusters.values()) {
 			for (Vertex vertex : vs) {
 				vertex._max_score = -1;
 				clusterToVertex.put(vertex._cluster, vertex);
 			}
 		}
-
-		Vertex all = (Vertex) clusters.get(Integer.valueOf(stTaxa.length))
-				.toArray()[0];
+*/
+		Vertex all = (Vertex) clusters.getTopCluster();
 		System.err.println("Sigma N: " + sigmaNs);
 
 		System.err.println("Size of largest cluster: " +all._cluster.getClusterSize());
