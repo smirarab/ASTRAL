@@ -1,10 +1,8 @@
 package phylonet.coalescent;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,7 +14,6 @@ import phylonet.coalescent.MGDInference_DP.TaxonNameMap;
 import phylonet.coalescent.MGDInference_DP.Vertex;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
-import sun.awt.VerticalBagLayout;
 
 public class ComputeMinCostTask extends RecursiveTask<Integer> {
 
@@ -104,9 +101,6 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 			for (int i = 1; i <= (clusterSize / 2); i++) {
 				List<Vertex> leftList = new ArrayList<Vertex>(
 						inference.clusters.get(i));
-				if (leftList == null) {
-					continue;
-				}
 				HashSet<Vertex> leftSet = new HashSet<Vertex>();
 				containedVertecies.put(i, leftSet);
 				for (Vertex smallV : leftList) {
@@ -116,9 +110,6 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 					leftSet.add(smallV);
 					List<Vertex> rightList = new ArrayList<Vertex>(
 							inference.clusters.get(clusterSize - i));
-					if (rightList == null) {
-						continue;
-					}
 					HashSet<Vertex> rightSet = new HashSet<Vertex>();
 					containedVertecies.put(clusterSize - i, rightSet);
 					for (Vertex bigv : rightList) {
@@ -136,7 +127,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 				for (int i = 1; i <= (clusterSize / 2); i++) {
 					List<Vertex> leftList = new ArrayList<Vertex>(
 							containedVertecies.get(i));
-					if (leftList == null) {
+					if (leftList.size() == 0) {
 						continue;
 					}
 					for (Vertex smallV : leftList) {
@@ -145,7 +136,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 						}
 						List<Vertex> rightList = new ArrayList<Vertex>(
 								containedVertecies.get(clusterSize - i));
-						if (rightList == null) {
+						if (rightList.size() == 0) {
 							continue;
 						}
 						for (Vertex bigv : rightList) {
