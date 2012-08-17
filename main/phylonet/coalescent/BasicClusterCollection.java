@@ -5,64 +5,72 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
-import phylonet.coalescent.DuplicationWeightCounter.STBipartition;
-import phylonet.coalescent.MGDInference_DP.Vertex;
 import phylonet.tree.model.sti.STITreeCluster;
+import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class BasicClusterCollection implements ClusterCollection {
 	
 	ArrayList<Set<Vertex>> clusters = new ArrayList<Set<Vertex>>();
-	HashMap<STITreeCluster, Vertex> clusterToVertx = new HashMap<STITreeCluster, MGDInference_DP.Vertex>();
-	private int len;
-	private int totalcount = 0;
+	private HashMap<STITreeCluster, Vertex> clusterToVertx = new HashMap<STITreeCluster, Vertex>();
+	int topClusterLength;
+	int totalcount = 0;
 	
 	public BasicClusterCollection(int len) {
-		this.len = len;
+		this.topClusterLength = len;
 		for (int i = 0; i <= len; i++) {
-			clusters.add(new HashSet<MGDInference_DP.Vertex>());
+			clusters.add(new HashSet<Vertex>());
 		}
 	}
 
 	@Override
-	public Vertex getTopCluster() {
-		return clusters.get(len).iterator().next();
+	public Vertex getTopVertex() {
+		Iterator<Vertex> it = clusters.get(topClusterLength).iterator();
+		if (! it.hasNext()) {
+			throw new NoSuchElementException();
+		}
+		return it.next();
 	}
 
 	@Override
 	public int getClusterCount() {
 		return totalcount;
 	}
-
+	int vertexIndex = 0;
 	@Override
 	public boolean addCluster(Vertex nv, int size) {
 /*		if (!clusters.containsKey(size)) {
 			clusters.put(size, new HashSet<Vertex>());
 		}*/
-		clusterToVertx.put(nv._cluster, nv);
 		boolean added = clusters.get(size).add(nv);
+		if (added) {
+			nv.index=++vertexIndex;
+			clusterToVertx.put(nv.getCluster(),nv);
+		}
 		if (added) totalcount++;
 		return added;
 	}
 
 	@Override
 	public boolean contains(Vertex vertex) {
-		return clusters.get(vertex._cluster.getClusterSize()).contains(vertex);
+		return clusters.get(vertex.getCluster().getClusterSize()).contains(vertex);
 	}
 
 	@Override
 	public ClusterCollection getContainedClusters(STITreeCluster cluster) {
+		//if (topClusterLength < 10)
+		//	System.out.println("Contained: "+cluster+" "+clusterToVertx.keySet());
 		ClusterCollection ret = new BasicClusterCollection(cluster.getClusterSize());
 		int size = cluster.getClusterSize();
-		for (int i = size - 1; i > 0; i--) {
+		ret.addCluster(getVertexForCluster(cluster), size);
+		for (int i = size - 1 ; i > 0; i--) {
 			Set<Vertex> sizeClusters = clusters.get(i);
 			if (sizeClusters == null) continue;
 			for (Vertex vertex : sizeClusters) {
-				if (cluster.containsCluster(vertex._cluster)) {
+				if (cluster.containsCluster(vertex.getCluster())) {
 					ret.addCluster(vertex, i);
 				}
 			}
@@ -76,9 +84,11 @@ public class BasicClusterCollection implements ClusterCollection {
 	}
 
 	@Override
-	public Collection<STBipartition> getClusterResolutions(STITreeCluster c) {
+	public Collection<STBipartition> getClusterResolutions() {
+		//System.out.println(topClusterLength+ " "+getTopVertex());
+		STITreeCluster c = getTopVertex().getCluster();
 		ArrayList<STBipartition> ret = new ArrayList<STBipartition>();
-		int clusterSize = c.getClusterSize();
+		int clusterSize = topClusterLength;
 		for (int i = 1; i <= (clusterSize / 2); i++) {
 			Set<Vertex> left = this.clusters.get(i);
 			if (left == null || left.size() == 0) {
@@ -91,11 +101,11 @@ public class BasicClusterCollection implements ClusterCollection {
 			for (Vertex smallV : left) {
 				
 				for (Vertex bigv : right) {
-					if (!smallV._cluster.isDisjoint(bigv._cluster)) {
+					if (!smallV.getCluster().isDisjoint(bigv.getCluster())) {
 						continue;
 					}
 					STBipartition bi = new STBipartition(
-							smallV._cluster, bigv._cluster,
+							smallV.getCluster(), bigv.getCluster(),
 							c);
 					ret.add(bi);
 				}
@@ -107,8 +117,8 @@ public class BasicClusterCollection implements ClusterCollection {
 	@Override
 	public Iterator<Set<Vertex>> getSubClusters() {
 		return new Iterator<Set<Vertex>>() {
-			int i = len - 1;
-			int next = len ;
+			int i = topClusterLength - 1;
+			int next = topClusterLength ;
 			@Override
 			public boolean hasNext() {
 				if (next > i) {
@@ -135,6 +145,28 @@ public class BasicClusterCollection implements ClusterCollection {
 		};
 	}
 	
+/*	class BasicSubClusterCollection extends BasicClusterCollection {
+
+		public BasicSubClusterCollection(int len) {
+			super(len);
+		}
+
+		@Override
+		public boolean addCluster(Vertex nv, int size) {
+			if (!clusters.containsKey(size)) {
+				clusters.put(size, new HashSet<Vertex>());
+			}
+			boolean added = clusters.get(size).add(nv);
+			if (added) totalcount++;
+			return added;
+		}
+		
+		@Override
+		public Vertex getVertexForCluster(STITreeCluster cluster1) {
+			return BasicClusterCollection.this.getVertexForCluster(cluster1);
+		}
+	}
+*/	
 	/* The following code find all max-sub clusters (if ever needed)
 	Map<Integer, HashSet<Vertex>> maxSubClusters = 
 		new HashMap<Integer, HashSet<Vertex>>();
@@ -167,5 +199,5 @@ public class BasicClusterCollection implements ClusterCollection {
 		}
 
 	}*/
-
+	
 }
