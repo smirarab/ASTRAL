@@ -127,7 +127,6 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 				tryAnotherTime = false;
 				
 	
-				//System.out.println(containedVertecies.getClusterCount());
 				for (STBipartition bi : containedVertecies.getClusterResolutions(v._cluster)) {
 					try {
 							Vertex smallV = containedVertecies.getVertexForCluster(bi.cluster1);
@@ -236,7 +235,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 							v._min_rc = bigv;
 							v._c = c;
 
-							break; // Already found the only pair of
+							//break; // Already found the only pair of
 									// clusters whose union is v's cluster.
 						} catch (CannotResolveException c) {
 							// System.err.println("Warn: cannot resolve: " +
@@ -246,7 +245,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 				if (v._min_lc == null || v._min_rc == null) {
 					if (clusterSize <= 8) {
 						counter.addAllPossibleSubClusters(v._cluster,
-							inference.clusters);
+							containedVertecies);
 						tryAnotherTime = true;
 					} else if (clusterSize > 1) {
 						/*if (clusterSize > 20) {
@@ -290,7 +289,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 						//System.err.println(maxSubClusters);
 						Iterator<Set<Vertex>> it = containedVertecies.getSubClusters();
 						if (it.hasNext()) {
-							Collection<Vertex> biggestSubClusters = it.next();
+							Collection<Vertex> biggestSubClusters = new ArrayList<Vertex>(it.next());
 							for (Vertex x : biggestSubClusters) {
 								int i = x._cluster.getClusterSize();
 								int complementarySize  = clusterSize - i;						
