@@ -215,9 +215,6 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 								e = 0;
 							}
 
-							// System.err.println("E for " + v._cluster +
-							// " is "+e);
-
 							int c = inference.optimizeDuploss * w - e;
 
 							if ((v._max_score != -1)
@@ -225,12 +222,6 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 								continue;
 							}
 							v._max_score = (lscore + rscore + c);
-							//v._min_cost = inference.sigmaNs
-								//	- (c + smallV._max_score
-									//		+ bigv._max_score - 2 * maxEL);
-							// stem.out.println(maxEL - (z*w + lv._max_score
-							// +
-							// rv._max_score));
 							v._min_lc = smallV;
 							v._min_rc = bigv;
 							v._c = c;
@@ -254,38 +245,6 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 										+ clusterSize + " : " + v._cluster);
 						}*/
 	
-						/* The following code find all max-sub clusters (if ever needed)
-						Map<Integer, HashSet<Vertex>> maxSubClusters = 
-							new HashMap<Integer, HashSet<Vertex>>();
-						
-						for (int i = 1; i < clusterSize; i++) {
-							HashSet<Vertex> subClustersSizeI = containedVertecies.get(i);
-							
-							maxSubClusters.put(i, new HashSet<Vertex>());
-
-							if (subClustersSizeI == null) {
-								continue;
-							}
-	
-							HashSet<Vertex> maxClustersSizeI = maxSubClusters.get(i);
-	
-							for (Vertex newMaxCluster : subClustersSizeI) {
-								maxClustersSizeI.add(newMaxCluster);
-							
-								for (int j = i - 1; j > 0; j--) {
-									
-									List<Vertex> remove = new LinkedList<Vertex>();
-									for (Vertex s : maxSubClusters.get(j)) {
-										if (newMaxCluster._cluster.containsCluster(s._cluster)) {
-	
-											remove.add(s);
-										}
-									}
-									maxSubClusters.get(j).removeAll(remove);
-								}
-							}
-	
-						}*/
 						//System.err.println(maxSubClusters);
 						Iterator<Set<Vertex>> it = containedVertecies.getSubClusters();
 						if (it.hasNext()) {
