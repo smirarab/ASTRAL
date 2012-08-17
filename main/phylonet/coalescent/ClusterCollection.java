@@ -1,16 +1,14 @@
 package phylonet.coalescent;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
-import phylonet.coalescent.DuplicationWeightCounter.STBipartition;
-import phylonet.coalescent.MGDInference_DP.Vertex;
 import phylonet.tree.model.sti.STITreeCluster;
+import phylonet.tree.model.sti.STITreeCluster.Vertex;
 public interface ClusterCollection {
 
-	Vertex getTopCluster();
+	Vertex getTopVertex();
 
 	int getClusterCount();
 
@@ -22,7 +20,7 @@ public interface ClusterCollection {
 
 	Vertex getVertexForCluster(STITreeCluster cluster1);
 
-	Collection<STBipartition> getClusterResolutions(STITreeCluster cluster);
+	Collection<STBipartition> getClusterResolutions();
 
 
 	Iterator<Set<Vertex>> getSubClusters();

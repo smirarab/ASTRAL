@@ -1,6 +1,6 @@
 package phylonet.coalescent;
 
-import java.util.ArrayList;
+ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,11 +11,10 @@ import java.util.Set;
 import java.util.concurrent.RecursiveTask;
 
 import phylonet.coalescent.DuplicationWeightCounter.CalculateWeightTask;
-import phylonet.coalescent.DuplicationWeightCounter.STBipartition;
 import phylonet.coalescent.MGDInference_DP.TaxonNameMap;
-import phylonet.coalescent.MGDInference_DP.Vertex;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
+import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
 public class ComputeMinCostTask extends RecursiveTask<Integer> {
 
@@ -25,6 +24,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 	private static final long serialVersionUID = 244989909835073096L;
 	private MGDInference_DP inference;
 	private Vertex v;
+	private ClusterCollection clusters;
 
 	@Override
 	protected Integer compute() {
@@ -35,9 +35,10 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 		}
 	}
 
-	public ComputeMinCostTask(MGDInference_DP inference, Vertex v) {
+	public ComputeMinCostTask(MGDInference_DP inference, Vertex v,ClusterCollection clusters) {
 		this.inference = inference;
 		this.v = v;
+		this.clusters = clusters;
 	}
 	
 	//final int maxEL = 10000000;
@@ -51,7 +52,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 		
 		// -2 is used to indicate it cannot be resolved
 		if (v._done == 2) {
-			throw new CannotResolveException(v._cluster.toString());
+			throw new CannotResolveException(v.getCluster().toString());
 		}
 		// Already calculated. Don't re-calculate.
 		if (v._done == 1) {
@@ -59,7 +60,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 		}
 		//
 
-		int clusterSize = v._cluster.getClusterSize();
+		int clusterSize = v.getCluster().getClusterSize();
 
 		// SIA: base case for singelton clusters.
 		if (clusterSize <= 1) {
@@ -68,10 +69,10 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 			if (inference.optimizeDuploss == 3) {
 				if (taxonNameMap == null) {
 					_el_num = DeepCoalescencesCounter.getClusterCoalNum(
-							trees, v._cluster, rooted);
+							trees, v.getCluster(), rooted);
 				} else {
 					_el_num = DeepCoalescencesCounter.getClusterCoalNum(
-							trees, v._cluster, taxonNameMap, rooted);
+							trees, v.getCluster(), taxonNameMap, rooted);
 				}
 			} else {
 				_el_num = 0;
@@ -84,7 +85,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 			return v._max_score;
 		}
 		Set<STBipartition> clusterBiPartitions = counter
-				.getClusterBiPartitions(v._cluster);
+				.getClusterBiPartitions(v.getCluster());
 
 		// STBipartition bestSTB = null;
 		if (inference.fast) {
@@ -99,14 +100,15 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 			boolean tryAnotherTime = false;
 			
 			// First find what clusters are contained in this cluster
-			ClusterCollection containedVertecies = inference.clusters.getContainedClusters(v._cluster);
+			ClusterCollection containedVertecies = 
+					clusters.getContainedClusters(v.getCluster());
 			/*for (int i = 1; i <= (clusterSize / 2); i++) {
 				List<Vertex> leftList = new ArrayList<Vertex>(
 						inference.clusters.get(i));
 				HashSet<Vertex> leftSet = new HashSet<Vertex>();
 				containedVertecies.put(i, leftSet);
 				for (Vertex smallV : leftList) {
-					if (!v._cluster.containsCluster(smallV._cluster)) {
+					if (!v.getCluster().containsCluster(smallV.getCluster())) {
 						continue;
 					}
 					leftSet.add(smallV);
@@ -115,7 +117,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 					HashSet<Vertex> rightSet = new HashSet<Vertex>();
 					containedVertecies.put(clusterSize - i, rightSet);
 					for (Vertex bigv : rightList) {
-						if (!v._cluster.containsCluster(bigv._cluster)) {
+						if (!v.getCluster().containsCluster(bigv.getCluster())) {
 							continue;
 						}
 						rightSet.add(bigv);
@@ -127,19 +129,19 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 				tryAnotherTime = false;
 				
 	
-				for (STBipartition bi : containedVertecies.getClusterResolutions(v._cluster)) {
+				for (STBipartition bi : containedVertecies.getClusterResolutions()) {
 					try {
 							Vertex smallV = containedVertecies.getVertexForCluster(bi.cluster1);
 							Vertex bigv = containedVertecies.getVertexForCluster(bi.cluster2);
 							ComputeMinCostTask smallWork = new ComputeMinCostTask(
-									inference, smallV);
+									inference, smallV,containedVertecies);
 							ComputeMinCostTask bigWork = new ComputeMinCostTask(
-									inference, bigv);
+									inference, bigv,containedVertecies);
 							CalculateWeightTask weigthWork = null;
 
 							/*STBipartition bi = new STBipartition(
-									smallV._cluster, bigv._cluster,
-									v._cluster);*/
+									smallV.getCluster(), bigv.getCluster(),
+									v.getCluster());*/
 
 							Integer w = counter
 									.getCalculatedBiPartitionDPWeight(bi);
@@ -157,7 +159,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 								// MP_VERSION: weigthWork.cancel(false);
 								// MP_VERSION: smallWork.cancel(false);
 								throw new CannotResolveException(
-										bigv._cluster.toString());
+										bigv.getCluster().toString());
 							}
 
 							Integer lscore;
@@ -167,7 +169,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 							if (lscore == null) {
 								// MP_VERSION: 	weigthWork.cancel(false);
 								throw new CannotResolveException(
-										smallV._cluster.toString());
+										smallV.getCluster().toString());
 							}
 							// MP_VERSION: w = weigthWork.join();
 
@@ -179,8 +181,8 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 									Tree tr = trees.get(k);
 									STITreeCluster treeAll = inference.counter.treeAlls
 											.get(k);
-									if (smallV._cluster.isDisjoint(treeAll)
-											|| bigv._cluster
+									if (smallV.getCluster().isDisjoint(treeAll)
+											|| bigv.getCluster()
 													.isDisjoint(treeAll)) {
 										// System.err
 										// .println("skipping "+bi+" for "
@@ -193,13 +195,13 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 													DeepCoalescencesCounter
 															.getClusterCoalNum_rooted(
 																	tr,
-																	v._cluster));
+																	v.getCluster()));
 										} else {
 											El.set(k,
 													DeepCoalescencesCounter
 															.getClusterCoalNum_rooted(
 																	tr,
-																	v._cluster,
+																	v.getCluster(),
 																	taxonNameMap));
 										}
 									} else {
@@ -208,7 +210,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 									}
 									e += El.get(k);
 									// System.err.println("E for " +
-									// v._cluster + " is "+e + " and k is  "
+									// v.getCluster() + " is "+e + " and k is  "
 									// + k);
 								}
 							} else {
@@ -234,15 +236,15 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 						}
 					}
 				if (v._min_lc == null || v._min_rc == null) {
-					if (clusterSize <= 4) {
-						counter.addAllPossibleSubClusters(v._cluster,
+					if (clusterSize <= 2) {
+						counter.addAllPossibleSubClusters(v.getCluster(),
 							containedVertecies);
 						tryAnotherTime = true;
 					} else if (clusterSize > 1) {
 						/*if (clusterSize > 20) {
 							System.err
 								.println("Adding extra clusters (complementary of included clusters) for size "
-										+ clusterSize + " : " + v._cluster);
+										+ clusterSize + " : " + v.getCluster());
 						}*/
 	
 						//System.err.println(maxSubClusters);
@@ -250,10 +252,10 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 						if (it.hasNext()) {
 							Collection<Vertex> biggestSubClusters = new ArrayList<Vertex>(it.next());
 							for (Vertex x : biggestSubClusters) {
-								int i = x._cluster.getClusterSize();
+								int i = x.getCluster().getClusterSize();
 								int complementarySize  = clusterSize - i;						
 				
-								tryAnotherTime |= containedVertecies.addCluster(counter.getCompleteryVertx(x, v._cluster),complementarySize);
+								tryAnotherTime |= containedVertecies.addCluster(counter.getCompleteryVertx(x, v.getCluster()),complementarySize);
 							}
 						}
 						
@@ -265,11 +267,11 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 		if (v._min_lc == null || v._min_rc == null) {
 			if (MGDInference_DP._print) {
 				System.err.println("WARN: No Resolution found for ( "
-						+ v._cluster.getClusterSize() + " taxa ):\n"
-						+ v._cluster);
+						+ v.getCluster().getClusterSize() + " taxa ):\n"
+						+ v.getCluster());
 			}
 			v._done = 2;
-			throw new CannotResolveException(v._cluster.toString());
+			throw new CannotResolveException(v.getCluster().toString());
 		}
 /*		if (clusterSize > 450){
 			System.out.println(v+" \nis scored "+(v._max_score ) + " by \n"+v._min_lc + " \n"+v._min_rc);
@@ -294,15 +296,15 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 
 		if (clusterBiPartitions == null) {
 			System.err.println("Warn: the following cluster ( "
-					+ v._cluster.getClusterSize()
-					+ " taxa ) has no STBs:\n" + v._cluster);
+					+ v.getCluster().getClusterSize()
+					+ " taxa ) has no STBs:\n" + v.getCluster());
 			v._max_score = -2;
-			throw new CannotResolveException(v._cluster.toString());
+			throw new CannotResolveException(v.getCluster().toString());
 		}
 		for (STBipartition stb : clusterBiPartitions) {
 
-			Vertex lv = inference.clusters.getVertexForCluster(stb.cluster1);
-			Vertex rv = inference.clusters.getVertexForCluster(stb.cluster2);
+			Vertex lv = clusters.getVertexForCluster(stb.cluster1);
+			Vertex rv = clusters.getVertexForCluster(stb.cluster2);
 
 			/*
 			 * if (lv == null || rv == null) {
@@ -314,15 +316,15 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 
 				// vertexStack.push(lv);
 				ComputeMinCostTask worker1 = new ComputeMinCostTask(
-						inference, lv);
+						inference, lv,null);
 				ComputeMinCostTask worker2 = new ComputeMinCostTask(
-						inference, rv);
+						inference, rv,null);
 				CalculateWeightTask worker3 = null;
 
 				worker1.fork();
 
-				STBipartition bi = new STBipartition(lv._cluster,
-						rv._cluster, v._cluster);
+				STBipartition bi = new STBipartition(lv.getCluster(),
+						rv.getCluster(), v.getCluster());
 
 				Integer w = counter.getCalculatedBiPartitionDPWeight(bi);
 				if (w == null) {
@@ -336,8 +338,8 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 						Tree tr = trees.get(k);
 						STITreeCluster treeAll = inference.counter.treeAlls
 								.get(k);
-						if (rv._cluster.isDisjoint(treeAll)
-								|| lv._cluster.isDisjoint(treeAll)) {
+						if (rv.getCluster().isDisjoint(treeAll)
+								|| lv.getCluster().isDisjoint(treeAll)) {
 							// System.err
 							// .println("skipping "+bi+" for " +treeAll);
 							continue;
@@ -346,18 +348,18 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 							if (taxonNameMap == null) {
 								El.set(k, DeepCoalescencesCounter
 										.getClusterCoalNum_rooted(tr,
-												v._cluster));
+												v.getCluster()));
 							} else {
 								El.set(k, DeepCoalescencesCounter
 										.getClusterCoalNum_rooted(tr,
-												v._cluster, taxonNameMap));
+												v.getCluster(), taxonNameMap));
 							}
 						} else {
 							// System.err
 							// .println("Used cached");
 						}
 						e += El.get(k);
-						// System.err.println("E for " + v._cluster +
+						// System.err.println("E for " + v.getCluster() +
 						// " is "+e + " and k is  " + k);
 					}
 				} else {
@@ -366,12 +368,12 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 
 				Integer rscore = worker2.compute();
 				if (rscore == null) {
-					throw new CannotResolveException(rv._cluster.toString());
+					throw new CannotResolveException(rv.getCluster().toString());
 				}
 
 				Integer lscore = worker1.join();
 				if (lscore == null) {
-					throw new CannotResolveException(lv._cluster.toString());
+					throw new CannotResolveException(lv.getCluster().toString());
 				}
 
 				if (w == null) {

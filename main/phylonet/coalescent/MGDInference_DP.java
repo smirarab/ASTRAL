@@ -1,5 +1,6 @@
 package phylonet.coalescent;
 
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -27,6 +28,7 @@ import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STINode;
 import phylonet.tree.model.sti.STITree;
 import phylonet.tree.model.sti.STITreeCluster;
+import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.tree.util.Collapse;
 import phylonet.tree.util.Trees;
 import phylonet.util.BitSet;
@@ -41,7 +43,6 @@ public class MGDInference_DP {
 	List<Tree> trees;
 	private List<Tree> extraTrees = null;
 	//Map<STITreeCluster, Vertex> clusterToVertex;
-	ClusterCollection clusters;
 	int sigmaNs;
 	DuplicationWeightCounter counter;
 	TaxonNameMap taxonNameMap = null;
@@ -529,7 +530,7 @@ public class MGDInference_DP {
 		System.err.println("Number of taxa: " + stTaxa.length);
 		System.err.println("Taxa: " + Arrays.toString(stTaxa));
 
-		clusters = new BasicClusterCollection(stTaxa.length);
+		 ClusterCollection clusters = new BasicClusterCollection(stTaxa.length);
 
 		List<Solution> solutions;
 
@@ -559,7 +560,7 @@ public class MGDInference_DP {
 
 		sigmaNs = sigmaN;
 
-		solutions = findTreesByDP(stTaxa, counter, trees, taxonNameMap);
+		solutions = findTreesByDP(stTaxa, counter, trees, taxonNameMap,clusters);
 
 		if (taxonNameMap == null && rooted && extraTrees == null && false) {
 			restoreCollapse(solutions, cd);
@@ -627,7 +628,7 @@ public class MGDInference_DP {
 	        }
 
 	        BitSet temp = (BitSet)childCluster.clone();
-	        temp.and(tc.getCluster());
+	        temp.and(tc.getBitSet());
 	        if (temp.equals(childCluster)) {
 	          ((List)movedChildren).add(child);
 	        }
@@ -647,7 +648,7 @@ public class MGDInference_DP {
 	  
 	private List<Solution> findTreesByDP(String[] stTaxa,
 			DuplicationWeightCounter counter, List<Tree> trees,
-			TaxonNameMap taxonNameMap) {
+			TaxonNameMap taxonNameMap, ClusterCollection clusters) {
 		List<Solution> solutions = new ArrayList<Solution>();
 
 		/*
@@ -668,19 +669,19 @@ public class MGDInference_DP {
 			}
 		}
 */
-		Vertex all = (Vertex) clusters.getTopCluster();
+		Vertex all = (Vertex) clusters.getTopVertex();
 		System.err.println("Sigma N: " + sigmaNs);
 
-		System.err.println("Size of largest cluster: " +all._cluster.getClusterSize());
+		System.err.println("Size of largest cluster: " +all.getCluster().getClusterSize());
 
 		try {
 			//vertexStack.push(all);
-			ComputeMinCostTask allTask = new ComputeMinCostTask(this,all);
+			ComputeMinCostTask allTask = new ComputeMinCostTask(this,all,clusters);
 			ForkJoinPool pool = new ForkJoinPool(1);
 			pool.invoke(allTask);
 			Integer v = all._max_score;
 			if (v == -2) {
-				throw new CannotResolveException(all._cluster.toString());
+				throw new CannotResolveException(all.getCluster().toString());
 			}
 		} catch (CannotResolveException e) {
 			// TODO Auto-generated catch block
@@ -712,7 +713,7 @@ public class MGDInference_DP {
 			Vertex pe = (Vertex) minVertices.pop();
 			//System.out.println(pe._min_rc);
 			//System.out.println(pe._min_lc);
-			minClusters.add(pe._cluster);
+			minClusters.add(pe.getCluster());
 			// int k = sigmaNs/(stTaxa.length-1);
 
 			if (pe._min_rc != null) {
@@ -922,33 +923,4 @@ public class MGDInference_DP {
 	 * }
 	 */
 
-	static class Vertex {
-		public STITreeCluster _cluster = null;
-		//public int _el_num = -1;
-		//public int _min_cost = -1;
-		public int _max_score = -1;
-		public int _c = 0;
-		public Vertex _min_lc = this._min_rc = null;
-		public Vertex _min_rc;
-		public List<Vertex> _subcl = null;		
-		public byte _done = 0; // 0 for not, 1 for yes, 2 for failed
-		
-		public Vertex() {
-		}
-
-		public String toString() {
-			return this._cluster.toString() + "/" + this._max_score;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			return ((Vertex) obj)._cluster.equals(this._cluster);
-		}
-
-		@Override
-		public int hashCode() {
-			return _cluster.hashCode();
-		}
-
-	}
 }
