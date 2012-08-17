@@ -243,7 +243,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 						}
 					}
 				if (v._min_lc == null || v._min_rc == null) {
-					if (clusterSize <= 8) {
+					if (clusterSize <= 5) {
 						counter.addAllPossibleSubClusters(v._cluster,
 							containedVertecies);
 						tryAnotherTime = true;

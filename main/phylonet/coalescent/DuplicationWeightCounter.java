@@ -844,11 +844,11 @@ public class DuplicationWeightCounter {
 			nv._cluster = c;
 			containedVertecies.addCluster(nv, size -1);
 
-			addAllPossibleSubClusters(c);
+			addAllPossibleSubClusters(c, containedVertecies);
 		}
 	}
 
-	public boolean addAllPossibleSubClusters(STITreeCluster cluster) {
+/*	public boolean addAllPossibleSubClusters(STITreeCluster cluster) {
 		int size = cluster.getClusterSize();
 		boolean ret = false;
 		for (int i = cluster.getCluster().nextSetBit(0); i>=0 ;i = cluster.getCluster().nextSetBit(i+1)){
@@ -858,7 +858,7 @@ public class DuplicationWeightCounter {
 			ret |= addAllPossibleSubClusters(c);
 		}
 		return ret;
-	}
+	}*/
 	
 	public Vertex getCompleteryVertx(Vertex x, STITreeCluster refCluster) {
 		STITreeCluster c = x._cluster;		
