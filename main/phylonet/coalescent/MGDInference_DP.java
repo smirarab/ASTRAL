@@ -432,10 +432,10 @@ public class MGDInference_DP {
 		System.out
 				.println("\t-o species tree file: The file to store the species tree. (optional)");
 		System.out.println("\t-dl optimize duploss instead of duplications");
-		System.out.println("\t-u treat input gene trees as unrooted");
+		System.out.println("\t-u treat input gene trees as unrooted (Not implemented!)");
 		System.out.println("\t-ex provide extra trees to add to set of STBs searched");
-		System.out.println("\t-xu treat extra trees input gene trees as unrooted");
-		System.out.println("\t-f perform fast and less-accurate subtree-bipartition based search.");
+		System.out.println("\t-xu treat extra trees input gene trees as unrooted (Not implemented!)");
+		System.out.println("\t-f perform fast and less-accurate subtree-bipartition based search (Not implemented!).");
 		System.out.println();
 	}
 
@@ -542,7 +542,7 @@ public class MGDInference_DP {
 			counter.addExtraBipartitionsByInput(clusters, extraTrees,extrarooted);					
 		}
 
-		counter.addExtraBipartitionsByHeuristics(clusters);
+		//counter.addExtraBipartitionsByHeuristics(clusters);
 
 		if (_print) {
 			System.err.println("STBs formed in "

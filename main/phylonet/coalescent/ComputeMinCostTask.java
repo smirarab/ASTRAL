@@ -15,6 +15,7 @@ import phylonet.coalescent.MGDInference_DP.TaxonNameMap;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class ComputeMinCostTask extends RecursiveTask<Integer> {
 
@@ -92,6 +93,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 					.getClusterBiPartitions(v.getCluster());
 			fast_STB_based_inference(trees, counter,
 					clusterBiPartitions);*/
+			throw new NotImplementedException();
 			
 		} else {
 			List<Integer> El = new ArrayList<Integer>();
@@ -236,7 +238,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 					}
 				if (v._min_lc == null || v._min_rc == null) {
 					if (clusterSize <= 4) {
-						counter.addAllPossibleSubClusters(v.getCluster(),
+						addAllPossibleSubClusters(v.getCluster(),
 							containedVertecies);
 						tryAnotherTime = true;
 					} else if (clusterSize > 1) {
@@ -254,7 +256,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 								int i = x.getCluster().getClusterSize();
 								int complementarySize  = clusterSize - i;						
 				
-								tryAnotherTime |= containedVertecies.addCluster(counter.getCompleteryVertx(x, v.getCluster()),complementarySize);
+								tryAnotherTime |= containedVertecies.addCluster(getCompleteryVertx(x, v.getCluster()),complementarySize);
 							}
 						}
 						
@@ -282,127 +284,53 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 		return v._max_score ;
 	}
 
-	private void fast_STB_based_inference( 
-			List<Tree> trees, DuplicationWeightCounter counter,
-			Set<STBipartition> clusterBiPartitions)
-			throws CannotResolveException {
-		TaxonNameMap taxonNameMap = inference.taxonNameMap;
+	void addAllPossibleSubClusters(STITreeCluster cluster, ClusterCollection containedVertecies) {
+		int size = cluster.getClusterSize();
+		for (int i = cluster.getBitSet().nextSetBit(0); i>=0 ;i = cluster.getBitSet().nextSetBit(i+1)){
+			STITreeCluster c = new STITreeCluster(cluster);
+			c.getBitSet().clear(i);
 
+			Vertex nv = c.new Vertex();
+			containedVertecies.addCluster(nv, size -1);
 
-		List<Integer> El = new ArrayList<Integer>();
-		for (int k = 0; k < trees.size(); k++)
-			El.add(null);
-
-		if (clusterBiPartitions == null) {
-			System.err.println("Warn: the following cluster ( "
-					+ v.getCluster().getClusterSize()
-					+ " taxa ) has no STBs:\n" + v.getCluster());
-			v._max_score = -2;
-			throw new CannotResolveException(v.getCluster().toString());
-		}
-		for (STBipartition stb : clusterBiPartitions) {
-
-			Vertex lv = clusters.getVertexForCluster(stb.cluster1);
-			Vertex rv = clusters.getVertexForCluster(stb.cluster2);
-
-			/*
-			 * if (lv == null || rv == null) {
-			 * //System.out.println("There is no STB for one half of : " +
-			 * stb); continue; }
-			 */
-
-			try {
-
-				// vertexStack.push(lv);
-				ComputeMinCostTask worker1 = new ComputeMinCostTask(
-						inference, lv,null);
-				ComputeMinCostTask worker2 = new ComputeMinCostTask(
-						inference, rv,null);
-				CalculateWeightTask worker3 = null;
-
-				worker1.fork();
-
-				STBipartition bi = new STBipartition(lv.getCluster(),
-						rv.getCluster(), v.getCluster());
-
-				Integer w = counter.getCalculatedBiPartitionDPWeight(bi);
-				if (w == null) {
-					worker3 = counter.new CalculateWeightTask(bi,containedVertecies);
-					worker3.fork();
-				}
-				Integer e = 0;
-				// If in duploss mode, need to get MDC cost as well
-				if (inference.optimizeDuploss == 3) {
-					for (int k = 0; k < trees.size(); k++) {
-						Tree tr = trees.get(k);
-						STITreeCluster treeAll = inference.counter.treeAlls
-								.get(k);
-						if (rv.getCluster().isDisjoint(treeAll)
-								|| lv.getCluster().isDisjoint(treeAll)) {
-							// System.err
-							// .println("skipping "+bi+" for " +treeAll);
-							continue;
-						}
-						if (El.get(k) == null) {
-							if (taxonNameMap == null) {
-								El.set(k, DeepCoalescencesCounter
-										.getClusterCoalNum_rooted(tr,
-												v.getCluster()));
-							} else {
-								El.set(k, DeepCoalescencesCounter
-										.getClusterCoalNum_rooted(tr,
-												v.getCluster(), taxonNameMap));
-							}
-						} else {
-							// System.err
-							// .println("Used cached");
-						}
-						e += El.get(k);
-						// System.err.println("E for " + v.getCluster() +
-						// " is "+e + " and k is  " + k);
-					}
-				} else {
-					e = 0;
-				}
-
-				Integer rscore = worker2.compute();
-				if (rscore == null) {
-					throw new CannotResolveException(rv.getCluster().toString());
-				}
-
-				Integer lscore = worker1.join();
-				if (lscore == null) {
-					throw new CannotResolveException(lv.getCluster().toString());
-				}
-
-				if (w == null) {
-					w = worker3.join();
-				}
-				// vertexStack.pop();
-				// vertexStack.push(rv);
-				// vertexStack.pop();
-
-				int c = inference.optimizeDuploss * w - e;
-
-				if ((v._max_score != -1)
-						&& (lscore + rscore + c <= v._max_score)) {
-					continue;
-				}
-				v._max_score = (lscore + rscore + c);
-/*				v._min_cost = inference.sigmaNs
-						- (c + lv._max_score + rv._max_score - 2 * maxEL);*/
-				// stem.out.println(maxEL - (z*w + lv._max_score +
-				// rv._max_score));
-				v._min_lc = lv;
-				v._min_rc = rv;
-				v._c = c;
-			} catch (CannotResolveException c) {
-				System.err.println("Warn: cannot resolve: "
-						+ c.getMessage());
-			}
-
-			// bestSTB = stb;
+			addAllPossibleSubClusters(c, containedVertecies);
 		}
 	}
+	
+	public Vertex getCompleteryVertx(Vertex x, STITreeCluster refCluster) {
+		STITreeCluster c = x.getCluster();	
+		
+		STITreeCluster revcluster = new STITreeCluster(refCluster);
+		revcluster.getBitSet().xor(c.getBitSet());
+		Vertex reverse = revcluster.new Vertex();
+		//int size = reverse._cluster.getClusterSize(); 
+		return reverse;
+	}
+
+	
+	/*	public boolean addAllPossibleSubClusters(STITreeCluster cluster) {
+	int size = cluster.getClusterSize();
+	boolean ret = false;
+	for (int i = cluster.getCluster().nextSetBit(0); i>=0 ;i = cluster.getCluster().nextSetBit(i+1)){
+		STITreeCluster c = new STITreeCluster(cluster);
+		c.getCluster().clear(i);
+		ret |= addToClusters(c, size-1);
+		ret |= addAllPossibleSubClusters(c);
+	}
+	return ret;
+	}*/
+	
+	
+	/*	public boolean addAllPossibleSubClusters(STITreeCluster cluster) {
+		int size = cluster.getClusterSize();
+		boolean ret = false;
+		for (int i = cluster.getCluster().nextSetBit(0); i>=0 ;i = cluster.getCluster().nextSetBit(i+1)){
+			STITreeCluster c = new STITreeCluster(cluster);
+			c.getCluster().clear(i);
+			ret |= addToClusters(c, size-1);
+			ret |= addAllPossibleSubClusters(c);
+		}
+		return ret;
+	}*/
 
 }

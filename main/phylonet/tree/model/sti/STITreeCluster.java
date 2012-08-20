@@ -314,12 +314,4 @@ public class STITreeCluster
 		}
 
 	}
-  	
-  	//int index = -1;
-	public int getIndex() {
-		return 0;
-	}
-	public void setIndex(int i) {
-		//index = i;
-	}
 }
