@@ -553,7 +553,7 @@ public class MGDInference_DP {
 		counter.preCalculateWeights(trees, extraTrees);
 		
 		if (_print) {
-			System.err.println("Weights pre-caluclated after "
+			System.err.println("DP starting after "
 					+ (System.currentTimeMillis() - startTime) / 1000.0D
 					+ " secs");
 		}
