@@ -2,6 +2,8 @@ package phylonet.tree.model.sti;
 
 import phylonet.util.BitSet;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 
@@ -116,6 +118,8 @@ public class STITreeCluster
     return this._cluster.equals(tc._cluster);
   }
 
+//  /static HashMap<STITreeCluster,HashSet<STITreeCluster>> contains = new HashMap<STITreeCluster, HashSet<STITreeCluster>>();
+  
   public int hashCode()
   {
     return this._cluster.hashCode() + this._taxa.hashCode();
@@ -199,7 +203,18 @@ public class STITreeCluster
   public boolean containsCluster(STITreeCluster tc)
   {   
 	//  return containsCluster(tc._cluster);
-    return this._cluster.contains(tc._cluster);
+	/*if (contains.containsKey(this) && contains.get(this).contains(tc)) {
+		return true;
+	}*/
+    boolean ret = this._cluster.contains(tc._cluster);
+    /*if (ret) {
+    	HashSet<STITreeCluster> hashSet = contains.containsKey(this) ?
+    			contains.get(this):
+    				new HashSet<STITreeCluster>();
+    	hashSet.add(tc);
+    	contains.put(this, hashSet);
+    }*/
+    return ret;
   }
 
   public boolean containsCluster(BitSet bs)
@@ -300,11 +315,11 @@ public class STITreeCluster
 
 	}
   	
-  	int index = -1;
+  	//int index = -1;
 	public int getIndex() {
 		return 0;
 	}
 	public void setIndex(int i) {
-		index = i;
+		//index = i;
 	}
 }

@@ -16,7 +16,7 @@ public class BasicClusterCollection implements ClusterCollection {
 	
 	ArrayList<Set<Vertex>> clusters;
 	private HashMap<STITreeCluster, Vertex> clusterToVertx = new HashMap<STITreeCluster, Vertex>();
-	private HashMap<STITreeCluster, HashSet<STBipartition>> geneTreeSTBByCluster;
+	HashMap<STITreeCluster, HashSet<STBipartition>> geneTreeSTBByCluster;
 	
 	int topClusterLength;
 	int totalcount = 0;
