@@ -42,6 +42,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 	}
 	
 	//final int maxEL = 10000000;
+	ClusterCollection containedVertecies;
 	
 	private int computeMinCost() throws CannotResolveException {
 
@@ -84,14 +85,13 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 			v._done = 1;
 			return v._max_score;
 		}
-		Set<STBipartition> clusterBiPartitions = counter
-				.getClusterBiPartitions(v.getCluster());
 
 		// STBipartition bestSTB = null;
 		if (inference.fast) {
-			
+			/*Set<STBipartition> clusterBiPartitions = counter
+					.getClusterBiPartitions(v.getCluster());
 			fast_STB_based_inference(trees, counter,
-					clusterBiPartitions);
+					clusterBiPartitions);*/
 			
 		} else {
 			List<Integer> El = new ArrayList<Integer>();
@@ -100,8 +100,6 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 			boolean tryAnotherTime = false;
 			
 			// First find what clusters are contained in this cluster
-			ClusterCollection containedVertecies = 
-					clusters.getContainedClusters(v.getCluster());
 			/*for (int i = 1; i <= (clusterSize / 2); i++) {
 				List<Vertex> leftList = new ArrayList<Vertex>(
 						inference.clusters.get(i));
@@ -124,6 +122,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 					}
 				}
 			}*/
+			containedVertecies = clusters.getContainedClusters(v.getCluster());
 				
 			do {
 				tryAnotherTime = false;
@@ -142,15 +141,6 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 							/*STBipartition bi = new STBipartition(
 									smallV.getCluster(), bigv.getCluster(),
 									v.getCluster());*/
-
-							Integer w = counter
-									.getCalculatedBiPartitionDPWeight(bi);
-							if (w == null) {
-								weigthWork = counter.new CalculateWeightTask(
-										bi);
-								// MP_VERSION: smallWork.fork();
-								w = weigthWork.compute();									
-							}
 
 							// MP_VERSION: smallWork.fork();
 							Integer rscore = bigWork.compute();
@@ -172,6 +162,15 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 										smallV.getCluster().toString());
 							}
 							// MP_VERSION: w = weigthWork.join();
+
+							Integer w = counter
+									.getCalculatedBiPartitionDPWeight(bi);
+							if (w == null) {
+								weigthWork = counter.new CalculateWeightTask(
+										bi,containedVertecies);
+								// MP_VERSION: smallWork.fork();
+								w = weigthWork.compute();									
+							}
 
 							Integer e = 0;
 							// If in duploss mode, need to get MDC cost as
@@ -236,7 +235,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 						}
 					}
 				if (v._min_lc == null || v._min_rc == null) {
-					if (clusterSize <= 2) {
+					if (clusterSize <= 4) {
 						counter.addAllPossibleSubClusters(v.getCluster(),
 							containedVertecies);
 						tryAnotherTime = true;
@@ -248,7 +247,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 						}*/
 	
 						//System.err.println(maxSubClusters);
-						Iterator<Set<Vertex>> it = containedVertecies.getSubClusters();
+						Iterator<Set<Vertex>> it = containedVertecies.getSubClusters().iterator();
 						if (it.hasNext()) {
 							Collection<Vertex> biggestSubClusters = new ArrayList<Vertex>(it.next());
 							for (Vertex x : biggestSubClusters) {
@@ -328,7 +327,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 
 				Integer w = counter.getCalculatedBiPartitionDPWeight(bi);
 				if (w == null) {
-					worker3 = counter.new CalculateWeightTask(bi);
+					worker3 = counter.new CalculateWeightTask(bi,containedVertecies);
 					worker3.fork();
 				}
 				Integer e = 0;

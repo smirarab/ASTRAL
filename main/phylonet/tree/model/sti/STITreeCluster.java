@@ -279,7 +279,6 @@ public class STITreeCluster
 		public Vertex _min_rc;
 		public List<Vertex> _subcl = null;		
 		public byte _done = 0; // 0 for not, 1 for yes, 2 for failed
-		public int index = -1;
 		
 		public String toString() {
 			return STITreeCluster.this.toString() + "/" + this._max_score;
@@ -299,5 +298,13 @@ public class STITreeCluster
 			return STITreeCluster.this.hashCode();
 		}
 
+	}
+  	
+  	int index = -1;
+	public int getIndex() {
+		return 0;
+	}
+	public void setIndex(int i) {
+		index = i;
 	}
 }

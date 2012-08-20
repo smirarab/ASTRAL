@@ -14,16 +14,21 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class BasicClusterCollection implements ClusterCollection {
 	
-	ArrayList<Set<Vertex>> clusters = new ArrayList<Set<Vertex>>();
+	ArrayList<Set<Vertex>> clusters;
 	private HashMap<STITreeCluster, Vertex> clusterToVertx = new HashMap<STITreeCluster, Vertex>();
+	private HashMap<STITreeCluster, HashSet<STBipartition>> geneTreeSTBByCluster;
+	
 	int topClusterLength;
 	int totalcount = 0;
 	
 	public BasicClusterCollection(int len) {
 		this.topClusterLength = len;
+		 clusters = new ArrayList<Set<Vertex>>(len);
 		for (int i = 0; i <= len; i++) {
 			clusters.add(new HashSet<Vertex>());
+			//geneTreeSTBBySize.add(new HashSet<STBipartition>());
 		}
+		geneTreeSTBByCluster = new HashMap<STITreeCluster, HashSet<STBipartition>>();
 	}
 
 	@Override
@@ -39,7 +44,7 @@ public class BasicClusterCollection implements ClusterCollection {
 	public int getClusterCount() {
 		return totalcount;
 	}
-	int vertexIndex = 0;
+	//int vertexIndex = 0;
 	@Override
 	public boolean addCluster(Vertex nv, int size) {
 /*		if (!clusters.containsKey(size)) {
@@ -47,7 +52,7 @@ public class BasicClusterCollection implements ClusterCollection {
 		}*/
 		boolean added = clusters.get(size).add(nv);
 		if (added) {
-			nv.index=++vertexIndex;
+			//nv.index=++vertexIndex;
 			clusterToVertx.put(nv.getCluster(),nv);
 		}
 		if (added) totalcount++;
@@ -63,15 +68,23 @@ public class BasicClusterCollection implements ClusterCollection {
 	public ClusterCollection getContainedClusters(STITreeCluster cluster) {
 		//if (topClusterLength < 10)
 		//	System.out.println("Contained: "+cluster+" "+clusterToVertx.keySet());
-		ClusterCollection ret = new BasicClusterCollection(cluster.getClusterSize());
+		BasicClusterCollection ret = new BasicClusterCollection(cluster.getClusterSize());
 		int size = cluster.getClusterSize();
 		ret.addCluster(getVertexForCluster(cluster), size);
+		HashSet<STBipartition> STBs = geneTreeSTBByCluster.get(cluster);
+		if (STBs != null) {
+			ret.geneTreeSTBByCluster.put(cluster, STBs);
+		}
 		for (int i = size - 1 ; i > 0; i--) {
 			Set<Vertex> sizeClusters = clusters.get(i);
 			if (sizeClusters == null) continue;
 			for (Vertex vertex : sizeClusters) {
 				if (cluster.containsCluster(vertex.getCluster())) {
 					ret.addCluster(vertex, i);
+					STBs = geneTreeSTBByCluster.get(vertex.getCluster());
+					if (STBs != null) {						
+						ret.geneTreeSTBByCluster.put(vertex.getCluster(),STBs);
+					}
 				}
 			}
 		}
@@ -115,33 +128,91 @@ public class BasicClusterCollection implements ClusterCollection {
 	}
 
 	@Override
-	public Iterator<Set<Vertex>> getSubClusters() {
-		return new Iterator<Set<Vertex>>() {
-			int i = topClusterLength - 1;
-			int next = topClusterLength ;
-			@Override
-			public boolean hasNext() {
-				if (next > i) {
-					next = i;
-					while (clusters.get(next) == null || clusters.get(next).size() == 0) next--;
-				}
-				return next>0;
-			}
+	public Iterable<Set<Vertex>> getSubClusters() {
+		return new Iterable<Set<Vertex>>() {
 
 			@Override
-			public Set<Vertex> next() {
-				if (! hasNext()) throw new NoSuchElementException();
-				i = next;
-				Set<Vertex> ret = clusters.get(i);
-				i--;
-				
-				return ret;
+			public Iterator<Set<Vertex>> iterator() {
+
+				return new Iterator<Set<Vertex>>() {
+					int i = topClusterLength - 1;
+					int next = topClusterLength ;
+					@Override
+					public boolean hasNext() {
+						if (next > i) {
+							next = i;
+							while (clusters.get(next) == null || clusters.get(next).size() == 0) next--;
+						}
+						return next>0;
+					}
+
+					@Override
+					public Set<Vertex> next() {
+						if (! hasNext()) throw new NoSuchElementException();
+						i = next;
+						Set<Vertex> ret = clusters.get(i);
+						i--;
+
+						return ret;
+					}
+
+					@Override
+					public void remove() {
+						throw new NotImplementedException();
+					}
+				};
 			}
+		};
+	}
+
+	@Override
+	public void addGeneTreeSTB(STBipartition stb, int size) {
+		if (! geneTreeSTBByCluster.containsKey(stb.c) ) {
+			geneTreeSTBByCluster.put(stb.c, new HashSet<STBipartition>());
+		}
+		geneTreeSTBByCluster.get(stb.c).add(stb);
+		//System.err.println(geneTreeSTBByCluster);
+	}
+
+	@Override
+	public Iterable<STBipartition> getAllGeneTreeSTBs() {
+		return new Iterable<STBipartition> () {
 
 			@Override
-			public void remove() {
-				throw new NotImplementedException();
+			public Iterator<STBipartition> iterator() {
+				return new Iterator<STBipartition>() {
+					Iterator<HashSet<STBipartition>> clustersIt = geneTreeSTBByCluster.values().iterator();
+					Iterator<STBipartition> clusterSTBIt = null;
+					//private STITreeCluster currentCluster;
+					@Override
+					public boolean hasNext() {
+						if (clustersIt.hasNext()) {
+							return true;
+						}
+						return clusterSTBIt !=null && clusterSTBIt.hasNext();
+					}
+
+					@Override
+					public STBipartition next() {
+						if (clusterSTBIt == null) {
+							HashSet<STBipartition> x = clustersIt.next();
+							//System.out.println(x+  " is x " + geneTreeSTBByCluster);
+							clusterSTBIt =x.iterator();
+						}
+						while (!clusterSTBIt.hasNext()) {
+							clusterSTBIt = clustersIt.next().iterator();
+						}
+						
+						return clusterSTBIt.next();
+					}
+
+					@Override
+					public void remove() {
+						throw new NotImplementedException();
+					}
+				};
 			}
+			
 		};
 	}
 	
