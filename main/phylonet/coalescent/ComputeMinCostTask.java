@@ -234,7 +234,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 						}
 					}
 				if (v._min_lc == null || v._min_rc == null) {
-					if (clusterSize <= 4) {
+					if (clusterSize <= 5) {
 						addAllPossibleSubClusters(v.getCluster(),
 							containedVertecies);
 						tryAnotherTime = true;
