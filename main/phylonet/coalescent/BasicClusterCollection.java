@@ -2,6 +2,7 @@ package phylonet.coalescent;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -10,7 +11,6 @@ import java.util.Set;
 
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class BasicClusterCollection implements ClusterCollection {
 	
@@ -158,7 +158,7 @@ public class BasicClusterCollection implements ClusterCollection {
 
 					@Override
 					public void remove() {
-						throw new NotImplementedException();
+						throw new ConcurrentModificationException();
 					}
 				};
 			}
@@ -208,7 +208,7 @@ public class BasicClusterCollection implements ClusterCollection {
 
 					@Override
 					public void remove() {
-						throw new NotImplementedException();
+						throw new ConcurrentModificationException();
 					}
 				};
 			}
