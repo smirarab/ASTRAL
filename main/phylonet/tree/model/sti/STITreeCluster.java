@@ -2,8 +2,6 @@ package phylonet.tree.model.sti;
 
 import phylonet.util.BitSet;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
 

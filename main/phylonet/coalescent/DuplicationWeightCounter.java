@@ -20,7 +20,6 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.util.BitSet;
 import phylonet.coalescent.MGDInference_DP.TaxonNameMap;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class DuplicationWeightCounter {
 	
@@ -133,7 +132,7 @@ public class DuplicationWeightCounter {
         			//nodeToGTCluster.put(node, gtCluster);
 	                
 	                if (!rooted) {
-	                	throw new NotImplementedException();
+	                	throw new RuntimeException("Unrooted not implemented.");
 		                //tryAddingSTB(cluster, treeComplementary(null /*gtCluster*/,leaves), null, node, true);
 	                }
 	            } else {
@@ -175,7 +174,7 @@ public class DuplicationWeightCounter {
 		                tryAddingSTB(l_cluster, r_cluster, cluster, node, true);
 		                
 	                } else {	
-	                	throw new NotImplementedException();
+	                	throw new RuntimeException("Unrooted not implemented.");
 	                	/*if (childCount == 2) {	                		
 			                STITreeCluster l_cluster = childbslist[0];
 			                
@@ -268,7 +267,7 @@ public class DuplicationWeightCounter {
 	        			
 		                if (!extraTreeRooted) {
 		                	//TODO: fix the following (first null)
-		                	throw new NotImplementedException();
+		                	throw new RuntimeException("Unrooted not implemented.");
 		                	//tryAddingSTB(tb, tb.complementaryCluster(), all,node,false);
 		                }
 		            } else {
@@ -302,7 +301,7 @@ public class DuplicationWeightCounter {
 			                		                
 			                tryAddingSTB(l_cluster, r_cluster, cluster, node, false);
 		                } else {		 
-		                	throw new NotImplementedException();
+		                	throw new RuntimeException("Unrooted not implemented.");
 		                	/*if (childCount == 2) {
 				                STITreeCluster l_cluster = childbslist[0];
 				                
@@ -498,7 +497,7 @@ public class DuplicationWeightCounter {
 			}
 			//System.err.print(" ... " + weight);
 			if (!rooted) {
-				throw new NotImplementedException();
+            	throw new RuntimeException("Unrooted not implemented.");
 				/*for (STBipartition rootSTB : geneTreeRootSTBs.keySet()) {
 					int c = geneTreeRootSTBs.get(rootSTB);
 					STBipartition inducedSTB = biggerSTB.getInducedSTB(rootSTB.c);
