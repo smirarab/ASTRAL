@@ -1,12 +1,10 @@
 package phylonet.coalescent;
 
- import java.util.ArrayList;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
+
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.RecursiveTask;
 
@@ -15,7 +13,6 @@ import phylonet.coalescent.MGDInference_DP.TaxonNameMap;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class ComputeMinCostTask extends RecursiveTask<Integer> {
 
@@ -93,7 +90,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 					.getClusterBiPartitions(v.getCluster());
 			fast_STB_based_inference(trees, counter,
 					clusterBiPartitions);*/
-			throw new NotImplementedException();
+			throw new RuntimeException("Fast version Not implemented");
 			
 		} else {
 			List<Integer> El = new ArrayList<Integer>();

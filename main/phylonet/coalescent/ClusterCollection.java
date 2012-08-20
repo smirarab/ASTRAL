@@ -1,11 +1,11 @@
 package phylonet.coalescent;
 
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Set;
 
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
+
 public interface ClusterCollection {
 
 	Vertex getTopVertex();
