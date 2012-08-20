@@ -30,11 +30,11 @@ public class DuplicationWeightCounter {
 	String [] gtTaxa;
 	String [] stTaxa;
 
-	private List<Set<STBipartition>> geneTreeSTBBySize;
+	//private List<Set<STBipartition>> geneTreeSTBBySize;
 	
 	//private List<Set<STBipartition>> X;
 	
-	private HashMap<STITreeCluster, Set<STBipartition>> clusterToSTBs;
+	//private HashMap<STITreeCluster, Set<STBipartition>> clusterToSTBs;
 	
 	//private HashMap<TNode, STBipartition> gtNodeToSTBs;
 
@@ -57,7 +57,7 @@ public class DuplicationWeightCounter {
 
 	private ClusterCollection clusters;
 	
-	private boolean addToClusters (STITreeCluster c, int size) {
+	private boolean addToClusters (STITreeCluster c, int size, boolean geneTreeCluster) {
 		Vertex nv = c.new Vertex();
 		boolean ret = false;
 		if (clusters.addCluster(nv,size)){		
@@ -65,19 +65,29 @@ public class DuplicationWeightCounter {
 			//System.err.println("Clusters: "+clusters);
 		}
 		
-/*		Vertex nv_rev = new Vertex();
-		nv_rev._cluster = c.complementaryCluster();
-		size = stTaxa.length - size;
-		if (!clusters.get(size).contains(nv_rev)){	
-			nv_rev._min_cost = -1;
-			nv_rev._el_num = -1; 			
-			clusters.get(size).add(nv_rev);
-			ret = true;
-			//System.err.println("Clusters: "+clusters);
-		}*/
 		return ret;
 	}
 	
+
+	//private void addSTBToX(STBipartition stb, int size) {
+		//System.err.println("Adding to X: "+stb+" "+stb.c +" "+clusterToSTBs.containsKey(stb.c));		
+		/*if (clusterToSTBs.containsKey(stb.c) && clusterToSTBs.get(stb.c).contains(stb)){
+			return;
+		}*/
+		//int size = stb.c.getClusterSize();
+		// TODO: following line is algorithmically harmless, 
+		// but inefficient. is it necessary?
+		//geneTreeSTBCount.put(stb, 0);
+		//addToClusters(stb.c, size, false);
+		// Following needed for Fast
+		//Set<STBipartition> stbs = clusterToSTBs.get(c);
+		//stbs = (stbs== null)? new HashSet<STBipartition>() : stbs;
+		//stbs.add(stb);
+		//clusterToSTBs.put(c, stbs);		
+		//System.err.println("X updated: "+STBCountInGeneTrees);
+		//System.err.println("X updated: "+clusterToSTBs);
+	////}
+
 
 	void addExtraBipartitionsByInput(ClusterCollection clusters2,
 			List<Tree> trees, boolean extraTreeRooted) {
@@ -119,7 +129,7 @@ public class DuplicationWeightCounter {
 	                
 	                if (!extraTreeRooted) {
 	                	//TODO: fix the following (first null)
-		                tryAddingSTBToX( tb, treeComplementary(null, leaves), null,node);
+	                	tryAddingSTB( tb, treeComplementary(null, leaves), null,node,false);
 	                }
 	            } else {
 	                int childCount = node.getChildCount();
@@ -152,7 +162,7 @@ public class DuplicationWeightCounter {
 		                
 		                STITreeCluster r_cluster = childbslist[1];
 		                		                
-		                tryAddingSTBToX(l_cluster, r_cluster, cluster,node);
+		                tryAddingSTB(l_cluster, r_cluster, cluster,node,false);
 	                } else {		                	
 	                	if (childCount == 2) {
 			                STITreeCluster l_cluster = childbslist[0];
@@ -164,11 +174,11 @@ public class DuplicationWeightCounter {
 			                STITreeCluster lAndr_cluster = cluster;
 			                
 			                // add Vertex STBs
-			                tryAddingSTBToX( l_cluster, r_cluster, cluster,node);
+			                tryAddingSTB( l_cluster, r_cluster, cluster,node,false);
 			                if (allMinuslAndr_cluster.getClusterSize() != 0) {
-			                	tryAddingSTBToX( r_cluster, allMinuslAndr_cluster, null,node);
-			                	tryAddingSTBToX( l_cluster, allMinuslAndr_cluster, null,node);
-				                tryAddingSTBToX( lAndr_cluster, allMinuslAndr_cluster,  all,node);
+			                	tryAddingSTB( r_cluster, allMinuslAndr_cluster, null,node,false);
+			                	tryAddingSTB( l_cluster, allMinuslAndr_cluster, null,node,false);
+			                	tryAddingSTB( lAndr_cluster, allMinuslAndr_cluster,  all,node,false);
 			                }			                
 
 	                	} else if (childCount == 3 && node.isRoot()) {
@@ -178,9 +188,9 @@ public class DuplicationWeightCounter {
 			                
 			                STITreeCluster r_cluster = childbslist[2];
 
-			                tryAddingSTBToX( l_cluster, r_cluster, null,node);
-			                tryAddingSTBToX( r_cluster, m_cluster, null,node);
-			                tryAddingSTBToX( l_cluster, m_cluster, null,node);
+			                tryAddingSTB( l_cluster, r_cluster, null,node,false);
+			                tryAddingSTB( r_cluster, m_cluster, null,node,false);
+			                tryAddingSTB( l_cluster, m_cluster, null,node,false);
 	                	} else {
 	                		throw new RuntimeException("None bifurcating tree: "+
 		                			tr+ "\n" + node);	
@@ -231,20 +241,21 @@ public class DuplicationWeightCounter {
 		int k = trees.size();
 		String[] leaves = stTaxa;
 		int n = leaves.length;
-		geneTreeSTBBySize = new ArrayList<Set<STBipartition>>(leaves.length);
+		//geneTreeSTBBySize = new ArrayList<Set<STBipartition>>(leaves.length);
 		//X = new ArrayList<Set<STBipartition>>(leaves.length);
 		//goodSTBs = new ArrayList<Set<STBipartition>>(leaves.length);
 		
-		for (int i = 0; i <= leaves.length; i++) {
+/*		for (int i = 0; i <= leaves.length; i++) {
 			geneTreeSTBBySize.add(new HashSet<STBipartition>());
 			//X.add(new HashSet<STBipartition>());
 			//goodSTBs.add(new HashSet<STBipartition>());
 			//clusters.put(i, new HashSet<Vertex>());
 		}
-		geneTreeSTBCount = new HashMap<STBipartition, Integer>(k*n);
+*/		geneTreeSTBCount = new HashMap<STBipartition, Integer>(k*n);
 		//geneTreeRootSTBs = new HashMap<STBipartition, Integer>(k*n);
 		
-		clusterToSTBs = new HashMap<STITreeCluster, Set<STBipartition>>(k*n);
+		// needed for fast version
+		// clusterToSTBs = new HashMap<STITreeCluster, Set<STBipartition>>(k*n);
 		
 		//gtNodeToSTBs = new HashMap<TNode, STBipartition>(k*n);
 		
@@ -256,7 +267,7 @@ public class DuplicationWeightCounter {
 			all.addLeaf(t);
 		}
 		
-		addToClusters(all, leaves.length);
+		addToClusters(all, leaves.length, false);
 				
 		for (int t = 0; t < trees.size(); t++ ) {			
 			Tree tr = trees.get(t);
@@ -279,7 +290,7 @@ public class DuplicationWeightCounter {
 			//System.err.println((tr.getLeafCount() - 1) + " "+ sigmaN);
 			
 			Map<TNode,STITreeCluster> nodeToSTCluster = new HashMap<TNode, STITreeCluster>(n);
-			Map<TNode,STITreeCluster> nodeToGTCluster = new HashMap<TNode, STITreeCluster>(n);
+			//Map<TNode,STITreeCluster> nodeToGTCluster = new HashMap<TNode, STITreeCluster>(n);
 			for (Iterator<TNode> nodeIt = tr.postTraverse()
 					.iterator(); nodeIt.hasNext();) {
 				TNode node = nodeIt.next();		
@@ -288,45 +299,45 @@ public class DuplicationWeightCounter {
 	            {
 	                String nodeName = node.getName();
 
-	                STITreeCluster gtCluster = new STITreeCluster(gtLeaves);
-	                gtCluster.addLeaf(nodeName);	                	                	        				                
+	                //STITreeCluster gtCluster = new STITreeCluster(gtLeaves);
+	                //gtCluster.addLeaf(nodeName);	                	                	        				                
 	                nodeName = getSpeciesName(nodeName);	                
 	                STITreeCluster cluster = new STITreeCluster(leaves);
 	                cluster.addLeaf(nodeName);	                	                	        			
 
-        			addToClusters(cluster, 1);
+        			addToClusters(cluster, 1, true);
 
         			nodeToSTCluster.put(node, cluster);
-        			nodeToGTCluster.put(node, gtCluster);
+        			//nodeToGTCluster.put(node, gtCluster);
 	                
 	                if (!rooted) {
-		                tryAddingGeneSTBs(cluster, treeComplementary(gtCluster,leaves), null, node, allInducedByGTSize);
+		                tryAddingSTB(cluster, treeComplementary(null /*gtCluster*/,leaves), null, node, true);
 	                }
 	            } else {
 	                int childCount = node.getChildCount();
 	                STITreeCluster childbslist[] = new STITreeCluster[childCount];
 			        BitSet bs = new BitSet(leaves.length);
-			        BitSet gbs = new BitSet(leaves.length);
+			        //BitSet gbs = new BitSet(leaves.length);
 	                int index = 0;
 	                for(Iterator iterator3 = node.getChildren().iterator(); iterator3.hasNext();)
 	                {
 	                    TNode child = (TNode)iterator3.next();
 	                    childbslist[index++] = nodeToSTCluster.get(child);
 	                    bs.or(nodeToSTCluster.get(child).getBitSet());
-	                    gbs.or(nodeToGTCluster.get(child).getBitSet());
+	                   // gbs.or(nodeToGTCluster.get(child).getBitSet());
 	                }
 	                
-	                STITreeCluster gtCluster = new STITreeCluster(gtLeaves);
-	                gtCluster.setCluster(gbs);	
+	                //STITreeCluster gtCluster = new STITreeCluster(gtLeaves);
+	                //gtCluster.setCluster(gbs);	
 	                
 	                STITreeCluster cluster = new STITreeCluster(leaves);
 	                cluster.setCluster((BitSet) bs.clone());
 	                	                
 	                int size = cluster.getClusterSize();
 	                
-        			addToClusters(cluster, size);
+        			addToClusters(cluster, size, true);
 	                nodeToSTCluster.put(node, cluster);	                
-	                nodeToGTCluster.put(node, gtCluster);
+	                //nodeToGTCluster.put(node, gtCluster);
 	                
 
 	                if (rooted) {
@@ -340,25 +351,25 @@ public class DuplicationWeightCounter {
 		                
 		                STITreeCluster r_cluster = childbslist[1];
 		                		                
-		                tryAddingGeneSTBs(l_cluster, r_cluster, cluster, node, allInducedByGTSize);
+		                tryAddingSTB(l_cluster, r_cluster, cluster, node, true);
 	                } else {		                	
 	                	if (childCount == 2) {	                		
 			                STITreeCluster l_cluster = childbslist[0];
 			                
 			                STITreeCluster r_cluster = childbslist[1];			                			               
 			                
-			                STITreeCluster allMinuslAndr_cluster = treeComplementary(gtCluster,leaves);
+			                STITreeCluster allMinuslAndr_cluster = treeComplementary(null /*this should be gtCluster?*/,leaves);
 			                		                
 			                STITreeCluster lAndr_cluster = cluster;			                			               
 			                
 			                if (allMinuslAndr_cluster.getClusterSize() != 0) {
 				                // add Vertex STBs			                
-			                	tryAddingGeneSTBs(l_cluster, r_cluster, cluster, node, allInducedByGTSize);
-			                	tryAddingGeneSTBs( r_cluster, allMinuslAndr_cluster, null, node, allInducedByGTSize);
-			                	tryAddingGeneSTBs(l_cluster, allMinuslAndr_cluster, null, node, allInducedByGTSize);
+			                	tryAddingSTB(l_cluster, r_cluster, cluster, node, true);
+			                	tryAddingSTB( r_cluster, allMinuslAndr_cluster, null, node, true);
+			                	tryAddingSTB(l_cluster, allMinuslAndr_cluster, null, node, true);
 			                
 			                	// Add the Edge STB
-			                	tryAddingGeneSTBs(lAndr_cluster, allMinuslAndr_cluster,  null, node, allInducedByGTSize);
+			                	tryAddingSTB(lAndr_cluster, allMinuslAndr_cluster,  null, node, true);
 			                }
 
 	                	} else if (childCount == 3 && node.isRoot()) {
@@ -368,9 +379,9 @@ public class DuplicationWeightCounter {
 			                
 			                STITreeCluster r_cluster = childbslist[2];
 
-			                tryAddingGeneSTBs(l_cluster, r_cluster, null, node, allInducedByGTSize);
-			                tryAddingGeneSTBs(r_cluster, m_cluster, null, node, allInducedByGTSize);
-			                tryAddingGeneSTBs(l_cluster, m_cluster, null, node, allInducedByGTSize);
+			                tryAddingSTB(l_cluster, r_cluster, null, node, true);
+			                tryAddingSTB(r_cluster, m_cluster, null, node, true);
+			                tryAddingSTB(l_cluster, m_cluster, null, node, true);
 	                	} else {
 	                		throw new RuntimeException("None bifurcating tree: "+
 		                			tr+ "\n" + node);
@@ -392,7 +403,7 @@ public class DuplicationWeightCounter {
 		
 		s = clusters.getClusterCount();
 		
-		System.err.println("Number of gene tree Clusters: " +s);
+		System.err.println("Number of Clusters: " +s);
 		
 		weights = new HashMap<STBipartition, Integer>(geneTreeSTBCount.size());
 		
@@ -409,32 +420,32 @@ public class DuplicationWeightCounter {
 		return sum/values.size();
 	}
 	//private HashMap<Integer, Set<STBipartition>> hash = new HashMap<Integer, Set<STBipartition>>();
-	private void tryAddingGeneSTBs(
+	private void tryAddingSTB(
 			STITreeCluster l_cluster,
-			STITreeCluster r_cluster, STITreeCluster cluster, TNode node, 
-			 int allInducedByGTSize) {
+			STITreeCluster r_cluster, 
+			STITreeCluster cluster, 
+			TNode node, boolean fromGeneTrees) {
 		//System.err.println("before adding: " + STBCountInGeneTrees);
 		//System.err.println("Trying: " + l_cluster + "|" + r_cluster);
-		if (cluster == null) {
-			cluster = new STITreeCluster(l_cluster);
-			cluster.getBitSet().or(r_cluster.getBitSet());
-			//System.err.println("Cluster is: "+cluster);
-		}
 		int size = cluster.getClusterSize();
 		if (l_cluster.isDisjoint(r_cluster)) {
 			
 			STBipartition stb = new STBipartition(l_cluster, r_cluster, cluster);	
-			geneTreeSTBBySize.get(size).add(stb);
-			//gtNodeToSTBs.put(node,stb);
 			((STINode)node).setData(stb);
-			addSTBToX(stb);	
-			//System.out.println(stb + " hashes to " + stb.hashCode());
-			//if (! hash.containsKey(stb.hashCode()))
-			//	hash.put(stb.hashCode(), new HashSet<STBipartition>());
-			//hash.get(stb.hashCode()).add(stb);			
-			geneTreeSTBCount.put(stb, 
-					geneTreeSTBCount.containsKey(stb)? 
-							geneTreeSTBCount.get(stb)+1: 1);
+			if (fromGeneTrees) {
+				clusters.addGeneTreeSTB(stb,size);
+				//gtNodeToSTBs.put(node,stb);
+				//addSTBToX(stb,size);	
+				//System.out.println(stb + " hashes to " + stb.hashCode());
+				//if (! hash.containsKey(stb.hashCode()))
+				//	hash.put(stb.hashCode(), new HashSet<STBipartition>());
+				//hash.get(stb.hashCode()).add(stb);			
+				geneTreeSTBCount.put(stb, 
+						geneTreeSTBCount.containsKey(stb)? 
+								geneTreeSTBCount.get(stb)+1: 1);
+			} else {				
+				addToClusters(cluster, size, false);
+			}
 			
 /*			if (size == allInducedByGTSize){
 				if (! geneTreeRootSTBs.containsKey(stb)) {
@@ -460,58 +471,16 @@ public class DuplicationWeightCounter {
 			rml.setCluster(r_Minus_l);	                	
 			
 			if (!rml.getBitSet().isEmpty()) {
-				addToClusters( rml, rml.getClusterSize());
-				addSTBToX( new STBipartition(l_cluster, rml, cluster));
+				addToClusters( rml, rml.getClusterSize(), false);
+				//addSTBToX( new STBipartition(l_cluster, rml, cluster),size);
 			}
 			if (!lmr.getBitSet().isEmpty()) {
-				addToClusters(lmr, lmr.getClusterSize());
-				addSTBToX(new STBipartition(lmr, r_cluster, cluster));
+				addToClusters(lmr, lmr.getClusterSize(), false);
+				//addSTBToX(new STBipartition(lmr, r_cluster, cluster), size);
 			}
 		}
 	}
 	
-	private void tryAddingSTBToX(
-			STITreeCluster l_cluster, STITreeCluster r_cluster,
-			STITreeCluster cluster, TNode node) {
-		
-		if (cluster == null) {
-			cluster = new STITreeCluster(l_cluster);
-			cluster.getBitSet().or(r_cluster.getBitSet());
-		}
-		if (l_cluster.isDisjoint(r_cluster)) {
-			
-			STBipartition stb = new STBipartition(l_cluster, r_cluster, cluster);		
-			((STINode)node).setData(stb);
-			addSTBToX( stb);	
-		} else {
-			// This case could happen for multiple-copy
-			BitSet and  = (BitSet) l_cluster.getBitSet().clone();
-			and.and(r_cluster.getBitSet());
-			
-			BitSet l_Minus_r  = (BitSet) and.clone();
-			l_Minus_r.xor(l_cluster.getBitSet());
-			STITreeCluster lmr = new STITreeCluster(stTaxa);
-			lmr.setCluster(l_Minus_r);
-	
-			BitSet r_Minus_l  = (BitSet) and.clone();
-			r_Minus_l.xor(r_cluster.getBitSet());
-			STITreeCluster rml = new STITreeCluster(stTaxa);
-			rml.setCluster(r_Minus_l);	                	
-			
-			if (!rml.getBitSet().isEmpty()) {
-				addToClusters( rml, rml.getClusterSize());
-				addSTBToX( new STBipartition(l_cluster, rml, cluster));
-			}
-			if (!lmr.getBitSet().isEmpty()) {
-				addToClusters( lmr, lmr.getClusterSize());
-				addSTBToX( new STBipartition(lmr, r_cluster, cluster));
-			}
-		}
-	
-		
-	}
-
-
 	void addExtraBipartitionsByHeuristics(ClusterCollection clusters2) {
 		HashSet<STBipartition> bipToAddToX = new HashSet<STBipartition>();
 		//goodSTBs = X;
@@ -592,25 +561,6 @@ public class DuplicationWeightCounter {
 			return r;
 		}
 		return null;
-	}
-
-	private void addSTBToX(STBipartition stb) {
-		//System.err.println("Adding to X: "+stb+" "+stb.c +" "+clusterToSTBs.containsKey(stb.c));		
-		if (clusterToSTBs.containsKey(stb.c) && clusterToSTBs.get(stb.c).contains(stb)){
-			return;
-		}
-		int size = stb.c.getClusterSize();
-		// TODO: following line is algorithmically harmless, 
-		// but inefficient. is it necessary?
-		geneTreeSTBCount.put(stb, 0);
-		STITreeCluster c = stb.c;
-		addToClusters( c, size);
-		Set<STBipartition> stbs = clusterToSTBs.get(c);
-		stbs = (stbs== null)? new HashSet<STBipartition>() : stbs;
-		stbs.add(stb);
-		clusterToSTBs.put(c, stbs);		
-		//System.err.println("X updated: "+STBCountInGeneTrees);
-		//System.err.println("X updated: "+clusterToSTBs);
 	}
 
 	void preCalculateWeights(List<Tree> trees,List<Tree> extraTrees) {		
@@ -711,68 +661,13 @@ public class DuplicationWeightCounter {
 		goodSTBs.get(size).add(good);
 	}
 */	
-	public Set<STBipartition> getClusterBiPartitions(STITreeCluster cluster) {
+/*	public Set<STBipartition> getClusterBiPartitions(STITreeCluster cluster) {
 						
 		return clusterToSTBs.get(cluster);
-	}
+	}*/
 	
 	static public int cnt = 0;
 	
-	class CalculateWeightTask extends RecursiveTask<Integer> {
-
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = -2614161117603289345L;
-		private STBipartition biggerSTB;
-
-		public CalculateWeightTask(STBipartition biggerSTB) {
-			this.biggerSTB = biggerSTB;
-		}
-		
-		int calculateMissingWeight() {
-			//System.out.println("why am I here? "+biggerSTB);
-			//System.err.print("Calculating weight for: " + biggerSTB);
-			Integer count = geneTreeSTBCount.get(biggerSTB);
-			count = count != null? count : 0;
-			int weight = count;
-			for (int j = biggerSTB.c.getClusterSize() - 1; j > 1; j--) {			
-				Set<STBipartition> smallerSTBs = geneTreeSTBBySize.get(j);
-				for (STBipartition smallerSTB : smallerSTBs) {
-					if (smallerSTB.isDominatedBy(biggerSTB)) {
-						weight+= geneTreeSTBCount.get(smallerSTB);
-					}
-				}			
-			}
-			//System.err.print(" ... " + weight);
-			if (!rooted) {
-				throw new NotImplementedException();
-				/*for (STBipartition rootSTB : geneTreeRootSTBs.keySet()) {
-					int c = geneTreeRootSTBs.get(rootSTB);
-					STBipartition inducedSTB = biggerSTB.getInducedSTB(rootSTB.c);
-					if (inducedSTB.equals(rootSTB)){
-						weight -= 2 * c;
-						//System.err.print(" .. (" + rootSTB +" )" +c+" "+ weight);
-						if (inducedSTB.cluster1.getClusterSize() != 1 &&
-								inducedSTB.cluster2.getClusterSize() != 1) {
-							weight -= 2 * c;			
-							//System.err.print(" . " + weight);
-						}						
-					}
-				}*/
-			}
-			//System.err.println();
-			weights.put(biggerSTB,weight);
-			//System.err.println("Weight of " + biggerSTB + " is " + weight);
-			return weight;
-		}
-		
-		@Override
-		protected Integer compute() {
-			return calculateMissingWeight();
-		}
-		
-	}
 	public void addAllPossibleSubClusters(STITreeCluster cluster, ClusterCollection containedVertecies) {
 		int size = cluster.getClusterSize();
 		for (int i = cluster.getBitSet().nextSetBit(0); i>=0 ;i = cluster.getBitSet().nextSetBit(i+1)){
@@ -811,6 +706,71 @@ public class DuplicationWeightCounter {
 			//System.err.println("Clusters: "+clusters);
 		}
 		return null;
+	}
+
+	/*	public boolean addAllPossibleSubClusters(STITreeCluster cluster) {
+		int size = cluster.getClusterSize();
+		boolean ret = false;
+		for (int i = cluster.getCluster().nextSetBit(0); i>=0 ;i = cluster.getCluster().nextSetBit(i+1)){
+			STITreeCluster c = new STITreeCluster(cluster);
+			c.getCluster().clear(i);
+			ret |= addToClusters(c, size-1);
+			ret |= addAllPossibleSubClusters(c);
+		}
+		return ret;
+	}*/
+	
+	class CalculateWeightTask extends RecursiveTask<Integer> {
+	
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = -2614161117603289345L;
+		private STBipartition biggerSTB;
+		private ClusterCollection containedClusterCollection;
+	
+		public CalculateWeightTask(STBipartition biggerSTB, ClusterCollection collection) {
+			this.biggerSTB = biggerSTB;
+			this.containedClusterCollection = collection;
+		}
+		
+		int calculateMissingWeight() {
+			//System.err.print("Calculating weight for: " + biggerSTB);
+			Integer count = null;//geneTreeSTBCount.get(biggerSTB);
+			count = count != null? count : 0;
+			int weight = count;
+			for (STBipartition smallerSTB : containedClusterCollection.getAllGeneTreeSTBs()) {
+				if (smallerSTB.isDominatedBy(biggerSTB)) {
+					weight+= geneTreeSTBCount.get(smallerSTB);
+				}			
+			}
+			//System.err.print(" ... " + weight);
+			if (!rooted) {
+				throw new NotImplementedException();
+				/*for (STBipartition rootSTB : geneTreeRootSTBs.keySet()) {
+					int c = geneTreeRootSTBs.get(rootSTB);
+					STBipartition inducedSTB = biggerSTB.getInducedSTB(rootSTB.c);
+					if (inducedSTB.equals(rootSTB)){
+						weight -= 2 * c;
+						//System.err.print(" .. (" + rootSTB +" )" +c+" "+ weight);
+						if (inducedSTB.cluster1.getClusterSize() != 1 &&
+								inducedSTB.cluster2.getClusterSize() != 1) {
+							weight -= 2 * c;			
+							//System.err.print(" . " + weight);
+						}						
+					}
+				}*/
+			}
+			weights.put(biggerSTB,weight);
+			//System.err.println("Weight of " + biggerSTB + " is " + weight);
+			return weight;
+		}
+		
+		@Override
+		protected Integer compute() {
+			return calculateMissingWeight();
+		}
+		
 	}
 
 	/*public boolean addCompleteryVertx(Vertex x, STITreeCluster refCluster) {
