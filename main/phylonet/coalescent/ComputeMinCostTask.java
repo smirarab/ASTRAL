@@ -97,30 +97,7 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 			for (int k = 0; k < trees.size(); k++) El.add(null);
 			
 			boolean tryAnotherTime = false;
-			
-			// First find what clusters are contained in this cluster
-			/*for (int i = 1; i <= (clusterSize / 2); i++) {
-				List<Vertex> leftList = new ArrayList<Vertex>(
-						inference.clusters.get(i));
-				HashSet<Vertex> leftSet = new HashSet<Vertex>();
-				containedVertecies.put(i, leftSet);
-				for (Vertex smallV : leftList) {
-					if (!v.getCluster().containsCluster(smallV.getCluster())) {
-						continue;
-					}
-					leftSet.add(smallV);
-					List<Vertex> rightList = new ArrayList<Vertex>(
-							inference.clusters.get(clusterSize - i));
-					HashSet<Vertex> rightSet = new HashSet<Vertex>();
-					containedVertecies.put(clusterSize - i, rightSet);
-					for (Vertex bigv : rightList) {
-						if (!v.getCluster().containsCluster(bigv.getCluster())) {
-							continue;
-						}
-						rightSet.add(bigv);
-					}
-				}
-			}*/
+
 			containedVertecies = clusters.getContainedClusters(v.getCluster());
 				
 			do {
@@ -136,10 +113,6 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 							ComputeMinCostTask bigWork = new ComputeMinCostTask(
 									inference, bigv,containedVertecies);
 							CalculateWeightTask weigthWork = null;
-
-							/*STBipartition bi = new STBipartition(
-									smallV.getCluster(), bigv.getCluster(),
-									v.getCluster());*/
 
 							// MP_VERSION: smallWork.fork();
 							Integer rscore = bigWork.compute();
@@ -182,9 +155,6 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 									if (smallV.getCluster().isDisjoint(treeAll)
 											|| bigv.getCluster()
 													.isDisjoint(treeAll)) {
-										// System.err
-										// .println("skipping "+bi+" for "
-										// +treeAll);
 										continue;
 									}
 									if (El.get(k) == null) {
@@ -202,14 +172,9 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 																	v.getCluster(),
 																	taxonNameMap));
 										}
-									} else {
-										// System.err
-										// .println("Used cached");
 									}
 									e += El.get(k);
-									// System.err.println("E for " +
-									// v.getCluster() + " is "+e + " and k is  "
-									// + k);
+									// System.err.println("E for " + v.getCluster() + " is "+e + " and k is  " + k);
 								}
 							} else {
 								e = 0;
@@ -226,8 +191,6 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 							v._min_rc = bigv;
 							v._c = c;
 
-							//break; // Already found the only pair of
-									// clusters whose union is v's cluster.
 						} catch (CannotResolveException c) {
 							// System.err.println("Warn: cannot resolve: " +
 							// c.getMessage());
@@ -238,23 +201,26 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 						addAllPossibleSubClusters(v.getCluster(),
 							containedVertecies);
 						tryAnotherTime = true;
-					} else if (clusterSize > 1) {
-						/*if (clusterSize > 20) {
-							System.err
-								.println("Adding extra clusters (complementary of included clusters) for size "
-										+ clusterSize + " : " + v.getCluster());
-						}*/
-	
+					} else if (clusterSize > 1) {	
 						//System.err.println(maxSubClusters);
 						Iterator<Set<Vertex>> it = containedVertecies.getSubClusters().iterator();
 						if (it.hasNext()) {
 							Collection<Vertex> biggestSubClusters = new ArrayList<Vertex>(it.next());
+							int i=-1;
 							for (Vertex x : biggestSubClusters) {
-								int i = x.getCluster().getClusterSize();
+								i = x.getCluster().getClusterSize();
 								int complementarySize  = clusterSize - i;						
-				
-								tryAnotherTime |= containedVertecies.addCluster(getCompleteryVertx(x, v.getCluster()),complementarySize);
+								if ( complementarySize > 1) {
+									tryAnotherTime |= containedVertecies.addCluster(getCompleteryVertx(x, v.getCluster()),complementarySize);
+								}
 							}
+/*							if (tryAnotherTime && clusterSize > 10) {
+								System.err
+									.println("Adding up to " + biggestSubClusters.size()+" extra |"+i+"| clusters (complementary of included clusters) for size "
+											+ clusterSize + " : " + v.getCluster()+"\n" +
+													containedVertecies.getClusterCount());
+							}*/
+
 						}
 						
 					}
