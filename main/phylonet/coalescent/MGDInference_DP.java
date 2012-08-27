@@ -680,13 +680,14 @@ public class MGDInference_DP {
 			ForkJoinPool pool = new ForkJoinPool(1);
 			pool.invoke(allTask);
 			Integer v = all._max_score;
-			if (v == -2) {
+			if (v < 0 || v == null) {
 				throw new CannotResolveException(all.getCluster().toString());
 			}
 		} catch (CannotResolveException e) {
-			// TODO Auto-generated catch block
+			System.err.println("Was not able to build a fully resolved tree. Not" +
+					"enough STBs present in input gene trees ");
 			e.printStackTrace();
-			throw new RuntimeException("Was not able to build a fully resolved tree ",e);
+			System.exit(1);
 		}
 
 		if (_print) {
