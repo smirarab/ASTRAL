@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.TreeSet;
 
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
@@ -15,8 +16,9 @@ import phylonet.tree.model.sti.STITreeCluster.Vertex;
 public class BasicClusterCollection implements ClusterCollection {
 	
 	ArrayList<Set<Vertex>> clusters;
-	private HashMap<STITreeCluster, Vertex> clusterToVertx = new HashMap<STITreeCluster, Vertex>();
-	HashMap<STITreeCluster, HashSet<STBipartition>> geneTreeSTBByCluster;
+	HashMap<STITreeCluster, HashSet<STBipartition>> geneTreeSTBByCluster;	
+	static HashMap<STITreeCluster, Vertex> globalVertexCash = 
+			new HashMap<STITreeCluster, STITreeCluster.Vertex>();
 	
 	int topClusterLength;
 	int totalcount = 0;
@@ -46,16 +48,19 @@ public class BasicClusterCollection implements ClusterCollection {
 	}
 	//int vertexIndex = 0;
 	@Override
-	public boolean addCluster(Vertex nv, int size) {
-/*		if (!clusters.containsKey(size)) {
-			clusters.put(size, new HashSet<Vertex>());
-		}*/
+	public boolean addCluster(Vertex vertex, int size) {
+		// See if this vertex is available in cash
+		Vertex nv = globalVertexCash.get(vertex.getCluster());
+		if (nv == null) {
+			nv = vertex;
+		}
+		
 		boolean added = clusters.get(size).add(nv);
 		if (added) {
 			//nv.index=++vertexIndex;
-			clusterToVertx.put(nv.getCluster(),nv);
+			globalVertexCash.put(nv.getCluster(),nv);
+			totalcount++;
 		}
-		if (added) totalcount++;
 		return added;
 	}
 
@@ -93,7 +98,7 @@ public class BasicClusterCollection implements ClusterCollection {
 
 	@Override
 	public Vertex getVertexForCluster(STITreeCluster cluster1) {
-		return clusterToVertx.get(cluster1);
+		return globalVertexCash.get(cluster1);
 	}
 
 	@Override
