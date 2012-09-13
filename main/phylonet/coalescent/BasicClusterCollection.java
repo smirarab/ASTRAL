@@ -146,7 +146,7 @@ public class BasicClusterCollection implements ClusterCollection {
 					public boolean hasNext() {
 						if (next > i) {
 							next = i;
-							while (clusters.get(next) == null || clusters.get(next).size() == 0) next--;
+							while (next>0 && (clusters.get(next) == null || clusters.get(next).size() == 0)) next--;
 						}
 						return next>0;
 					}
