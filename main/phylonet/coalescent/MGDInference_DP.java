@@ -455,7 +455,7 @@ public class MGDInference_DP {
 				.println("This tool infers the species tree from rooted gene trees despite lineage sorting.");
 		System.out.println("Usage is:");
 		System.out
-				.println("\tMGDInference_DP -i input [-a mapping] [-dl] [-u] [-ex extra_trees] [-xu] [-o output] [-f] ");
+				.println("\tMGDInference_DP -i input [-a mapping] [-dl] [-u] [-ex extra_trees] [-xu] [-o output] [-cs number] [-cd nuber]");
 		System.out
 				.println("\t-i gene tree file: The file containing gene trees. (required)");
 		System.out
@@ -466,7 +466,14 @@ public class MGDInference_DP {
 		System.out.println("\t-u treat input gene trees as unrooted (Not implemented!)");
 		System.out.println("\t-ex provide extra trees to add to set of STBs searched");
 		System.out.println("\t-xu treat extra trees input gene trees as unrooted (Not implemented!)");
-		System.out.println("\t-f perform fast and less-accurate subtree-bipartition based search (Not implemented!).");
+		System.out.println("\t-cs\n" +
+						   "\t-cd thes two options set two parameters (ca and cd) to a value between 0 and 1. \n" +
+						   "\t    For any cluster C if |C| >= ca.|taxa|, we add complementary (with respect to C) clusters of all its subclusters\n" +
+						   "\t    if size of the subcluster is >= cd*|C|.\n" +
+						   "\t    By default these two values are set to 0. Increasting each of them could results in more accurate results,\n" +
+						   "\t    especially when gene trees have low taxon occupancy, but can also result in increased running time.");
+		
+		//System.out.println("\t-f perform fast and less-accurate subtree-bipartition based search (Not implemented!).");
 		System.out.println();
 	}
 
