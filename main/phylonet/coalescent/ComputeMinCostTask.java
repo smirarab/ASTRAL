@@ -224,9 +224,9 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 						Iterator<Set<Vertex>> it = containedVertecies.getSubClusters().iterator();
 						if (it.hasNext()) {
 							Collection<Vertex> biggestSubClusters = new ArrayList<Vertex>(it.next());
-							int i=-1;
+							int i = -1;
 							for (Vertex x : biggestSubClusters) {
-								i = x.getCluster().getClusterSize();
+								i = i > 0 ? i: x.getCluster().getClusterSize();
 								int complementarySize  = clusterSize - i;						
 								if ( complementarySize > 1) {
 									tryAnotherTime |= containedVertecies.addCluster(getCompleteryVertx(x, v.getCluster()),complementarySize);

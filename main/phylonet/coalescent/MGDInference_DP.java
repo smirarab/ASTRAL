@@ -112,8 +112,8 @@ public class MGDInference_DP {
 		// double proportion = 0.0D;
 		// boolean exhaust = false;
 		double bootstrap = 1.0D;
-		double cs = 0.0D;
-		double cd = 0.0D;
+		double cs = 1.0D;
+		double cd = 1.0D;
 		double time = -1.0D;
 		boolean unresolved = false;
 		long startTime = System.currentTimeMillis();
@@ -219,7 +219,7 @@ public class MGDInference_DP {
 					if (option.length != 2)
 						continue;
 					try {
-						cs = Double.parseDouble(option[1]);
+						bootstrap = Double.parseDouble(option[1]);
 						if ((bootstrap <= 1.0D) && (bootstrap > 0.0D))
 							continue;
 						printUsage();
@@ -236,9 +236,10 @@ public class MGDInference_DP {
 					}
 					try {
 						cs = Double.parseDouble(option[1]);
-						if ((cs <= 1.0D) && (cs > 0.0D))
+						if ((cs <= 1.0D) && (cs >= 0.0D))
 							continue;
 						printUsage();
+						return;
 					} catch (NumberFormatException e) {
 						System.err.println("Error in reading parameter");
 						printUsage();
@@ -252,9 +253,10 @@ public class MGDInference_DP {
 					}
 					try {
 						cd = Double.parseDouble(option[1]);
-						if ((cd <= 1.0D) && (cd > 0.0D))
+						if ((cd <= 1.0D) && (cd >= 0.0D))
 							continue;
 						printUsage();
+						return;
 					} catch (NumberFormatException e) {
 						System.err.println("Error in reading parameter");
 						printUsage();
@@ -417,8 +419,8 @@ public class MGDInference_DP {
 		inference.rooted = rooted;
 		inference.fast = fast;
 		inference.extrarooted = extrarooted;
-		inference.CS = 1 - cs;
-		inference.CD = 1 - cd;
+		inference.CS = cs;
+		inference.CD = cd;
 
 		List<Solution> solutions = inference.inferSpeciesTree();
 
@@ -455,23 +457,24 @@ public class MGDInference_DP {
 				.println("This tool infers the species tree from rooted gene trees despite lineage sorting.");
 		System.out.println("Usage is:");
 		System.out
-				.println("\tMGDInference_DP -i input [-a mapping] [-dl] [-u] [-ex extra_trees] [-xu] [-o output] [-cs number] [-cd nuber]");
+				.println("\tMGDInference_DP -i input [-a mapping] [-dl] [-ex extra_trees] [-o output] [-cs number] [-cd nuber]");
 		System.out
 				.println("\t-i gene tree file: The file containing gene trees. (required)");
 		System.out
-				.println("\t-a mapping file: The file containing the mapping from alleles to speceis if multiple alleles sampled. Or, you can specify two reqular expressions for automatic name conversion (optional)");
+				.println("\t-a mapping file: The file containing the mapping from alleles to speceis if multiple alleles sampled.\n" +
+						 "\t                 Alternatively, two reqular expressions for automatic name conversion (optional)");
 		System.out
 				.println("\t-o species tree file: The file to store the species tree. (optional)");
 		System.out.println("\t-dl optimize duploss instead of duplications");
-		System.out.println("\t-u treat input gene trees as unrooted (Not implemented!)");
+		//System.out.println("\t-u treat input gene trees as unrooted (Not implemented!)");
 		System.out.println("\t-ex provide extra trees to add to set of STBs searched");
-		System.out.println("\t-xu treat extra trees input gene trees as unrooted (Not implemented!)");
+		//System.out.println("\t-xu treat extra trees input gene trees as unrooted (Not implemented!)");
 		System.out.println("\t-cs\n" +
-						   "\t-cd thes two options set two parameters (ca and cd) to a value between 0 and 1. \n" +
-						   "\t    For any cluster C if |C| >= ca.|taxa|, we add complementary (with respect to C) clusters of all its subclusters\n" +
+						   "\t-cd thes two options set two parameters (cs and cd) to a value between 0 and 1. \n" +
+						   "\t    For any cluster C if |C| >= cs*|taxa|, we add complementary clusters (with respect to C) of all subclusters of C\n" +
 						   "\t    if size of the subcluster is >= cd*|C|.\n" +
-						   "\t    By default these two values are set to 0. Increasting each of them could results in more accurate results,\n" +
-						   "\t    especially when gene trees have low taxon occupancy, but can also result in increased running time.");
+						   "\t    By default cs = cd = 1; so no extra clusters are added. Lower cs and cd values could result in better scores\n" +
+						   "\t    (especially when gene trees have low taxon occupancy) but can also increase the running time.");
 		
 		//System.out.println("\t-f perform fast and less-accurate subtree-bipartition based search (Not implemented!).");
 		System.out.println();
