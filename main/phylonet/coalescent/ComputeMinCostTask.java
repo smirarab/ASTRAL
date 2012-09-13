@@ -42,6 +42,22 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 	//final int maxEL = 10000000;
 	ClusterCollection containedVertecies;
 	
+	private void add_complementary_clusters(int clusterSize) {
+		Iterator<Set<Vertex>> it = containedVertecies.getSubClusters().iterator();
+		while (it.hasNext()) {
+			Collection<Vertex> subClusters = new ArrayList<Vertex>(it.next());
+			int i = -1;
+			for (Vertex x : subClusters) {
+				i = i > 0 ? i: x.getCluster().getClusterSize();
+				int complementarySize  = clusterSize - i;													
+					containedVertecies.addCluster(getCompleteryVertx(x, v.getCluster()),complementarySize);
+			}
+			if (i < clusterSize * inference.CD) {
+				return;
+			}
+
+		}
+	}
 	private int computeMinCost() throws CannotResolveException {
 
 		boolean rooted = inference.rooted;
@@ -64,7 +80,6 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 		// SIA: base case for singelton clusters.
 		if (clusterSize <= 1) {
 			int _el_num = -1;
-			// SIA: TODO: this is 0, right?
 			if (inference.optimizeDuploss == 3) {
 				if (taxonNameMap == null) {
 					_el_num = DeepCoalescencesCounter.getClusterCoalNum(
@@ -103,6 +118,9 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 			do {
 				tryAnotherTime = false;
 				
+				if (clusterSize >= inference.counter.stTaxa.length * inference.CS) {
+					add_complementary_clusters(clusterSize);
+				}
 	
 				for (STBipartition bi : containedVertecies.getClusterResolutions()) {
 					try {
@@ -214,13 +232,12 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 									tryAnotherTime |= containedVertecies.addCluster(getCompleteryVertx(x, v.getCluster()),complementarySize);
 								}
 							}
-/*							if (tryAnotherTime && clusterSize > 10) {
+							/*	if (tryAnotherTime && clusterSize > 10) {
 								System.err
 									.println("Adding up to " + biggestSubClusters.size()+" extra |"+i+"| clusters (complementary of included clusters) for size "
 											+ clusterSize + " : " + v.getCluster()+"\n" +
 													containedVertecies.getClusterCount());
 							}*/
-
 						}
 						
 					}

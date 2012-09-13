@@ -35,10 +35,12 @@ import phylonet.util.BitSet;
 
 public class MGDInference_DP {
 	static boolean _print = true;
-	int optimizeDuploss = 1;
+	int optimizeDuploss = 1; //one means dup, 3 means duploss
 	boolean rooted = true;
 	boolean fast = false;
 	boolean extrarooted = true;
+	double CS;
+	double CD;
 
 	List<Tree> trees;
 	private List<Tree> extraTrees = null;
@@ -70,13 +72,6 @@ public class MGDInference_DP {
 				return taxonMap.get(geneName);
 			}
 		}		
-	}
-
-	public MGDInference_DP(List<Tree> trees, List<Tree> extraTrees) {
-		super();
-		this.trees = trees;
-		this.extraTrees = extraTrees;
-		this.taxonNameMap = null;
 	}
 
 	public MGDInference_DP(List<Tree> trees, List<Tree> extraTrees,
@@ -117,6 +112,8 @@ public class MGDInference_DP {
 		// double proportion = 0.0D;
 		// boolean exhaust = false;
 		double bootstrap = 1.0D;
+		double cs = 0.0D;
+		double cd = 0.0D;
 		double time = -1.0D;
 		boolean unresolved = false;
 		long startTime = System.currentTimeMillis();
@@ -222,8 +219,40 @@ public class MGDInference_DP {
 					if (option.length != 2)
 						continue;
 					try {
-						bootstrap = Double.parseDouble(option[1]);
+						cs = Double.parseDouble(option[1]);
 						if ((bootstrap <= 1.0D) && (bootstrap > 0.0D))
+							continue;
+						printUsage();
+					} catch (NumberFormatException e) {
+						System.err.println("Error in reading parameter");
+						printUsage();
+						return;
+					}
+
+				} else if (option[0].equals("-cs")) {
+					if (option.length != 2) {
+						printUsage();
+						return;
+					}
+					try {
+						cs = Double.parseDouble(option[1]);
+						if ((cs <= 1.0D) && (cs > 0.0D))
+							continue;
+						printUsage();
+					} catch (NumberFormatException e) {
+						System.err.println("Error in reading parameter");
+						printUsage();
+						return;
+					}
+
+				} else if (option[0].equals("-cd")) {
+					if (option.length != 2) {
+						printUsage();
+						return;
+					}
+					try {
+						cd = Double.parseDouble(option[1]);
+						if ((cd <= 1.0D) && (cd > 0.0D))
 							continue;
 						printUsage();
 					} catch (NumberFormatException e) {
@@ -381,13 +410,15 @@ public class MGDInference_DP {
 			inference = new MGDInference_DP(trees, extraTrees,
 				taxonMap);
 		} else {
-			inference = new MGDInference_DP(trees, extraTrees);
+			inference = new MGDInference_DP(trees, extraTrees, null);
 		}
 		
 		inference.optimizeDuploss = optimizeDuploss ? 3 : 1;
 		inference.rooted = rooted;
 		inference.fast = fast;
 		inference.extrarooted = extrarooted;
+		inference.CS = 1 - cs;
+		inference.CD = 1 - cd;
 
 		List<Solution> solutions = inference.inferSpeciesTree();
 
