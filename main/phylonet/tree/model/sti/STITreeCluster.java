@@ -1,11 +1,9 @@
 package phylonet.tree.model.sti;
 
-import java.io.PrintStream;
-
 import phylonet.util.BitSet;
 import java.util.Arrays;
+import java.util.List;
 
-import javax.naming.NameNotFoundException;
 
 public class STITreeCluster
 {
@@ -48,7 +46,7 @@ public class STITreeCluster
       System.err.println("Null bit set.");
   }
 
-  public BitSet getCluster()
+  public BitSet getBitSet()
   {
     return this._cluster;
   }
@@ -118,6 +116,8 @@ public class STITreeCluster
     return this._cluster.equals(tc._cluster);
   }
 
+//  /static HashMap<STITreeCluster,HashSet<STITreeCluster>> contains = new HashMap<STITreeCluster, HashSet<STITreeCluster>>();
+  
   public int hashCode()
   {
     return this._cluster.hashCode() + this._taxa.hashCode();
@@ -201,7 +201,18 @@ public class STITreeCluster
   public boolean containsCluster(STITreeCluster tc)
   {   
 	//  return containsCluster(tc._cluster);
-    return this._cluster.contains(tc._cluster);
+	/*if (contains.containsKey(this) && contains.get(this).contains(tc)) {
+		return true;
+	}*/
+    boolean ret = this._cluster.contains(tc._cluster);
+    /*if (ret) {
+    	HashSet<STITreeCluster> hashSet = contains.containsKey(this) ?
+    			contains.get(this):
+    				new HashSet<STITreeCluster>();
+    	hashSet.add(tc);
+    	contains.put(this, hashSet);
+    }*/
+    return ret;
   }
 
   public boolean containsCluster(BitSet bs)
@@ -270,4 +281,35 @@ public class STITreeCluster
 
     return out.toString();
   }
+  
+  public class Vertex {
+		//public STITreeCluster _cluster = null;
+		//public int _el_num = -1;
+		//public int _min_cost = -1;
+		public int _max_score = -1;
+		public int _c = 0;
+		public Vertex _min_lc = this._min_rc = null;
+		public Vertex _min_rc;
+		public List<Vertex> _subcl = null;		
+		public byte _done = 0; // 0 for not, 1 for yes, 2 for failed
+		
+		public String toString() {
+			return STITreeCluster.this.toString() + "/" + this._max_score;
+		}
+		
+		public STITreeCluster getCluster() {
+			return STITreeCluster.this;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			return ((Vertex) obj).getCluster().equals(STITreeCluster.this);
+		}
+
+		@Override
+		public int hashCode() {
+			return STITreeCluster.this.hashCode();
+		}
+
+	}
 }

@@ -1,6 +1,7 @@
 #!/bin/sh
+version=2.2.0
 cd main
-rm phylonet/util/BitSet.class phylonet/coalescent/DuplicationWeightCounter.class phylonet/util/BitSet.class phylonet/coalescent/ComputeMinCostTask.class phylonet/coalescent/MGDInference_DP.class phylonet/coalescent/CannotResolveException.class phylonet/tree/model/sti/STITreeCluster.class phylonet/coalescent/DeepCoalescencesCounter.class
-javac -classpath ../main.jar:../lib/jsr166.jar phylonet/util/BitSet.java phylonet/coalescent/DuplicationWeightCounter.java phylonet/util/BitSet.java phylonet/coalescent/ComputeMinCostTask.java phylonet/coalescent/MGDInference_DP.java phylonet/coalescent/CannotResolveException.java phylonet/tree/model/sti/STITreeCluster.java phylonet/coalescent/DeepCoalescencesCounter.java
-jar cvfm ../mgd.jar ../manifest.text phylonet/util/BitSet.class phylonet/coalescent/DuplicationWeightCounter*.class phylonet/coalescent/MGDInference_DP*.class phylonet/coalescent/CannotResolveException.class phylonet/tree/model/sti/STITreeCluster.class phylonet/coalescent/DeepCoalescencesCounter.class phylonet/coalescent/ComputeMinCostTask.class
-chmod +x ../mgd.jar
+rm phylonet/coalescent/*.class phylonet/util/BitSet.class phylonet/tree/model/sti/STITreeCluster*.class 
+javac -classpath ../main.jar:../lib/jsr166.jar phylonet/util/BitSet.java phylonet/coalescent/*ClusterCollection*java phylonet/coalescent/DuplicationWeightCounter.java phylonet/util/BitSet.java phylonet/coalescent/ComputeMinCostTask.java phylonet/coalescent/MGDInference_DP.java phylonet/coalescent/CannotResolveException.java phylonet/tree/model/sti/STITreeCluster.java phylonet/coalescent/DeepCoalescencesCounter.java phylonet/coalescent/STBipartition.java
+jar cvfm ../mgd.$version.jar ../manifest.text phylonet/util/BitSet.* phylonet/coalescent/DuplicationWeightCounter*.* phylonet/coalescent/*ClusterCollection* phylonet/coalescent/MGDInference_DP*.* phylonet/coalescent/CannotResolveException.* phylonet/tree/model/sti/STITreeCluster*.class phylonet/tree/model/sti/STITreeCluster.java phylonet/coalescent/DeepCoalescencesCounter.* phylonet/coalescent/ComputeMinCostTask.* phylonet/coalescent/STBipartition.*
+chmod +x ../mgd.$version.jar

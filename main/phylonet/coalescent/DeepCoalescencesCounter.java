@@ -3,7 +3,6 @@ package phylonet.coalescent;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -451,8 +450,8 @@ public class DeepCoalescencesCounter {
 			return 0;
 		}
 		Object coveragelist = new ArrayList();
-		for (int i = concluster.getCluster().nextSetBit(0); i >= 0; i = concluster
-				.getCluster().nextSetBit(i + 1)) {
+		for (int i = concluster.getBitSet().nextSetBit(0); i >= 0; i = concluster
+				.getBitSet().nextSetBit(i + 1)) {
 			BitSet bs = new BitSet(ntaxa);
 			((BitSet) bs).set(i);
 			((List) coveragelist).add(bs);
@@ -594,8 +593,8 @@ public class DeepCoalescencesCounter {
 		}
 
 		Object coveragelist = new ArrayList();
-		for (int i = concluster.getCluster().nextSetBit(0); i >= 0; i = concluster
-				.getCluster().nextSetBit(i + 1)) {
+		for (int i = concluster.getBitSet().nextSetBit(0); i >= 0; i = concluster
+				.getBitSet().nextSetBit(i + 1)) {
 			BitSet bs = new BitSet(ngtTaxa);
 			((BitSet) bs).set(i);
 			((List) coveragelist).add(bs);

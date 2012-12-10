@@ -10,6 +10,8 @@ public class BitSet
     implements Cloneable, Serializable 
 {
 
+    int hash = 0;
+    
 	//public static boolean PRINT = false;
     private static int wordIndex(int bitIndex)
     {
@@ -33,6 +35,7 @@ public class BitSet
         int i;
         for(i = wordsInUse - 1; i >= 0 && words[i] == 0L; i--);
         wordsInUse = i + 1;
+        hash = 0;
     }
 
     public BitSet()
@@ -156,6 +159,7 @@ public class BitSet
             expandTo(wordIndex);
             words[wordIndex] |= 1L << bitIndex;
             checkInvariants();
+            hash = 0;
             return;
         }
     }
@@ -166,6 +170,7 @@ public class BitSet
             set(bitIndex);
         else
             clear(bitIndex);
+        hash = 0;
     }
 
     public void set(int fromIndex, int toIndex)
@@ -190,6 +195,7 @@ public class BitSet
             words[endWordIndex] |= lastWordMask;
         }
         checkInvariants();
+        hash = 0;
     }
 
     public void set(int fromIndex, int toIndex, boolean value)
@@ -198,6 +204,7 @@ public class BitSet
             set(fromIndex, toIndex);
         else
             clear(fromIndex, toIndex);
+        hash = 0;
     }
 
     public void clear(int bitIndex)
@@ -252,6 +259,7 @@ public class BitSet
     {
         while(wordsInUse > 0) 
             words[--wordsInUse] = 0L;
+        hash = 0;
     }
 
     public boolean get(int bitIndex)
@@ -392,6 +400,7 @@ public class BitSet
 
         if(wordsInCommon < set.wordsInUse)
             System.arraycopy(set.words, wordsInCommon, words, wordsInCommon, wordsInUse - wordsInCommon);
+        hash = 0;
         checkInvariants();
     }
 
@@ -441,11 +450,14 @@ public class BitSet
 
     public int hashCode()
     {
-        long h = 1234L;
-        for(int i = wordsInUse; --i >= 0;)
-            h ^= words[i] * (long)(i + 1);
+    	if (hash == 0) {
+    		long h = 1234L;
+    		for(int i = wordsInUse; --i >= 0;)
+    			h ^= words[i] * (long)(i + 1);
 
-        return (int)(h >> 32 ^ h);
+    		hash = (int)(h >> 32 ^ h);
+    	}
+    	return hash;
     }
 
     public int size()
@@ -489,6 +501,7 @@ public class BitSet
 		
         result.words = (long[])words.clone();
         result.checkInvariants();
+        result.hash = hash;
         return result;
         
     }
