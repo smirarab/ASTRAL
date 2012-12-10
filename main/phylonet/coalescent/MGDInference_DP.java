@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
-import java.util.concurrent.ForkJoinPool;
-
 
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.io.NewickReader;
@@ -39,6 +37,7 @@ public class MGDInference_DP {
 	boolean rooted = true;
 	boolean fast = false;
 	boolean extrarooted = true;
+	boolean HomomorphicDL;
 	double CS;
 	double CD;
 
@@ -47,7 +46,7 @@ public class MGDInference_DP {
 	//Map<STITreeCluster, Vertex> clusterToVertex;
 	int sigmaNs;
 	DuplicationWeightCounter counter;
-	TaxonNameMap taxonNameMap = null;
+	TaxonNameMap taxonNameMap = null;	
 	
 	class TaxonNameMap {
 		Map<String, String> taxonMap;
@@ -79,7 +78,9 @@ public class MGDInference_DP {
 		super();
 		this.trees = trees;
 		this.extraTrees = extraTrees;
-		this.taxonNameMap = new TaxonNameMap(taxonMap);
+		if (taxonMap != null) {
+			this.taxonNameMap = new TaxonNameMap(taxonMap);
+		}
 	}
 
 	public MGDInference_DP(List<Tree> trees, List<Tree> extraTrees,
@@ -97,7 +98,7 @@ public class MGDInference_DP {
 			return;
 		}
 		
-		boolean optimizeDuploss = false;
+		int optimizeDuploss = 0;
 		boolean rooted = true;
 		boolean fast = false;
 		boolean extrarooted = true;
@@ -309,7 +310,13 @@ public class MGDInference_DP {
 						printUsage();
 						return;
 					}
-					optimizeDuploss = true;
+					optimizeDuploss = 1;
+				} else if (option[0].equals("-dll")) {
+					if (option.length != 1) {
+						printUsage();
+						return;
+					}
+					optimizeDuploss = 2;
 				} else {
 					printUsage();
 					return;
@@ -415,7 +422,8 @@ public class MGDInference_DP {
 			inference = new MGDInference_DP(trees, extraTrees, null);
 		}
 		
-		inference.optimizeDuploss = optimizeDuploss ? 3 : 1;
+		inference.optimizeDuploss = optimizeDuploss > 0 ? 3 : 1;
+		inference.HomomorphicDL = optimizeDuploss == 1 ? true : false; 
 		inference.rooted = rooted;
 		inference.fast = fast;
 		inference.extrarooted = extrarooted;
@@ -431,13 +439,20 @@ public class MGDInference_DP {
 		//}
 
 		if ((_print)) {
+			String metric;
+			if (optimizeDuploss == 0) {
+				metric = "duplications";
+			} else if (optimizeDuploss == 1) {
+				metric = "duplication+loss (homomorphic)";
+			} else {
+				metric = "duplication+loss (original)";
+			}
 			for (Solution s : solutions)
 				System.out.println(
 					        s._st.toStringWD()
 						+ " \n"
 						+ s._totalCoals
-						+ (optimizeDuploss ? " duplication+loss"
-								: " duplicatins") + " in total");
+						+ " " + metric + " in total");
 		} else
 			try {
 				FileWriter fw = new FileWriter(output);
@@ -457,7 +472,7 @@ public class MGDInference_DP {
 				.println("This tool infers the species tree from rooted gene trees despite lineage sorting.");
 		System.out.println("Usage is:");
 		System.out
-				.println("\tMGDInference_DP -i input [-a mapping] [-dl] [-ex extra_trees] [-o output] [-cs number] [-cd nuber]");
+				.println("\tMGDInference_DP -i input [-a mapping] [-dl] [-dll] [-ex extra_trees] [-o output] [-cs number] [-cd number]");
 		System.out
 				.println("\t-i gene tree file: The file containing gene trees. (required)");
 		System.out
@@ -465,16 +480,16 @@ public class MGDInference_DP {
 						 "\t                 Alternatively, two reqular expressions for automatic name conversion (optional)");
 		System.out
 				.println("\t-o species tree file: The file to store the species tree. (optional)");
-		System.out.println("\t-dl optimize duploss instead of duplications");
+		System.out.println("\t-dl/-dll optimize duplications and losses. Use -dl for homomorphic definitin, and -dll for ``original'' definition.");
 		//System.out.println("\t-u treat input gene trees as unrooted (Not implemented!)");
 		System.out.println("\t-ex provide extra trees to add to set of STBs searched");
 		//System.out.println("\t-xu treat extra trees input gene trees as unrooted (Not implemented!)");
-		System.out.println("\t-cs\n" +
-						   "\t-cd thes two options set two parameters (cs and cd) to a value between 0 and 1. \n" +
+		System.out.println("\t-cs & " +
+						   "-cd thes two options set two parameters (cs and cd) to a value between 0 and 1. \n" +
 						   "\t    For any cluster C if |C| >= cs*|taxa|, we add complementary clusters (with respect to C) of all subclusters of C\n" +
 						   "\t    if size of the subcluster is >= cd*|C|.\n" +
 						   "\t    By default cs = cd = 1; so no extra clusters are added. Lower cs and cd values could result in better scores\n" +
-						   "\t    (especially when gene trees have low taxon occupancy) but can also increase the running time.");
+						   "\t    (especially when gene trees have low taxon occupancy) but can also increase the running time dramatically.");
 		
 		//System.out.println("\t-f perform fast and less-accurate subtree-bipartition based search (Not implemented!).");
 		System.out.println();
@@ -718,8 +733,8 @@ public class MGDInference_DP {
 		try {
 			//vertexStack.push(all);
 			ComputeMinCostTask allTask = new ComputeMinCostTask(this,all,clusters);
-			ForkJoinPool pool = new ForkJoinPool(1);
-			pool.invoke(allTask);
+			//ForkJoinPool pool = new ForkJoinPool(1);
+			allTask.compute();
 			Integer v = all._max_score;
 			if (v < 0 || v == null) {
 				throw new CannotResolveException(all.getCluster().toString());

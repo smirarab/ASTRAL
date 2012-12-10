@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
-import java.util.concurrent.RecursiveTask;
 
 
 import phylonet.lca.SchieberVishkinLCA;
@@ -472,7 +471,7 @@ public class DuplicationWeightCounter {
 		}
 	}
 
-	class CalculateWeightTask extends RecursiveTask<Integer> {
+	class CalculateWeightTask {
 	
 		/**
 		 * 
@@ -516,7 +515,6 @@ public class DuplicationWeightCounter {
 			return weight;
 		}
 		
-		@Override
 		protected Integer compute() {
 			return calculateMissingWeight();
 		}
