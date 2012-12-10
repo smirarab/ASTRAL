@@ -1,5 +1,6 @@
 package phylonet.coalescent;
 
+
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -14,8 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
-import java.util.concurrent.ForkJoinPool;
-
 
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.io.NewickReader;
@@ -27,24 +26,27 @@ import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STINode;
 import phylonet.tree.model.sti.STITree;
 import phylonet.tree.model.sti.STITreeCluster;
+import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.tree.util.Collapse;
 import phylonet.tree.util.Trees;
 import phylonet.util.BitSet;
 
 public class MGDInference_DP {
 	static boolean _print = true;
-	int optimizeDuploss = 1;
+	int optimizeDuploss = 1; //one means dup, 3 means duploss
 	boolean rooted = true;
 	boolean fast = false;
 	boolean extrarooted = true;
+	boolean HomomorphicDL;
+	double CS;
+	double CD;
 
 	List<Tree> trees;
 	private List<Tree> extraTrees = null;
-	Map<STITreeCluster, Vertex> clusterToVertex;
-	Map<Integer, Set<Vertex>> clusters;
+	//Map<STITreeCluster, Vertex> clusterToVertex;
 	int sigmaNs;
 	DuplicationWeightCounter counter;
-	TaxonNameMap taxonNameMap = null;
+	TaxonNameMap taxonNameMap = null;	
 	
 	class TaxonNameMap {
 		Map<String, String> taxonMap;
@@ -71,19 +73,14 @@ public class MGDInference_DP {
 		}		
 	}
 
-	public MGDInference_DP(List<Tree> trees, List<Tree> extraTrees) {
-		super();
-		this.trees = trees;
-		this.extraTrees = extraTrees;
-		this.taxonNameMap = null;
-	}
-
 	public MGDInference_DP(List<Tree> trees, List<Tree> extraTrees,
 			Map<String, String> taxonMap) {
 		super();
 		this.trees = trees;
 		this.extraTrees = extraTrees;
-		this.taxonNameMap = new TaxonNameMap(taxonMap);
+		if (taxonMap != null) {
+			this.taxonNameMap = new TaxonNameMap(taxonMap);
+		}
 	}
 
 	public MGDInference_DP(List<Tree> trees, List<Tree> extraTrees,
@@ -101,7 +98,7 @@ public class MGDInference_DP {
 			return;
 		}
 		
-		boolean optimizeDuploss = false;
+		int optimizeDuploss = 0;
 		boolean rooted = true;
 		boolean fast = false;
 		boolean extrarooted = true;
@@ -116,6 +113,8 @@ public class MGDInference_DP {
 		// double proportion = 0.0D;
 		// boolean exhaust = false;
 		double bootstrap = 1.0D;
+		double cs = 1.0D;
+		double cd = 1.0D;
 		double time = -1.0D;
 		boolean unresolved = false;
 		long startTime = System.currentTimeMillis();
@@ -231,6 +230,40 @@ public class MGDInference_DP {
 						return;
 					}
 
+				} else if (option[0].equals("-cs")) {
+					if (option.length != 2) {
+						printUsage();
+						return;
+					}
+					try {
+						cs = Double.parseDouble(option[1]);
+						if ((cs <= 1.0D) && (cs >= 0.0D))
+							continue;
+						printUsage();
+						return;
+					} catch (NumberFormatException e) {
+						System.err.println("Error in reading parameter");
+						printUsage();
+						return;
+					}
+
+				} else if (option[0].equals("-cd")) {
+					if (option.length != 2) {
+						printUsage();
+						return;
+					}
+					try {
+						cd = Double.parseDouble(option[1]);
+						if ((cd <= 1.0D) && (cd >= 0.0D))
+							continue;
+						printUsage();
+						return;
+					} catch (NumberFormatException e) {
+						System.err.println("Error in reading parameter");
+						printUsage();
+						return;
+					}
+
 				} else if (option[0].equals("-ur")) {
 					if ((option.length != 1) || (time != -1.0D)) {
 						printUsage();
@@ -277,7 +310,13 @@ public class MGDInference_DP {
 						printUsage();
 						return;
 					}
-					optimizeDuploss = true;
+					optimizeDuploss = 1;
+				} else if (option[0].equals("-dll")) {
+					if (option.length != 1) {
+						printUsage();
+						return;
+					}
+					optimizeDuploss = 2;
 				} else {
 					printUsage();
 					return;
@@ -380,13 +419,16 @@ public class MGDInference_DP {
 			inference = new MGDInference_DP(trees, extraTrees,
 				taxonMap);
 		} else {
-			inference = new MGDInference_DP(trees, extraTrees);
+			inference = new MGDInference_DP(trees, extraTrees, null);
 		}
 		
-		inference.optimizeDuploss = optimizeDuploss ? 3 : 1;
+		inference.optimizeDuploss = optimizeDuploss > 0 ? 3 : 1;
+		inference.HomomorphicDL = optimizeDuploss == 1 ? true : false; 
 		inference.rooted = rooted;
 		inference.fast = fast;
 		inference.extrarooted = extrarooted;
+		inference.CS = cs;
+		inference.CD = cd;
 
 		List<Solution> solutions = inference.inferSpeciesTree();
 
@@ -397,13 +439,20 @@ public class MGDInference_DP {
 		//}
 
 		if ((_print)) {
+			String metric;
+			if (optimizeDuploss == 0) {
+				metric = "duplications";
+			} else if (optimizeDuploss == 1) {
+				metric = "duplication+loss (homomorphic)";
+			} else {
+				metric = "duplication+loss (original)";
+			}
 			for (Solution s : solutions)
 				System.out.println(
 					        s._st.toStringWD()
 						+ " \n"
 						+ s._totalCoals
-						+ (optimizeDuploss ? " duplication+loss"
-								: " duplicatins") + " in total");
+						+ " " + metric + " in total");
 		} else
 			try {
 				FileWriter fw = new FileWriter(output);
@@ -423,18 +472,26 @@ public class MGDInference_DP {
 				.println("This tool infers the species tree from rooted gene trees despite lineage sorting.");
 		System.out.println("Usage is:");
 		System.out
-				.println("\tMGDInference_DP -i input [-a mapping] [-dl] [-u] [-ex extra_trees] [-xu] [-o output] [-f] ");
+				.println("\tMGDInference_DP -i input [-a mapping] [-dl] [-dll] [-ex extra_trees] [-o output] [-cs number] [-cd number]");
 		System.out
 				.println("\t-i gene tree file: The file containing gene trees. (required)");
 		System.out
-				.println("\t-a mapping file: The file containing the mapping from alleles to speceis if multiple alleles sampled. Or, you can specify two reqular expressions for automatic name conversion (optional)");
+				.println("\t-a mapping file: The file containing the mapping from alleles to speceis if multiple alleles sampled.\n" +
+						 "\t                 Alternatively, two reqular expressions for automatic name conversion (optional)");
 		System.out
 				.println("\t-o species tree file: The file to store the species tree. (optional)");
-		System.out.println("\t-dl optimize duploss instead of duplications");
-		System.out.println("\t-u treat input gene trees as unrooted");
+		System.out.println("\t-dl/-dll optimize duplications and losses. Use -dl for homomorphic definitin, and -dll for ``original'' definition.");
+		//System.out.println("\t-u treat input gene trees as unrooted (Not implemented!)");
 		System.out.println("\t-ex provide extra trees to add to set of STBs searched");
-		System.out.println("\t-xu treat extra trees input gene trees as unrooted");
-		System.out.println("\t-f perform fast and less-accurate subtree-bipartition based search.");
+		//System.out.println("\t-xu treat extra trees input gene trees as unrooted (Not implemented!)");
+		System.out.println("\t-cs & " +
+						   "-cd thes two options set two parameters (cs and cd) to a value between 0 and 1. \n" +
+						   "\t    For any cluster C if |C| >= cs*|taxa|, we add complementary clusters (with respect to C) of all subclusters of C\n" +
+						   "\t    if size of the subcluster is >= cd*|C|.\n" +
+						   "\t    By default cs = cd = 1; so no extra clusters are added. Lower cs and cd values could result in better scores\n" +
+						   "\t    (especially when gene trees have low taxon occupancy) but can also increase the running time dramatically.");
+		
+		//System.out.println("\t-f perform fast and less-accurate subtree-bipartition based search (Not implemented!).");
 		System.out.println();
 	}
 
@@ -529,7 +586,7 @@ public class MGDInference_DP {
 		System.err.println("Number of taxa: " + stTaxa.length);
 		System.err.println("Taxa: " + Arrays.toString(stTaxa));
 
-		clusters = new HashMap<Integer, Set<Vertex>>(stTaxa.length);
+		 ClusterCollection clusters = new BasicClusterCollection(stTaxa.length);
 
 		List<Solution> solutions;
 
@@ -541,7 +598,7 @@ public class MGDInference_DP {
 			counter.addExtraBipartitionsByInput(clusters, extraTrees,extrarooted);					
 		}
 
-		counter.addExtraBipartitionsByHeuristics(clusters);
+		//counter.addExtraBipartitionsByHeuristics(clusters);
 
 		if (_print) {
 			System.err.println("STBs formed in "
@@ -552,14 +609,14 @@ public class MGDInference_DP {
 		counter.preCalculateWeights(trees, extraTrees);
 		
 		if (_print) {
-			System.err.println("Weights pre-caluclated after "
+			System.err.println("DP starting after "
 					+ (System.currentTimeMillis() - startTime) / 1000.0D
 					+ " secs");
 		}
 
 		sigmaNs = sigmaN;
 
-		solutions = findTreesByDP(stTaxa, counter, trees, taxonNameMap);
+		solutions = findTreesByDP(stTaxa, counter, trees, taxonNameMap,clusters);
 
 		if (taxonNameMap == null && rooted && extraTrees == null && false) {
 			restoreCollapse(solutions, cd);
@@ -627,7 +684,7 @@ public class MGDInference_DP {
 	        }
 
 	        BitSet temp = (BitSet)childCluster.clone();
-	        temp.and(tc.getCluster());
+	        temp.and(tc.getBitSet());
 	        if (temp.equals(childCluster)) {
 	          ((List)movedChildren).add(child);
 	        }
@@ -647,7 +704,7 @@ public class MGDInference_DP {
 	  
 	private List<Solution> findTreesByDP(String[] stTaxa,
 			DuplicationWeightCounter counter, List<Tree> trees,
-			TaxonNameMap taxonNameMap) {
+			TaxonNameMap taxonNameMap, ClusterCollection clusters) {
 		List<Solution> solutions = new ArrayList<Solution>();
 
 		/*
@@ -660,33 +717,33 @@ public class MGDInference_DP {
 		 * System.out.println("first round finished, adding new STBs");
 		 * counter.addExtraBipartitions(clusters, stTaxa);
 		 */
-		clusterToVertex = new HashMap<STITreeCluster, Vertex>(sigmaNs);
+/*		clusterToVertex = new HashMap<STITreeCluster, Vertex>(sigmaNs);
 		for (Set<Vertex> vs : clusters.values()) {
 			for (Vertex vertex : vs) {
 				vertex._max_score = -1;
 				clusterToVertex.put(vertex._cluster, vertex);
 			}
 		}
-
-		Vertex all = (Vertex) clusters.get(Integer.valueOf(stTaxa.length))
-				.toArray()[0];
+*/
+		Vertex all = (Vertex) clusters.getTopVertex();
 		System.err.println("Sigma N: " + sigmaNs);
 
-		System.err.println("Size of largest cluster: " +all._cluster.getClusterSize());
+		System.err.println("Size of largest cluster: " +all.getCluster().getClusterSize());
 
 		try {
 			//vertexStack.push(all);
-			ComputeMinCostTask allTask = new ComputeMinCostTask(this,all);
-			ForkJoinPool pool = new ForkJoinPool(1);
-			pool.invoke(allTask);
+			ComputeMinCostTask allTask = new ComputeMinCostTask(this,all,clusters);
+			//ForkJoinPool pool = new ForkJoinPool(1);
+			allTask.compute();
 			Integer v = all._max_score;
-			if (v == -2) {
-				throw new CannotResolveException(all._cluster.toString());
+			if (v < 0 || v == null) {
+				throw new CannotResolveException(all.getCluster().toString());
 			}
 		} catch (CannotResolveException e) {
-			// TODO Auto-generated catch block
+			System.err.println("Was not able to build a fully resolved tree. Not" +
+					"enough STBs present in input gene trees ");
 			e.printStackTrace();
-			throw new RuntimeException("Was not able to build a fully resolved tree ",e);
+			System.exit(1);
 		}
 
 		if (_print) {
@@ -713,7 +770,7 @@ public class MGDInference_DP {
 			Vertex pe = (Vertex) minVertices.pop();
 			//System.out.println(pe._min_rc);
 			//System.out.println(pe._min_lc);
-			minClusters.add(pe._cluster);
+			minClusters.add(pe.getCluster());
 			// int k = sigmaNs/(stTaxa.length-1);
 
 			if (pe._min_rc != null) {
@@ -923,33 +980,4 @@ public class MGDInference_DP {
 	 * }
 	 */
 
-	static class Vertex {
-		public STITreeCluster _cluster = null;
-		//public int _el_num = -1;
-		//public int _min_cost = -1;
-		public int _max_score = -1;
-		public int _c = 0;
-		public Vertex _min_lc = this._min_rc = null;
-		public Vertex _min_rc;
-		public List<Vertex> _subcl = null;		
-		public byte _done = 0; // 0 for not, 1 for yes, 2 for failed
-		
-		public Vertex() {
-		}
-
-		public String toString() {
-			return this._cluster.toString() + "/" + this._max_score;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			return ((Vertex) obj)._cluster.equals(this._cluster);
-		}
-
-		@Override
-		public int hashCode() {
-			return _cluster.hashCode();
-		}
-
-	}
 }
