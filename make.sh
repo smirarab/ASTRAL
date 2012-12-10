@@ -7,7 +7,7 @@ jar cvfm ../mgd.$version.jar ../manifest.text phylonet/util/BitSet.* phylonet/co
 cd ..
 chmod +x mgd.$version.jar
 cp mgd.$version.jar mgd.jar
-sed -e "s/__mgd__/mgd.$version.jar/g" README.template > README
+sed -e "s/__mgd.jar__/mgd.$version.jar/g" README.template > README
 rm -r DynaDup/*
 mkdir DynaDup
 cd DynaDup
