@@ -35,7 +35,7 @@ java -jar __mgd.jar__ -i in.tree -dl
 
 To minimize duplications and losses using our new definition using the original tree and considering missing taxa as losses (MGDL), run:
 
-java -jar __mgd.jar__ -i in.tree -dl
+java -jar __mgd.jar__ -i in.tree -dll
 
 Note that, currently, the input gene trees need to be a) fully resolved, b) rooted. 
 
