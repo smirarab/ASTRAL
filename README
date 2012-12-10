@@ -7,9 +7,11 @@ S. Bayzid, S. Mirarab, T. Warnow, "Optimal Species Trees under Gene Duplication 
 
 INSTALLATION:
 ----------------------
-There is no installation required to run DynaDup. You simply need to download the .zip file and extract the files to your folder of choice. 
+There is no installation required to run DynaDup. You simply need to download the .zip file (from http://www.cs.utexas.edu/~phylo/software/dynadup/) and extract the contents to a folder of your choice. 
 
-DynaDup is a java-based application, and can run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. Java 1.5 or later is required. 
+Altrenatively, you can replicate the github repository (https://github.com/smirarab/DynaDup/) and run make.sh to build the project. 
+
+DynaDup is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. Java 1.5 or later is required. We have tested DynaDup only on Linux.
 
 EXECUTION:
 ---------------------
