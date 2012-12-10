@@ -6,4 +6,14 @@ javac -classpath ../main.jar:../lib/jsr166.jar phylonet/util/BitSet.java phylone
 jar cvfm ../mgd.$version.jar ../manifest.text phylonet/util/BitSet.* phylonet/coalescent/DuplicationWeightCounter*.* phylonet/coalescent/*ClusterCollection* phylonet/coalescent/MGDInference_DP*.* phylonet/coalescent/CannotResolveException.* phylonet/tree/model/sti/STITreeCluster*.class phylonet/tree/model/sti/STITreeCluster.java phylonet/coalescent/DeepCoalescencesCounter.* phylonet/coalescent/ComputeMinCostTask.* phylonet/coalescent/STBipartition.*
 cd ..
 chmod +x mgd.$version.jar
-ln -sf mgd.$version.jar mgd.jar
+cp mgd.$version.jar mgd.jar
+sed -e "s/__mgd__/mgd.$version.jar/g" README.template > README
+rm -r DynaDup/*
+mkdir DynaDup
+cd DynaDup
+ln -s ../lib .
+ln -s ../main.jar .
+ln -s ../README .
+ln -s ../mgd.$version.jar .
+cd ..
+zip -r DynaDup.$version.zip DynaDup 
