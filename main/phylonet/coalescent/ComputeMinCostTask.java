@@ -14,7 +14,7 @@ import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
-public class ComputeMinCostTask extends RecursiveTask<Integer> {
+public class ComputeMinCostTask {
 
 	/**
 	 * 
@@ -24,7 +24,6 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 	private Vertex v;
 	private ClusterCollection clusters;
 
-	@Override
 	protected Integer compute() {
 		try {
 			return computeMinCost();
@@ -162,41 +161,8 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 								w = weigthWork.compute();									
 							}
 
-							Integer e = 0;
-							// If in duploss mode, need to get MDC cost as
-							// well
-							if (inference.optimizeDuploss == 3) {
-								for (int k = 0; k < trees.size(); k++) {
-									Tree tr = trees.get(k);
-									STITreeCluster treeAll = inference.counter.treeAlls
-											.get(k);
-									if (smallV.getCluster().isDisjoint(treeAll)
-											|| bigv.getCluster()
-													.isDisjoint(treeAll)) {
-										continue;
-									}
-									if (El.get(k) == null) {
-										if (taxonNameMap == null) {
-											El.set(k,
-													DeepCoalescencesCounter
-															.getClusterCoalNum_rooted(
-																	tr,
-																	v.getCluster()));
-										} else {
-											El.set(k,
-													DeepCoalescencesCounter
-															.getClusterCoalNum_rooted(
-																	tr,
-																	v.getCluster(),
-																	taxonNameMap));
-										}
-									}
-									e += El.get(k);
-									// System.err.println("E for " + v.getCluster() + " is "+e + " and k is  " + k);
-								}
-							} else {
-								e = 0;
-							}
+							Integer e = inference.optimizeDuploss == 3 ?
+									calculateDLCost(El, smallV, bigv) : 0;
 
 							int c = inference.optimizeDuploss * w - e;
 
@@ -262,6 +228,67 @@ public class ComputeMinCostTask extends RecursiveTask<Integer> {
 		 */
 		v._done = 1;
 		return v._max_score ;
+	}
+
+	private Integer calculateDLCost(List<Integer> El, Vertex smallV, Vertex bigv) {
+		Integer e = 0;
+		List<Tree> trees = inference.trees;
+		TaxonNameMap taxonNameMap = inference.taxonNameMap;
+		if (inference.HomomorphicDL) {
+			for (int k = 0; k < trees.size(); k++) {
+				Tree tr = trees.get(k);
+				STITreeCluster treeAll = inference.counter.treeAlls.get(k);
+				if (smallV.getCluster().isDisjoint(treeAll)
+						|| bigv.getCluster().isDisjoint(treeAll)) {
+					continue;
+				}
+				if (El.get(k) == null) {
+					if (taxonNameMap == null) {
+						El.set(k, DeepCoalescencesCounter
+								.getClusterCoalNum_rooted(tr, v.getCluster()));
+					} else {
+						El.set(k, DeepCoalescencesCounter
+								.getClusterCoalNum_rooted(tr, v.getCluster(),
+										taxonNameMap));
+					}
+				}
+				e += El.get(k);
+				// System.err.println("E for " + v.getCluster() + " is "+e +
+				// " and k is  " + k);
+			}
+		} else {
+			for (int k = 0; k < trees.size(); k++) {
+				Tree tr = trees.get(k);
+				STITreeCluster treeAll = inference.counter.treeAlls.get(k);
+				int extraTerms = 0;
+				boolean pDisJoint = smallV.getCluster().isDisjoint(treeAll);
+				boolean qDisJoint = bigv.getCluster().isDisjoint(treeAll);
+				if (pDisJoint && qDisJoint) {
+					extraTerms = 0;
+				} else if (!pDisJoint && !pDisJoint) {
+					extraTerms = 2;
+				} else {
+					boolean complete = pDisJoint ? 
+							bigv.getCluster().getClusterSize() == treeAll.getClusterSize() :
+							smallV.getCluster().getClusterSize() == treeAll.getClusterSize(); 
+					extraTerms = complete ? 2 : 1;
+				}
+				if (El.get(k) == null) {
+					if (taxonNameMap == null) {
+						El.set(k, DeepCoalescencesCounter
+								.getClusterCoalNum_rooted(tr, v.getCluster()));
+					} else {
+						El.set(k, DeepCoalescencesCounter
+								.getClusterCoalNum_rooted(tr, v.getCluster(),
+										taxonNameMap));
+					}
+				}
+				e += (El.get(k) + extraTerms);
+				// System.err.println("E for " + v.getCluster() + " is "+e +
+				// " and k is  " + k);
+			}
+		}
+		return e;
 	}
 
 	void addAllPossibleSubClusters(STITreeCluster cluster, ClusterCollection containedVertecies) {
