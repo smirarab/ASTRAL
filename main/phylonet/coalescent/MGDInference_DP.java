@@ -46,7 +46,8 @@ public class MGDInference_DP {
 	//Map<STITreeCluster, Vertex> clusterToVertex;
 	int sigmaNs;
 	DuplicationWeightCounter counter;
-	TaxonNameMap taxonNameMap = null;	
+	TaxonNameMap taxonNameMap = null;
+	private boolean exactSolution;	
 	
 	class TaxonNameMap {
 		Map<String, String> taxonMap;
@@ -102,6 +103,7 @@ public class MGDInference_DP {
 		boolean rooted = true;
 		boolean fast = false;
 		boolean extrarooted = true;
+		boolean exactSolution = false;
 		
 		Map<String, String> taxonMap = null;
 		String rep = null;
@@ -167,7 +169,7 @@ public class MGDInference_DP {
 										System.err
 												.println("The input file is not in correct format");
 										System.err
-												.println("An gene name can only map to one species");
+												.println("Any gene name can only map to one species");
 										System.exit(-1);
 									} else {
 										taxonMap.put(allele, species);
@@ -305,6 +307,12 @@ public class MGDInference_DP {
 						printUsage();
 						return;
 					}
+				} else if (option[0].equals("-xt")) {
+					if (option.length != 1) {
+						printUsage();
+						return;
+					}
+					exactSolution = true;
 				} else if (option[0].equals("-dl")) {
 					if (option.length != 1) {
 						printUsage();
@@ -429,6 +437,7 @@ public class MGDInference_DP {
 		inference.extrarooted = extrarooted;
 		inference.CS = cs;
 		inference.CD = cd;
+		inference.exactSolution = exactSolution;
 
 		List<Solution> solutions = inference.inferSpeciesTree();
 
@@ -472,7 +481,7 @@ public class MGDInference_DP {
 				.println("This tool infers the species tree from rooted gene trees despite lineage sorting.");
 		System.out.println("Usage is:");
 		System.out
-				.println("\tMGDInference_DP -i input [-a mapping] [-dl] [-dll] [-ex extra_trees] [-o output] [-cs number] [-cd number]");
+				.println("\tMGDInference_DP -i input [-a mapping] [-dl] [-dll] [-ex extra_trees] [-o output] [-cs number] [-cd number] [-xt]");
 		System.out
 				.println("\t-i gene tree file: The file containing gene trees. (required)");
 		System.out
@@ -480,11 +489,12 @@ public class MGDInference_DP {
 						 "\t                 Alternatively, two reqular expressions for automatic name conversion (optional)");
 		System.out
 				.println("\t-o species tree file: The file to store the species tree. (optional)");
-		System.out.println("\t-dl/-dll optimize duplications and losses. Use -dl for homomorphic definitin, and -dll for ``original'' definition.");
+		System.out.println("\t-dl or -dll optimize duplications and losses. Use -dl for homomorphic definitin, and -dll for ``original'' definition.");
+		System.out.println("\t-xt find the exact solution.");
 		//System.out.println("\t-u treat input gene trees as unrooted (Not implemented!)");
 		System.out.println("\t-ex provide extra trees to add to set of STBs searched");
 		//System.out.println("\t-xu treat extra trees input gene trees as unrooted (Not implemented!)");
-		System.out.println("\t-cs & " +
+		System.out.println("\t-cs and " +
 						   "-cd thes two options set two parameters (cs and cd) to a value between 0 and 1. \n" +
 						   "\t    For any cluster C if |C| >= cs*|taxa|, we add complementary clusters (with respect to C) of all subclusters of C\n" +
 						   "\t    if size of the subcluster is >= cd*|C|.\n" +
@@ -513,9 +523,9 @@ public class MGDInference_DP {
 			Map<String,String> taxonMap = taxonNameMap.taxonMap;
 			String error = Trees.checkMapping(trees, taxonMap);
 			if (error != null) {
-				throw new RuntimeException("Gene trees have leaf named "
+				throw new RuntimeException("Gene trees have a leaf named "
 						+ error
-						+ "that hasn't been defined in the mapping file");
+						+ " that hasn't been defined in the mapping file");
 			}
 
 			List temp1 = new LinkedList();
@@ -596,6 +606,10 @@ public class MGDInference_DP {
 
 		if (extraTrees != null) {		
 			counter.addExtraBipartitionsByInput(clusters, extraTrees,extrarooted);					
+		}
+		
+		if (exactSolution) {
+			counter.addAllPossibleSubClusters(clusters.getTopVertex().getCluster(),  stTaxa.length);
 		}
 
 		//counter.addExtraBipartitionsByHeuristics(clusters);

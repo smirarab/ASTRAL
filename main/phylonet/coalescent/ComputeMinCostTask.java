@@ -152,8 +152,8 @@ public class ComputeMinCostTask {
 							}
 							// MP_VERSION: w = weigthWork.join();
 
-							Integer w = counter
-									.getCalculatedBiPartitionDPWeight(bi);
+							Integer w = counter.getCalculatedBiPartitionDPWeight(bi);
+							
 							if (w == null) {
 								weigthWork = counter.new CalculateWeightTask(
 										bi,containedVertecies);
