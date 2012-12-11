@@ -602,7 +602,7 @@ public class MGDInference_DP {
 
 		counter = new DuplicationWeightCounter(gtTaxa, stTaxa, rooted,taxonNameMap, clusters);
 
-		int sigmaN = counter.computeTreeSTBipartitions(trees, optimizeDuploss == 3);
+		int sigmaN = counter.computeTreeSTBipartitions(trees, optimizeDuploss == 3, this.HomomorphicDL);
 
 		if (extraTrees != null) {		
 			counter.addExtraBipartitionsByInput(clusters, extraTrees,extrarooted);					
@@ -749,8 +749,8 @@ public class MGDInference_DP {
 			ComputeMinCostTask allTask = new ComputeMinCostTask(this,all,clusters);
 			//ForkJoinPool pool = new ForkJoinPool(1);
 			allTask.compute();
-			Integer v = all._max_score;
-			if (v < 0 || v == null) {
+			int v = all._max_score;
+			if (v == Integer.MIN_VALUE) {
 				throw new CannotResolveException(all.getCluster().toString());
 			}
 		} catch (CannotResolveException e) {
