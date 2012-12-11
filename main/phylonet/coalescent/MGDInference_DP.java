@@ -490,7 +490,7 @@ public class MGDInference_DP {
 		System.out
 				.println("\t-o species tree file: The file to store the species tree. (optional)");
 		System.out.println("\t-dl or -dll optimize duplications and losses. Use -dl for homomorphic definitin, and -dll for ``original'' definition.");
-		System.out.println("\t-xt find the exact solution.");
+		System.out.println("\t-xt find the exact solution by looking at all clusters.");
 		//System.out.println("\t-u treat input gene trees as unrooted (Not implemented!)");
 		System.out.println("\t-ex provide extra trees to add to set of STBs searched");
 		//System.out.println("\t-xu treat extra trees input gene trees as unrooted (Not implemented!)");
