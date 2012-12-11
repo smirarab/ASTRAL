@@ -6,13 +6,13 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.RecursiveTask;
 
 import phylonet.coalescent.DuplicationWeightCounter.CalculateWeightTask;
 import phylonet.coalescent.MGDInference_DP.TaxonNameMap;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
+import phylonet.util.BitSet;
 
 public class ComputeMinCostTask {
 
@@ -83,6 +83,7 @@ public class ComputeMinCostTask {
 				if (taxonNameMap == null) {
 					_el_num = DeepCoalescencesCounter.getClusterCoalNum(
 							trees, v.getCluster(), rooted);
+					//System.out.println(v + " XL is " + _el_num);
 				} else {
 					_el_num = DeepCoalescencesCounter.getClusterCoalNum(
 							trees, v.getCluster(), taxonNameMap, rooted);
@@ -160,10 +161,11 @@ public class ComputeMinCostTask {
 								// MP_VERSION: smallWork.fork();
 								w = weigthWork.compute();									
 							}
-
+							
 							Integer e = inference.optimizeDuploss == 3 ?
 									calculateDLCost(El, smallV, bigv) : 0;
 
+							//System.out.println(bigv + "|"  + smallV+ " W is " + w );
 							int c = inference.optimizeDuploss * w - e;
 
 							if ((v._max_score != -1)
@@ -261,16 +263,22 @@ public class ComputeMinCostTask {
 				Tree tr = trees.get(k);
 				STITreeCluster treeAll = inference.counter.treeAlls.get(k);
 				int extraTerms = 0;
-				boolean pDisJoint = smallV.getCluster().isDisjoint(treeAll);
-				boolean qDisJoint = bigv.getCluster().isDisjoint(treeAll);
+			    BitSet temp = (BitSet)smallV.getCluster().getBitSet().clone();
+			    temp.and(treeAll.getBitSet());			    
+				boolean pDisJoint = (temp.cardinality() == 0);
+				boolean pHasAll = (temp.equals(treeAll.getBitSet()));
+			    temp = (BitSet)bigv.getCluster().getBitSet().clone();
+			    temp.and(treeAll.getBitSet());			    				
+				boolean qDisJoint = (temp.cardinality() == 0);
+				boolean qHasAll = (temp.equals(treeAll.getBitSet()));
 				if (pDisJoint && qDisJoint) {
 					extraTerms = 0;
 				} else if (!pDisJoint && !pDisJoint) {
 					extraTerms = 2;
 				} else {
 					boolean complete = pDisJoint ? 
-							bigv.getCluster().getClusterSize() == treeAll.getClusterSize() :
-							smallV.getCluster().getClusterSize() == treeAll.getClusterSize(); 
+							qHasAll:
+							pHasAll; 
 					extraTerms = complete ? 2 : 1;
 				}
 				if (El.get(k) == null) {
@@ -286,6 +294,7 @@ public class ComputeMinCostTask {
 				e += (El.get(k) + extraTerms);
 				// System.err.println("E for " + v.getCluster() + " is "+e +
 				// " and k is  " + k);
+				//System.out.println(bigv + "|"  + smallV+ " Total is " + e + " extra is "+extraTerms + " for tree" +k);
 			}
 		}
 		return e;
