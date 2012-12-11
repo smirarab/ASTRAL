@@ -112,7 +112,7 @@ public class DuplicationWeightCounter {
 					.iterator(); nodeIt.hasNext();) {
 				TNode node = nodeIt.next();		
                 //System.err.println("Node is:" + node);
-	            if(node.isLeaf())
+	            if (node.isLeaf())
 	            {
 	                String nodeName = node.getName();
 
@@ -230,6 +230,24 @@ public class DuplicationWeightCounter {
 		
 		return sigmaN;
 	}
+		 
+	
+	void addAllPossibleSubClusters(STITreeCluster cluster, int size) {
+		BitSet bs = (BitSet) cluster.getBitSet().clone();
+		bs.clear(0, size);	
+		while (true){
+			int tsb = bs.nextClearBit(0);
+			if (tsb >= size) {
+				break;
+			}
+		    bs.set(tsb);
+		    bs.clear(0, tsb);
+		    STITreeCluster c = new STITreeCluster(cluster.getTaxa());
+		    c.setCluster((BitSet) bs.clone());
+			addToClusters(c, c.getClusterSize(), false);
+		}
+		System.err.println("Number of Clusters After Adding All possible clusters: " + clusters.getClusterCount());
+	}	
 	
 	void addExtraBipartitionsByInput(ClusterCollection extraClusters,
 				List<Tree> trees, boolean extraTreeRooted) {

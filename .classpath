@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry including="phylonet/coalescent/BasicClusterCollection.java|phylonet/coalescent/CannotResolveException.java|phylonet/coalescent/ComputeMinCostTask.java|phylonet/coalescent/DeepCoalescencesCounter.java|phylonet/coalescent/DuplicationWeightCounter.java|phylonet/coalescent/MGDInference_DP.java|phylonet/coalescent/STBipartition.java|phylonet/tree/model/sti/STITreeCluster.java|phylonet/util/BitSet.java" kind="src" path="main"/>
+	<classpathentry including="phylonet/coalescent/BasicClusterCollection.java|phylonet/coalescent/CannotResolveException.java|phylonet/coalescent/ClusterCollection.java|phylonet/coalescent/ComputeMinCostTask.java|phylonet/coalescent/DeepCoalescencesCounter.java|phylonet/coalescent/DuplicationWeightCounter.java|phylonet/coalescent/MGDInference_DP.java|phylonet/coalescent/STBipartition.java|phylonet/tree/model/sti/STITreeCluster.java|phylonet/util/BitSet.java" kind="src" path="main"/>
 	<classpathentry kind="lib" path="lib/jopt-simple-3.2.jar"/>
 	<classpathentry kind="lib" path="lib/junit-4.6.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
