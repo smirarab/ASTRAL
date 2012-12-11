@@ -262,24 +262,15 @@ public class ComputeMinCostTask {
 			for (int k = 0; k < trees.size(); k++) {
 				Tree tr = trees.get(k);
 				STITreeCluster treeAll = inference.counter.treeAlls.get(k);
-				int extraTerms = 0;
-			    BitSet temp = (BitSet)smallV.getCluster().getBitSet().clone();
-			    temp.and(treeAll.getBitSet());			    
-				boolean pDisJoint = (temp.cardinality() == 0);
-				boolean pHasAll = (temp.equals(treeAll.getBitSet()));
-			    temp = (BitSet)bigv.getCluster().getBitSet().clone();
-			    temp.and(treeAll.getBitSet());			    				
-				boolean qDisJoint = (temp.cardinality() == 0);
-				boolean qHasAll = (temp.equals(treeAll.getBitSet()));
+				int extraTerms = 0;			   
+				boolean pDisJoint = smallV.getCluster().isDisjoint(treeAll);
+				boolean qDisJoint = bigv.getCluster().isDisjoint(treeAll);
 				if (pDisJoint && qDisJoint) {
 					extraTerms = 0;
 				} else if (!pDisJoint && !pDisJoint) {
 					extraTerms = 2;
 				} else {
-					boolean complete = pDisJoint ? 
-							qHasAll:
-							pHasAll; 
-					extraTerms = complete ? 2 : 1;
+					extraTerms = 1;
 				}
 				if (El.get(k) == null) {
 					if (taxonNameMap == null) {
