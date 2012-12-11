@@ -66,7 +66,7 @@ public class DuplicationWeightCounter {
 	
 	
 
-	int computeTreeSTBipartitions(List<Tree> trees, boolean duploss) {
+	int computeTreeSTBipartitions(List<Tree> trees, boolean duploss, boolean hm) {
 
 		int sigmaN = 0;
 		int k = trees.size();
@@ -101,7 +101,7 @@ public class DuplicationWeightCounter {
 			treeAlls.add( allInducedByGT);
 			int allInducedByGTSize = allInducedByGT.getClusterSize();
 			
-			sigmaN += duploss ? 
+			sigmaN += duploss && hm ? 
 					(tr.getLeafCount() + 2 * allInducedByGTSize - 3)
 					: (tr.getLeafCount() - 1);
 						
