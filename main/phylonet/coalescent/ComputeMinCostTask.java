@@ -267,7 +267,7 @@ public class ComputeMinCostTask {
 				boolean qDisJoint = bigv.getCluster().isDisjoint(treeAll);
 				if (pDisJoint && qDisJoint) {
 					extraTerms = 0;
-				} else if (!pDisJoint && !pDisJoint) {
+				} else if (!pDisJoint && !qDisJoint) {
 					extraTerms = 2;
 				} else {
 					extraTerms = 1;
