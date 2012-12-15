@@ -22,11 +22,10 @@ public interface ClusterCollection {
 
 	Collection<STBipartition> getClusterResolutions();
 
-
 	Iterable<Set<Vertex>> getSubClusters();
 
 	void addGeneTreeSTB(STBipartition stb, int size);
 
-	Iterable<STBipartition> getAllGeneTreeSTBs();
+	Iterable<STBipartition> getContainedGeneTreeSTBs();
 
 }
