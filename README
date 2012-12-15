@@ -17,25 +17,25 @@ EXECUTION:
 ---------------------
 DynaDup currently has no GUI. You need to run it through command-line. In a terminal, go the location where you have downloaded the software, and issue the following command:
 
-java -jar mgd.2.2.1.jar
+java -jar mgd.2.2.2.jar
 
 This will give you a list of options available in DynaDup.
 
 To find the species tree that minimizing duplications (MGD) given a set of gene trees in a file called in.tree, use:
 
-java -jar mgd.2.2.1.jar -i in.tree
+java -jar mgd.2.2.2.jar -i in.tree
 
 The results will be outputted to the standard output. To save the results in a file use the -o option:
 
-java -jar mgd.2.2.1.jar -i in.tree -o out.tre
+java -jar mgd.2.2.2.jar -i in.tree -o out.tre
 
 To minimize duplications and losses based on traditional definition using homomorphic restriction run (MGDL_h), run:
 
-java -jar mgd.2.2.1.jar -i in.tree -dl
+java -jar mgd.2.2.2.jar -i in.tree -dl
 
 To minimize duplications and losses using our new definition using the original tree and considering missing taxa as losses (MGDL), run:
 
-java -jar mgd.2.2.1.jar -i in.tree -dll
+java -jar mgd.2.2.2.jar -i in.tree -dll
 
 Note that, currently, the input gene trees need to be a) fully resolved, b) rooted. 
 
@@ -50,15 +50,15 @@ species2: gene2.1,gene2.2;
 
 Each line represents one speceies. Before the colon the species name is given, and then all the names in the gene tree that belong to that species are listed, with "," used to separate different names. In this example, species1 and species2 are the taxon names, and gene1.1, gene1.2, etc. are leave names from gene trees. If the name of the file containing these mappings is mapping.txt, the following command should be used:
 
-java -jar mgd.2.2.1.jar -i in.tree -a mapping.txt
+java -jar mgd.2.2.2.jar -i in.tree -a mapping.txt
 
 Alternatively, by providing two values after -a option, you can use an automatic name mapping based on (java) regular expressions. The first parameter after -a is a search pattern, and the second parameter is the replacement string. Any part of the leaf names from gene trees that matches the search pattern (a regular expression) is replaced by the replacement string. For example, 
 
-java -jar mgd.2.2.1.jar -i in.tree -a "_.*" "_sp"
+java -jar mgd.2.2.2.jar -i in.tree -a "_.*" "_sp"
 
 replaces anything after an underscore in the gene tree names to a "_sp" in the species name. So, human_1, human_2 and human_3 will all map to human_sp. If the replacement string is set to "/delete/", the string matched by the search pattern is simply removed. So, 
 
-java -jar mgd.2.2.1.jar -i in.tree -a "_.*" "/delete/"
+java -jar mgd.2.2.2.jar -i in.tree -a "_.*" "/delete/"
 
 maps 'human_1', 'human_2', and 'human_3' to 'human'; 'horse_ab_c' to 'horse'; and 'mouse' to 'mouse'. 
 
@@ -81,7 +81,7 @@ Memory:
 
 For big datasets (say 500 taxon) increasing the memory available to Java can result in speed up. Note that you should give Java only as much as free memory you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke DynaDup using the following command to make all the 3GB available to Java:
 
-java -Xmx3000M -jar mgd.2.2.1.jar -i in.tree
+java -Xmx3000M -jar mgd.2.2.2.jar -i in.tree
 
 
 Acknowledgment
