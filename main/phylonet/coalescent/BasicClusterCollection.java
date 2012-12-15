@@ -180,7 +180,7 @@ public class BasicClusterCollection implements ClusterCollection {
 	}
 
 	@Override
-	public Iterable<STBipartition> getAllGeneTreeSTBs() {
+	public Iterable<STBipartition> getContainedGeneTreeSTBs() {
 		return new Iterable<STBipartition> () {
 
 			@Override
