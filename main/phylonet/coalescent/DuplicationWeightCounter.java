@@ -30,7 +30,7 @@ public class DuplicationWeightCounter {
 	// private List<Set<STBipartition>> X;
 
 	private Map<STBipartition, Integer> geneTreeSTBCount;
-	private Map<AbstractMap.SimpleEntry<STITreeCluster, STITreeCluster>, Integer> geneTreeSTBBCount;
+	private Map<AbstractMap.SimpleEntry<STITreeCluster, STITreeCluster>, Integer> geneTreeInvalidSTBCont;
 
 	private boolean rooted;
 
@@ -107,7 +107,7 @@ public class DuplicationWeightCounter {
 				weight += entry.getValue();
 			}
 		}
-		for (Entry<SimpleEntry<STITreeCluster, STITreeCluster>, Integer> entry : geneTreeSTBBCount.entrySet()) {
+		for (Entry<SimpleEntry<STITreeCluster, STITreeCluster>, Integer> entry : geneTreeInvalidSTBCont.entrySet()) {
 			SimpleEntry<STITreeCluster, STITreeCluster> otherSTB = entry.getKey();
 			boolean c1 = cluster.containsCluster(otherSTB.getKey());
 			boolean c2 = cluster.containsCluster(otherSTB.getValue());
@@ -125,15 +125,15 @@ public class DuplicationWeightCounter {
 		return ret;
 	}
 
-	int computeTreeSTBipartitions(List<Tree> trees, boolean duploss, boolean hm) {
+	double computeTreeSTBipartitions(List<Tree> trees, boolean duploss, boolean hm, Double wd) {
 
-		int sigmaN = 0;
+		double sigmaN = 0;
 		int k = trees.size();
 		String[] leaves = stTaxa;
 		int n = leaves.length;
 
 		geneTreeSTBCount = new HashMap<STBipartition, Integer>(k * n);
-		geneTreeSTBBCount = new HashMap<AbstractMap.SimpleEntry<STITreeCluster, STITreeCluster>, Integer>();
+		geneTreeInvalidSTBCont = new HashMap<AbstractMap.SimpleEntry<STITreeCluster, STITreeCluster>, Integer>();
 		// geneTreeRootSTBs = new HashMap<STBipartition, Integer>(k*n);
 		// needed for fast version
 		// clusterToSTBs = new HashMap<STITreeCluster, Set<STBipartition>>(k*n);
@@ -160,8 +160,9 @@ public class DuplicationWeightCounter {
 			treeAlls.add(allInducedByGT);
 			int allInducedByGTSize = allInducedByGT.getClusterSize();
 
-			sigmaN += duploss && hm ? (tr.getLeafCount() + 2
-					* allInducedByGTSize - 3) : (tr.getLeafCount() - 1);
+			sigmaN += duploss && hm ? 
+					(wd * (tr.getLeafCount() -1) + 2	* (allInducedByGTSize - 1)) : 
+					wd * (tr.getLeafCount() - 1);
 
 			Map<TNode, STITreeCluster> nodeToSTCluster = new HashMap<TNode, STITreeCluster>(n);
 			// Map<TNode,STITreeCluster> nodeToGTCluster = new HashMap<TNode,
@@ -459,8 +460,8 @@ public class DuplicationWeightCounter {
 					l_cluster.getBitSet().cardinality() > r_cluster.getBitSet().cardinality() ? 
 					new AbstractMap.SimpleEntry<STITreeCluster, STITreeCluster>(l_cluster, r_cluster) : 
 					new AbstractMap.SimpleEntry<STITreeCluster, STITreeCluster>(r_cluster, l_cluster);
-			geneTreeSTBBCount.put(stb,	geneTreeSTBBCount.containsKey(stb) ? 
-					geneTreeSTBBCount.get(stb) + 1 : 
+			geneTreeInvalidSTBCont.put(stb,	geneTreeInvalidSTBCont.containsKey(stb) ? 
+					geneTreeInvalidSTBCont.get(stb) + 1 : 
 					1);
 			// System.err.println("Adding only to extra");
 			// This case could happen for multiple-copy

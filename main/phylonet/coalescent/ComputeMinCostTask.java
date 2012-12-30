@@ -24,7 +24,7 @@ public class ComputeMinCostTask {
 	private Vertex v;
 	private ClusterCollection clusters;
 
-	protected Integer compute() {
+	protected Double compute() {
 		try {
 			return computeMinCost();
 		} catch (CannotResolveException e) {
@@ -60,7 +60,7 @@ public class ComputeMinCostTask {
 		}
 	}
 
-	private int computeMinCost() throws CannotResolveException {
+	private double computeMinCost() throws CannotResolveException {
 
 		boolean rooted = inference.rooted;
 		List<Tree> trees = inference.trees;
@@ -154,7 +154,7 @@ public class ComputeMinCostTask {
 						CalculateWeightTask weigthWork = null;
 
 						// MP_VERSION: smallWork.fork();
-						Integer rscore = bigWork.compute();
+						Double rscore = bigWork.compute();
 
 						if (rscore == null) {
 							// MP_VERSION: weigthWork.cancel(false);
@@ -163,7 +163,7 @@ public class ComputeMinCostTask {
 									.toString());
 						}
 
-						Integer lscore;
+						Double lscore;
 						// MP_VERSION: lscore = smallWork.join();
 						lscore = smallWork.compute();
 
@@ -196,7 +196,8 @@ public class ComputeMinCostTask {
 
 						// System.out.println(bigv + "|" + smallV+ " W is " + w
 						// );
-						int c = inference.optimizeDuploss * w - e;
+						double c = (inference.optimizeDuploss - 1) * w + 
+								w * inference.wd - e;
 
 						if ((v._max_score != -1)
 								&& (lscore + rscore + c < v._max_score)) {
