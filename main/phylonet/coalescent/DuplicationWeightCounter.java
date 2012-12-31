@@ -125,12 +125,15 @@ public class DuplicationWeightCounter {
 		return ret;
 	}
 
-	double computeTreeSTBipartitions(List<Tree> trees, boolean duploss, boolean hm, Double wd) {
+	double computeTreeSTBipartitions(MGDInference_DP inference) {
 
-		double sigmaN = 0;
-		int k = trees.size();
+		double unweighedConstant = 0;
+		double weightedConstant = 0;
+		int k = inference.trees.size();
 		String[] leaves = stTaxa;
 		int n = leaves.length;
+		boolean duploss = (inference.optimizeDuploss == 3);
+		boolean hm = inference.HomomorphicDL;
 
 		geneTreeSTBCount = new HashMap<STBipartition, Integer>(k * n);
 		geneTreeInvalidSTBCont = new HashMap<AbstractMap.SimpleEntry<STITreeCluster, STITreeCluster>, Integer>();
@@ -147,8 +150,8 @@ public class DuplicationWeightCounter {
 		}
 		addToClusters(all, leaves.length, false);
 
-		for (int t = 0; t < trees.size(); t++) {
-			Tree tr = trees.get(t);
+		for (int t = 0; t < inference.trees.size(); t++) {
+			Tree tr = inference.trees.get(t);
 
 			STITreeCluster allInducedByGT = new STITreeCluster(stTaxa);
 
@@ -160,9 +163,10 @@ public class DuplicationWeightCounter {
 			treeAlls.add(allInducedByGT);
 			int allInducedByGTSize = allInducedByGT.getClusterSize();
 
-			sigmaN += duploss && hm ? 
-					(wd * (tr.getLeafCount() -1) + 2	* (allInducedByGTSize - 1)) : 
-					wd * (tr.getLeafCount() - 1);
+			unweighedConstant += duploss && hm ? 
+					2 * (allInducedByGTSize - 1) : 0;
+					
+			weightedConstant += (tr.getLeafCount() - 1);
 
 			Map<TNode, STITreeCluster> nodeToSTCluster = new HashMap<TNode, STITreeCluster>(n);
 			// Map<TNode,STITreeCluster> nodeToGTCluster = new HashMap<TNode,
@@ -287,7 +291,12 @@ public class DuplicationWeightCounter {
 				geneTreeSTBCount.size() * 2);
 		// System.err.println("sigma n is "+sigmaN);
 
-		return sigmaN;
+		if (inference.wd == -1) {
+			inference.wd = (k*n) / (weightedConstant + k + 0.0D);
+			System.out.println("Estimated wd = " + inference.wd);
+		}
+			
+		return (unweighedConstant + inference.wd * weightedConstant);
 	}
 
 	void addAllPossibleSubClusters(STITreeCluster cluster, int size) {
