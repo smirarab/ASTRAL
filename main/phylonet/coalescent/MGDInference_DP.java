@@ -167,9 +167,14 @@ public class MGDInference_DP {
 						return;
 					}					
 					try {
-						wd = Double.parseDouble(option[1]);
-						if (wd >= 0.0D)
+						if (option[1].equals("auto")) {
+							wd = -1;
 							continue;
+						} else {
+							wd = Double.parseDouble(option[1]);
+							if (wd >= 0.0D)
+								continue;
+						}
 						printUsage();
 						return;
 					} catch (NumberFormatException e) {
@@ -697,7 +702,7 @@ public class MGDInference_DP {
 
 		counter = new DuplicationWeightCounter(gtTaxa, stTaxa, rooted,taxonNameMap, clusters);
 
-		double sigmaN = counter.computeTreeSTBipartitions(trees, optimizeDuploss == 3, this.HomomorphicDL, this.wd);
+		double sigmaN = counter.computeTreeSTBipartitions(this);
 
 		if (extraTrees != null) {		
 			counter.addExtraBipartitionsByInput(clusters, extraTrees,extrarooted);					
