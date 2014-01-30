@@ -37,7 +37,7 @@ public class MGDInference_DP {
 	boolean rooted = true;
 	boolean fast = false;
 	boolean extrarooted = true;
-	boolean HomomorphicDL;
+	double DLbdWeigth;
 	double CS;
 	double CD;
 
@@ -49,7 +49,6 @@ public class MGDInference_DP {
 	TaxonNameMap taxonNameMap = null;
 	private boolean exactSolution;
 	private STITree st = null;
-	double wd;
 	
 	
 	class TaxonNameMap {
@@ -123,6 +122,7 @@ public class MGDInference_DP {
 		double cd = 1.0D;
 		double time = -1.0D;
 		double wd = 1.0D;
+		double wh = 1.0D;
 		boolean unresolved = false;		
 		long startTime = System.currentTimeMillis();
 		String line;
@@ -161,27 +161,6 @@ public class MGDInference_DP {
 					NewickReader nr = new NewickReader(new StringReader(line));
 					scorest = new STITree(true);
 					nr.readTree(scorest);				
-				} else if (option[0].equals("-wd")) {
-					if (option.length != 2) {
-						printUsage();
-						return;
-					}					
-					try {
-						if (option[1].equals("auto")) {
-							wd = -1;
-							continue;
-						} else {
-							wd = Double.parseDouble(option[1]);
-							if (wd >= 0.0D)
-								continue;
-						}
-						printUsage();
-						return;
-					} catch (NumberFormatException e) {
-						System.err.println("Error in reading parameter wd");
-						printUsage();
-						return;
-					}
 				} else if (option[0].equals("-a")) {
 					if ( (option.length != 2) && (option.length != 3)) {
 						printUsage();
@@ -351,17 +330,27 @@ public class MGDInference_DP {
 					}
 					exactSolution = true;
 				} else if (option[0].equals("-dl")) {
-					if (option.length != 1) {
-						printUsage();
-						return;
-					}
 					optimizeDuploss = 1;
-				} else if (option[0].equals("-dll")) {
-					if (option.length != 1) {
+					if (option.length != 2) {
+						printUsage();
+						return;
+					}					
+					try {
+						if (option[1].equals("auto")) {
+							wh = -1;
+							continue;
+						} else {
+							wh = Double.parseDouble(option[1]);
+							if (wh >= 0.0D)
+								continue;
+						}
+						printUsage();
+						return;
+					} catch (NumberFormatException e) {
+						System.err.println("Error in reading parameter wd");
 						printUsage();
 						return;
 					}
-					optimizeDuploss = 2;
 				} else {
 					printUsage();
 					return;
@@ -468,7 +457,7 @@ public class MGDInference_DP {
 		}
 		
 		inference.optimizeDuploss = optimizeDuploss > 0 ? 3 : 1;
-		inference.HomomorphicDL = optimizeDuploss == 1 ? true : false; 
+		inference.DLbdWeigth = wh; 
 		inference.rooted = rooted;
 		inference.fast = fast;
 		inference.extrarooted = extrarooted;
@@ -476,7 +465,6 @@ public class MGDInference_DP {
 		inference.CD = cd;
 		inference.exactSolution = exactSolution;
 		inference.st = scorest;
-		inference.wd = wd;
 
 		if (scorest != null) {
 			inference.scoreGeneTree();
@@ -520,49 +508,78 @@ public class MGDInference_DP {
 			}
 	}
 
+	private int [] calc(Tree gtTree, SchieberVishkinLCA lcaLookup, Tree stTree) {
+		int [] res = {0,0,0};
+		Stack<TNode> stack = new Stack<TNode>();			
+		for (TNode gtNode : gtTree.postTraverse()) {
+			if (gtNode.isLeaf()) {
+			    	TNode node = stTree.getNode(this.taxonNameMap !=null ? 
+					this.taxonNameMap.getTaxonName(gtNode.getName()):
+						gtNode.getName());
+			    	if (node == null) {
+					throw new RuntimeException("Leaf " + gtNode.getName() +
+						" was not found in species tree; mapped as: "+
+						this.taxonNameMap.getTaxonName(gtNode.getName())); 
+			    	}
+			    	stack.push(node);
+				//System.out.println("stack: " +this.taxonNameMap.getTaxonName(gtNode.getName()));
+			} else {
+				TNode rightLCA = stack.pop();
+				TNode leftLCA = stack.pop();
+				// If gene trees are incomplete, we can have this case
+				if (rightLCA == null || leftLCA == null) {
+					stack.push(null);
+					continue;
+				}
+				TNode lca = lcaLookup.getLCA(leftLCA, rightLCA);
+				stack.push(lca);
+				if (lca == leftLCA || lca == rightLCA) {
+					// LCA in stTree dominates gtNode in gene tree
+					res[0]++;
+					if (lca == leftLCA && lca == rightLCA) {
+						res[1] += 0;
+					} else {
+						res[1] += (lca == leftLCA) ?
+									d(rightLCA,lca) + 1:
+									d(leftLCA,lca) + 1;
+					}
+				} else {
+					res[1] += (d(rightLCA,lca) + d(leftLCA,lca));
+				}
+			}
+		}
+		TNode rootLCA = stack.pop();
+		res[2] = res[1];
+		res[1] += d(rootLCA,stTree.getRoot()) + (rootLCA == stTree.getRoot()?0:1);
+		return res;
+	}
+	
 	private void scoreGeneTree() {
 		// first calculated duplication cost by looking at gene trees. 
 		
 		SchieberVishkinLCA lcaLookup = new SchieberVishkinLCA(this.st);
-		int duplications = 0;
-		int losses = 0;
+		Integer duplications = 0;
+		Integer losses = 0;
+		Integer lossesstd = 0;
+		
 		for (Tree gtTree : this.trees) {
-			Stack<TNode> stack = new Stack<TNode>();			
-			for (TNode gtNode : gtTree.postTraverse()) {
-				if (gtNode.isLeaf()) {
-					stack.push(this.st.getNode(this.taxonNameMap.getTaxonName(gtNode.getName())));
-				} else {
-					TNode rightLCA = stack.pop();
-					TNode leftLCA = stack.pop();
-					// If gene trees are incomplete, we can have this case
-					if (rightLCA == null || leftLCA == null) {
-						stack.push(null);
-						continue;
-					}
-					TNode lca = lcaLookup.getLCA(leftLCA, rightLCA);
-					stack.push(lca);
-					if (lca == leftLCA || lca == rightLCA) {
-						// LCA in stTree dominates gtNode in gene tree
-						duplications++;
-						if (lca == leftLCA && lca == rightLCA) {
-							losses += 0;
-						} else {
-							losses += (lca == leftLCA) ?
-										d(rightLCA,lca) + 1:
-										d(leftLCA,lca) + 1;
-						}
-					} else {
-						losses += (d(rightLCA,lca) + d(leftLCA,lca));
-					}
-				}
-			}
-			TNode rootLCA = stack.pop();;
-			losses += d(rootLCA,st.getRoot()) + (rootLCA == st.getRoot()?0:1);
+			int[] res = calc(gtTree,lcaLookup, this.st);
+			duplications += res[0];
+			losses += res[1];
+			
+			STITree hmst = new STITree(this.st);
+			//hmst.constrainByLeaves(Arrays.asList(gtTree.getLeaves()));
+			SchieberVishkinLCA hmlcaLookup = new SchieberVishkinLCA(hmst);
+			int[] res2 = calc(gtTree,hmlcaLookup, hmst);
+			
+			lossesstd += res2[2];
 		}
 		System.out.println("Total number of duplications is: "+duplications);
-		System.out.println("Total number of losses is: "+losses);
-		System.out.println("Total number of duploss is: " + (losses+duplications));
-		System.out.println("Total weighted (wd = "+this.wd+") number of duploss is: " + (losses+wd*duplications));
+		System.out.println("Total number of losses (bd) is: "+losses);
+		System.out.println("Total number of losses (std) is: "+lossesstd);
+		System.out.println("Total number of duploss (bd) is: " + (losses+duplications));
+		System.out.println("Total number of duploss (st) is: " + (lossesstd+duplications));
+		System.out.println("Total weighted (wd = "+this.DLbdWeigth+") loss is: " + (lossesstd + this.DLbdWeigth*(losses-lossesstd)));
 	}
 
 	private int d (TNode down, TNode upp) {
@@ -588,8 +605,7 @@ public class MGDInference_DP {
 						 "\t                 Alternatively, two reqular expressions for automatic name conversion (optional)");
 		System.out
 				.println("\t-o species tree file: The file to store the species tree. (optional)");
-		System.out.println("\t-dl or -dll optimize duplications and losses. Use -dl for homomorphic definition, and -dll for ``original'' definition.");
-		System.out.println("\t-wd (Default = 1) The weight of duplication cost relative to loss cost (a floating point number).");
+		System.out.println("\t-dl N: optimize duplications and losses. Use -dl 0 for standard (homomorphic) definition, and -dl 1 for ``bd'' definition. Any value in between weights the impact of missing taxa on the tree.");
 		System.out.println("\t-xt find the exact solution by looking at all clusters.");
 		//System.out.println("\t-u treat input gene trees as unrooted (Not implemented!)");
 		System.out.println("\t-ex provide extra trees to add to set of STBs searched");
