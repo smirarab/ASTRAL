@@ -91,7 +91,10 @@ public class DuplicationWeightCounter {
 		return e;
 	}
 
-	int calculateDLoClusterCost(STITreeCluster cluster, List<Tree> trees) {
+	/*
+	 * Calculates the cost of a cluster based on the standard definition
+	 * */
+	int calculateDLstdClusterCost(STITreeCluster cluster, List<Tree> trees) {
 		/*
 		 * if (XLweights.containsKey(cluster)) { return XLweights.get(cluster);
 		 * }
@@ -127,13 +130,12 @@ public class DuplicationWeightCounter {
 
 	double computeTreeSTBipartitions(MGDInference_DP inference) {
 
-		double unweighedConstant = 0;
+		double unweigthedConstant = 0;
 		double weightedConstant = 0;
 		int k = inference.trees.size();
 		String[] leaves = stTaxa;
 		int n = leaves.length;
-		boolean duploss = (inference.optimizeDuploss == 3);
-		boolean hm = inference.HomomorphicDL;
+		boolean duploss = (inference.optimizeDuploss == 3);		
 
 		geneTreeSTBCount = new HashMap<STBipartition, Integer>(k * n);
 		geneTreeInvalidSTBCont = new HashMap<AbstractMap.SimpleEntry<STITreeCluster, STITreeCluster>, Integer>();
@@ -163,10 +165,10 @@ public class DuplicationWeightCounter {
 			treeAlls.add(allInducedByGT);
 			int allInducedByGTSize = allInducedByGT.getClusterSize();
 
-			unweighedConstant += duploss && hm ? 
+			weightedConstant += duploss ? 
 					2 * (allInducedByGTSize - 1) : 0;
 					
-			weightedConstant += (tr.getLeafCount() - 1);
+			unweigthedConstant += (tr.getLeafCount() - 1);
 
 			Map<TNode, STITreeCluster> nodeToSTCluster = new HashMap<TNode, STITreeCluster>(n);
 			// Map<TNode,STITreeCluster> nodeToGTCluster = new HashMap<TNode,
@@ -291,12 +293,12 @@ public class DuplicationWeightCounter {
 				geneTreeSTBCount.size() * 2);
 		// System.err.println("sigma n is "+sigmaN);
 
-		if (inference.wd == -1) {
-			inference.wd = (k*n) / (weightedConstant + k + 0.0D);
-			System.out.println("Estimated wd = " + inference.wd);
+		if (inference.DLbdWeigth == -1) {			
+			inference.DLbdWeigth = (weightedConstant + 2*k + 0.0D) / 2*(k*n);
+			System.out.println("Estimated bd weight = " + inference.DLbdWeigth);
 		}
 			
-		return (unweighedConstant + inference.wd * weightedConstant);
+		return (unweigthedConstant + (1 - inference.DLbdWeigth) * weightedConstant);
 	}
 
 	void addAllPossibleSubClusters(STITreeCluster cluster, int size) {
