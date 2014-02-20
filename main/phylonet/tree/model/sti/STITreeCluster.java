@@ -1,41 +1,31 @@
 package phylonet.tree.model.sti;
 
+import phylonet.coalescent.GlobalMaps;
 import phylonet.util.BitSet;
+
 import java.util.Arrays;
 import java.util.List;
 
 
 public class STITreeCluster
 {
-  protected String[] _taxa;
+  //protected String[] _taxa;
   protected BitSet _cluster;
 
-  public STITreeCluster(String[] taxa)
+  public STITreeCluster()
   {
-    if ((taxa == null) || (taxa.length == 0)) {
-      System.err.println("Invalid cluster");
-
-      this._taxa = null;
-      this._cluster = null;
-      return;
-    }
-
-    this._taxa = taxa;
-    this._cluster = new BitSet(taxa.length);
+    this._cluster = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
   }
 
   public STITreeCluster(STITreeCluster tc)
   {
-    assert ((tc._taxa != null) && (tc._taxa.length > 0));
-
-    this._taxa = tc._taxa;
-    this._cluster = new BitSet(this._taxa.length);
+    this._cluster = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
     this._cluster.or(tc._cluster);    
   }
 
-  public String[] getTaxa() {
-    return this._taxa;
-  }
+//  public String[] getTaxa() {
+//    return this._taxa;
+//  }
 
   public void setCluster(BitSet c)
   {
@@ -57,13 +47,11 @@ public class STITreeCluster
 
   public String[] getClusterLeaves()
   {
-    assert ((this._taxa != null) && (this._taxa.length > 0));
-
     String[] cl = new String[this._cluster.cardinality()];
     int c = 0;
     for (int i = 0; i < this._cluster.length(); i++) {
       if (this._cluster.get(i)) {
-        cl[(c++)] = this._taxa[i];
+        cl[(c++)] = GlobalMaps.taxonIdentifier.getTaxonName(i);
       }
     }
 
@@ -72,38 +60,24 @@ public class STITreeCluster
 
   public void addLeaf(String l)
   {
-    int i = -1;
-    for (i = 0; i < this._taxa.length; i++) {
-      if (l.equals(this._taxa[i]))
-      {
-        break;
-      }
-    }
-    if (i < this._taxa.length)
-      this._cluster.set(i);
-    else
-    	throw new RuntimeException(l +" not found in the taxon list");
+    addLeaf(GlobalMaps.taxonIdentifier.taxonId(l));
+  }
+  
+  public void addLeaf(int i){
+	  if (i < GlobalMaps.taxonIdentifier.taxonCount())
+	      this._cluster.set(i);
+	    else
+	    	throw new RuntimeException(i +" above the length");
   }
   
   public void removeLeaf(String l)
   {
-    int i = -1;
-    for (i = 0; i < this._taxa.length; i++) {
-      if (l.equals(this._taxa[i]))
-      {
-        break;
-      }
-    }
-    if (i < this._taxa.length)
-      this._cluster.clear(i);
-    else
-    	throw new RuntimeException(l +" not found in the taxon list");
+      this._cluster.clear(GlobalMaps.taxonIdentifier.taxonId(l));
   }
 
   public boolean equals(Object o)
   {
-    assert ((this._taxa != null) && (this._taxa.length > 0));
-    
+      
     if (!(o instanceof STITreeCluster)) {
       return false;
     }
@@ -120,13 +94,11 @@ public class STITreeCluster
   
   public int hashCode()
   {
-    return this._cluster.hashCode() + this._taxa.hashCode();
+    return this._cluster.hashCode() + GlobalMaps.taxonIdentifier.getTaxonList().hashCode();
   }
 
   public boolean isCompatible(STITreeCluster tc)
   {
-    assert ((this._taxa != null) && (this._taxa.length > 0));
-
     if ((tc == null) || (tc._cluster == null)) {
       System.err.println("Cluster is null. The function returns false.");
       return false;
@@ -144,8 +116,6 @@ public class STITreeCluster
 
   public boolean isDisjoint(STITreeCluster tc)
   {
-    assert ((this._taxa != null) && (this._taxa.length > 0));
-
     if ((tc == null) || (tc._cluster == null)) {
       System.err.println("Cluster is null. The function returns false.");
       return false;
@@ -155,9 +125,7 @@ public class STITreeCluster
   }
 
   public boolean isDisjoint(BitSet tc) {
-    assert ((this._taxa != null) && (this._taxa.length > 0));
-
-    if (tc == null) {
+     if (tc == null) {
       System.err.println("Cluster is null. The function returns false.");
       return false;
     }
@@ -170,7 +138,6 @@ public class STITreeCluster
 
   public boolean isComplementary(STITreeCluster tc)
   {
-    assert ((this._taxa != null) && (this._taxa.length > 0));
 
     if ((tc == null) || (tc._cluster == null)) {
       System.err.println("Cluster is null. The function returns false.");
@@ -183,19 +150,12 @@ public class STITreeCluster
     BitSet temp2 = (BitSet)this._cluster.clone();
     temp2.or(tc._cluster);
 
-    return (temp1.cardinality() == 0) && (temp2.cardinality() == this._taxa.length);
+    return (temp1.cardinality() == 0) && (temp2.cardinality() == GlobalMaps.taxonIdentifier.taxonCount());
   }
 
   public boolean containsLeaf(String l)
   {
-	int i = 0;
-    for (; i < this._taxa.length; i++) {
-      if (this._taxa[i].equals(l))
-      {
-        break;
-      }
-    }
-    return this._cluster.get(i);
+    return this._cluster.get(GlobalMaps.taxonIdentifier.taxonId(l));
   }
 
   public boolean containsCluster(STITreeCluster tc)
@@ -232,9 +192,9 @@ public class STITreeCluster
   }
 
   public STITreeCluster complementaryCluster() {
-    STITreeCluster cc = new STITreeCluster(this._taxa);
+    STITreeCluster cc = new STITreeCluster();
     BitSet bs = (BitSet)this._cluster.clone();
-    bs.flip(0,this._taxa.length);
+    bs.flip(0,GlobalMaps.taxonIdentifier.taxonCount());
 /*    for (int i = 0; i < this._taxa.length; i++) {
       if (bs.get(i)) {
         bs.set(i, false);
@@ -261,11 +221,9 @@ public class STITreeCluster
 	
     out.append(this._cluster);
     out.append(" ");
-    out.append(this._taxa);
+    out.append(GlobalMaps.taxonIdentifier.getTaxonList());
     out.append(" ");
-    out.append(this._taxa.length);
-    out.append(" ");
-    out.append(Arrays.toString(this._taxa));
+    out.append(GlobalMaps.taxonIdentifier.taxonCount());
     return out.toString();
   }
   public String toString()
