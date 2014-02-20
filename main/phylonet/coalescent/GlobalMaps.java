@@ -36,26 +36,29 @@ public class GlobalMaps{
 	public static class TaxonIdentifier {
 		private HashMap<String, Integer> nameToId = new HashMap<String, Integer>();
 		private List<String> idToName = new ArrayList<String>();
-		
+		private int taxonCount = 0;
 		
 		public Integer taxonId(String name) {
-			if (!nameToId.containsKey(name)){
-				nameToId.put(name,idToName.size());
+			Integer a = nameToId.get(name);
+			if (a ==  null){
+				nameToId.put(name,taxonCount);
 				idToName.add(name);
+				a = taxonCount;
+				taxonCount ++;
 			}
-			return nameToId.get(name);
+			return a;
 		}
 		
 		public String getTaxonName(Integer id) {
 			return idToName.get(id);
 		}
 		public int taxonCount(){
-			return idToName.size();
+			return taxonCount;
 		}
 		
-		public List<String> getTaxonList() {
+/*		public List<String> getTaxonList() {
 			return idToName;
-		}
+		}*/
 	}
 	
 	public static TaxonIdentifier taxonIdentifier = new TaxonIdentifier();

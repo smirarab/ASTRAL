@@ -4,10 +4,11 @@ import phylonet.coalescent.GlobalMaps;
 import phylonet.util.BitSet;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 
-public class STITreeCluster
+public class STITreeCluster implements Iterable<Integer>
 {
   //protected String[] _taxa;
   protected BitSet _cluster;
@@ -57,11 +58,11 @@ public class STITreeCluster
 
     return cl;
   }
-
-  public void addLeaf(String l)
-  {
-    addLeaf(GlobalMaps.taxonIdentifier.taxonId(l));
-  }
+  
+//  public void addLeaf(String l)
+//  {
+//    addLeaf(GlobalMaps.taxonIdentifier.taxonId(l));
+//  }
   
   public void addLeaf(int i){
 	  if (i < GlobalMaps.taxonIdentifier.taxonCount())
@@ -94,7 +95,7 @@ public class STITreeCluster
   
   public int hashCode()
   {
-    return this._cluster.hashCode() + GlobalMaps.taxonIdentifier.getTaxonList().hashCode();
+    return this._cluster.hashCode() ;
   }
 
   public boolean isCompatible(STITreeCluster tc)
@@ -221,7 +222,7 @@ public class STITreeCluster
 	
     out.append(this._cluster);
     out.append(" ");
-    out.append(GlobalMaps.taxonIdentifier.getTaxonList());
+    //out.append(GlobalMaps.taxonIdentifier.getTaxonList());
     out.append(" ");
     out.append(GlobalMaps.taxonIdentifier.taxonCount());
     return out.toString();
@@ -269,5 +270,32 @@ public class STITreeCluster
 			return STITreeCluster.this.hashCode();
 		}
 
+	}
+
+    class ClusterIterator implements  Iterator{
+    	
+    	int i = STITreeCluster.this._cluster.nextSetBit(0);
+		@Override
+		public boolean hasNext() {
+			return i >= 0;
+		}
+
+		@Override
+		public Integer next() {
+			int r = i;
+			i = STITreeCluster.this._cluster.nextSetBit(i+1);
+			return r;
+		}
+
+		@Override
+		public void remove() {
+			throw new RuntimeException("Not supported");
+			
+		}
+    	
+    }
+	@Override
+	public Iterator<Integer> iterator() {
+		return new ClusterIterator();
 	}
 }

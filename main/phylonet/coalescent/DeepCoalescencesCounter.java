@@ -387,12 +387,11 @@ public class DeepCoalescencesCounter {
 
 	public static int getClusterCoalNum_rooted(Tree tr, STITreeCluster cluster) {
 		Map map = new HashMap();
-		List taxa = GlobalMaps.taxonIdentifier.getTaxonList();
-
+		
 		int count = 0;
 		for (TNode node : tr.postTraverse()) {
 			if (node.isLeaf()) {
-				int index = taxa.indexOf(node.getName());
+				int index = GlobalMaps.taxonIdentifier.taxonId(node.getName());
 				BitSet bs = new BitSet();
 
 				bs.set(index);
@@ -436,8 +435,8 @@ public class DeepCoalescencesCounter {
 			taxalist.add(leaf);
 		}
 		STITreeCluster concluster = new STITreeCluster();
-		for (String leaf : cluster.getClusterLeaves()) {
-			if (taxalist.contains(leaf)) {
+		for (Integer leaf : cluster) {
+			if (taxalist.contains(GlobalMaps.taxonIdentifier.getTaxonName(leaf))) {
 				concluster.addLeaf(leaf);
 			}
 		}
@@ -524,14 +523,12 @@ public class DeepCoalescencesCounter {
 
 	public static int getClusterCoalNum_rootedMap(Tree tr, STITreeCluster cluster) {
 		Map map = new HashMap();
-		List taxa = GlobalMaps.taxonIdentifier.getTaxonList();
-
 		int count = 0;
 		for (TNode node : tr.postTraverse()) {
 			if (node.isLeaf()) {
 				String stTaxon = (String) GlobalMaps.taxonNameMap.getTaxonName(node.getName());
-				int index = taxa.indexOf(stTaxon);
-				BitSet bs = new BitSet(taxa.size());
+				int index = GlobalMaps.taxonIdentifier.taxonId(stTaxon);
+				BitSet bs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
 				bs.set(index);
 				if (cluster.containsCluster(bs)) {
 					count++;
@@ -539,7 +536,7 @@ public class DeepCoalescencesCounter {
 
 				map.put(node, bs);
 			} else {
-				BitSet bs = new BitSet(taxa.size());
+				BitSet bs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
 				int intersect = 0;
 				int childCount = node.getChildCount();
 				for (TNode child : node.getChildren()) {
@@ -579,7 +576,7 @@ public class DeepCoalescencesCounter {
 					|| (!cluster.containsLeaf((String) GlobalMaps.taxonNameMap
 							.getTaxonName(n.getName()))))
 				continue;
-			concluster.addLeaf(n.getName());
+			concluster.addLeaf(GlobalMaps.taxonIdentifier.taxonId(n.getName()));
 		}
 
 		Object coveragelist = new ArrayList();
