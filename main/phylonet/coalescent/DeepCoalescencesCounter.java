@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
-import phylonet.coalescent.MGDInference_DP.TaxonNameMap;
 import phylonet.network.io.ExNewickException;
 import phylonet.network.io.ExNewickReader;
 import phylonet.network.model.NetNode;
@@ -235,7 +234,7 @@ public class DeepCoalescencesCounter {
 					bs.or(childCluster);
 				}
 				map.put(node, bs);
-				STITreeCluster c = new STITreeCluster(taxa);
+				STITreeCluster c = new STITreeCluster();
 				c.setCluster(bs);
 				if (c.getClusterSize() == taxa.length) {
 					((STINode) node).setData(Integer.valueOf(0));
@@ -288,7 +287,7 @@ public class DeepCoalescencesCounter {
 				}
 				map.put(node, bs);
 			}
-			STITreeCluster c = new STITreeCluster(stTaxa);
+			STITreeCluster c = new STITreeCluster();
 			c.setCluster(bs);
 			if (c.getClusterSize() == stTaxa.length) {
 				((STINode) node).setData(Integer.valueOf(0));
@@ -371,15 +370,15 @@ public class DeepCoalescencesCounter {
 		return weight;
 	}
 
-	public static int getClusterCoalNum(List<Tree> trees,
-			STITreeCluster cluster, TaxonNameMap taxonNameMap, boolean rooted) {
+	public static int getClusterCoalNumMap(List<Tree> trees,
+			STITreeCluster cluster, boolean rooted) {
 		int weight = 0;
 
 		for (Tree tr : trees) {
 			if (rooted) {
-				weight += getClusterCoalNum_rooted(tr, cluster, taxonNameMap);
+				weight += getClusterCoalNum_rootedMap(tr, cluster);
 			} else {
-				weight += getClusterCoalNum_unrooted(tr, cluster, taxonNameMap);
+				weight += getClusterCoalNum_unrootedMap(tr, cluster);
 			}
 		}
 
@@ -388,11 +387,7 @@ public class DeepCoalescencesCounter {
 
 	public static int getClusterCoalNum_rooted(Tree tr, STITreeCluster cluster) {
 		Map map = new HashMap();
-		List taxa = new LinkedList();
-
-		for (String t : cluster.getTaxa()) {
-			taxa.add(t);
-		}
+		List taxa = GlobalMaps.taxonIdentifier.getTaxonList();
 
 		int count = 0;
 		for (TNode node : tr.postTraverse()) {
@@ -440,7 +435,7 @@ public class DeepCoalescencesCounter {
 		for (String leaf : taxa) {
 			taxalist.add(leaf);
 		}
-		STITreeCluster concluster = new STITreeCluster(taxa);
+		STITreeCluster concluster = new STITreeCluster();
 		for (String leaf : cluster.getClusterLeaves()) {
 			if (taxalist.contains(leaf)) {
 				concluster.addLeaf(leaf);
@@ -527,19 +522,14 @@ public class DeepCoalescencesCounter {
 		return Math.max(0, ((List) coveragelist).size() - 1);
 	}
 
-	public static int getClusterCoalNum_rooted(Tree tr, STITreeCluster cluster,
-			TaxonNameMap taxonNameMap) {
+	public static int getClusterCoalNum_rootedMap(Tree tr, STITreeCluster cluster) {
 		Map map = new HashMap();
-		List taxa = new LinkedList();
-
-		for (String t : cluster.getTaxa()) {
-			taxa.add(t);
-		}
+		List taxa = GlobalMaps.taxonIdentifier.getTaxonList();
 
 		int count = 0;
 		for (TNode node : tr.postTraverse()) {
 			if (node.isLeaf()) {
-				String stTaxon = (String) taxonNameMap.getTaxonName(node.getName());
+				String stTaxon = (String) GlobalMaps.taxonNameMap.getTaxonName(node.getName());
 				int index = taxa.indexOf(stTaxon);
 				BitSet bs = new BitSet(taxa.size());
 				bs.set(index);
@@ -574,8 +564,8 @@ public class DeepCoalescencesCounter {
 		return Math.max(count - 1, 0);
 	}
 
-	public static int getClusterCoalNum_unrooted(Tree tr,
-			STITreeCluster cluster, TaxonNameMap taxonNameMap) {
+	public static int getClusterCoalNum_unrootedMap(Tree tr,
+			STITreeCluster cluster) {
 		Map map = new HashMap();
 		List gtTaxalist = new ArrayList();
 		String[] gtTaxa = tr.getLeaves();
@@ -583,10 +573,10 @@ public class DeepCoalescencesCounter {
 		for (String leaf : gtTaxa) {
 			gtTaxalist.add(leaf);
 		}
-		STITreeCluster concluster = new STITreeCluster(gtTaxa);
+		STITreeCluster concluster = new STITreeCluster();
 		for (TNode n : tr.getNodes()) {
 			if ((!n.isLeaf())
-					|| (!cluster.containsLeaf((String) taxonNameMap
+					|| (!cluster.containsLeaf((String) GlobalMaps.taxonNameMap
 							.getTaxonName(n.getName()))))
 				continue;
 			concluster.addLeaf(n.getName());
