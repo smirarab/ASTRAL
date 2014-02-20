@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Set;
 
 import phylonet.coalescent.DuplicationWeightCounter.CalculateWeightTask;
-import phylonet.coalescent.MGDInference_DP.TaxonNameMap;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
@@ -65,7 +64,6 @@ public class ComputeMinCostTask {
 		boolean rooted = inference.rooted;
 		List<Tree> trees = inference.trees;
 		DuplicationWeightCounter counter = inference.counter;
-		TaxonNameMap taxonNameMap = inference.taxonNameMap;
 
 		// -2 is used to indicate it cannot be resolved
 		if (v._done == 2) {
@@ -83,13 +81,13 @@ public class ComputeMinCostTask {
 		if (clusterSize <= 1) {
 			int _el_num = -1;
 			if (inference.optimizeDuploss == 3) {
-				if (taxonNameMap == null) {
+				if (GlobalMaps.taxonNameMap == null) {
 					_el_num = DeepCoalescencesCounter.getClusterCoalNum(trees,
 							v.getCluster(), rooted);
 					// System.out.println(v + " XL is " + _el_num);
 				} else {
-					_el_num = DeepCoalescencesCounter.getClusterCoalNum(trees,
-							v.getCluster(), taxonNameMap, rooted);
+					_el_num = DeepCoalescencesCounter.getClusterCoalNumMap(trees,
+							v.getCluster(), rooted);
 				}
 			} else {
 				_el_num = 0;
@@ -182,9 +180,9 @@ public class ComputeMinCostTask {
 							boolean pDisJoint = smallV.getCluster().isDisjoint(treeAll);
 							boolean qDisJoint = bigv.getCluster().isDisjoint(treeAll);
 							if (pDisJoint || qDisJoint) {
-								someSideMissingXLCount +=  taxonNameMap == null ?
+								someSideMissingXLCount +=  GlobalMaps.taxonNameMap == null ?
 									DeepCoalescencesCounter.getClusterCoalNum_rooted(tree, this.v.getCluster()):
-									DeepCoalescencesCounter.getClusterCoalNum_rooted(tree, this.v.getCluster(),taxonNameMap);
+									DeepCoalescencesCounter.getClusterCoalNum_rootedMap(tree, this.v.getCluster());
 							}
 							if (!pDisJoint && !qDisJoint) {
 								bothSidesPresentGeneCount += 1;

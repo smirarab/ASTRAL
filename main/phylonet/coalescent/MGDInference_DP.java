@@ -30,6 +30,7 @@ import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.tree.util.Collapse;
 import phylonet.tree.util.Trees;
 import phylonet.util.BitSet;
+import phylonet.coalescent.GlobalMaps.*;
 
 public class MGDInference_DP {
 	static boolean _print = true;
@@ -46,35 +47,9 @@ public class MGDInference_DP {
 	//Map<STITreeCluster, Vertex> clusterToVertex;
 	double sigmaNs;
 	DuplicationWeightCounter counter;
-	TaxonNameMap taxonNameMap = null;
 	private boolean exactSolution;
 	private STITree st = null;
 	
-	
-	class TaxonNameMap {
-		Map<String, String> taxonMap;
-		String pattern = null;
-		String rep = null;
-		public TaxonNameMap (Map<String, String> taxonMap) {
-			this.taxonMap = taxonMap;
-		}
-		public TaxonNameMap (String pattern, String rep) {
-			this.pattern = pattern;
-			this.rep = rep;
-		}
-		public String getTaxonName(String geneName) {
-			if (geneName == null || "".equals(geneName)) {
-				throw new RuntimeException("Empty name?");
-			}
-			if (pattern != null) {
-				String s = geneName.replaceAll(pattern,rep);
-				//System.err.println("Mapped " + geneName + " to " + s);
-				return s;
-			} else {
-				return taxonMap.get(geneName);
-			}
-		}		
-	}
 
 	public MGDInference_DP(List<Tree> trees, List<Tree> extraTrees,
 			Map<String, String> taxonMap) {
@@ -82,7 +57,7 @@ public class MGDInference_DP {
 		this.trees = trees;
 		this.extraTrees = extraTrees;
 		if (taxonMap != null) {
-			this.taxonNameMap = new TaxonNameMap(taxonMap);
+			GlobalMaps.taxonNameMap = new TaxonNameMap(taxonMap);
 		}
 	}
 
@@ -91,7 +66,7 @@ public class MGDInference_DP {
 		super();
 		this.trees = trees;
 		this.extraTrees = extraTrees;
-		this.taxonNameMap = new TaxonNameMap (pattern, rep);
+		GlobalMaps.taxonNameMap = new TaxonNameMap (pattern, rep);
 	}
 	
 	public static void main(String[] args) {
@@ -513,13 +488,13 @@ public class MGDInference_DP {
 		Stack<TNode> stack = new Stack<TNode>();			
 		for (TNode gtNode : gtTree.postTraverse()) {
 			if (gtNode.isLeaf()) {
-			    	TNode node = stTree.getNode(this.taxonNameMap !=null ? 
-					this.taxonNameMap.getTaxonName(gtNode.getName()):
+			    	TNode node = stTree.getNode(GlobalMaps.taxonNameMap !=null ? 
+					GlobalMaps.taxonNameMap.getTaxonName(gtNode.getName()):
 						gtNode.getName());
 			    	if (node == null) {
 					throw new RuntimeException("Leaf " + gtNode.getName() +
 						" was not found in species tree; mapped as: "+
-						this.taxonNameMap.getTaxonName(gtNode.getName())); 
+						GlobalMaps.taxonNameMap.getTaxonName(gtNode.getName())); 
 			    	}
 			    	stack.push(node);
 				//System.out.println("stack: " +this.taxonNameMap.getTaxonName(gtNode.getName()));
@@ -635,8 +610,8 @@ public class MGDInference_DP {
 		if ((trees == null) || (trees.size() == 0)) {
 			throw new IllegalArgumentException("empty or null list of trees");
 		}
-		if (taxonNameMap != null && taxonNameMap.taxonMap != null) {
-			Map<String,String> taxonMap = taxonNameMap.taxonMap;
+		if (GlobalMaps.taxonNameMap != null && GlobalMaps.taxonNameMap.taxonMap != null) {
+			Map<String,String> taxonMap = GlobalMaps.taxonNameMap.taxonMap;
 			String error = Trees.checkMapping(trees, taxonMap);
 			if (error != null) {
 				throw new RuntimeException("Gene trees have a leaf named "
@@ -660,8 +635,10 @@ public class MGDInference_DP {
 			}
 			for (int i = 0; i < stTaxa.length; i++) {
 				stTaxa[i] = ((String) ((List) temp2).get(i));
+				GlobalMaps.taxonIdentifier.taxonId(stTaxa[i]);
+				
 			}
-		} else if (taxonNameMap != null && taxonNameMap.taxonMap == null) {
+		} else if (GlobalMaps.taxonNameMap != null && GlobalMaps.taxonNameMap.taxonMap == null) {
 			
 			Set<String> taxalist = new HashSet<String>();
 			Set<String> genelist = new HashSet<String>();
@@ -670,7 +647,7 @@ public class MGDInference_DP {
 				for (int i = 0; i < leaves.length; i++) {
 					String leaf = leaves[i];				
 					genelist.add(leaf);
-					taxalist.add(taxonNameMap.getTaxonName(leaf));
+					taxalist.add(GlobalMaps.taxonNameMap.getTaxonName(leaf));
 				}
 			}			
 
@@ -680,6 +657,7 @@ public class MGDInference_DP {
 			int index = 0;
 			for (String taxon : taxalist) {
 				stTaxa[(index++)] = taxon;
+				GlobalMaps.taxonIdentifier.taxonId(taxon);
 			}
 			index = 0;
 			for (String gene : genelist) {
@@ -687,7 +665,7 @@ public class MGDInference_DP {
 			}
 		} else {
 			cd = null;
-			if (rooted & extraTrees == null & taxonNameMap == null && false) {
+			if (rooted & extraTrees == null & GlobalMaps.taxonNameMap == null && false) {
 				cd = doCollapse(trees);
 			}
 
@@ -705,6 +683,7 @@ public class MGDInference_DP {
 			int index = 0;
 			for (String taxon : taxalist) {
 				stTaxa[(index++)] = taxon;
+				GlobalMaps.taxonIdentifier.taxonId(taxon);
 			}
 			gtTaxa = stTaxa;
 		}
@@ -716,7 +695,7 @@ public class MGDInference_DP {
 
 		List<Solution> solutions;
 
-		counter = new DuplicationWeightCounter(gtTaxa, stTaxa, rooted,taxonNameMap, clusters);
+		counter = new DuplicationWeightCounter(gtTaxa, stTaxa, rooted, clusters);
 
 		double sigmaN = counter.computeTreeSTBipartitions(this);
 
@@ -746,9 +725,9 @@ public class MGDInference_DP {
 
 		sigmaNs = sigmaN ;
 
-		solutions = findTreesByDP(stTaxa, counter, trees, taxonNameMap,clusters);
+		solutions = findTreesByDP(stTaxa, counter, trees, GlobalMaps.taxonNameMap,clusters);
 
-		if (taxonNameMap == null && rooted && extraTrees == null && false) {
+		if (GlobalMaps.taxonNameMap == null && rooted && extraTrees == null && false) {
 			restoreCollapse(solutions, cd);
 		}
 
@@ -780,13 +759,13 @@ public class MGDInference_DP {
 
 	    MutableTree tree = new STITree();
 
-	    String[] taxa = ((STITreeCluster)clusters.get(0)).getTaxa();
-	    for (int i = 0; i < taxa.length; i++) {
-	      tree.getRoot().createChild(taxa[i]);
+	    //String[] taxa = ((STITreeCluster)clusters.get(0)).getTaxa();
+	    for (int i = 0; i < GlobalMaps.taxonIdentifier.taxonCount(); i++) {
+	      tree.getRoot().createChild(GlobalMaps.taxonIdentifier.getTaxonName(i));
 	    }
 
 	    for (STITreeCluster tc : clusters) {
-	      if ((tc.getClusterSize() <= 1) || (tc.getClusterSize() == tc.getTaxa().length))
+	      if ((tc.getClusterSize() <= 1) || (tc.getClusterSize() == GlobalMaps.taxonIdentifier.taxonCount()))
 	      {
 	        continue;
 	      }
@@ -803,15 +782,12 @@ public class MGDInference_DP {
 
 	      Object movedChildren = new LinkedList();
 	      for (TNode child : lca.getChildren()) {
-	        BitSet childCluster = new BitSet(taxa.length);
+	        BitSet childCluster = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
 	        for (TNode cl : child.getLeaves()) {
-	          for (int i = 0; i < taxa.length; i++) {
-	            if (taxa[i].equals(cl.getName())) {
-	              childCluster.set(i);
-	              break;
-	            }
-	          }
+	          int i = GlobalMaps.taxonIdentifier.taxonId(cl.getName());
+	          childCluster.set(i);
 	        }
+	        
 
 	        BitSet temp = (BitSet)childCluster.clone();
 	        temp.and(tc.getBitSet());
@@ -953,7 +929,7 @@ public class MGDInference_DP {
 				((Map) map).put(node, bs);
 			}
 //            System.err.println("Node: "+node);
-			STITreeCluster c = new STITreeCluster(stTaxa);
+			STITreeCluster c = new STITreeCluster();
 			c.setCluster(bs);
 //            System.err.println("m[0]: "+((STITreeCluster)minClusters.get(0)).toString2());
 //            System.err.println("C: "+c.toString2());

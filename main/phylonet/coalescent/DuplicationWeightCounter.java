@@ -19,7 +19,6 @@ import phylonet.tree.model.sti.STINode;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.util.BitSet;
-import phylonet.coalescent.MGDInference_DP.TaxonNameMap;
 
 public class DuplicationWeightCounter {
 
@@ -34,8 +33,6 @@ public class DuplicationWeightCounter {
 
 	private boolean rooted;
 
-	private TaxonNameMap taxonNameMap;
-
 	private ClusterCollection clusters;
 
 	// Used for dup loss calculations
@@ -44,19 +41,18 @@ public class DuplicationWeightCounter {
 	HashMap<STBipartition, Set<STBipartition>> alreadyWeigthProcessed = new HashMap<STBipartition, Set<STBipartition>>();
 
 	public DuplicationWeightCounter(String[] gtTaxa, String[] stTaxa,
-			boolean rooted, TaxonNameMap taxonNameMap,
+			boolean rooted,
 			ClusterCollection clusters2) {
 		this.gtTaxa = gtTaxa;
 		this.stTaxa = stTaxa;
 		this.rooted = rooted;
-		this.taxonNameMap = taxonNameMap;
 		this.clusters = clusters2;
 	}
 
 	private String getSpeciesName(String geneName) {
 		String stName = geneName;
-		if (taxonNameMap != null) {
-			stName = taxonNameMap.getTaxonName(geneName);
+		if (GlobalMaps.taxonNameMap != null) {
+			stName = GlobalMaps.taxonNameMap.getTaxonName(geneName);
 		}
 		return stName;
 	}
@@ -78,12 +74,12 @@ public class DuplicationWeightCounter {
 				continue;
 			}
 			if (El.get(k) == null) {
-				if (taxonNameMap == null) {
+				if (GlobalMaps.taxonNameMap == null) {
 					El.set(k, DeepCoalescencesCounter.getClusterCoalNum_rooted(
 							tr, cluster));
 				} else {
-					El.set(k, DeepCoalescencesCounter.getClusterCoalNum_rooted(
-							tr, cluster, taxonNameMap));
+					El.set(k, DeepCoalescencesCounter.getClusterCoalNum_rootedMap(
+							tr, cluster));
 				}
 			}
 			e += El.get(k);
@@ -143,19 +139,16 @@ public class DuplicationWeightCounter {
 		// needed for fast version
 		// clusterToSTBs = new HashMap<STITreeCluster, Set<STBipartition>>(k*n);
 
-		STITreeCluster all = new STITreeCluster(stTaxa);
-		String as[];
-		int j = (as = stTaxa).length;
-		for (int i = 0; i < j; i++) {
-			String t = as[i];
-			all.addLeaf(t);
+		STITreeCluster all = new STITreeCluster();
+		for (int i = 0; i < stTaxa.length; i++) {
+			all.addLeaf(i);
 		}
 		addToClusters(all, leaves.length, false);
 
 		for (int t = 0; t < inference.trees.size(); t++) {
 			Tree tr = inference.trees.get(t);
 
-			STITreeCluster allInducedByGT = new STITreeCluster(stTaxa);
+			STITreeCluster allInducedByGT = new STITreeCluster();
 
 			String[] gtLeaves = tr.getLeaves();
 			for (int i = 0; i < gtLeaves.length; i++) {
@@ -177,13 +170,9 @@ public class DuplicationWeightCounter {
 			for (TNode node : tr.postTraverse()) {				
 				// System.err.println("Node is:" + node);
 				if (node.isLeaf()) {
-					String nodeName = node.getName();
-
-					// STITreeCluster gtCluster = new STITreeCluster(gtLeaves);
-					// gtCluster.addLeaf(nodeName);
-
-					nodeName = getSpeciesName(nodeName);
-					STITreeCluster cluster = new STITreeCluster(leaves);
+					String nodeName = getSpeciesName(node.getName());
+					
+					STITreeCluster cluster = new STITreeCluster();
 					cluster.addLeaf(nodeName);
 
 					addToClusters(cluster, 1, true);
@@ -212,7 +201,7 @@ public class DuplicationWeightCounter {
 					// STITreeCluster gtCluster = new STITreeCluster(gtLeaves);
 					// gtCluster.setCluster(gbs);
 
-					STITreeCluster cluster = new STITreeCluster(leaves);
+					STITreeCluster cluster = new STITreeCluster();
 					cluster.setCluster((BitSet) bs.clone());
 
 					int size = cluster.getClusterSize();
@@ -311,7 +300,7 @@ public class DuplicationWeightCounter {
 			}
 			bs.set(tsb);
 			bs.clear(0, tsb);
-			STITreeCluster c = new STITreeCluster(cluster.getTaxa());
+			STITreeCluster c = new STITreeCluster();
 			c.setCluster((BitSet) bs.clone());
 			addToClusters(c, c.getClusterSize(), false);
 		}
@@ -346,7 +335,7 @@ public class DuplicationWeightCounter {
 					String treeName = node.getName();
 					String nodeName = getSpeciesName(treeName);
 
-					STITreeCluster tb = new STITreeCluster(leaves);
+					STITreeCluster tb = new STITreeCluster();
 					tb.addLeaf(nodeName);
 
 					nodeToSTCluster.put(node, tb);
@@ -367,7 +356,7 @@ public class DuplicationWeightCounter {
 						bs.or(nodeToSTCluster.get(child).getBitSet());
 					}
 
-					STITreeCluster cluster = new STITreeCluster(leaves);
+					STITreeCluster cluster = new STITreeCluster();
 					cluster.setCluster((BitSet) bs.clone());
 
 					addToClusters(cluster, cluster.getClusterSize(), false);
@@ -481,12 +470,12 @@ public class DuplicationWeightCounter {
 
 			BitSet l_Minus_r = (BitSet) and.clone();
 			l_Minus_r.xor(l_cluster.getBitSet());
-			STITreeCluster lmr = new STITreeCluster(stTaxa);
+			STITreeCluster lmr = new STITreeCluster();
 			lmr.setCluster(l_Minus_r);
 
 			BitSet r_Minus_l = (BitSet) and.clone();
 			r_Minus_l.xor(r_cluster.getBitSet());
-			STITreeCluster rml = new STITreeCluster(stTaxa);
+			STITreeCluster rml = new STITreeCluster();
 			rml.setCluster(r_Minus_l);
 
 			if (!rml.getBitSet().isEmpty()) {
@@ -512,7 +501,7 @@ public class DuplicationWeightCounter {
 
 	void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees) {
 
-		if (rooted && taxonNameMap == null && stTaxa.length > trees.size()) {
+		if (rooted && GlobalMaps.taxonNameMap == null && stTaxa.length > trees.size()) {
 			calculateWeightsByLCA(trees, trees);
 			if (extraTrees != null) {
 				calculateWeightsByLCA(extraTrees, trees);
@@ -665,7 +654,7 @@ public class DuplicationWeightCounter {
 	 * String[] leaves){ //System.err.print("Tree complementary of "+gtCluster);
 	 * STITreeCluster newGTCluster = gtCluster.complementaryCluster();
 	 * //System.err.println(" is: "+newGTCluster.getCluster()); STITreeCluster
-	 * newSTCluster = new STITreeCluster(leaves); for (String s :
+	 * newSTCluster = new STITreeCluster(); for (String s :
 	 * newGTCluster.getClusterLeaves()) {
 	 * newSTCluster.addLeaf(getSpeciesName(s)); }
 	 * //System.err.println("Tree complementary of "
