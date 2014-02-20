@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 
+import phylonet.coalescent.GlobalMaps.TaxonIdentifier;
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
@@ -153,7 +154,7 @@ public class DuplicationWeightCounter {
 			String[] gtLeaves = tr.getLeaves();
 			for (int i = 0; i < gtLeaves.length; i++) {
 				String l = gtLeaves[i];
-				allInducedByGT.addLeaf(getSpeciesName(l));
+				allInducedByGT.addLeaf(GlobalMaps.taxonIdentifier.taxonId(getSpeciesName(l)));
 			}
 			treeAlls.add(allInducedByGT);
 			int allInducedByGTSize = allInducedByGT.getClusterSize();
@@ -173,7 +174,7 @@ public class DuplicationWeightCounter {
 					String nodeName = getSpeciesName(node.getName());
 					
 					STITreeCluster cluster = new STITreeCluster();
-					cluster.addLeaf(nodeName);
+					cluster.addLeaf(GlobalMaps.taxonIdentifier.taxonId(nodeName));
 
 					addToClusters(cluster, 1, true);
 
@@ -336,7 +337,7 @@ public class DuplicationWeightCounter {
 					String nodeName = getSpeciesName(treeName);
 
 					STITreeCluster tb = new STITreeCluster();
-					tb.addLeaf(nodeName);
+					tb.addLeaf(GlobalMaps.taxonIdentifier.taxonId(nodeName));
 
 					nodeToSTCluster.put(node, tb);
 
