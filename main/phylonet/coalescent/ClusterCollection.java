@@ -16,16 +16,16 @@ public interface ClusterCollection {
 
 	boolean contains(Vertex reverse);
 
-	ClusterCollection getContainedClusters(STITreeCluster _cluster);
+	ClusterCollection getContainedClusters(STITreeCluster cluster);
 
 	Vertex getVertexForCluster(STITreeCluster cluster1);
 
 	Collection<STBipartition> getClusterResolutions();
 
 	Iterable<Set<Vertex>> getSubClusters();
-
-	void addGeneTreeSTB(STBipartition stb, int size);
-
-	Iterable<STBipartition> getContainedGeneTreeSTBs();
+//
+//	void addGeneTreeSTB(STBipartition stb, int size);
+//
+//	Iterable<STBipartition> getContainedGeneTreeSTBs();
 
 }
