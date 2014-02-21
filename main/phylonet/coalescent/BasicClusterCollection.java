@@ -8,31 +8,26 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.TreeSet;
 
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
-public class BasicClusterCollection implements ClusterCollection {
-	
-	ArrayList<Set<Vertex>> clusters;
-	HashMap<STITreeCluster, HashSet<STBipartition>> geneTreeSTBByCluster;	
-	static HashMap<STITreeCluster, Vertex> globalVertexCash = 
-			new HashMap<STITreeCluster, STITreeCluster.Vertex>();
-	
-	int topClusterLength;
+public abstract class BasicClusterCollection implements ClusterCollection{
+
+	protected ArrayList<Set<Vertex>> clusters;
+	static HashMap<STITreeCluster, Vertex> globalVertexCash = new HashMap<STITreeCluster, STITreeCluster.Vertex>();
+	protected int topClusterLength;
 	int totalcount = 0;
-	
-	public BasicClusterCollection(int len) {
+
+	protected void initialize(int len) {
 		this.topClusterLength = len;
 		 clusters = new ArrayList<Set<Vertex>>(len);
 		for (int i = 0; i <= len; i++) {
 			clusters.add(new HashSet<Vertex>());
 			//geneTreeSTBBySize.add(new HashSet<STBipartition>());
 		}
-		geneTreeSTBByCluster = new HashMap<STITreeCluster, HashSet<STBipartition>>();
 	}
-
+	
 	@Override
 	public Vertex getTopVertex() {
 		Iterator<Vertex> it = clusters.get(topClusterLength).iterator();
@@ -46,7 +41,7 @@ public class BasicClusterCollection implements ClusterCollection {
 	public int getClusterCount() {
 		return totalcount;
 	}
-	//int vertexIndex = 0;
+
 	@Override
 	public boolean addCluster(Vertex vertex, int size) {
 		// See if this vertex is available in cash
@@ -73,27 +68,24 @@ public class BasicClusterCollection implements ClusterCollection {
 	public ClusterCollection getContainedClusters(STITreeCluster cluster) {
 		//if (topClusterLength < 10)
 		//	System.out.println("Contained: "+cluster+" "+clusterToVertx.keySet());
-		BasicClusterCollection ret = new BasicClusterCollection(cluster.getClusterSize());
+		DLClusterCollection ret = new DLClusterCollection(cluster.getClusterSize());
 		int size = cluster.getClusterSize();
-		ret.addCluster(getVertexForCluster(cluster), size);
-		HashSet<STBipartition> STBs = geneTreeSTBByCluster.get(cluster);
-		if (STBs != null) {
-			ret.geneTreeSTBByCluster.put(cluster, STBs);
-		}
+		addClusterToRet(getVertexForCluster(cluster), size, ret);
+		
 		for (int i = size - 1 ; i > 0; i--) {
 			Set<Vertex> sizeClusters = clusters.get(i);
 			if (sizeClusters == null) continue;
 			for (Vertex vertex : sizeClusters) {
 				if (cluster.containsCluster(vertex.getCluster())) {
-					ret.addCluster(vertex, i);
-					STBs = geneTreeSTBByCluster.get(vertex.getCluster());
-					if (STBs != null) {						
-						ret.geneTreeSTBByCluster.put(vertex.getCluster(),STBs);
-					}
+					addClusterToRet(vertex, i, ret);
 				}
 			}
 		}
 		return ret;
+	}
+	
+	protected void addClusterToRet(Vertex vertex, int size, ClusterCollection ret) {
+		ret.addCluster(vertex, size);	
 	}
 
 	@Override
@@ -135,10 +127,10 @@ public class BasicClusterCollection implements ClusterCollection {
 	@Override
 	public Iterable<Set<Vertex>> getSubClusters() {
 		return new Iterable<Set<Vertex>>() {
-
+	
 			@Override
 			public Iterator<Set<Vertex>> iterator() {
-
+	
 				return new Iterator<Set<Vertex>>() {
 					int i = topClusterLength - 1;
 					int next = topClusterLength ;
@@ -150,17 +142,17 @@ public class BasicClusterCollection implements ClusterCollection {
 						}
 						return next>0;
 					}
-
+	
 					@Override
 					public Set<Vertex> next() {
 						if (! hasNext()) throw new NoSuchElementException();
 						i = next;
 						Set<Vertex> ret = clusters.get(i);
 						i--;
-
+	
 						return ret;
 					}
-
+	
 					@Override
 					public void remove() {
 						throw new ConcurrentModificationException();
@@ -169,111 +161,7 @@ public class BasicClusterCollection implements ClusterCollection {
 			}
 		};
 	}
-
-	@Override
-	public void addGeneTreeSTB(STBipartition stb, int size) {
-		if (! geneTreeSTBByCluster.containsKey(stb.c) ) {
-			geneTreeSTBByCluster.put(stb.c, new HashSet<STBipartition>());
-		}
-		geneTreeSTBByCluster.get(stb.c).add(stb);
-		//System.err.println(geneTreeSTBByCluster);
-	}
-
-	@Override
-	public Iterable<STBipartition> getContainedGeneTreeSTBs() {
-		return new Iterable<STBipartition> () {
-
-			@Override
-			public Iterator<STBipartition> iterator() {
-				return new Iterator<STBipartition>() {
-					Iterator<HashSet<STBipartition>> clustersIt = geneTreeSTBByCluster.values().iterator();
-					Iterator<STBipartition> clusterSTBIt = null;
-					//private STITreeCluster currentCluster;
-					@Override
-					public boolean hasNext() {
-						if (clustersIt.hasNext()) {
-							return true;
-						}
-						return clusterSTBIt !=null && clusterSTBIt.hasNext();
-					}
-
-					@Override
-					public STBipartition next() {
-						if (clusterSTBIt == null) {
-							HashSet<STBipartition> x = clustersIt.next();
-							//System.out.println(x+  " is x " + geneTreeSTBByCluster);
-							clusterSTBIt =x.iterator();
-						}
-						while (!clusterSTBIt.hasNext()) {
-							clusterSTBIt = clustersIt.next().iterator();
-						}
-						
-						return clusterSTBIt.next();
-					}
-
-					@Override
-					public void remove() {
-						throw new ConcurrentModificationException();
-					}
-				};
-			}
-			
-		};
-	}
 	
-/*	class BasicSubClusterCollection extends BasicClusterCollection {
-
-		public BasicSubClusterCollection(int len) {
-			super(len);
-		}
-
-		@Override
-		public boolean addCluster(Vertex nv, int size) {
-			if (!clusters.containsKey(size)) {
-				clusters.put(size, new HashSet<Vertex>());
-			}
-			boolean added = clusters.get(size).add(nv);
-			if (added) totalcount++;
-			return added;
-		}
-		
-		@Override
-		public Vertex getVertexForCluster(STITreeCluster cluster1) {
-			return BasicClusterCollection.this.getVertexForCluster(cluster1);
-		}
-	}
-*/	
-	/* The following code find all max-sub clusters (if ever needed)
-	Map<Integer, HashSet<Vertex>> maxSubClusters = 
-		new HashMap<Integer, HashSet<Vertex>>();
 	
-	for (int i = 1; i < clusterSize; i++) {
-		HashSet<Vertex> subClustersSizeI = containedVertecies.get(i);
-		
-		maxSubClusters.put(i, new HashSet<Vertex>());
 
-		if (subClustersSizeI == null) {
-			continue;
-		}
-
-		HashSet<Vertex> maxClustersSizeI = maxSubClusters.get(i);
-
-		for (Vertex newMaxCluster : subClustersSizeI) {
-			maxClustersSizeI.add(newMaxCluster);
-		
-			for (int j = i - 1; j > 0; j--) {
-				
-				List<Vertex> remove = new LinkedList<Vertex>();
-				for (Vertex s : maxSubClusters.get(j)) {
-					if (newMaxCluster._cluster.containsCluster(s._cluster)) {
-
-						remove.add(s);
-					}
-				}
-				maxSubClusters.get(j).removeAll(remove);
-			}
-		}
-
-	}*/
-	
 }
