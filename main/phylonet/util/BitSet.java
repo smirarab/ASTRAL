@@ -362,6 +362,16 @@ public class BitSet
 
         return false;
     }
+    
+    public int intersectionSize(BitSet set)
+    {
+    	int sum = 0;
+        for(int i = Math.min(wordsInUse, set.wordsInUse) - 1; i >= 0; i--)
+            sum += Long.bitCount(words[i] & set.words[i]);
+              
+
+        return sum;
+    }
 
     public int cardinality()
     {
