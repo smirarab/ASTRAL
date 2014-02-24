@@ -4,7 +4,7 @@ import java.util.List;
 
 import phylonet.coalescent.ClusterCollection;
 import phylonet.coalescent.ComputeMinCostTask;
-import phylonet.coalescent.DPInference;
+import phylonet.coalescent.Inference;
 import phylonet.coalescent.Counter.CalculateWeightTask;
 import phylonet.coalescent.DLWeightCounter.DPWeightTask;
 import phylonet.tree.model.Tree;
@@ -115,6 +115,11 @@ public class DLComputeMinCostTask extends ComputeMinCostTask<STBipartition>{
 			// " extra is "+extraTerms + " for tree" +k);
 		}
 		return e;
+	}
+
+	@Override
+	Integer defaultWeightForFullClusters() {
+		return null;
 	}
 
 }

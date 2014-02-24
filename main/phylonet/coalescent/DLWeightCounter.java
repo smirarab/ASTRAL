@@ -110,7 +110,7 @@ public class DLWeightCounter extends Counter<STBipartition>{
 		return ret;
 	}
 
-	public void computeTreePartitions(DPInference<STBipartition> inference) {
+	public void computeTreePartitions(Inference<STBipartition> inference) {
 
 		double unweigthedConstant = 0;
 		double weightedConstant = 0;

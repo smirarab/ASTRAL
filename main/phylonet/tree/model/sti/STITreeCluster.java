@@ -12,6 +12,7 @@ public class STITreeCluster implements Iterable<Integer>
 {
   //protected String[] _taxa;
   protected BitSet _cluster;
+  private int hashCode = 0;
 
   public STITreeCluster()
   {
@@ -95,7 +96,9 @@ public class STITreeCluster implements Iterable<Integer>
   
   public int hashCode()
   {
-    return this._cluster.hashCode() ;
+	  if (hashCode == 0)
+		  hashCode =  this._cluster.hashCode() ;
+	  return hashCode;
   }
 
   public boolean isCompatible(STITreeCluster tc)

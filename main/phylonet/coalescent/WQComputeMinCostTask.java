@@ -4,7 +4,7 @@ import java.util.List;
 
 import phylonet.coalescent.ClusterCollection;
 import phylonet.coalescent.ComputeMinCostTask;
-import phylonet.coalescent.DPInference;
+import phylonet.coalescent.Inference;
 import phylonet.coalescent.Counter.CalculateWeightTask;
 import phylonet.coalescent.DLWeightCounter.DPWeightTask;
 import phylonet.tree.model.Tree;
@@ -15,7 +15,7 @@ public class WQComputeMinCostTask extends ComputeMinCostTask<Tripartition>{
 
 	WQWeightCounter wqCounter;
 	
-	public WQComputeMinCostTask(DPInference<Tripartition> inference, Vertex v,
+	public WQComputeMinCostTask(Inference<Tripartition> inference, Vertex v,
 			ClusterCollection clusters) {
 		super(inference, v, clusters);
 		this.wqCounter = (WQWeightCounter)inference.counter;
@@ -49,6 +49,11 @@ public class WQComputeMinCostTask extends ComputeMinCostTask<Tripartition>{
 	@Override
 	protected Tripartition STB2T(STBipartition stb) {
 		return new Tripartition(stb.cluster1, stb.cluster2, stb.c.complementaryCluster());
+	}
+
+	@Override
+	Integer defaultWeightForFullClusters() {
+		return 0;
 	}
 
 }

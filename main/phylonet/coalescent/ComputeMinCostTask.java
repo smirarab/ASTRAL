@@ -17,7 +17,7 @@ public abstract class ComputeMinCostTask<T> {
 	 * 
 	 */
 	private static final long serialVersionUID = 244989909835073096L;
-	DPInference<T> inference;
+	Inference<T> inference;
 	Vertex v;
 	ClusterCollection clusters;
 
@@ -29,7 +29,7 @@ public abstract class ComputeMinCostTask<T> {
 		}
 	}
 
-	public ComputeMinCostTask(DPInference<T> inference, Vertex v, 
+	public ComputeMinCostTask(Inference<T> inference, Vertex v, 
 			ClusterCollection clusters) {
 		this.inference = inference;
 		this.v = v;
@@ -140,19 +140,35 @@ public abstract class ComputeMinCostTask<T> {
 					}
 					// MP_VERSION: w = weigthWork.join();
 
-					Integer Wdom =	 counter.getCalculatedWeight(STB2T(bi));
-
-					if (Wdom == null) {
-						weigthWork = counter.getWeightCalculateTask(STB2T(bi));
-						initializeWeightTask(weigthWork);
-						// MP_VERSION: smallWork.fork();
-						Wdom = weigthWork.compute();
-					} else {
-						//System.err.println("found ..");
+		
+					Integer weight = null;
+					if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) {
+						weight = defaultWeightForFullClusters();
 					}
 					
-					double c = adjustWeight(clusterLevelCost, smallV, bigv, Wdom);					
+					if (weight == null) {
+						T t = STB2T(bi);					
+						weight =  counter.getCalculatedWeight(t);
+	
+						if (weight == null) {
+	//						if (clusterSize > 9 && v._max_score > (2-0.02*clusterSize)*(lscore + rscore))
+	//							continue;
+							weigthWork = counter.getWeightCalculateTask(t);
+							initializeWeightTask(weigthWork);
+							// MP_VERSION: smallWork.fork();
+							weight = weigthWork.compute();
+						} else {
+							//System.err.println("found ..");
+						}
+					}					
+					
+					double c = adjustWeight(clusterLevelCost, smallV, bigv, weight);					
 
+//					double l = 2.4;
+//					if (clusterSize > 5 && v._max_score > l*(lscore + rscore))
+//						if ((lscore + rscore + c)> v._max_score)
+					//System.err.println(clusterSize+"\tmissing " +(lscore + rscore + c)+"\t"+v._max_score+"\t"+(lscore + rscore + c)/v._max_score);
+					
 					if ((v._max_score != -1)
 							&& (lscore + rscore + c < v._max_score)) {
 						continue;
@@ -161,7 +177,7 @@ public abstract class ComputeMinCostTask<T> {
 					v._min_lc = smallV;
 					v._min_rc = bigv;
 					v._c = c;
-
+					
 				} catch (CannotResolveException c) {
 					// System.err.println("Warn: cannot resolve: " +
 					// c.getMessage());
@@ -219,6 +235,8 @@ public abstract class ComputeMinCostTask<T> {
 		v._done = 1;
 		return v._max_score;
 	}
+
+	abstract Integer defaultWeightForFullClusters();
 
 	protected abstract ComputeMinCostTask<T> newMinCostTask(Vertex v, 
 	ClusterCollection clusters);

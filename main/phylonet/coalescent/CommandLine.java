@@ -411,7 +411,7 @@ public class CommandLine {
 		}
 
 		
-		DPInference inference;
+		Inference inference;
 		
 		if (criterion == 1 || criterion == 0) {
 			inference = new DLInference(rooted, extrarooted, 
