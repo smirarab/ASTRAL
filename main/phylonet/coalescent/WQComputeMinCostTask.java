@@ -44,7 +44,6 @@ public class WQComputeMinCostTask extends ComputeMinCostTask<Tripartition>{
 	
 	@Override
 	protected void initializeWeightTask(CalculateWeightTask weigthWork) {
-		((DPWeightTask)weigthWork).setContainedClusterCollection((DLClusterCollection)containedVertecies);
 	}
 
 	@Override
