@@ -17,7 +17,10 @@ public class Tripartition {
 			throw new RuntimeException("none cluster" +c1+" "+c2+" "+c3);
 		}
 		
-		int n1 = c1.getBitSet().nextSetBit(0), n2 = c2.getBitSet().nextSetBit(0), n3 = c3.getBitSet().nextSetBit(0);
+		//int n1 = c1.getBitSet().nextSetBit(0), n2 = c2.getBitSet().nextSetBit(0), n3 = c3.getBitSet().nextSetBit(0);
+		int n1 = -(c1.getClusterSize()<<12) -c1.getBitSet().nextSetBit(0), 
+			n2 = -(c2.getClusterSize()<<12) -c2.getBitSet().nextSetBit(0), 
+			n3 = -(c3.getClusterSize()<<12) -c3.getBitSet().nextSetBit(0);
 		if (n1 > n2 & n2 > n3) {
 			cluster1 = c1;
 			cluster2 = c2;
@@ -56,7 +59,7 @@ public class Tripartition {
 	@Override
 	public int hashCode() {
 		if (_hash == 0) {
-			_hash = cluster1.hashCode() * cluster2.hashCode()* cluster3.hashCode();
+			_hash = cluster1.hashCode() * cluster2.hashCode() * cluster3.hashCode();
 		}
 		return _hash;
 	}
@@ -68,22 +71,44 @@ public class Tripartition {
 	private int F(int a,int b,int c) {
 		return a*b*c*(a+b+c-3);
 	}
+	
+	
 	public int sharedQuartetCount(Tripartition other) {
 		
-		int [] I = new int [9];
-		I[0] = cluster1.getBitSet().intersectionSize(other.cluster1.getBitSet());
-		I[1] = cluster1.getBitSet().intersectionSize(other.cluster2.getBitSet());
-		I[2] = cluster1.getBitSet().intersectionSize(other.cluster3.getBitSet());
-		I[3] = cluster2.getBitSet().intersectionSize(other.cluster1.getBitSet());
-		I[4] = cluster2.getBitSet().intersectionSize(other.cluster2.getBitSet());
-		I[5] = cluster2.getBitSet().intersectionSize(other.cluster3.getBitSet());
-		I[6] = cluster3.getBitSet().intersectionSize(other.cluster1.getBitSet());
-		I[7] = cluster3.getBitSet().intersectionSize(other.cluster2.getBitSet());
-		I[8] = cluster3.getBitSet().intersectionSize(other.cluster3.getBitSet());
+		//int [] I = new int [9];
+		int 
+		I0 = cluster1.getBitSet().intersectionSize(other.cluster1.getBitSet()),
+		I1 = cluster1.getBitSet().intersectionSize(other.cluster2.getBitSet()),
+		I2 = cluster1.getBitSet().intersectionSize(other.cluster3.getBitSet()),
+		I3 = cluster2.getBitSet().intersectionSize(other.cluster1.getBitSet()),
+		I4 = cluster2.getBitSet().intersectionSize(other.cluster2.getBitSet()),
+		I5 = cluster2.getBitSet().intersectionSize(other.cluster3.getBitSet()),
+		I6 = cluster3.getBitSet().intersectionSize(other.cluster1.getBitSet()),
+		I7 = cluster3.getBitSet().intersectionSize(other.cluster2.getBitSet()),
+		I8 = cluster3.getBitSet().intersectionSize(other.cluster3.getBitSet());
 		
-		return F(I[0],I[4],I[8])+F(I[0],I[5],I[7])+
-				F(I[1],I[3],I[8])+F(I[1],I[5],I[6])+
-				F(I[2],I[3],I[7])+F(I[2],I[4],I[6]); 
+		int a= F(I0,I4,I8)+F(I0,I5,I7)+
+				F(I1,I3,I8)+F(I1,I5,I6)+
+				F(I2,I3,I7)+F(I2,I4,I6); 
+		//System.err.println(a);
+		return a;
+	}
+
+	public int sharedQuartetCount(Tripartition other, int I0, int I3, int I6) {
+		
+		int 
+		I1 = cluster1.getBitSet().intersectionSize(other.cluster2.getBitSet()),
+		I2 = cluster1.getBitSet().intersectionSize(other.cluster3.getBitSet()),
+		I4 = cluster2.getBitSet().intersectionSize(other.cluster2.getBitSet()),
+		I5 = cluster2.getBitSet().intersectionSize(other.cluster3.getBitSet()),
+		I7 = cluster3.getBitSet().intersectionSize(other.cluster2.getBitSet()),
+		I8 = cluster3.getBitSet().intersectionSize(other.cluster3.getBitSet());
+		
+		int a= F(I0,I4,I8)+F(I0,I5,I7)+
+				F(I1,I3,I8)+F(I1,I5,I6)+
+				F(I2,I3,I7)+F(I2,I4,I6); 
+		//System.err.println(a);
+		return a;
 	}
 
 }
