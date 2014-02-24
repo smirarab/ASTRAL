@@ -26,7 +26,7 @@ public class WQInference extends DPInference<Tripartition> {
 
 	@Override
 	int getTotalCost(Vertex all) {
-		return (int) (all._max_score/2);
+		return (int) (all._max_score/4);
 	}
 
 
