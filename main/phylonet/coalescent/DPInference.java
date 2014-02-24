@@ -380,7 +380,7 @@ public abstract class DPInference<T> {
 		//counter.addExtraBipartitionsByHeuristics(clusters);
 
 		if (CommandLine._print) {
-			System.err.println("STBs formed in "
+			System.err.println("partitions formed in "
 					+ (System.currentTimeMillis() - startTime) / 1000.0D
 					+ " secs");
 		}
