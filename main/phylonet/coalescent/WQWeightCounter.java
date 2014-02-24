@@ -29,7 +29,9 @@ public class WQWeightCounter extends Counter<Tripartition> {
 
 	// private List<Set<Tripartition>> X;
 
-	private Map<Tripartition, Integer> geneTreeTripartitonCount;
+	// private Map<Tripartition, Integer> geneTreeTripartitonCount;
+	private Map<STITreeCluster,Map<Tripartition, Integer>> geneTreeTripartitonCount;
+	
 	//private Map<AbstractMap.SimpleEntry<STITreeCluster, STITreeCluster>, Integer> geneTreeInvalidSTBCont;
 
 	private boolean rooted;
@@ -58,6 +60,8 @@ public class WQWeightCounter extends Counter<Tripartition> {
 					cluster.addLeaf(GlobalMaps.taxonIdentifier.taxonId(nodeName));
 
 					addToClusters(cluster, 1);
+					
+					addToClusters(cluster.complementaryCluster(), n - 1);
 
 					nodeToSTCluster.put(node, cluster);
 
@@ -146,12 +150,12 @@ public class WQWeightCounter extends Counter<Tripartition> {
 
 	}
 
-	public void computeTreePartitions(DPInference<Tripartition> inference) {
+	public void computeTreePartitions(Inference<Tripartition> inference) {
 
 		int k = inference.trees.size();
 		int n = stTaxa.length;
 
-		geneTreeTripartitonCount = new HashMap<Tripartition, Integer>(k * n);
+		geneTreeTripartitonCount = new HashMap<STITreeCluster, Map<Tripartition,Integer>>();
 		//geneTreeInvalidSTBCont = new HashMap<AbstractMap.SimpleEntry<STITreeCluster, STITreeCluster>, Integer>();
 		// geneTreeRootSTBs = new HashMap<Tripartition, Integer>(k*n);
 		// needed for fast version
@@ -165,8 +169,10 @@ public class WQWeightCounter extends Counter<Tripartition> {
 		traverseTrees(inference.trees, true, n);
 		
 		int s = 0;
-		for (Integer c : geneTreeTripartitonCount.values()) {
-			s += c;
+		for (Map<Tripartition, Integer> m : geneTreeTripartitonCount.values()) {
+			for (Integer c : m.values()) {
+				s += c;
+			}
 		}
 		System.err.println("Tripartitons in gene trees (count): "
 				+ geneTreeTripartitonCount.size());
@@ -176,12 +182,29 @@ public class WQWeightCounter extends Counter<Tripartition> {
 
 		System.err.println("Number of Clusters: " + s);
 
-		weights = new HashMap<Tripartition, Integer>(
-				geneTreeTripartitonCount.size() * 2);
+		weights = new HashMap<Tripartition, Integer>();
 		// System.err.println("sigma n is "+sigmaN);
 
 	}
+	
+	private Map<Tripartition, Integer> getSetForCluster(STITreeCluster c) {
+		Map<Tripartition, Integer> s = geneTreeTripartitonCount.get(c);
+		if (s == null) {
+			s = new HashMap<Tripartition, Integer>();
+			geneTreeTripartitonCount.put(c, s);
+		}
+		return s;
+	}
 
+	Integer getTripartitionCount(Tripartition t) {
+		Integer a = getSetForCluster(t.cluster1).get(t);
+		return a == null ? 0 : a;
+	}
+	
+	void setTripartitonCount(Tripartition t, Integer c) {
+		getSetForCluster(t.cluster1).put(t, c);
+	}
+	
 	public void addExtraBipartitionsByInput(ClusterCollection extraClusters,
 			List<Tree> trees, boolean extraTreeRooted) {
 
@@ -206,9 +229,7 @@ public class WQWeightCounter extends Counter<Tripartition> {
 		Tripartition trip = new Tripartition(l_cluster, r_cluster, remaining);
 		((STINode) node).setData(trip);
 		if (fromGeneTrees) {
-			geneTreeTripartitonCount.put(trip,
-					geneTreeTripartitonCount.containsKey(trip) ? 
-							geneTreeTripartitonCount.get(trip) + 1 : 1);
+			setTripartitonCount(trip , getTripartitionCount(trip) + 1);
 		}
 
 		/*
@@ -274,11 +295,17 @@ public class WQWeightCounter extends Counter<Tripartition> {
 		int calculateMissingWeight() {
 			// System.err.print("Calculating weight for: " + biggerSTB);
 			int weight = 0;
-			for (Entry<Tripartition, Integer> otherTrip : geneTreeTripartitonCount.entrySet()) {
-				weight += trip.sharedQuartetCount(otherTrip.getKey()) * otherTrip.getValue();
+			for (Entry<STITreeCluster, Map<Tripartition, Integer>> s : geneTreeTripartitonCount.entrySet()) {
+				//System.err.println(s.getValue().size());
+				int I0 = trip.cluster1.getBitSet().intersectionSize(s.getKey().getBitSet()),
+					I3 = trip.cluster2.getBitSet().intersectionSize(s.getKey().getBitSet()),
+					I6 = trip.cluster3.getBitSet().intersectionSize(s.getKey().getBitSet());
+				for (Entry<Tripartition, Integer> otherTrip : s.getValue().entrySet()) {
+					weight += trip.sharedQuartetCount(otherTrip.getKey(),I0,I3, I6) * otherTrip.getValue();
+				}
 			}
 			weights.put(trip, weight);
-			if (weights.size() % 100000 ==0)
+			if (weights.size() % 100000 == 0)
 				System.err.println("Calculated "+weights.size()+" weights");
 			return weight;
 		}

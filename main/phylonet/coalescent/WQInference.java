@@ -10,7 +10,7 @@ import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITree;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
-public class WQInference extends DPInference<Tripartition> {
+public class WQInference extends Inference<Tripartition> {
 	
 	public WQInference(boolean rooted, boolean extrarooted, List<Tree> trees,
 			List<Tree> extraTrees, boolean exactSolution, boolean duploss) {
@@ -31,7 +31,7 @@ public class WQInference extends DPInference<Tripartition> {
 
 
 	@Override
-	ComputeMinCostTask<Tripartition> newComputeMinCostTask(DPInference<Tripartition> dlInference,
+	ComputeMinCostTask<Tripartition> newComputeMinCostTask(Inference<Tripartition> dlInference,
 			Vertex all, ClusterCollection clusters) {
 		return new WQComputeMinCostTask( (WQInference) dlInference, all,  clusters);
 	}

@@ -66,5 +66,5 @@ public abstract class Counter <T> {
 	public abstract void addExtraBipartitionsByInput(ClusterCollection extraClusters,
 			List<Tree> trees, boolean extraTreeRooted);
 	
-	public abstract void computeTreePartitions(DPInference<T> inference);
+	public abstract void computeTreePartitions(Inference<T> inference);
 }
