@@ -365,6 +365,7 @@ public class BitSet
     
     public int intersectionSize(BitSet set)
     {
+    	
     	int sum = 0;
         for(int i = Math.min(wordsInUse, set.wordsInUse) - 1; i >= 0; i--)
             sum += Long.bitCount(words[i] & set.words[i]);
@@ -378,10 +379,9 @@ public class BitSet
         int sum = 0;
         for(int i = 0; i < wordsInUse; i++)
             sum += Long.bitCount(words[i]);
-
         return sum;
     }
-
+    
     public void and(BitSet set)
     {
         if(this == set)

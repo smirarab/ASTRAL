@@ -8,7 +8,7 @@ import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITree;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
-public class DLInference extends DPInference<STBipartition> {
+public class DLInference extends Inference<STBipartition> {
 	private int optimizeDuploss = 1; //one means dup, 3 means duploss
 	//Map<STITreeCluster, Vertex> clusterToVertex;
 	
@@ -57,7 +57,7 @@ public class DLInference extends DPInference<STBipartition> {
 
 
 	@Override
-	ComputeMinCostTask<STBipartition> newComputeMinCostTask(DPInference<STBipartition> dlInference,
+	ComputeMinCostTask<STBipartition> newComputeMinCostTask(Inference<STBipartition> dlInference,
 			Vertex all, ClusterCollection clusters) {
 		return new DLComputeMinCostTask( (DLInference) dlInference, all,  clusters);
 	}
