@@ -447,7 +447,7 @@ public class CommandLine {
 			} else if (criterion == 1) {
 				metric = "duplication+loss (homomorphic)";
 			} else {
-				metric = "duplication+loss (original)";
+				metric = "weighted quartet sum";
 			}
 			for (Solution s : solutions)
 				System.out.println(

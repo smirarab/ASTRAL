@@ -140,13 +140,15 @@ public abstract class ComputeMinCostTask<T> {
 					}
 					// MP_VERSION: w = weigthWork.join();
 
-					Integer Wdom = counter.getCalculatedWeight(STB2T(bi));
+					Integer Wdom =	 counter.getCalculatedWeight(STB2T(bi));
 
 					if (Wdom == null) {
 						weigthWork = counter.getWeightCalculateTask(STB2T(bi));
 						initializeWeightTask(weigthWork);
 						// MP_VERSION: smallWork.fork();
 						Wdom = weigthWork.compute();
+					} else {
+						//System.err.println("found ..");
 					}
 					
 					double c = adjustWeight(clusterLevelCost, smallV, bigv, Wdom);					

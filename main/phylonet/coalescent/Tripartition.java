@@ -81,8 +81,9 @@ public class Tripartition {
 		I[7] = cluster3.getBitSet().intersectionSize(other.cluster2.getBitSet());
 		I[8] = cluster3.getBitSet().intersectionSize(other.cluster3.getBitSet());
 		
-		return F(I[1],I[5],I[9])+F(I[1],I[6],I[8])+F(I[2],I[4],I[9])+
-				F(I[2],I[6],I[7])+F(I[3],I[4],I[8])+F(I[3],I[5],I[7]); 
+		return F(I[0],I[4],I[8])+F(I[0],I[5],I[7])+
+				F(I[1],I[3],I[8])+F(I[1],I[5],I[6])+
+				F(I[2],I[3],I[7])+F(I[2],I[4],I[6]); 
 	}
 
 }

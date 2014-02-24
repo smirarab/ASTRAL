@@ -90,16 +90,16 @@ public class WQWeightCounter extends Counter<Tripartition> {
 					STITreeCluster remaining = cluster.complementaryCluster();
 					
 					if (size != n) {
-						addToClusters(cluster, n - size);
+						addToClusters(remaining, n - size);
 					}
 
-					if (childCount == 2) {
-
-						tryAddingSTB( childbslist[0],  childbslist[1], remaining, node, fromGeneTrees);
-
+					if (childCount == 2 ) {
+						if (size != n) {
+							tryAddingTripartition( childbslist[0],  childbslist[1], remaining, node, fromGeneTrees);
+						}
 					} else if (childCount == 3) {
 
-						tryAddingSTB(childbslist[0], childbslist[1], childbslist[2] , node, fromGeneTrees);
+						tryAddingTripartition(childbslist[0], childbslist[1], childbslist[2] , node, fromGeneTrees);
 
 					} else {
 						throw new RuntimeException("hmmm?");
@@ -170,7 +170,7 @@ public class WQWeightCounter extends Counter<Tripartition> {
 		}
 		System.err.println("Tripartitons in gene trees (count): "
 				+ geneTreeTripartitonCount.size());
-		System.err.println("geneTreeTripartitonCount in gene trees (sum): " + s);
+		System.err.println("Tripartitons in gene trees (sum): " + s);
 
 		s = clusters.getClusterCount();
 
@@ -195,7 +195,7 @@ public class WQWeightCounter extends Counter<Tripartition> {
 						+ s);
 	}
 
-	private void tryAddingSTB(STITreeCluster l_cluster,
+	private void tryAddingTripartition(STITreeCluster l_cluster,
 			STITreeCluster r_cluster, STITreeCluster remaining, TNode node,
 			boolean fromGeneTrees) {
 		// System.err.println("before adding: " + STBCountInGeneTrees);
@@ -278,7 +278,8 @@ public class WQWeightCounter extends Counter<Tripartition> {
 				weight += trip.sharedQuartetCount(otherTrip.getKey()) * otherTrip.getValue();
 			}
 			weights.put(trip, weight);
-			// System.err.println("Weight of " + biggerSTB + " is " + weight);
+			if (weights.size() % 100000 ==0)
+				System.err.println("Calculated "+weights.size()+" weights");
 			return weight;
 		}
 
