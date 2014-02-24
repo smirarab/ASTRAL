@@ -1,2 +1,2 @@
-Main-Class: phylonet.coalescent.MGDInference_DP
+Main-Class: phylonet.coalescent.CommandLine
 Class-Path: main.jar
