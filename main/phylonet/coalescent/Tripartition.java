@@ -1,8 +1,6 @@
 package phylonet.coalescent;
 
 import phylonet.tree.model.sti.STITreeCluster;
-import phylonet.tree.model.sti.STITreeCluster.Vertex;
-import phylonet.util.BitSet;
 
 public class Tripartition {
 	

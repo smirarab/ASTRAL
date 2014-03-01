@@ -3,9 +3,6 @@ package phylonet.coalescent;
 
 import java.util.List;
 
-import com.sun.tools.internal.ws.wsdl.document.jaxws.Exception;
-
-import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITree;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
