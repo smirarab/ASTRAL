@@ -128,16 +128,8 @@ public class STITreeCluster implements Iterable<Integer>
     return isDisjoint(tc._cluster);
   }
 
-  public boolean isDisjoint(BitSet tc) {
-     if (tc == null) {
-      System.err.println("Cluster is null. The function returns false.");
-      return false;
-    }
-
-    BitSet temp = (BitSet)this._cluster.clone();
-    temp.and(tc);
-
-    return temp.cardinality() == 0;
+  public boolean isDisjoint(BitSet tc) { 
+    return ! this._cluster.intersects(tc);
   }
 
   public boolean isComplementary(STITreeCluster tc)
