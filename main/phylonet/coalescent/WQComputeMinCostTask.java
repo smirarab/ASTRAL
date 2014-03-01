@@ -2,13 +2,8 @@ package phylonet.coalescent;
 
 import java.util.List;
 
-import phylonet.coalescent.ClusterCollection;
-import phylonet.coalescent.ComputeMinCostTask;
-import phylonet.coalescent.Inference;
 import phylonet.coalescent.Counter.CalculateWeightTask;
-import phylonet.coalescent.DLWeightCounter.DPWeightTask;
 import phylonet.tree.model.Tree;
-import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
 public class WQComputeMinCostTask extends ComputeMinCostTask<Tripartition>{

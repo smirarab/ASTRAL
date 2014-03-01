@@ -14,9 +14,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import phylonet.coalescent.GlobalMaps;
-import phylonet.coalescent.DLInference;
-import phylonet.coalescent.Solution;
 import phylonet.coalescent.GlobalMaps.TaxonNameMap;
 import phylonet.tree.io.NewickReader;
 import phylonet.tree.io.ParseException;
