@@ -1,21 +1,12 @@
 package phylonet.coalescent;
 
-import java.util.AbstractMap;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Stack;
 
-import phylonet.app.tool.inferst.InferenceMethod;
-import phylonet.coalescent.GlobalMaps.TaxonIdentifier;
-import phylonet.coalescent.Tripartition;
-import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STINode;
@@ -29,7 +20,8 @@ public class WQWeightCounter extends Counter<Tripartition> {
 
 	// private List<Set<Tripartition>> X;
 
-	private Map<Tripartition, Integer> geneTreeTripartitonCount;
+	private Tripartition [] finalTripartitions;
+	private int [] finalCounts;
 	//private Map<AbstractMap.SimpleEntry<STITreeCluster, STITreeCluster>, Integer> geneTreeInvalidSTBCont;
 
 	private boolean rooted;
@@ -43,12 +35,17 @@ public class WQWeightCounter extends Counter<Tripartition> {
 		this.clusters = clusters;
 	}
 	
-	void traverseTrees(List<Tree> trees, boolean fromGeneTrees, int n) {
+	void traverseTrees(List<Tree> trees, boolean fromGeneTrees, int n,
+			Map<Tripartition, Integer> geneTreeTripartitonCount) {
 		
 		for (Tree tr : trees) {
 	
 			Map<TNode, STITreeCluster> nodeToSTCluster = new HashMap<TNode, STITreeCluster>(n);
-	
+			STITreeCluster gtAll = new STITreeCluster();
+			String[] gtLeaves = tr.getLeaves();
+			for (int i = 0; i < gtLeaves.length; i++) {
+				gtAll.addLeaf(GlobalMaps.taxonIdentifier.taxonId(gtLeaves[i]));
+			}
 			for (TNode node : tr.postTraverse()) {				
 				// System.err.println("Node is:" + node);
 				if (node.isLeaf()) {
@@ -70,7 +67,7 @@ public class WQWeightCounter extends Counter<Tripartition> {
 					
 					if (childCount >3 || (childCount == 3 && node != tr.getRoot()) ) {
 						throw new RuntimeException(
-								"None bifurcating tree: " + tr + "\n"
+								"not a bifurcating tree: " + tr + "\n"
 										+ node);
 					}
 					STITreeCluster childbslist[] = new STITreeCluster[childCount];
@@ -90,18 +87,23 @@ public class WQWeightCounter extends Counter<Tripartition> {
 					nodeToSTCluster.put(node, cluster);
 					
 					STITreeCluster remaining = cluster.complementaryCluster();
+					remaining.getBitSet().and(gtAll.getBitSet());
+					int remSize  = remaining.getClusterSize();
 					
-					if (size != n) {
-						addToClusters(remaining, n - size);
+					if (remSize != 0) {
+						addToClusters(remaining, remSize);
 					}
+
 
 					if (childCount == 2 ) {
 						if (size != n) {
-							tryAddingTripartition( childbslist[0],  childbslist[1], remaining, node, fromGeneTrees);
+							tryAddingTripartition( childbslist[0],  childbslist[1], 
+									remaining, node, fromGeneTrees, geneTreeTripartitonCount);
 						}
 					} else if (childCount == 3) {
 
-						tryAddingTripartition(childbslist[0], childbslist[1], childbslist[2] , node, fromGeneTrees);
+						tryAddingTripartition(childbslist[0], childbslist[1], childbslist[2] , 
+								node, fromGeneTrees, geneTreeTripartitonCount);
 
 					} else {
 						throw new RuntimeException("hmmm?");
@@ -153,7 +155,7 @@ public class WQWeightCounter extends Counter<Tripartition> {
 		int k = inference.trees.size();
 		int n = stTaxa.length;
 
-		geneTreeTripartitonCount = new HashMap<Tripartition, Integer>(k * n);
+		Map<Tripartition, Integer> geneTreeTripartitonCount = new HashMap<Tripartition, Integer>(k * n);
 		//geneTreeInvalidSTBCont = new HashMap<AbstractMap.SimpleEntry<STITreeCluster, STITreeCluster>, Integer>();
 		// geneTreeRootSTBs = new HashMap<Tripartition, Integer>(k*n);
 		// needed for fast version
@@ -164,7 +166,7 @@ public class WQWeightCounter extends Counter<Tripartition> {
 		addToClusters(all, stTaxa.length);
 
 		
-		traverseTrees(inference.trees, true, n);
+		traverseTrees(inference.trees, true, n, geneTreeTripartitonCount);
 		
 		int s = 0;
 		for (Integer c : geneTreeTripartitonCount.values()) {
@@ -173,10 +175,17 @@ public class WQWeightCounter extends Counter<Tripartition> {
 		System.err.println("Tripartitons in gene trees (count): "
 				+ geneTreeTripartitonCount.size());
 		System.err.println("Tripartitons in gene trees (sum): " + s);
+		
+		finalTripartitions = new Tripartition[geneTreeTripartitonCount.size()];
+		finalCounts = new int[geneTreeTripartitonCount.size()];
+		int i = 0;
+		for (Entry<Tripartition, Integer> entry : geneTreeTripartitonCount.entrySet()){
+			finalTripartitions[i] = entry.getKey();
+			finalCounts[i] = entry.getValue();
+			i++;
+		}
 
-		s = clusters.getClusterCount();
-
-		System.err.println("Number of Clusters: " + s);
+		System.err.println("Number of Clusters: " + clusters.getClusterCount());
 
 		weights = new HashMap<Tripartition, Integer>(
 				geneTreeTripartitonCount.size() * 2);
@@ -187,7 +196,7 @@ public class WQWeightCounter extends Counter<Tripartition> {
 	public void addExtraBipartitionsByInput(ClusterCollection extraClusters,
 			List<Tree> trees, boolean extraTreeRooted) {
 
-		traverseTrees(trees, false, stTaxa.length);
+		traverseTrees(trees, false, stTaxa.length, null);
 		int s = extraClusters.getClusterCount();
 		/*
 		 * for (Integer c: clusters2.keySet()){ s += clusters2.get(c).size(); }
@@ -199,7 +208,7 @@ public class WQWeightCounter extends Counter<Tripartition> {
 
 	private void tryAddingTripartition(STITreeCluster l_cluster,
 			STITreeCluster r_cluster, STITreeCluster remaining, TNode node,
-			boolean fromGeneTrees) {
+			boolean fromGeneTrees, Map<Tripartition, Integer> geneTreeTripartitonCount) {
 		// System.err.println("before adding: " + STBCountInGeneTrees);
 		// System.err.println("Trying: " + l_cluster + "|" + r_cluster);
 		//int size = cluster.getClusterSize();
@@ -272,12 +281,12 @@ public class WQWeightCounter extends Counter<Tripartition> {
 		public QuartetWeightTask(Tripartition trip) {
 			this.trip = trip;
 		}
-
+		
 		int calculateMissingWeight() {
 			// System.err.print("Calculating weight for: " + biggerSTB);
 			int weight = 0;
-			for (Entry<Tripartition, Integer> otherTrip : geneTreeTripartitonCount.entrySet()) {
-				weight += trip.sharedQuartetCount(otherTrip.getKey()) * otherTrip.getValue();
+			for (int i=0; i < finalCounts.length; i++) {
+				weight += this.trip.sharedQuartetCount(finalTripartitions[i]) * finalCounts[i];
 			}
 			weights.put(trip, weight);
 			if (weights.size() % 100000 == 0)
