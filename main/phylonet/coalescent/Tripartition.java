@@ -1,8 +1,6 @@
 package phylonet.coalescent;
 
 import phylonet.tree.model.sti.STITreeCluster;
-import phylonet.tree.model.sti.STITreeCluster.Vertex;
-import phylonet.util.BitSet;
 
 public class Tripartition {
 	
@@ -84,11 +82,9 @@ public class Tripartition {
 		I7 = cluster3.getBitSet().intersectionSize(other.cluster2.getBitSet()),
 		I8 = cluster3.getBitSet().intersectionSize(other.cluster3.getBitSet());
 		
-		int a= F(I0,I4,I8)+F(I0,I5,I7)+
+		return  F(I0,I4,I8)+F(I0,I5,I7)+
 				F(I1,I3,I8)+F(I1,I5,I6)+
 				F(I2,I3,I7)+F(I2,I4,I6); 
-		//System.err.println(a);
-		return a;
 	}
 
 
