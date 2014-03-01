@@ -5,9 +5,9 @@ cd main
 
 rm phylonet/coalescent/*.class phylonet/util/BitSet.class phylonet/tree/model/sti/STITreeCluster*.class 
 
-javac -classpath ../main.jar:../lib/jsr166.jar phylonet/util/BitSet.java phylonet/coalescent/*java phylonet/util/BitSet.java phylonet/tree/model/sti/STITreeCluster.java 
+javac -classpath ../main.jar:../lib/jsr166.jar phylonet/util/BitSet.java phylonet/coalescent/*java phylonet/util/BitSet.java phylonet/tree/model/sti/STITreeCluster.java
 
-jar cvfm ../astral.$version.jar ../manifest.text phylonet/util/BitSet.* phylonet/coalescent/*.* phylonet/tree/model/sti/STITreeCluster*.class phylonet/tree/model/sti/STITreeCluster.jav
+jar cvfm ../astral.$version.jar ../manifest.text phylonet/util/BitSet.* phylonet/coalescent/*.* phylonet/tree/model/sti/STITreeCluster*.*
 
 cd ..
 
