@@ -488,7 +488,7 @@ public class CommandLine {
 		System.out.println("\t-wq optimizes weighted quartet score (useful for ILS).");
 		System.out.println("\t-xt find the exact solution by looking at all clusters.");
 		//System.out.println("\t-u treat input gene trees as unrooted (Not implemented!)");
-		System.out.println("\t-ex provide extra trees to add to set of STBs searched");
+		System.out.println("\t-ex provide extra trees used to enrich the set of clusters searched");
 		//System.out.println("\t-xu treat extra trees input gene trees as unrooted (Not implemented!)");
 		System.out.println("\t-cs and " +
 						   "-cd these two options set two parameters (cs and cd) to a value between 0 and 1. \n" +
