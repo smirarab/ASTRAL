@@ -22,14 +22,13 @@ public class WQWeightCounter extends Counter<Tripartition> {
 	private int [] finalCounts;
 	//private Map<AbstractMap.SimpleEntry<STITreeCluster, STITreeCluster>, Integer> geneTreeInvalidSTBCont;
 
-	private boolean rooted;
+	//private boolean rooted;
 
 
-	public WQWeightCounter(String[] gtTaxa, String[] stTaxa,
-			boolean rooted, WQClusterCollection clusters) {
+	public WQWeightCounter(String[] gtTaxa, String[] stTaxa, WQClusterCollection clusters) {
 		this.gtTaxa = gtTaxa;
 		this.stTaxa = stTaxa;
-		this.rooted = rooted;
+		//this.rooted = rooted;
 		this.clusters = clusters;
 	}
 	
@@ -212,9 +211,9 @@ public class WQWeightCounter extends Counter<Tripartition> {
 		//int size = cluster.getClusterSize();
 		
 		//if (l_cluster.isDisjoint(r_cluster)) {
-		Tripartition trip = new Tripartition(l_cluster, r_cluster, remaining);
-		((STINode) node).setData(trip);
+		//((STINode) node).setData(trip);
 		if (fromGeneTrees) {
+			Tripartition trip = new Tripartition(l_cluster, r_cluster, remaining);
 			geneTreeTripartitonCount.put(trip,
 					geneTreeTripartitonCount.containsKey(trip) ? 
 							geneTreeTripartitonCount.get(trip) + 1 : 1);
