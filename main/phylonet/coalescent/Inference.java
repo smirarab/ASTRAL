@@ -25,6 +25,24 @@ import phylonet.util.BitSet;
 
 public abstract class Inference<T> {
 
+	protected boolean rooted = true;
+	protected boolean extrarooted = true;
+	protected List<Tree> trees;
+	protected List<Tree> extraTrees = null;
+	protected boolean exactSolution;
+	
+	protected String[] gtTaxa;
+	protected String[] stTaxa;
+
+	Collapse.CollapseDescriptor cd = null;
+	private double DLbdWeigth;
+	private double CS;
+	private double CD;
+	
+	DataCollection<T> dataCollection;
+	WeightCalculator<T> weightCalculator;
+
+
 	public static Tree buildTreeFromClusters(List<STITreeCluster> clusters) {
 	    if ((clusters == null) || (clusters.size() == 0)) {
 	      System.err.println("Empty list of clusters. The function returns a null tree.");
@@ -91,23 +109,6 @@ public abstract class Inference<T> {
 		this.extraTrees = extraTrees;
 		this.exactSolution = exactSolution;
 	}
-
-	protected boolean rooted = true;
-	protected boolean extrarooted = true;
-	protected List<Tree> trees;
-	protected List<Tree> extraTrees = null;
-	protected boolean exactSolution;
-	
-	protected String[] gtTaxa;
-	protected String[] stTaxa;
-
-	Collapse.CollapseDescriptor cd = null;
-	private double DLbdWeigth;
-	private double CS;
-	private double CD;
-	
-	Counter<T> counter;
-
 
 	protected Collapse.CollapseDescriptor doCollapse(List<Tree> trees) {
 		Collapse.CollapseDescriptor cd = Collapse.collapse(trees);
@@ -353,7 +354,7 @@ public abstract class Inference<T> {
 
 		sol._totalCoals = getTotalCost(all);
 		System.out.println("total cost: " + sol._totalCoals);
-		System.err.println("Total Number of elements examined: "+ counter.weights.size());
+		System.err.println("Total Number of elements examined: "+ weightCalculator.getCalculatedWeightCount());
 		solutions.add(sol);
 
 		return (List<Solution>) (List<Solution>) solutions;
@@ -367,16 +368,17 @@ public abstract class Inference<T> {
 
 		List<Solution> solutions;
 
-		counter = newCounter(clusters);
+		dataCollection = newCounter(clusters);
+		weightCalculator = newWeightCalculator();
 
-		counter.computeTreePartitions(this);
+		dataCollection.computeTreePartitions(this);
 
 		if (extraTrees != null) {		
-			counter.addExtraBipartitionsByInput(clusters, extraTrees,extrarooted);					
+			dataCollection.addExtraBipartitionsByInput(clusters, extraTrees,extrarooted);					
 		}
 		
 		if (exactSolution) {
-			counter.addAllPossibleSubClusters(clusters.getTopVertex().getCluster(),  stTaxa.length);
+			dataCollection.addAllPossibleSubClusters(clusters.getTopVertex().getCluster(),  stTaxa.length);
 		}
 
 		//counter.addExtraBipartitionsByHeuristics(clusters);
@@ -387,7 +389,7 @@ public abstract class Inference<T> {
 					+ " secs");
 		}
 
-		counter.preCalculateWeights(trees, extraTrees);
+		weightCalculator.preCalculateWeights(trees, extraTrees);
 		
 		if (CommandLine._print) {
 			System.err.println("DP starting after "
@@ -406,7 +408,9 @@ public abstract class Inference<T> {
 
 	abstract ClusterCollection newClusterCollection();
 	
-	abstract Counter<T> newCounter(ClusterCollection clusters);
+	abstract DataCollection newCounter(ClusterCollection clusters);
+	
+	abstract WeightCalculator<T> newWeightCalculator();
 
 	abstract ComputeMinCostTask<T> newComputeMinCostTask(Inference<T> dlInference,
 			Vertex all, ClusterCollection clusters);

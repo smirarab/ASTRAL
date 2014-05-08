@@ -37,8 +37,15 @@ public class WQInference extends Inference<Tripartition> {
 		return new WQClusterCollection(stTaxa.length);
 	}
 	
-	Counter<Tripartition> newCounter(ClusterCollection clusters) {
-		return new WQWeightCounter(gtTaxa, stTaxa, (WQClusterCollection)clusters);
+	DataCollection<Tripartition> newCounter(ClusterCollection clusters) {
+		return new WQDataCollection(gtTaxa, stTaxa, (WQClusterCollection)clusters);
+	}
+
+
+
+	@Override
+	WeightCalculator<Tripartition> newWeightCalculator() {
+		return new WQQuartetWeightCalculator(this);
 	}
 
 }
