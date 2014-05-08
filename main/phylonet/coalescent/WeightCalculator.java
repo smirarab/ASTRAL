@@ -28,6 +28,22 @@ public abstract class WeightCalculator<T> {
 		return weights.get(bi);
 	}
 	
+	public Integer getWeight(T t, ComputeMinCostTask<T> minCostTask) {
+		Integer weight = getCalculatedWeight(t);
+		
+		if (weight == null) {
+//						if (clusterSize > 9 && v._max_score > (2-0.02*clusterSize)*(lscore + rscore))
+//							continue;
+			CalculateWeightTask<T> weigthWork = getWeightCalculateTask(t);
+			prepareWeightTask(weigthWork, minCostTask);
+			// MP_VERSION: smallWork.fork();
+			weight = weigthWork.calculateWeight();
+		}
+		return weight;
+	}
+	
+	protected abstract void prepareWeightTask(CalculateWeightTask<T> weigthWork,ComputeMinCostTask<T> task);
+	
 	public abstract CalculateWeightTask<T> getWeightCalculateTask(T t);
 	
 	public abstract void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees);
