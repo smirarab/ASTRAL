@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import phylonet.coalescent.Counter.CalculateWeightTask;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
@@ -60,9 +59,6 @@ public abstract class ComputeMinCostTask<T> {
 
 	private double computeMinCost() throws CannotResolveException {
 
-		boolean rooted = inference.rooted;
-		List<Tree> trees = inference.trees;
-		Counter<T> counter = inference.counter;
 
 		// -2 is used to indicate it cannot be resolved
 		if (v._done == 2) {
@@ -79,7 +75,7 @@ public abstract class ComputeMinCostTask<T> {
 		// SIA: base case for singelton clusters.
 		if (clusterSize <= 1) {
 			
-			v._max_score = scoreBaseCase(rooted, trees);
+			v._max_score = scoreBaseCase(inference.rooted, inference.trees);
 			
 			v._min_lc = (v._min_rc = null);
 			v._done = 1;
@@ -117,7 +113,7 @@ public abstract class ComputeMinCostTask<T> {
 							smallV, containedVertecies);
 					ComputeMinCostTask<T> bigWork = newMinCostTask(
 							bigv, containedVertecies);
-					CalculateWeightTask weigthWork = null;
+					CalculateWeightTask<T> weigthWork = null;
 
 					// MP_VERSION: smallWork.fork();
 					Double rscore = bigWork.compute();
@@ -148,15 +144,15 @@ public abstract class ComputeMinCostTask<T> {
 					
 					if (weight == null) {
 						T t = STB2T(bi);					
-						weight =  counter.getCalculatedWeight(t);
+						weight =  inference.weightCalculator.getCalculatedWeight(t);
 	
 						if (weight == null) {
 	//						if (clusterSize > 9 && v._max_score > (2-0.02*clusterSize)*(lscore + rscore))
 	//							continue;
-							weigthWork = counter.getWeightCalculateTask(t);
+							weigthWork = inference.weightCalculator.getWeightCalculateTask(t);
 							initializeWeightTask(weigthWork);
 							// MP_VERSION: smallWork.fork();
-							weight = weigthWork.compute();
+							weight = weigthWork.calculateWeight();
 						} else {
 							//System.err.println("found ..");
 						}
@@ -244,7 +240,7 @@ public abstract class ComputeMinCostTask<T> {
 	abstract protected double adjustWeight(int clusterLevelCost, Vertex smallV,
 			Vertex bigv, Integer Wdom);
 
-	abstract protected void initializeWeightTask(CalculateWeightTask weigthWork);
+	abstract protected void initializeWeightTask(CalculateWeightTask<T> weigthWork);
 
     abstract protected int calculateClusterLevelCost();
 	

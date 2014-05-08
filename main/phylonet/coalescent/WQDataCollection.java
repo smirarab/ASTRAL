@@ -11,21 +11,21 @@ import phylonet.tree.model.sti.STINode;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.util.BitSet;
 
-public class WQWeightCounter extends Counter<Tripartition> {
+public class WQDataCollection extends DataCollection<Tripartition> {
 
 	String[] gtTaxa;
 	String[] stTaxa;
 
 	// private List<Set<Tripartition>> X;
 
-	private Tripartition [] finalTripartitions;
-	private int [] finalCounts;
+	Tripartition [] finalTripartitions;
+	int [] finalCounts;
 	//private Map<AbstractMap.SimpleEntry<STITreeCluster, STITreeCluster>, Integer> geneTreeInvalidSTBCont;
 
 	//private boolean rooted;
 
 
-	public WQWeightCounter(String[] gtTaxa, String[] stTaxa, WQClusterCollection clusters) {
+	public WQDataCollection(String[] gtTaxa, String[] stTaxa, WQClusterCollection clusters) {
 		this.gtTaxa = gtTaxa;
 		this.stTaxa = stTaxa;
 		//this.rooted = rooted;
@@ -184,7 +184,7 @@ public class WQWeightCounter extends Counter<Tripartition> {
 
 		System.err.println("Number of Clusters: " + clusters.getClusterCount());
 
-		weights = new HashMap<Tripartition, Integer>(
+		inference.weightCalculator.initializeWeightContainer(
 				geneTreeTripartitonCount.size() * 2);
 		// System.err.println("sigma n is "+sigmaN);
 
@@ -261,47 +261,5 @@ public class WQWeightCounter extends Counter<Tripartition> {
 
 	// static public int cnt = 0;
 
-	public void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees) {
-		
 
-	}
-
-	
-
-	class QuartetWeightTask implements CalculateWeightTask{
-
-		/**
-		 * 
-		 */
-		private Tripartition trip;
-	
-		public QuartetWeightTask(Tripartition trip) {
-			this.trip = trip;
-		}
-		
-		int calculateMissingWeight() {
-			// System.err.print("Calculating weight for: " + biggerSTB);
-			int weight = 0;
-			for (int i=0; i < finalCounts.length; i++) {
-				weight += this.trip.sharedQuartetCount(finalTripartitions[i]) * finalCounts[i];
-			}
-			weights.put(trip, weight);
-			if (weights.size() % 100000 == 0)
-				System.err.println("Calculated "+weights.size()+" weights");
-			return weight;
-		}
-
-		public Integer compute() {
-			return calculateMissingWeight();
-		}
-
-	}
-
-
-
-	@Override
-	public CalculateWeightTask getWeightCalculateTask(Tripartition t) {
-		return new QuartetWeightTask(t);
-		
-	}
 }

@@ -4,9 +4,7 @@ import java.util.List;
 
 import phylonet.coalescent.ClusterCollection;
 import phylonet.coalescent.ComputeMinCostTask;
-import phylonet.coalescent.Inference;
-import phylonet.coalescent.Counter.CalculateWeightTask;
-import phylonet.coalescent.DLWeightCounter.DPWeightTask;
+import phylonet.coalescent.DLWeightCalculator.DPWeightTask;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
@@ -14,13 +12,15 @@ import phylonet.tree.model.sti.STITreeCluster.Vertex;
 public class DLComputeMinCostTask extends ComputeMinCostTask<STBipartition>{
 
 	DLInference inference;
-	DLWeightCounter dlCounter;
+	DLDataCollection dataCollection;
+	DLWeightCalculator weightCalculator;
 	
 	public DLComputeMinCostTask(DLInference inference, Vertex v,
 			ClusterCollection clusters) {
 		super(inference, v, clusters);
 		this.inference = inference;
-		dlCounter = (DLWeightCounter)inference.counter;
+		dataCollection = (DLDataCollection)inference.dataCollection;
+		weightCalculator = (DLWeightCalculator) inference.weightCalculator;
 	}
 	
 	protected double adjustWeight(int clusterLevelCost, Vertex smallV,
@@ -32,7 +32,7 @@ public class DLComputeMinCostTask extends ComputeMinCostTask<STBipartition>{
 			int someSideMissingXLCount = 0;
 			int bothSidesPresentGeneCount = 0;
 			for (int k = 0; k < inference.trees.size(); k++) {
-				STITreeCluster treeAll = dlCounter.treeAlls.get(k);
+				STITreeCluster treeAll = dataCollection.treeAlls.get(k);
 				Tree tree = inference.trees.get(k);
 				boolean pDisJoint = smallV.getCluster().isDisjoint(treeAll);
 				boolean qDisJoint = bigv.getCluster().isDisjoint(treeAll);
@@ -84,14 +84,14 @@ public class DLComputeMinCostTask extends ComputeMinCostTask<STBipartition>{
 	@Override
 	protected int calculateClusterLevelCost() {
 		if (inference.getOptimizeDuploss() == 3) {
-			return dlCounter.calculateDLstdClusterCost(
+			return weightCalculator.calculateDLstdClusterCost(
 					this.v.getCluster(), inference.trees);
 		}
 		return 0;
 	}
 	
 	@Override
-	protected void initializeWeightTask(CalculateWeightTask weigthWork) {
+	protected void initializeWeightTask(CalculateWeightTask<STBipartition> weigthWork) {
 		((DPWeightTask)weigthWork).setContainedClusterCollection((DLClusterCollection)containedVertecies);
 	}
 
@@ -103,7 +103,7 @@ public class DLComputeMinCostTask extends ComputeMinCostTask<STBipartition>{
 	int calculateDLbdAdjustment(Vertex smallV, Vertex bigv) {
 		int e = 0;
 		for (int k = 0; k < inference.trees.size(); k++) {
-			STITreeCluster treeAll = dlCounter.treeAlls.get(k);
+			STITreeCluster treeAll = dataCollection.treeAlls.get(k);
 			boolean pDisJoint = smallV.getCluster().isDisjoint(treeAll);
 			boolean qDisJoint = bigv.getCluster().isDisjoint(treeAll);
 			if (!pDisJoint && !qDisJoint) {
