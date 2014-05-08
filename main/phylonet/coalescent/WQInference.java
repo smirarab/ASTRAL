@@ -45,7 +45,7 @@ public class WQInference extends Inference<Tripartition> {
 
 	@Override
 	WeightCalculator<Tripartition> newWeightCalculator() {
-		return new WQQuartetWeightCalculator(this);
+		return new WQWeightCalculator(this);
 	}
 
 }
