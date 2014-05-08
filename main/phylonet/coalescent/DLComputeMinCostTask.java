@@ -89,11 +89,7 @@ public class DLComputeMinCostTask extends ComputeMinCostTask<STBipartition>{
 		}
 		return 0;
 	}
-	
-	@Override
-	protected void initializeWeightTask(CalculateWeightTask<STBipartition> weigthWork) {
-		((DPWeightTask)weigthWork).setContainedClusterCollection((DLClusterCollection)containedVertecies);
-	}
+
 
 	@Override
 	protected STBipartition STB2T(STBipartition stb) {

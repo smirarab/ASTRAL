@@ -152,10 +152,16 @@ class DLWeightCalculator extends WeightCalculator<STBipartition>{
 		}
 	}
 
+	
 	@Override
 	public CalculateWeightTask getWeightCalculateTask(
 			STBipartition stb) {
 		return new DPWeightTask(stb);
+	}
+	
+	@Override
+	protected void prepareWeightTask(CalculateWeightTask<STBipartition> weigthWork, ComputeMinCostTask<STBipartition> task) {
+		((DPWeightTask)weigthWork).setContainedClusterCollection((DLClusterCollection)task.containedVertecies);
 	}
 	
 	class DPWeightTask implements CalculateWeightTask<STBipartition> {
