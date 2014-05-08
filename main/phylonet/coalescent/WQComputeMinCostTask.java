@@ -35,10 +35,6 @@ public class WQComputeMinCostTask extends ComputeMinCostTask<Tripartition>{
 	protected int calculateClusterLevelCost() {
 		return 0;
 	}
-	
-	@Override
-	protected void initializeWeightTask(CalculateWeightTask<Tripartition> weigthWork) {
-	}
 
 	@Override
 	protected Tripartition STB2T(STBipartition stb) {
