@@ -4,11 +4,11 @@ import java.util.List;
 
 import phylonet.tree.model.Tree;
 
-class WQQuartetWeightCalculator extends WeightCalculator<Tripartition> {
+class WQWeightCalculator extends WeightCalculator<Tripartition> {
 
 	private WQDataCollection dataCollection;
 
-	public WQQuartetWeightCalculator(Inference<Tripartition> inference) {
+	public WQWeightCalculator(Inference<Tripartition> inference) {
 		dataCollection = (WQDataCollection) inference.dataCollection;
 	}
 	
