@@ -52,7 +52,7 @@ public class DLInference extends Inference<STBipartition> {
 
 
 	int getTotalCost(Vertex all) {
-		return (int) (((DLWeightCounter)this.counter).sigmaNs - all._max_score);
+		return (int) (((DLDataCollection)this.dataCollection).sigmaNs - all._max_score);
 	}
 
 
@@ -66,8 +66,13 @@ public class DLInference extends Inference<STBipartition> {
 		return new DLClusterCollection(stTaxa.length);
 	}
 	
-	DLWeightCounter newCounter(ClusterCollection clusters) {
-		return new DLWeightCounter(gtTaxa, stTaxa, rooted, (DLClusterCollection)clusters);
+	DLDataCollection newCounter(ClusterCollection clusters) {
+		return new DLDataCollection(gtTaxa, stTaxa, rooted, (DLClusterCollection)clusters);
+	}
+
+	@Override
+	WeightCalculator<STBipartition> newWeightCalculator() {
+		return new DLWeightCalculator(this);
 	}
 
 }
