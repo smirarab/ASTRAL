@@ -41,10 +41,14 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 	}
 
 
-
 	@Override
 	public CalculateWeightTask<Tripartition> getWeightCalculateTask(Tripartition t) {
 		return new QuartetWeightTask(t);
+	}
+	
+	
+	@Override
+	protected void prepareWeightTask(CalculateWeightTask<Tripartition> weigthWork, ComputeMinCostTask<Tripartition> task) {
 	}
 
 }

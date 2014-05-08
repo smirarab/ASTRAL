@@ -20,6 +20,9 @@ public abstract class ComputeMinCostTask<T> {
 	Vertex v;
 	ClusterCollection clusters;
 
+	// final int maxEL = 10000000;
+	ClusterCollection containedVertecies;
+
 	protected Double compute() {
 		try {
 			return computeMinCost();
@@ -34,9 +37,6 @@ public abstract class ComputeMinCostTask<T> {
 		this.v = v;
 		this.clusters = clusters;
 	}
-
-	// final int maxEL = 10000000;
-	ClusterCollection containedVertecies;
 
 	private void addComplementaryClusters(int clusterSize) {
 		Iterator<Set<Vertex>> it = containedVertecies.getSubClusters().iterator();
@@ -144,18 +144,7 @@ public abstract class ComputeMinCostTask<T> {
 					
 					if (weight == null) {
 						T t = STB2T(bi);					
-						weight =  inference.weightCalculator.getCalculatedWeight(t);
-	
-						if (weight == null) {
-	//						if (clusterSize > 9 && v._max_score > (2-0.02*clusterSize)*(lscore + rscore))
-	//							continue;
-							weigthWork = inference.weightCalculator.getWeightCalculateTask(t);
-							initializeWeightTask(weigthWork);
-							// MP_VERSION: smallWork.fork();
-							weight = weigthWork.calculateWeight();
-						} else {
-							//System.err.println("found ..");
-						}
+						weight =  inference.weightCalculator.getWeight(t, this);
 					}					
 					
 					double c = adjustWeight(clusterLevelCost, smallV, bigv, weight);					
@@ -239,8 +228,6 @@ public abstract class ComputeMinCostTask<T> {
 
 	abstract protected double adjustWeight(int clusterLevelCost, Vertex smallV,
 			Vertex bigv, Integer Wdom);
-
-	abstract protected void initializeWeightTask(CalculateWeightTask<T> weigthWork);
 
     abstract protected int calculateClusterLevelCost();
 	
