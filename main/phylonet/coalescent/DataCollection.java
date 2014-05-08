@@ -1,6 +1,5 @@
 package phylonet.coalescent;
 
-import java.util.HashMap;
 import java.util.List;
 
 import phylonet.tree.model.Tree;
@@ -8,11 +7,9 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.util.BitSet;
 
-public abstract class Counter <T> {
+public abstract class DataCollection <T> {
 
 	protected ClusterCollection clusters;
-	
-	HashMap<T, Integer> weights;
 
 	protected String getSpeciesName(String geneName) {
 		String stName = geneName;
@@ -45,22 +42,6 @@ public abstract class Counter <T> {
 				.println("Number of Clusters After Adding All possible clusters: "
 						+ clusters.getClusterCount());
 	}
-
-	public Integer getCalculatedWeight(T bi) {
-//		if (!weights.containsKey(bi)) {
-//			// weights.put(bi,calculateMissingWeight(bi));
-//			return null;
-//		}
-		return weights.get(bi);
-	}
-	
-	interface CalculateWeightTask {
-		Integer compute();
-	}
-	
-	public abstract CalculateWeightTask getWeightCalculateTask(T t);
-	
-	public abstract void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees);
 
 	public abstract void addExtraBipartitionsByInput(ClusterCollection extraClusters,
 			List<Tree> trees, boolean extraTreeRooted);
