@@ -1,14 +1,12 @@
 package phylonet.coalescent;
 
-import java.util.HashMap;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Stack;
 
-import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
-import phylonet.tree.model.sti.STINode;
 import phylonet.tree.model.sti.STITreeCluster;
 
 class WQWeightCalculator extends WeightCalculator<Tripartition> {
@@ -61,14 +59,6 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 					F(I2,I3,I7)+F(I2,I4,I6); 
 		}
 
-		Intersects subtractSide(Intersects allsides, Intersects side) {
-			return new Intersects  (
-					(allsides.s0 - side.s0 ),
-					(allsides.s1 - side.s1 ),
-					(allsides.s2 - side.s2 )
-			);
-		}
-
 		Intersects getSide(int i) {
 			if (trip.cluster1.getBitSet().get(i)) {
 				return new Intersects(1,0,0);
@@ -77,18 +67,6 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 			} else {
 				return  new Intersects(0,0,1);
 			}
-		}
-		
-		
-		int countAll(Intersects side1, Intersects side2, Intersects side3){
-			return
-					F(side1.s0,side2.s1,side3.s2)+
-					F(side1.s0,side2.s2,side3.s1)+
-					F(side1.s1,side2.s0,side3.s2)+
-					F(side1.s1,side2.s2,side3.s0)+
-					F(side1.s2,side2.s0,side3.s1)+
-					F(side1.s2,side2.s1,side3.s0);
-
 		}
 		
 		class Intersects {
@@ -105,24 +83,28 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 		}
 		
 		int calculateMissingWeight2() {
-			// System.err.print("Calculating weight for: " + biggerSTB);
 			int weight = 0;
-			//Map<TNode,Side > nodeData = new HashMap<TNode, Side>();
+			Intersects  allsides = null;
 			Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
-			Stack<Intersects> stack = new Stack<WQWeightCalculator.QuartetWeightTask.Intersects>();
+			boolean newTree = true;
 			
-			for (Tree tree : inference.trees){
-				stack.clear();
-				STITreeCluster all = tit.next();
-				Intersects  allsides = new Intersects(
-					trip.cluster1.getBitSet().intersectionSize(all.getBitSet()),
-					trip.cluster2.getBitSet().intersectionSize(all.getBitSet()),
-					trip.cluster3.getBitSet().intersectionSize(all.getBitSet()));
-				
-				for (TNode tn: tree.postTraverse()) {
-					if (tn.isLeaf()) {
-						stack.push(getSide((Integer) ((STINode) tn).getData()));
-					} else {
+			Deque<Intersects> stack = new ArrayDeque<WQWeightCalculator.QuartetWeightTask.Intersects>();
+			for (Integer gtb: dataCollection.geneTreesAsInts){
+				if (newTree) {
+					STITreeCluster all = tit.next();
+					allsides = new Intersects(
+						trip.cluster1.getBitSet().intersectionSize(all.getBitSet()),
+						trip.cluster2.getBitSet().intersectionSize(all.getBitSet()),
+						trip.cluster3.getBitSet().intersectionSize(all.getBitSet()));
+					newTree = false;
+				}
+				if (gtb >= 0){
+					stack.push(getSide(gtb));
+				} else if (gtb == Integer.MIN_VALUE) {
+					stack.clear();
+					newTree = true;
+				} else {
+					for (int i = 0; i > gtb; i--) {
 						Intersects side1 = stack.pop();
 						Intersects side2 = stack.pop();
 						Intersects side = new Intersects(
@@ -130,8 +112,17 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 								side1.s1+side2.s1,
 								side1.s2+side2.s2);
 						stack.push(side);
-						Intersects side3 = subtractSide(allsides,side);
-						weight += countAll(side1, side2, side3);
+						Intersects side3 = new Intersects  (
+								(allsides.s0 - side.s0 ),
+								(allsides.s1 - side.s1 ),
+								(allsides.s2 - side.s2 )
+						);
+						weight += F(side1.s0,side2.s1,side3.s2)+
+								F(side1.s0,side2.s2,side3.s1)+
+								F(side1.s1,side2.s0,side3.s2)+
+								F(side1.s1,side2.s2,side3.s0)+
+								F(side1.s2,side2.s0,side3.s1)+
+								F(side1.s2,side2.s1,side3.s0);
 					}
 				}
 			}
@@ -139,7 +130,9 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 		}
 
 		public Integer calculateWeight() {
-			int r = calculateMissingWeight2();
+			int r = dataCollection.geneTreesAsInts != null? 
+					calculateMissingWeight2():
+						calculateMissingWeight();
 			weights.put(trip, r);
 			if (weights.size() % 100000 == 0)
 				System.err.println("Calculated "+weights.size()+" weights");
