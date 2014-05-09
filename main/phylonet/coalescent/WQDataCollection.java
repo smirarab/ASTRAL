@@ -17,20 +17,17 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 	String[] gtTaxa;
 	String[] stTaxa;
 
-	// private List<Set<Tripartition>> X;
-
-	Tripartition [] finalTripartitions;
-	int [] finalCounts;
 	List<STITreeCluster> treeAllClusters = new ArrayList<STITreeCluster>();
-	//private Map<AbstractMap.SimpleEntry<STITreeCluster, STITreeCluster>, Integer> geneTreeInvalidSTBCont;
 
-	//private boolean rooted;
+	Tripartition [] finalTripartitions = null;
+	int [] finalCounts = null;	
+	
+	Integer [] geneTreesAsInts;
 
-
+	
 	public WQDataCollection(String[] gtTaxa, String[] stTaxa, WQClusterCollection clusters) {
 		this.gtTaxa = gtTaxa;
 		this.stTaxa = stTaxa;
-		//this.rooted = rooted;
 		this.clusters = clusters;
 	}
 	
@@ -54,13 +51,13 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 					STITreeCluster cluster = new STITreeCluster();
 					Integer taxonID = GlobalMaps.taxonIdentifier.taxonId(nodeName);
 					cluster.addLeaf(taxonID);
-					((STINode)node).setData(taxonID);
 
 					addToClusters(cluster, 1);
 					
 					addToClusters(cluster.complementaryCluster(), n - 1);
 
 					nodeToSTCluster.put(node, cluster);
+					
 
 					// nodeToGTCluster.put(node, gtCluster);
 
@@ -83,6 +80,8 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 					STITreeCluster cluster = new STITreeCluster();
 					cluster.setCluster((BitSet) bs.clone());
 
+					//((STINode)node).setData(new GeneTreeBitset(node.isRoot()? -2: -1));
+
 					int size = cluster.getClusterSize();
 
 					addToClusters(cluster, size);
@@ -103,7 +102,6 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 									remaining, node, fromGeneTrees, geneTreeTripartitonCount);
 						}
 					} else if (childCount == 3) {
-
 						tryAddingTripartition(childbslist[0], childbslist[1], childbslist[2] , 
 								node, fromGeneTrees, geneTreeTripartitonCount);
 
@@ -174,19 +172,46 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 		for (Integer c : geneTreeTripartitonCount.values()) {
 			s += c;
 		}
+		System.err.println("Number of gene trees: " + k);
 		System.err.println("Tripartitons in gene trees (count): "
 				+ geneTreeTripartitonCount.size());
 		System.err.println("Tripartitons in gene trees (sum): " + s);
 		
-		finalTripartitions = new Tripartition[geneTreeTripartitonCount.size()];
-		finalCounts = new int[geneTreeTripartitonCount.size()];
-		int i = 0;
-		for (Entry<Tripartition, Integer> entry : geneTreeTripartitonCount.entrySet()){
-			finalTripartitions[i] = entry.getKey();
-			finalCounts[i] = entry.getValue();
-			i++;
+		if (n <= 32 || (geneTreeTripartitonCount.size() < k*8)) {
+			System.err.println("Using tripartition-based weight calculation.");
+		
+			finalTripartitions = new Tripartition[geneTreeTripartitonCount.size()];
+			finalCounts = new int[geneTreeTripartitonCount.size()];
+			int i = 0;
+			for (Entry<Tripartition, Integer> entry : geneTreeTripartitonCount.entrySet()){
+				finalTripartitions[i] = entry.getKey();
+				finalCounts[i] = entry.getValue();
+				i++;
+			}
+		} else {
+			System.err.println("Using tree-based weight calculation.");
+			List<Integer> temp = new ArrayList<Integer>(); 
+			
+			for (Tree tr : inference.trees) {
+				int internalNodes = 0;
+				for (TNode node : tr.postTraverse()) {
+					if (node.isLeaf()) {
+						if (internalNodes != 0) {
+							temp.add(-internalNodes);
+							internalNodes = 0;
+						}
+						temp.add(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
+					} else {
+						internalNodes ++;
+					}
+					if (node.isRoot()) {
+						temp.add(-internalNodes);
+						temp.add(Integer.MIN_VALUE);
+					}
+				}
+			}
+			geneTreesAsInts = temp.toArray(new Integer[]{});
 		}
-
 		System.err.println("Number of Clusters: " + clusters.getClusterCount());
 
 		inference.weightCalculator.initializeWeightContainer(
@@ -211,57 +236,13 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 	private void tryAddingTripartition(STITreeCluster l_cluster,
 			STITreeCluster r_cluster, STITreeCluster remaining, TNode node,
 			boolean fromGeneTrees, Map<Tripartition, Integer> geneTreeTripartitonCount) {
-		// System.err.println("before adding: " + STBCountInGeneTrees);
-		// System.err.println("Trying: " + l_cluster + "|" + r_cluster);
-		//int size = cluster.getClusterSize();
 		
-		//if (l_cluster.isDisjoint(r_cluster)) {
-		//((STINode) node).setData(trip);
 		if (fromGeneTrees) {
 			Tripartition trip = new Tripartition(l_cluster, r_cluster, remaining);
 			geneTreeTripartitonCount.put(trip,
 					geneTreeTripartitonCount.containsKey(trip) ? 
 							geneTreeTripartitonCount.get(trip) + 1 : 1);
 		}
-
-		/*
-		 * if (size == allInducedByGTSize){ if (!
-		 * geneTreeRootSTBs.containsKey(stb)) { geneTreeRootSTBs.put(stb,
-		 * 1); } else { geneTreeRootSTBs.put(stb,
-		 * geneTreeRootSTBs.get(stb)+1); } }
-		 */
-		/*} else {
-			AbstractMap.SimpleEntry<STITreeCluster, STITreeCluster> stb = 
-					l_cluster.getBitSet().cardinality() > r_cluster.getBitSet().cardinality() ? 
-					new AbstractMap.SimpleEntry<STITreeCluster, STITreeCluster>(l_cluster, r_cluster) : 
-					new AbstractMap.SimpleEntry<STITreeCluster, STITreeCluster>(r_cluster, l_cluster);
-			geneTreeInvalidSTBCont.put(stb,	geneTreeInvalidSTBCont.containsKey(stb) ? 
-					geneTreeInvalidSTBCont.get(stb) + 1 : 
-					1);
-			// System.err.println("Adding only to extra");
-			// This case could happen for multiple-copy
-			BitSet and = (BitSet) l_cluster.getBitSet().clone();
-			and.and(r_cluster.getBitSet());
-
-			BitSet l_Minus_r = (BitSet) and.clone();
-			l_Minus_r.xor(l_cluster.getBitSet());
-			STITreeCluster lmr = new STITreeCluster();
-			lmr.setCluster(l_Minus_r);
-
-			BitSet r_Minus_l = (BitSet) and.clone();
-			r_Minus_l.xor(r_cluster.getBitSet());
-			STITreeCluster rml = new STITreeCluster();
-			rml.setCluster(r_Minus_l);
-
-			if (!rml.getBitSet().isEmpty()) {
-				addToClusters(rml, rml.getClusterSize(), false);
-				// addSTBToX( new Tripartition(l_cluster, rml, cluster),size);
-			}
-			if (!lmr.getBitSet().isEmpty()) {
-				addToClusters(lmr, lmr.getClusterSize(), false);
-				// addSTBToX(new Tripartition(lmr, r_cluster, cluster), size);
-			}
-		}*/
 	}
 
 	// static public int cnt = 0;
