@@ -301,7 +301,7 @@ public class CommandLine {
 						System.err.println("You should choose only of the following options: -d (duplications) -dl (duploss) -wq (weighted qurtets)");
 						printUsage();
 					}
-					System.err.println("Criterion set ot weighted quartets. Gene trees will be treated as unrooted.");
+					System.err.println("Criterion set to weighted quartets. Gene trees will be treated as unrooted.");
 					criterion = 2;
 					rooted = false;
 					extrarooted = false;
