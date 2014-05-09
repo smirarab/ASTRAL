@@ -1,5 +1,6 @@
 package phylonet.coalescent;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,7 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 
 	Tripartition [] finalTripartitions;
 	int [] finalCounts;
+	List<STITreeCluster> treeAllClusters = new ArrayList<STITreeCluster>();
 	//private Map<AbstractMap.SimpleEntry<STITreeCluster, STITreeCluster>, Integer> geneTreeInvalidSTBCont;
 
 	//private boolean rooted;
@@ -43,13 +45,16 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 			for (int i = 0; i < gtLeaves.length; i++) {
 				gtAll.addLeaf(GlobalMaps.taxonIdentifier.taxonId(gtLeaves[i]));
 			}
+			treeAllClusters.add(gtAll);
 			for (TNode node : tr.postTraverse()) {				
 				// System.err.println("Node is:" + node);
 				if (node.isLeaf()) {
 					String nodeName = getSpeciesName(node.getName());
 					
 					STITreeCluster cluster = new STITreeCluster();
-					cluster.addLeaf(GlobalMaps.taxonIdentifier.taxonId(nodeName));
+					Integer taxonID = GlobalMaps.taxonIdentifier.taxonId(nodeName);
+					cluster.addLeaf(taxonID);
+					((STINode)node).setData(taxonID);
 
 					addToClusters(cluster, 1);
 					
