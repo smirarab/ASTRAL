@@ -62,30 +62,6 @@ public class Tripartition {
 	public String toString() {		
 		return cluster1.toString()+"|"+cluster2.toString()+"|"+cluster3.toString();
 	}
-	
-	private int F(int a,int b,int c) {
-		return a*b*c*(a+b+c-3);
-	}
-	
-	
-	public int sharedQuartetCount(Tripartition other) {
-		
-		//int [] I = new int [9];
-		int 
-		I0 = cluster1.getBitSet().intersectionSize(other.cluster1.getBitSet()),
-		I1 = cluster1.getBitSet().intersectionSize(other.cluster2.getBitSet()),
-		I2 = cluster1.getBitSet().intersectionSize(other.cluster3.getBitSet()),
-		I3 = cluster2.getBitSet().intersectionSize(other.cluster1.getBitSet()),
-		I4 = cluster2.getBitSet().intersectionSize(other.cluster2.getBitSet()),
-		I5 = cluster2.getBitSet().intersectionSize(other.cluster3.getBitSet()),
-		I6 = cluster3.getBitSet().intersectionSize(other.cluster1.getBitSet()),
-		I7 = cluster3.getBitSet().intersectionSize(other.cluster2.getBitSet()),
-		I8 = cluster3.getBitSet().intersectionSize(other.cluster3.getBitSet());
-		
-		return  F(I0,I4,I8)+F(I0,I5,I7)+
-				F(I1,I3,I8)+F(I1,I5,I6)+
-				F(I2,I3,I7)+F(I2,I4,I6); 
-	}
 
 
 }
