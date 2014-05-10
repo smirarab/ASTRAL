@@ -4,7 +4,6 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Stack;
 
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
