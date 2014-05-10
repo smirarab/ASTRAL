@@ -1,6 +1,9 @@
 package phylonet.coalescent;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,7 +11,6 @@ import java.util.Map.Entry;
 
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
-import phylonet.tree.model.sti.STINode;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.util.BitSet;
 
@@ -24,12 +26,15 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 	
 	Integer [] geneTreesAsInts;
 
+	float [][] distMatrix;
+	private int n;
 	
 	public WQDataCollection(String[] gtTaxa, String[] stTaxa, WQClusterCollection clusters) {
 		this.gtTaxa = gtTaxa;
 		this.stTaxa = stTaxa;
 		this.clusters = clusters;
 	}
+	
 	
 	void traverseTrees(List<Tree> trees, boolean fromGeneTrees, int n,
 			Map<Tripartition, Integer> geneTreeTripartitonCount) {
@@ -52,14 +57,10 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 					Integer taxonID = GlobalMaps.taxonIdentifier.taxonId(nodeName);
 					cluster.addLeaf(taxonID);
 
-					addToClusters(cluster, 1);
-					
-					addToClusters(cluster.complementaryCluster(), n - 1);
+					addBipartition(gtAll.getBitSet(), cluster,
+						cluster.complementaryCluster());
 
 					nodeToSTCluster.put(node, cluster);
-					
-
-					// nodeToGTCluster.put(node, gtCluster);
 
 				} else {
 					int childCount = node.getChildCount();
@@ -81,20 +82,14 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 					cluster.setCluster((BitSet) bs.clone());
 
 					//((STINode)node).setData(new GeneTreeBitset(node.isRoot()? -2: -1));
-
-					int size = cluster.getClusterSize();
-
-					addToClusters(cluster, size);
 					nodeToSTCluster.put(node, cluster);
 					
+					int size = cluster.getClusterSize();
+
 					STITreeCluster remaining = cluster.complementaryCluster();
 					remaining.getBitSet().and(gtAll.getBitSet());
-					int remSize  = remaining.getClusterSize();
 					
-					if (remSize != 0) {
-						addToClusters(remaining, remSize);
-					}
-
+					addBipartition(gtAll.getBitSet(), cluster, remaining);
 
 					if (childCount == 2 ) {
 						if (size != n) {
@@ -150,10 +145,104 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 
 	}
 
+	private void addBipartition(BitSet gtAllBS,
+			STITreeCluster c1, STITreeCluster c2) {
+		STITreeCluster c1c = c1;
+		STITreeCluster c2c = c2;
+		if (distMatrix != null) {
+			c1c = new STITreeCluster (c1c);
+			BitSet b1c = c1c.getBitSet();
+			c2c = new STITreeCluster (c2c);
+			BitSet b2c = c2c.getBitSet();
+			for (int i = gtAllBS.nextClearBit(0); i < n ; i = gtAllBS.nextClearBit(i+1)) {
+				float dist1 = 0, dist2 = 0;
+				for (int j = b1c.nextSetBit(0); j >= 0 ; j = b1c.nextSetBit(j+1)) {
+					dist1 = Math.max(dist1 ,distMatrix[i][j]);
+				}
+				for (int j = b2c.nextSetBit(0); j >= 0 ; j = b2c.nextSetBit(j+1)) {
+					dist2 = Math.max(dist2 ,distMatrix[i][j]);
+				}
+				if (dist1 > dist2) {
+					b1c.set(i);
+				} else {
+					b2c.set(i);
+				}
+			}
+		}
+		
+		if (c1.getClusterSize() == 1) {
+			addToClusters(c1, c1.getClusterSize());
+		}
+		
+		addToClusters(c1c, c1c.getClusterSize());	
+		int remSize  = c2c.getClusterSize();
+		if (remSize != 0) {
+			addToClusters(c2c, remSize);
+		}
+	}
+
 	public void computeTreePartitions(Inference<Tripartition> inference) {
 
 		int k = inference.trees.size();
-		int n = stTaxa.length;
+		n = stTaxa.length;
+		
+		int haveMissing = 0;
+		for (Tree tree : inference.trees) {
+			if (tree.getLeafCount() != n) {
+				haveMissing++;
+			}
+		}
+		int [][] denom = new int [n][n];
+		Deque<List<Integer>> stack = new ArrayDeque<List<Integer>>();
+		if (haveMissing > k/3) {
+			distMatrix = new float[n][n];
+			for (Tree tree : inference.trees) {
+				Integer treeall = tree.getLeafCount();
+				for (TNode node : tree.postTraverse()) {
+					if (node.isLeaf()) {
+						ArrayList<Integer> tmp = new ArrayList<Integer>();
+						tmp.add(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
+						stack.push(tmp);
+					} else if (node.isRoot() && node.getChildCount() == 3){
+						List<Integer> left = stack.pop();
+						List<Integer> middle = stack.pop();
+						List<Integer> right = stack.pop();
+						updateDistanceForTwoNodes(treeall, left, right);
+						updateDistanceForTwoNodes(treeall, left, middle);
+						updateDistanceForTwoNodes(treeall, middle, right);
+						left.addAll(right);
+						left.addAll(middle);
+						stack.push(left);
+					} else {
+						List<Integer> left = stack.pop();
+						List<Integer> right = stack.pop();
+						updateDistanceForTwoNodes(treeall, left, right);
+						left.addAll(right);
+						right.clear();
+						stack.push(left);
+					}
+					if (node.isRoot()) {
+						List<Integer> all = stack.pop();
+						int c = all.size() - 2;
+						for (Integer l : all) {
+							for (Integer r : all) {
+								denom[l][r] += c*(c-1)/2;
+								denom[r][l] = denom[l][r];
+							}
+						}
+					}
+				}
+			}
+			
+			for (int i = 0; i < n; i++) {
+				for (int j = i; j < n; j++) {
+					distMatrix[i][j] = distMatrix[i][j] / denom[i][j];
+					distMatrix[j][i] = distMatrix[i][j];
+				}
+			}
+		}
+
+		
 
 		Map<Tripartition, Integer> geneTreeTripartitonCount = new HashMap<Tripartition, Integer>(k * n);
 		//geneTreeInvalidSTBCont = new HashMap<AbstractMap.SimpleEntry<STITreeCluster, STITreeCluster>, Integer>();
@@ -218,6 +307,18 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 				geneTreeTripartitonCount.size() * 2);
 		// System.err.println("sigma n is "+sigmaN);
 
+	}
+
+	private void updateDistanceForTwoNodes(Integer treeall, List<Integer> left,
+			List<Integer> right) {
+		int c = treeall - left.size() - right.size();
+		c = c*(c-1)/2;
+		for (Integer l : left) {
+			for (Integer r : right) {
+				distMatrix[l][r] += c;
+				distMatrix[r][l] = distMatrix[l][r];
+			}
+		}
 	}
 
 	public void addExtraBipartitionsByInput(ClusterCollection extraClusters,

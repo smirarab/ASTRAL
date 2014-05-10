@@ -20,6 +20,7 @@ public abstract class DataCollection <T> {
 	}
 
 	protected boolean addToClusters(STITreeCluster c, int size) {
+		if (size == 0) return false;
 		Vertex nv = c.new Vertex();
 		return clusters.addCluster(nv, size);
 	}
