@@ -1,5 +1,5 @@
 #!/bin/sh
-version=3.2.1
+version=4.0.0
 
 cd main
 
