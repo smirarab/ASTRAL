@@ -28,11 +28,13 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 
 	float [][] distMatrix;
 	private int n;
+	private int algorithm;
 	
-	public WQDataCollection(String[] gtTaxa, String[] stTaxa, WQClusterCollection clusters) {
+	public WQDataCollection(String[] gtTaxa, String[] stTaxa, WQClusterCollection clusters, int alg) {
 		this.gtTaxa = gtTaxa;
 		this.stTaxa = stTaxa;
 		this.clusters = clusters;
+		this.algorithm = alg;
 	}
 	
 	
@@ -266,7 +268,11 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 				+ geneTreeTripartitonCount.size());
 		System.err.println("Tripartitons in gene trees (sum): " + s);
 		
-		if (n <= 32 || (geneTreeTripartitonCount.size() < k*8)) {
+		if (this.algorithm == -1) {
+			this.algorithm = (n <= 32 || (geneTreeTripartitonCount.size() < k*8)) ? 2 : 1;
+		}
+		
+		if (this.algorithm == 2) {
 			System.err.println("Using tripartition-based weight calculation.");
 		
 			finalTripartitions = new Tripartition[geneTreeTripartitonCount.size()];
