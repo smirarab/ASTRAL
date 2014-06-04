@@ -56,6 +56,7 @@ public class CommandLine {
 		double wh = 1.0D;
 		boolean unresolved = false;		
 		long startTime = System.currentTimeMillis();
+		int alg = -1;
 		String line;
 		BufferedReader treeBufferReader = null;
 		BufferedReader extraTreebuffer = null;
@@ -179,7 +180,10 @@ public class CommandLine {
 						return;
 					}
 
-				} else if (option[0].equals("-cs")) {
+				} else if (option[0].equals("-fa")) {
+					alg = Integer.parseInt(option[1]);
+
+				}else if (option[0].equals("-cs")) {
 					if (option.length != 2) {
 						printUsage();
 						return;
@@ -382,6 +386,7 @@ public class CommandLine {
 				}				
 				extraTreebuffer.close();
 			}
+			
 		} catch (IOException e) {
 			System.err.println("Error when reading trees. The function exits.");
 			System.err.println(e.getMessage());
@@ -422,7 +427,7 @@ public class CommandLine {
 					trees, extraTrees, exactSolution,criterion > 0);			
 		} else if (criterion == 2) {
 			inference = new WQInference(rooted, extrarooted, 
-					trees, extraTrees, exactSolution,criterion > 0);
+					trees, extraTrees, exactSolution,criterion > 0, alg);
 		} else {
 			throw new RuntimeException("You should choose one of the following options: -d (duplications) -dl (duploss) -wq (weighted qurtets)");
 		}

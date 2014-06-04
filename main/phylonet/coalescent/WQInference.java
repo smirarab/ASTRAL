@@ -9,12 +9,13 @@ import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
 public class WQInference extends Inference<Tripartition> {
 	
-	public WQInference(boolean rooted, boolean extrarooted, List<Tree> trees,
-			List<Tree> extraTrees, boolean exactSolution, boolean duploss) {
-		super(rooted, extrarooted, trees, extraTrees, exactSolution);
-	}
-
+	int forceAlg = -1;
 	
+	public WQInference(boolean rooted, boolean extrarooted, List<Tree> trees,
+			List<Tree> extraTrees, boolean exactSolution, boolean duploss, int alg) {
+		super(rooted, extrarooted, trees, extraTrees, exactSolution);
+		this.forceAlg = alg;
+	}
 
 	public void scoreGeneTree(STITree st) {
 		throw new RuntimeException("Not implemented yet");
@@ -38,7 +39,7 @@ public class WQInference extends Inference<Tripartition> {
 	}
 	
 	DataCollection<Tripartition> newCounter(ClusterCollection clusters) {
-		return new WQDataCollection(gtTaxa, stTaxa, (WQClusterCollection)clusters);
+		return new WQDataCollection(gtTaxa, stTaxa, (WQClusterCollection)clusters, this.forceAlg);
 	}
 
 
