@@ -1,3 +1,5 @@
+Version 4.1.1:
+  -- Added a hidden option to force algorithm 
 Version 4.1:
   -- Updated the commandline so that ASTRAL algorithm is the default and DynaDup specific options are removed (-wq omitted and is default now)
 Version 4.0:
