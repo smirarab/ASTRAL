@@ -12,7 +12,6 @@ jar cvfm ../astral.$version.jar ../manifest.text phylonet/util/BitSet.* phylonet
 cd ..
 
 chmod +x astral.$version.jar
-cp astral.$version.jar astral.jar
 sed -e "s/__astral.jar__/astral.$version.jar/g" README.template > README
 rm -r Astral/*
 mkdir Astral
