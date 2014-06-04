@@ -32,10 +32,10 @@ public class CommandLine {
 			return;
 		}
 		
-		int criterion = -1;
-		boolean rooted = true;
+		int criterion = 2;
+		boolean rooted = false;
 		//boolean fast = false;
-		boolean extrarooted = true;
+		boolean extrarooted = false;
 		boolean exactSolution = false;
 		
 		Map<String, String> taxonMap = null;
@@ -81,7 +81,7 @@ public class CommandLine {
 							option[1]));
 
 					extraTrees = new ArrayList();					
-				} else if (option[0].equals("-st")) {
+				} /*else if (option[0].equals("-st")) {
 					if (option.length != 2) {
 						printUsage();
 						return;
@@ -92,7 +92,7 @@ public class CommandLine {
 					NewickReader nr = new NewickReader(new StringReader(line));
 					scorest = new STITree(true);
 					nr.readTree(scorest);				
-				} else if (option[0].equals("-a")) {
+				}*//* else if (option[0].equals("-a")) {
 					if ( (option.length != 2) && (option.length != 3)) {
 						printUsage();
 						return;
@@ -132,7 +132,7 @@ public class CommandLine {
 							rep = "";
 						}
 					}
-				} else if (option[0].equals("-o")) {
+				}*/ else if (option[0].equals("-o")) {
 					if (option.length != 2) {
 						printUsage();
 						return;
@@ -261,11 +261,14 @@ public class CommandLine {
 					}
 					exactSolution = true;
 				} else if (option[0].equals("-dl")) {
-					if (criterion != -1) {
-						System.err.println("You should choose only of the following options: -d (duplications) -dl (duploss) -wq (weighted qurtets)");
+					if (criterion != 2) {
+						System.err.println("You should choose only of the following options: -d (duplications) -dl (duploss)");
 						printUsage();
+						return;
 					}
 					criterion = 1;
+					rooted = true;
+					extrarooted = true;
 					if (option.length != 2) {
 						printUsage();
 						return;
@@ -287,19 +290,23 @@ public class CommandLine {
 						return;
 					}
 				} else if (option[0].equals("-d")) {
-					if (criterion != -1) {
-						System.err.println("You should choose only of the following options: -d (duplications) -dl (duploss) -wq (weighted qurtets)");
+					if (criterion != 2) {
+						System.err.println("You should choose only of the following options: -d (duplications) -dl (duploss))");
 						printUsage();
+						return;
 					}
 					criterion = 0;
+					rooted = true;
+					extrarooted = true;
 					if (option.length != 1) {
 						printUsage();
 						return;
 					}
-				}  else if (option[0].equals("-wq")) {
+				}  /*else if (option[0].equals("-wq")) {
 					if (criterion != -1) {
 						System.err.println("You should choose only of the following options: -d (duplications) -dl (duploss) -wq (weighted qurtets)");
 						printUsage();
+						return;
 					}
 					System.err.println("Criterion set to weighted quartets. Gene trees will be treated as unrooted.");
 					criterion = 2;
@@ -309,7 +316,7 @@ public class CommandLine {
 						printUsage();
 						return;
 					}
-				} else {
+				}*/ else {
 					printUsage();
 					return;
 				}
@@ -469,33 +476,34 @@ public class CommandLine {
 
 	protected static void printUsage() {
 		System.out
-				.println("This tool infers the species tree from rooted gene trees. Use -d to minimize duplications, -dl to minimize dupication and loss, or -wq to maximize quartet weights (used for ILS).");
+				.println("This tool infers the species tree from rooted gene trees.\n"
+						+ "By default, the ASTRAL algorithm is used, which maximizes shared quartet trees with gene trees.\n"
+						+ "Use -d to instead minimize duplications or -dl to minimize dupication and loss (using the DynaDup algorithm).");
 		System.out.println("Usage is:");
 		System.out
 				.println("\tMGDInference_DP -i input [-a mapping] [-d | -dl N| -wq] [-ex extra_trees] [-o output] [-cs number] [-cd number] [-xt] [-s species tree] [-wd duplication weight]");
 		System.out
 				.println("\t-i gene tree file: The file containing gene trees. (required)");
-		System.out
+/*		System.out
 				.println("\t-st species tree file: The file containing a species tree to be scored.\n" +
 						 "\t                       If this option is provided the software only scores the species tree.");
 		System.out
 				.println("\t-a mapping file: The file containing the mapping from alleles to speceis if multiple alleles sampled.\n" +
 						 "\t                 Alternatively, two reqular expressions for automatic name conversion (optional)");
-		System.out
+*/		System.out
 				.println("\t-o species tree file: The file to store the species tree. (optional)");
 		System.out.println("\t-d optimizes duplications.");
 		System.out.println("\t-dl N: optimize duplications and losses. Use -dl 0 for standard (homomorphic) definition, and -dl 1 for ``bd'' definition. Any value in between weights the impact of missing taxa on the tree.");
-		System.out.println("\t-wq optimizes weighted quartet score (useful for ILS).");
+		//System.out.println("\t-wq optimizes weighted quartet score (useful for ILS).");
 		System.out.println("\t-xt find the exact solution by looking at all clusters.");
 		//System.out.println("\t-u treat input gene trees as unrooted (Not implemented!)");
 		System.out.println("\t-ex provide extra trees used to enrich the set of clusters searched");
 		//System.out.println("\t-xu treat extra trees input gene trees as unrooted (Not implemented!)");
-		System.out.println("\t-cs and " +
-						   "-cd these two options set two parameters (cs and cd) to a value between 0 and 1. \n" +
+		System.out.println("\t-cs and -cd these two EXPERIMENTAL options set two parameters (cs and cd) to a value between 0 and 1. \n" +
 						   "\t    For any cluster C if |C| >= cs*|taxa|, we add complementary clusters (with respect to C) of all subclusters of C\n" +
 						   "\t    if size of the subcluster is >= cd*|C|.\n" +
 						   "\t    By default cs = cd = 1; so no extra clusters are added. Lower cs and cd values could result in better scores\n" +
-						   "\t    (especially when gene trees have low taxon occupancy) but can also increase the running time quite substantially.");
+						   "\t    (especially when gene trees have missing data) but can also increase the running time quite substantially.");
 		
 		//System.out.println("\t-f perform fast and less-accurate subtree-bipartition based search (Not implemented!).");
 		System.out.println();
