@@ -1,5 +1,5 @@
 DESCRIPTION:
-============
+-----------
 ASTRAL is a Java program for estimating a species tree given a set of unrooted gene trees. ASTRAL is statistically consistent under multi-species coalescent model (and thus is useful for handling ILS). It finds the tree that maximizes the number of induced quartet trees in the set of gene trees that are shared by the species tree. The algorithm has an exact version that can run for small datasets (less than 18 taxa) and a more useful version that can handle large datasets (103 taxa an 800 genes were analyzed in few minutes).
 
 The algorithm used is described in:
@@ -9,13 +9,13 @@ S. Mirarab, R. Reaz, Md. S. Bayzid, T. Zimmermann, M.S. Swenson, and T. Warnow1
 
 
 INSTALLATION:
-============
+-----------
 There is no installation required to run ASTRAL. You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/archive/master.zip) and extract the contents to a folder of your choice. Alternatively, you can replicate the [github repository](https://github.com/smirarab/ASTRAL/). You can run make.sh to build the project of simply use the jar file that is included with the repository. 
 
 ASTRAL is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. Java 1.5 or later is required. We have tested ASTRAL only on Linux and MAC.
 
 EXECUTION:
-===========
+-----------
 ASTRAL currently has no GUI. You need to run it through command-line. In a terminal, go the location where you have downloaded the software, and issue the following command:
 
 ```
@@ -66,10 +66,10 @@ java -Xmx3000M -jar astral.4.1.0.jar -i in.tree
 ```
 
 Acknowledgment
-=============
+-----------
 ASTRAL code uses bytecode and some reverse engineered code from PhyloNet package (with permission from the authors).
 
 
 Bug Reports:
-============
+-----------
 contact smirarab@gmail.com
