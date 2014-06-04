@@ -10,7 +10,7 @@ S. Mirarab, R. Reaz, Md. S. Bayzid, T. Zimmermann, M.S. Swenson, and T. Warnow1
 
 INSTALLATION:
 -----------
-There is no installation required to run ASTRAL. You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/Astral.4.1.0.zip) and extract the contents to a folder of your choice. Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/). You can run make.sh to build the project of simply use the jar file that is included with the repository. 
+There is no installation required to run ASTRAL. You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/Astral.4.1.1.zip) and extract the contents to a folder of your choice. Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/). You can run make.sh to build the project of simply use the jar file that is included with the repository. 
 
 ASTRAL is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. Java 1.5 or later is required. We have tested ASTRAL only on Linux and MAC.
 
@@ -19,7 +19,7 @@ EXECUTION:
 ASTRAL currently has no GUI. You need to run it through command-line. In a terminal, go the location where you have downloaded the software, and issue the following command:
 
 ```
-  java -jar astral.4.1.0.jar
+  java -jar astral.4.1.1.jar
 ```
 
 This will give you a list of options available in ASTRAL.
@@ -27,13 +27,13 @@ This will give you a list of options available in ASTRAL.
 To find the species tree given a set of gene trees in a file called in.tree, use:
 
 ```
-java -jar astral.4.1.0.jar -i in.tree
+java -jar astral.4.1.1.jar -i in.tree
 ```
 
 The results will be outputted to the standard output. To save the results in a file use the `-o` option:
 
 ```
-java -jar astral.4.1.0.jar -i in.tree -o out.tre
+java -jar astral.4.1.1.jar -i in.tree -o out.tre
 ```
 
 Note that, currently, the input gene trees need to be fully resolved. 
@@ -42,13 +42,13 @@ Note that, currently, the input gene trees need to be fully resolved.
 The software also includes implementations of algorithms for minimizing duplication and loss [DynaDup](https://github.com/smirarab/DynaDup). To minimize duplications, run:
 
 ```
-java -jar astral.4.1.0.jar -i in.tree -d
+java -jar astral.4.1.1.jar -i in.tree -d
 ```
 
 To minimize duplications and losses run:
 
 ```
-java -jar astral.4.1.0.jar -i in.tree -dll
+java -jar astral.4.1.1.jar -i in.tree -dll
 ```
 
 Note that Duploss requires rooted gene trees. 
@@ -62,7 +62,7 @@ Leaves of a gene trees need to have distinct labels; these labels will appear as
 For big datasets (say more than 100 taxon) increasing the memory available to Java can result in speed up. Note that you should give Java only as much as free memory you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke ASTRAL using the following command to make all the 3GB available to Java:
 
 ```
-java -Xmx3000M -jar astral.4.1.0.jar -i in.tree
+java -Xmx3000M -jar astral.4.1.1.jar -i in.tree
 ```
 
 Acknowledgment
