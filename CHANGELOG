@@ -1,3 +1,5 @@
+Version 4.2.0:
+  -- overflow use long not int
 Version 4.1.1:
   -- Added a hidden option to force algorithm 
 Version 4.1:
