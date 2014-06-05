@@ -145,10 +145,10 @@ public abstract class ComputeMinCostTask<T> {
 					if (weight == null) {
 						T t = STB2T(bi);					
 						weight =  inference.weightCalculator.getWeight(t, this);
+						//System.out.print(weight/Integer.MAX_VALUE);
 					}					
 					
 					double c = adjustWeight(clusterLevelCost, smallV, bigv, weight);					
-
 //					double l = 2.4;
 //					if (clusterSize > 5 && v._max_score > l*(lscore + rscore))
 //						if ((lscore + rscore + c)> v._max_score)

@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -518,8 +517,8 @@ public class CommandLine {
 
 
 	protected static List<String[]> getOptions(String[] args) {
-		LinkedList opts = new LinkedList();
-		LinkedList arg_list = new LinkedList();
+		LinkedList<String []> opts = new LinkedList<String[]>();
+		LinkedList<String> argList = new LinkedList<String>();
 	
 		int i = 0;
 		while (i < args.length) {
@@ -528,18 +527,18 @@ public class CommandLine {
 				System.exit(-1);
 			}
 	
-			arg_list.clear();
-			arg_list.addFirst(args[i]);
+			argList.clear();
+			argList.addFirst(args[i]);
 			i++;
 	
 			while ((i < args.length) && (args[i].charAt(0) != '-')) {
-				arg_list.addLast(args[i]);
+				argList.addLast(args[i]);
 				i++;
 			}
-			String[] arg_array = new String[arg_list.size()];
-			arg_list.toArray(arg_array);
+			String[] argArray = new String[argList.size()];
+			argList.toArray(argArray);
 	
-			opts.addLast(arg_array);
+			opts.addLast(argArray);
 		}
 		return opts;
 	}

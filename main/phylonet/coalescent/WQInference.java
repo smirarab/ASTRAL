@@ -23,8 +23,8 @@ public class WQInference extends Inference<Tripartition> {
 
 
 	@Override
-	int getTotalCost(Vertex all) {
-		return (int) (all._max_score/4);
+	Long getTotalCost(Vertex all) {
+		return (long) (all._max_score/4);
 	}
 
 
