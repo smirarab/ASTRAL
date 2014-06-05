@@ -37,11 +37,11 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 			return weight;
 		}
 
-		private int F(int a,int b,int c) {
+		private long F(int a,int b,int c) {
 			return a*b*c*(a+b+c-3);
 		}	
 		
-		int sharedQuartetCount(Tripartition that, Tripartition other) {
+		long sharedQuartetCount(Tripartition that, Tripartition other) {
 			
 			//int [] I = new int [9];
 			int 

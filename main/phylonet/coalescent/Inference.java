@@ -42,7 +42,6 @@ public abstract class Inference<T> {
 	DataCollection<T> dataCollection;
 	WeightCalculator<T> weightCalculator;
 
-
 	public static Tree buildTreeFromClusters(List<STITreeCluster> clusters) {
 	    if ((clusters == null) || (clusters.size() == 0)) {
 	      System.err.println("Empty list of clusters. The function returns a null tree.");
@@ -352,8 +351,9 @@ public abstract class Inference<T> {
 			}
 		}
 
-		sol._totalCoals = getTotalCost(all);
-		System.out.println("total cost: " + sol._totalCoals);
+		Long cost = getTotalCost(all);
+		System.out.println("total cost: " + cost);
+		sol._totalCoals = cost;
 		System.err.println("Total Number of elements examined: "+ weightCalculator.getCalculatedWeightCount());
 		solutions.add(sol);
 
@@ -415,7 +415,7 @@ public abstract class Inference<T> {
 	abstract ComputeMinCostTask<T> newComputeMinCostTask(Inference<T> dlInference,
 			Vertex all, ClusterCollection clusters);
 	
-	abstract int getTotalCost(Vertex all);
+	abstract Long getTotalCost(Vertex all);
 	
 	public double getDLbdWeigth() {
 		return DLbdWeigth;
