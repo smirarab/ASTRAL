@@ -131,7 +131,7 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 		}
 
 		public Long calculateWeight() {
-			long r = dataCollection.geneTreesAsInts != null? 
+			Long r = dataCollection.geneTreesAsInts != null? 
 					calculateMissingWeight2():
 						calculateMissingWeight();
 			weights.put(trip, r);
