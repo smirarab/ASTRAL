@@ -183,9 +183,9 @@ class DLWeightCalculator extends WeightCalculator<STBipartition>{
 			this.stb = stb;
 		}
 
-		int calculateMissingWeight() {
+		Long calculateMissingWeight() {
 			// System.err.print("Calculating weight for: " + biggerSTB);
-			int weight = 0;
+			Long weight = 0l;
 			for (STBipartition smallerSTB : containedClusterCollection
 					.getContainedGeneTreeSTBs()) {
 				if (smallerSTB == stb || smallerSTB.isDominatedBy(stb)) {
@@ -211,7 +211,7 @@ class DLWeightCalculator extends WeightCalculator<STBipartition>{
 			return weight;
 		}
 
-		public Integer calculateWeight() {
+		public Long calculateWeight() {
 			return calculateMissingWeight();
 		}
 	}

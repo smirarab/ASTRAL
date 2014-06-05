@@ -24,7 +24,7 @@ public class DLComputeMinCostTask extends ComputeMinCostTask<STBipartition>{
 	}
 	
 	protected double adjustWeight(int clusterLevelCost, Vertex smallV,
-			Vertex bigv, Integer Wdom) {
+			Vertex bigv, Long Wdom) {
 		double c;
 		if (inference.getOptimizeDuploss() == 3) {
 			
@@ -114,7 +114,7 @@ public class DLComputeMinCostTask extends ComputeMinCostTask<STBipartition>{
 	}
 
 	@Override
-	Integer defaultWeightForFullClusters() {
+	Long defaultWeightForFullClusters() {
 		return null;
 	}
 

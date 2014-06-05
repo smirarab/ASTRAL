@@ -7,20 +7,20 @@ import phylonet.tree.model.Tree;
 
 public abstract class WeightCalculator<T> {
 	
-	protected HashMap<T, Integer> weights;
+	protected HashMap<T, Long> weights;
 
 	public WeightCalculator() {
 	}
 	
 	public void initializeWeightContainer(int size) {
-		weights = new HashMap<T, Integer>(size);
+		weights = new HashMap<T, Long>(size);
 	}
 	
 	public int getCalculatedWeightCount() {
 		return weights.size();
 	}
 	
-	public Integer getCalculatedWeight(T bi) {
+	public Long getCalculatedWeight(T bi) {
 //		if (!weights.containsKey(bi)) {
 //			// weights.put(bi,calculateMissingWeight(bi));
 //			return null;
@@ -28,8 +28,8 @@ public abstract class WeightCalculator<T> {
 		return weights.get(bi);
 	}
 	
-	public Integer getWeight(T t, ComputeMinCostTask<T> minCostTask) {
-		Integer weight = getCalculatedWeight(t);
+	public Long getWeight(T t, ComputeMinCostTask<T> minCostTask) {
+		Long weight = getCalculatedWeight(t);
 		
 		if (weight == null) {
 //						if (clusterSize > 9 && v._max_score > (2-0.02*clusterSize)*(lscore + rscore))
