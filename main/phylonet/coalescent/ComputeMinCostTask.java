@@ -137,7 +137,7 @@ public abstract class ComputeMinCostTask<T> {
 					// MP_VERSION: w = weigthWork.join();
 
 		
-					Integer weight = null;
+					Long weight = null;
 					if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) {
 						weight = defaultWeightForFullClusters();
 					}
@@ -221,13 +221,13 @@ public abstract class ComputeMinCostTask<T> {
 		return v._max_score;
 	}
 
-	abstract Integer defaultWeightForFullClusters();
+	abstract Long defaultWeightForFullClusters();
 
 	protected abstract ComputeMinCostTask<T> newMinCostTask(Vertex v, 
 	ClusterCollection clusters);
 
 	abstract protected double adjustWeight(int clusterLevelCost, Vertex smallV,
-			Vertex bigv, Integer Wdom);
+			Vertex bigv, Long Wdom);
 
     abstract protected int calculateClusterLevelCost();
 	
