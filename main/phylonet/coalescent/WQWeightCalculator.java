@@ -26,11 +26,13 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 			this.trip = trip;
 		}
 
-		int calculateMissingWeight() {
+		long calculateMissingWeight() {
 			// System.err.print("Calculating weight for: " + biggerSTB);
-			int weight = 0;
+			long weight = 0l;
 			for (int i=0; i < dataCollection.finalCounts.length; i++) {
-				weight += sharedQuartetCount(trip,dataCollection.finalTripartitions[i]) * dataCollection.finalCounts[i];
+				weight += sharedQuartetCount(
+						trip,dataCollection.finalTripartitions[i]) * 
+						dataCollection.finalCounts[i];
 			}
 			return weight;
 		}
@@ -81,8 +83,8 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 			
 		}
 		
-		int calculateMissingWeight2() {
-			int weight = 0;
+		long calculateMissingWeight2() {
+			long weight = 0;
 			Intersects  allsides = null;
 			Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
 			boolean newTree = true;
@@ -128,8 +130,8 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 			return weight;
 		}
 
-		public Integer calculateWeight() {
-			int r = dataCollection.geneTreesAsInts != null? 
+		public Long calculateWeight() {
+			long r = dataCollection.geneTreesAsInts != null? 
 					calculateMissingWeight2():
 						calculateMissingWeight();
 			weights.put(trip, r);
