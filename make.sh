@@ -18,7 +18,7 @@ mkdir Astral
 cd Astral
 ln -s ../lib .
 ln -s ../main.jar .
-ln -s ../README .
+ln -s ../README.md .
 ln -s ../astral.$version.jar .
 cd ..
 zip -r Astral.$version.zip Astral 
