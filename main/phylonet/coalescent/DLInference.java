@@ -51,8 +51,8 @@ public class DLInference extends Inference<STBipartition> {
 	}
 
 
-	int getTotalCost(Vertex all) {
-		return (int) (((DLDataCollection)this.dataCollection).sigmaNs - all._max_score);
+	Long getTotalCost(Vertex all) {
+		return (long) (((DLDataCollection)this.dataCollection).sigmaNs - all._max_score);
 	}
 
 
