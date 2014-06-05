@@ -481,14 +481,14 @@ public class CommandLine {
 
 	protected static void printUsage() {
 		System.out
-				.println("This tool infers the species tree from rooted gene trees.\n"
-						+ "By default, the ASTRAL algorithm is used, which maximizes shared quartet trees with gene trees.\n"
+				.println("This tool infers a species tree from unrooted gene trees.\n"
+						+ "By default, the ASTRAL algorithm is used, which maximizes the number of shared quartet trees with gene trees.\n"
 						+ "Use -d to instead minimize duplications or -dl to minimize dupication and loss (using the DynaDup algorithm).");
-		System.out.println("Usage is:");
+		System.out.println("\nUsage is:");
 		System.out
-				.println("\tMGDInference_DP -i input [-a mapping] [-d | -dl N| -wq] [-ex extra_trees] [-o output] [-cs number] [-cd number] [-xt] [-s species tree] [-wd duplication weight]");
+				.println("\tMGDInference_DP -i input [-o output] [-ex extra_trees] [-xt] [-d | -dl N] ");// [-s species tree] [-cs number] [-cd number] [-a mapping] [-wd duplication weight]");
 		System.out
-				.println("\t-i gene tree file: The file containing gene trees. (required)");
+				.println("\t-i input file: A file containing gene trees. (required)");
 /*		System.out
 				.println("\t-st species tree file: The file containing a species tree to be scored.\n" +
 						 "\t                       If this option is provided the software only scores the species tree.");
@@ -496,15 +496,17 @@ public class CommandLine {
 				.println("\t-a mapping file: The file containing the mapping from alleles to speceis if multiple alleles sampled.\n" +
 						 "\t                 Alternatively, two reqular expressions for automatic name conversion (optional)");
 */		System.out
-				.println("\t-o species tree file: The file to store the species tree. (optional)");
-		System.out.println("\t-d optimizes duplications.");
-		System.out.println("\t-dl N: optimize duplications and losses. Use -dl 0 for standard (homomorphic) definition, and -dl 1 for ``bd'' definition. Any value in between weights the impact of missing taxa on the tree.");
-		//System.out.println("\t-wq optimizes weighted quartet score (useful for ILS).");
-		System.out.println("\t-xt find the exact solution by looking at all clusters.");
+				.println("\t-o output file: A filename for storing the output species tree. Defaults to stdout. (optional)");
+		System.out.println("\t-xt: find the exact solution by looking at all clusters (recommended only for small (<18) numer of taxa.");
 		//System.out.println("\t-u treat input gene trees as unrooted (Not implemented!)");
-		System.out.println("\t-ex provide extra trees used to enrich the set of clusters searched");
+		System.out.println("\t-ex: provide extra trees used to enrich the set of clusters searched");
 		//System.out.println("\t-xu treat extra trees input gene trees as unrooted (Not implemented!)");
-		System.out.println("\t-cs and -cd these two EXPERIMENTAL options set two parameters (cs and cd) to a value between 0 and 1. \n" +
+		System.out.println("\t-d: optimizes duplications (DynaDup). This option invokes DynaDyp instead of ASTRAL.");
+		System.out.println("\t-dl N: optimize duplications and losses (DynaDup). This option invokes DynaDyp instead of ASTRAL.\n"
+				+ 		   "\t    Use -dl 0 for standard (homomorphic) definition, and -dl 1 for ``bd'' definition.\n"+
+						   "\t    Any value in between weights the impact of missing taxa on the tree.");
+		//System.out.println("\t-wq optimizes weighted quartet score (useful for ILS).");
+		System.out.println("\t-cs and -cd: these two EXPERIMENTAL options set two parameters (cs and cd) to a value between 0 and 1. \n" +
 						   "\t    For any cluster C if |C| >= cs*|taxa|, we add complementary clusters (with respect to C) of all subclusters of C\n" +
 						   "\t    if size of the subcluster is >= cd*|C|.\n" +
 						   "\t    By default cs = cd = 1; so no extra clusters are added. Lower cs and cd values could result in better scores\n" +
