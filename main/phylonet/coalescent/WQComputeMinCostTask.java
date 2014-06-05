@@ -16,7 +16,7 @@ public class WQComputeMinCostTask extends ComputeMinCostTask<Tripartition>{
 	}
 	
 	protected double adjustWeight(int clusterLevelCost, Vertex smallV,
-			Vertex bigv, Integer Wdom) {	
+			Vertex bigv, Long Wdom) {	
 		return Wdom;
 	}
 	
@@ -42,8 +42,8 @@ public class WQComputeMinCostTask extends ComputeMinCostTask<Tripartition>{
 	}
 
 	@Override
-	Integer defaultWeightForFullClusters() {
-		return 0;
+	Long defaultWeightForFullClusters() {
+		return 0l;
 	}
 
 }
