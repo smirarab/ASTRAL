@@ -1,0 +1,3 @@
+**Song et al**:  We include here sample input files based on the [Song et. al.](http://www.pnas.org/content/109/37/14942.short) dataset of 37 mammalian species and 442 genes. We have removed 23 problematic genes (21 mislabeled genes and 2 genes we classified as outliers) and we have also re-estimated gene trees using RAxML on the alignments that authors of that paper kindly provided to us. We have also created a reduced version of this dataset with 9 primates, tree shrews, and 4 other mammalian outgroups is also provided for testing the exact version. 
+
+A simulated dataset with 100 taxa and 2500 bootstrap replicate gene trees is also provided. 
