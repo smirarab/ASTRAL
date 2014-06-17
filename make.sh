@@ -20,5 +20,6 @@ ln -s ../lib .
 ln -s ../main.jar .
 ln -s ../README.md .
 ln -s ../astral.$version.jar .
+ln -s ../main/test_data .
 cd ..
 zip -r Astral.$version.zip Astral 
