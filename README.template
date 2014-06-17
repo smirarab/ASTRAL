@@ -14,6 +14,13 @@ There is no installation required to run ASTRAL. You simply need to download the
 
 ASTRAL is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. Java 1.5 or later is required. We have tested ASTRAL only on Linux and MAC.
 
+To test your installation, run:
+
+``
+java -jar __astral.jar__ -in main/test_data/song_primates.50.gene.tre
+``
+from the decompressed location. It should quickly finish. There are also other sample input files under `main/test_data/` that can be used.
+
 EXECUTION:
 -----------
 ASTRAL currently has no GUI. You need to run it through command-line. In a terminal, go the location where you have downloaded the software, and issue the following command:
