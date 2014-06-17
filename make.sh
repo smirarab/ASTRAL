@@ -3,9 +3,9 @@ version=4.2.0
 
 cd main
 
-rm phylonet/coalescent/*.class phylonet/util/BitSet.class phylonet/tree/model/sti/STITreeCluster*.class 
+rm phylonet/coalescent/*.class phylonet/util/BitSet.class phylonet/tree/model/sti/STITreeCluster*.class  
 
-javac -classpath ../main.jar:../lib/jsr166.jar phylonet/util/BitSet.java phylonet/coalescent/*java phylonet/util/BitSet.java phylonet/tree/model/sti/STITreeCluster.java
+javac -source 1.5  -target 1.5 -classpath ../main.jar:../lib/jsr166.jar phylonet/util/BitSet.java phylonet/coalescent/*java phylonet/tree/model/sti/STITreeCluster.java
 
 jar cvfm ../astral.$version.jar ../manifest.text phylonet/util/BitSet.* phylonet/coalescent/*.* phylonet/tree/model/sti/STITreeCluster*.*
 
