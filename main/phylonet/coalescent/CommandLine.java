@@ -485,7 +485,7 @@ public class CommandLine {
 						+ "Use -d to instead minimize duplications or -dl to minimize dupication and loss (using the DynaDup algorithm).");
 		System.out.println("\nUsage is:");
 		System.out
-				.println("\tMGDInference_DP -i input [-o output] [-ex extra_trees] [-xt] [-d | -dl N] ");// [-s species tree] [-cs number] [-cd number] [-a mapping] [-wd duplication weight]");
+				.println("\t-i input [-o output] [-ex extra_trees] [-xt] [-d | -dl N] ");// [-s species tree] [-cs number] [-cd number] [-a mapping] [-wd duplication weight]");
 		System.out
 				.println("\t-i input file: A file containing gene trees. (required)");
 /*		System.out
