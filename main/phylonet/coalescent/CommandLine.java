@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 import phylonet.coalescent.GlobalMaps.TaxonNameMap;
 import phylonet.tree.io.NewickReader;
@@ -22,6 +23,8 @@ import phylonet.tree.model.sti.STITree;
 public class CommandLine {
 	
 	protected static boolean _print = true;
+	
+	protected static String _versinon = "4.2.1";
 
 
 	public static void main(String[] args) {
@@ -334,11 +337,13 @@ public class CommandLine {
 			System.err.println("Gene trees are treated as "
 					+ (rooted ? "rooted" : "unrooted"));
 			int l = 0;
+			
 			try {
 				while ((line = treeBufferReader.readLine()) != null) {
 					l++;
 					Set<String> previousTreeTaxa = new HashSet<String>();
 					if (line.length() > 0) {
+						line = line.replaceAll("\\)[^,);]*", ")");
 						NewickReader nr = new NewickReader(new StringReader(line));
 						if (rooted) {
 							STITree gt = new STITree(true);
@@ -370,7 +375,8 @@ public class CommandLine {
 
 			if (extraTreebuffer != null) {
 				while ((line = extraTreebuffer.readLine()) != null) {
-					if (line.length() > 0) {					
+					if (line.length() > 0) {	
+						line = line.replaceAll("\\)[^,);]*", ")");
 						NewickReader nr = new NewickReader(
 								new StringReader(line));
 						if (extrarooted) {
@@ -480,8 +486,9 @@ public class CommandLine {
 
 	protected static void printUsage() {
 		System.out
-				.println("This tool infers a species tree from unrooted gene trees.\n"
-						+ "By default, the ASTRAL algorithm is used, which maximizes the number of shared quartet trees with gene trees.\n"
+				.println("ASTRAL (version "+_versinon + " ): species tree inference from unrooted gene trees.\n"
+						+ "The ASTRAL algorithm maximizes the number of shared quartet trees with the collection of all gene trees. \n"
+						+ "The result of this optimization problem is statistically consistent under the multi-species coalesent model. \n"
 						+ "Use -d to instead minimize duplications or -dl to minimize dupication and loss (using the DynaDup algorithm).");
 		System.out.println("\nUsage is:");
 		System.out
