@@ -1,5 +1,3 @@
-A [pdf](astral-tutorial.pdf) version of this page is also available.
-
 -------------------------
 DESCRIPTION:
 ---------------
