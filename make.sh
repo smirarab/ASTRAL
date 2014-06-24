@@ -1,5 +1,7 @@
 #!/bin/sh
-version=4.2.0
+
+version=`grep _versinon main/phylonet/coalescent/CommandLine.java|grep String|sed -e "s/.*= .//g" -e "s/.;//g"`
+echo Version $version
 
 cd main
 
