@@ -7,6 +7,8 @@ The algorithm used is described in:
 S. Mirarab, R. Reaz, Md. S. Bayzid, T. Zimmermann, M.S. Swenson, and T. Warnow1
 "ASTRAL: Genome-Scale Coalescent-Based Species Tree Estimation", accepted in ECCB 2014 and to appear in Bioinformatics
 
+See our [tutorial](astral-tutorial.pdf) in addition to the rest of this README file. 
+
 
 INSTALLATION:
 -----------
