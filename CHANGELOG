@@ -1,3 +1,7 @@
+Version 4.2.1:
+  -- Read input gene trees with internal node labels
+  -- Updated the prompts and messages (e.g. Score instead of Cost)
+  -- Software outputs the version number too
 Version 4.2.0:
   -- (BUG FIX) overflow happened for large number of genes.  Use long instead of int
   -- Improve the commandline help a bit
