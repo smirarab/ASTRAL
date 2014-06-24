@@ -328,6 +328,7 @@ public class CommandLine {
 				}
 			}
 
+			System.err.println("ASTRAL version " + _versinon);
 			if (treeBufferReader == null) {
 				System.err.println("The input file has not been specified.");
 				printUsage();
