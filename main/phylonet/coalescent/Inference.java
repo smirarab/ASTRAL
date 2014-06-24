@@ -352,9 +352,9 @@ public abstract class Inference<T> {
 		}
 
 		Long cost = getTotalCost(all);
-		System.out.println("total cost: " + cost);
+		System.out.println("Final optimization score: " + cost);
 		sol._totalCoals = cost;
-		System.err.println("Total Number of elements examined: "+ weightCalculator.getCalculatedWeightCount());
+		System.err.println("Total Number of elements weighted: "+ weightCalculator.getCalculatedWeightCount());
 		solutions.add(sol);
 
 		return (List<Solution>) (List<Solution>) solutions;
