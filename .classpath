@@ -6,5 +6,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="main.jar"/>
 	<classpathentry kind="lib" path="lib/jsr166.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JSAP"/>
 	<classpathentry kind="output" path="main"/>
 </classpath>
