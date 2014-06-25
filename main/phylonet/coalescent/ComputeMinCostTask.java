@@ -202,11 +202,9 @@ public abstract class ComputeMinCostTask<T> {
 
 
 		if (v._min_lc == null || v._min_rc == null) {
-			if (CommandLine._print) {
-				System.err.println("WARN: No Resolution found for ( "
-						+ v.getCluster().getClusterSize() + " taxa ):\n"
-						+ v.getCluster());
-			}
+			System.err.println("WARN: No Resolution found for ( "
+					+ v.getCluster().getClusterSize() + " taxa ):\n"
+					+ v.getCluster());
 			v._done = 2;
 			throw new CannotResolveException(v.getCluster().toString());
 		}
