@@ -316,9 +316,7 @@ public abstract class Inference<T> {
 		} else {
 			sol._st = buildTreeFromClusters(minClusters);
 		}
-		//System.err.println("SOL: " + sol._st);
-		//System.err.println("coals: " + coals);
-		//System.err.println("min cluster: " + minClusters);
+
 		Object map = new HashMap();
 		for (TNode node : sol._st.postTraverse()) {
 			BitSet bs = new BitSet(stTaxa.length);
@@ -352,10 +350,10 @@ public abstract class Inference<T> {
 		}
 
 		Long cost = getTotalCost(all);
-		System.out.println("Final optimization score: " + cost);
 		sol._totalCoals = cost;
 		System.err.println("Total Number of elements weighted: "+ weightCalculator.getCalculatedWeightCount());
 		solutions.add(sol);
+        System.err.println("Final optimization score: " + cost);
 
 		return (List<Solution>) (List<Solution>) solutions;
 	}
@@ -383,19 +381,15 @@ public abstract class Inference<T> {
 
 		//counter.addExtraBipartitionsByHeuristics(clusters);
 
-		if (CommandLine._print) {
-			System.err.println("partitions formed in "
-					+ (System.currentTimeMillis() - startTime) / 1000.0D
-					+ " secs");
-		}
+		System.err.println("partitions formed in "
+			+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 
 		weightCalculator.preCalculateWeights(trees, extraTrees);
 		
-		if (CommandLine._print) {
-			System.err.println("DP starting after "
-					+ (System.currentTimeMillis() - startTime) / 1000.0D
-					+ " secs");
-		}
+
+		System.err.println("Dynamic Programming starting after "
+				+ (System.currentTimeMillis() - startTime) / 1000.0D
+				+ " secs");
 
 		solutions = findTreesByDP(clusters);
 
