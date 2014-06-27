@@ -86,11 +86,9 @@ class DLWeightCalculator extends WeightCalculator<STBipartition>{
 		return ret;
 	}
 
-	// static public int cnt = 0;
-
 	public void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees) {
 
-		if (inference.rooted && GlobalMaps.taxonNameMap == null && inference.stTaxa.length > trees.size()) {
+		if (inference.rooted && GlobalMaps.taxonNameMap == null && GlobalMaps.taxonIdentifier.taxonCount() > trees.size()) {
 			calculateWeightsByLCA(trees, trees);
 			if (extraTrees != null) {
 				calculateWeightsByLCA(extraTrees, trees);

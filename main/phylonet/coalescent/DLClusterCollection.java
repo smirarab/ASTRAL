@@ -12,8 +12,8 @@ public class DLClusterCollection extends BasicClusterCollection {
 	
 	protected HashMap<STITreeCluster, HashSet<STBipartition>> geneTreeSTBByCluster;
 	
-	public DLClusterCollection(int len) {
-		initialize(len);
+	public DLClusterCollection(int len, HashMap<STITreeCluster, Vertex> globalVertexCash) {
+		initialize(len, globalVertexCash);
 		geneTreeSTBByCluster = new HashMap<STITreeCluster, HashSet<STBipartition>>();
 	}
 
