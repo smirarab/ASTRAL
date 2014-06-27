@@ -17,7 +17,6 @@ import phylonet.util.BitSet;
 public class WQDataCollection extends DataCollection<Tripartition> {
 
 	String[] gtTaxa;
-	String[] stTaxa;
 
 	List<STITreeCluster> treeAllClusters = new ArrayList<STITreeCluster>();
 
@@ -30,9 +29,8 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 	private int n;
 	private int algorithm;
 	
-	public WQDataCollection(String[] gtTaxa, String[] stTaxa, WQClusterCollection clusters, int alg) {
+	public WQDataCollection(String[] gtTaxa, WQClusterCollection clusters, int alg) {
 		this.gtTaxa = gtTaxa;
-		this.stTaxa = stTaxa;
 		this.clusters = clusters;
 		this.algorithm = alg;
 	}
@@ -73,7 +71,7 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 										+ node);
 					}
 					STITreeCluster childbslist[] = new STITreeCluster[childCount];
-					BitSet bs = new BitSet(stTaxa.length);
+					BitSet bs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
 					int index = 0;
 					for (TNode child: node.getChildren()) {
 						childbslist[index++] = nodeToSTCluster.get(child);
@@ -186,7 +184,7 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 	public void computeTreePartitions(Inference<Tripartition> inference) {
 
 		int k = inference.trees.size();
-		n = stTaxa.length;
+		n = GlobalMaps.taxonIdentifier.taxonCount();
 		
 		int haveMissing = 0;
 		for (Tree tree : inference.trees) {
@@ -254,7 +252,7 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 
 		STITreeCluster all = new STITreeCluster();
 		all.getBitSet().set(0, n);
-		addToClusters(all, stTaxa.length);
+		addToClusters(all, GlobalMaps.taxonIdentifier.taxonCount());
 
 		
 		traverseTrees(inference.trees, true, n, geneTreeTripartitonCount);
@@ -269,7 +267,7 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 		System.err.println("Tripartitons in gene trees (sum): " + s);
 		
 		if (this.algorithm == -1) {
-			this.algorithm = (n <= 32 || (geneTreeTripartitonCount.size() < k*8)) ? 2 : 1;
+			this.algorithm = (n <= 32 || (geneTreeTripartitonCount.size() < k*6)) ? 2 : 1;
 		}
 		
 		if (this.algorithm == 2) {
@@ -330,7 +328,7 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 	public void addExtraBipartitionsByInput(ClusterCollection extraClusters,
 			List<Tree> trees, boolean extraTreeRooted) {
 
-		traverseTrees(trees, false, stTaxa.length, null);
+		traverseTrees(trees, false, GlobalMaps.taxonIdentifier.taxonCount(), null);
 		int s = extraClusters.getClusterCount();
 		/*
 		 * for (Integer c: clusters2.keySet()){ s += clusters2.get(c).size(); }
@@ -352,7 +350,6 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 		}
 	}
 
-	// static public int cnt = 0;
 
 
 }
