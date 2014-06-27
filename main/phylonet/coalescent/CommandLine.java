@@ -3,6 +3,7 @@ package phylonet.coalescent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -10,29 +11,34 @@ import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
-import java.util.regex.Pattern;
+
+import phylonet.bits.BitVector;
+import phylonet.coalescent.GlobalMaps.TaxonNameMap;
+import phylonet.tree.io.NewickReader;
+import phylonet.tree.io.ParseException;
+import phylonet.tree.model.MutableTree;
+import phylonet.tree.model.TMutableNode;
+import phylonet.tree.model.TNode;
+import phylonet.tree.model.Tree;
+import phylonet.tree.model.sti.STITree;
+import phylonet.tree.util.Bipartitions;
 
 import com.martiansoftware.jsap.FlaggedOption;
 import com.martiansoftware.jsap.JSAP;
 import com.martiansoftware.jsap.JSAPException;
 import com.martiansoftware.jsap.JSAPResult;
 import com.martiansoftware.jsap.Parameter;
-import com.martiansoftware.jsap.QualifiedSwitch;
 import com.martiansoftware.jsap.SimpleJSAP;
 import com.martiansoftware.jsap.Switch;
-import com.martiansoftware.jsap.UnflaggedOption;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
-
-import phylonet.coalescent.GlobalMaps.TaxonNameMap;
-import phylonet.tree.io.NewickReader;
-import phylonet.tree.io.ParseException;
-import phylonet.tree.model.Tree;
-import phylonet.tree.model.sti.STITree;
 
 public class CommandLine {
 	
@@ -69,11 +75,30 @@ public class CommandLine {
                             
                     new Switch("exact",
                             'x', "exact",
-                            "find the exact solution by looking at all clusters (recommended only for small (<18) numer of taxa."),
+                            "find the exact solution by looking at all clusters - recommended only for small (<18) numer of taxa."),
    
                     new FlaggedOption("extra trees", 
-                            FileStringParser.getParser(), null, JSAP.NOT_REQUIRED, 'e', "extra",
+                            FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 'e', "extra",
                             "provide extra trees used to enrich the set of clusters searched"),
+                            
+                    new FlaggedOption("bootstraps", 
+                            FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 'b', "bootstraps",
+                            "perform multi-locus bootstrapping using input bootstrap replicate files (use --rep to change the number of replications). "
+                            + "The file given with this option should have a list of the gene tree bootstrap files, one per line, and each line corresponding to one gene. "
+                            + "By default performs site-only resampling, but gene only resampling can also be used. "),
+
+                    new FlaggedOption("replicates", 
+                            JSAP.INTEGER_PARSER, "100", JSAP.NOT_REQUIRED, 'r', "reps",
+                            "Set the number of bootstrap replicates done in multi-locus bootstrapping. "),
+
+                    new FlaggedOption("seed", 
+                            JSAP.LONG_PARSER, ((long)(Math.random()*10000000))+"", JSAP.NOT_REQUIRED, 's', "seed",
+                            "Set the seed number used in multi-locus bootstrapping. "),
+
+                    new Switch("gene-sampling",
+                            'g', "gene-resampling",
+                            "perform gene tree resampling in addition to site resampling. Useful only with the -b option."),
+       
 
                     new Switch( "duplication",
                             'd', "dup",
@@ -88,7 +113,8 @@ public class CommandLine {
                             + "DynaDyp would be used *instead of* ASTRAL. "
                             + "Use -l 0 for standard (homomorphic) definition, and -l 1 for our new bd definition. "
                             + "Any value in between weights the impact of missing taxa somewhere between these two extremes. "
-                            + "-l auto will automaticaly pick this weight. "), });
+                            + "-l auto will automaticaly pick this weight. "), 
+                });
     }
 
 
@@ -102,9 +128,11 @@ public class CommandLine {
 		boolean rooted = false;
 		boolean extrarooted = false;		
 		Map<String, String> taxonMap = null;
-		String rep = null;
+		String replace = null;
 		String pattern = null;
 		List<Tree> trees = new ArrayList<Tree>();
+		List<List<Tree>> bstrees = new ArrayList<List<Tree>>();
+		List<List<Tree>> inputSets = new ArrayList<List<Tree>>();
 		List<Tree> extraTrees = new ArrayList<Tree>();
 		// STITree scorest = null;
 		// boolean explore = false;
@@ -117,117 +145,84 @@ public class CommandLine {
 		double cs = 1.0D;
 		double cd = 1.0D;
 		double wh = 1.0D;
-		int alg = -1;
-		String line;
-		BufferedReader treeBufferReader = null;
-		BufferedReader extraTreebuffer = null;
+		boolean exact = false;
+		int k = 0;
+        BufferedWriter outbuffer;
 		
         jsap = getJSAP();     
         config = jsap.parse(args);  
         if ( jsap.messagePrinted() ) {
             exitWithErr("",jsap);
         }
-		
-		try {
-		    
-		    
-		    if (config.getBoolean("duplication") && config.contains("duploss weight")) {
-		        exitWithErr("dup and duploss options cannot be used together. Choose only one. ",jsap);
-		    }
-		    if (config.getBoolean("duplication")) {
-		        criterion = 0;
-                rooted = true;
-                extrarooted = true;
-                System.err.println("Using DynaDup application, minimizing MGD (not ASTRAL).");
-		    }
-		    if (config.contains("duploss weight")) {
-		        criterion = 1;
-                rooted = true;
-                extrarooted = true;
-                String v = config.getString("duploss weight");
-                if (v.equals("auto")) {
-                    wh = -1;
-                } else {
-                    wh = Double.parseDouble(v);
-                    if (wh < 0.0D || wh > 1.0D) {
-                        exitWithErr("duploss weight has to be between 0 and 1",jsap);
-                    };
-                }
-                System.err.println("Using DynaDup application, minimizing MGDL (not ASTRAL).");
+        
+        File outfile = config.getFile("output file");  
+        if (outfile == null) {
+            outbuffer = new BufferedWriter(new OutputStreamWriter(System.out));
+        } else {
+            outbuffer = new BufferedWriter(new FileWriter(outfile));
+        }
+        
+        exact = config.getBoolean("exact");
+        
+        if (config.getBoolean("duplication") && config.contains("duploss weight")) {
+            exitWithErr("dup and duploss options cannot be used together. Choose only one. ",jsap);
+        }
+        if (config.getBoolean("duplication")) {
+            criterion = 0;
+            rooted = true;
+            extrarooted = true;
+            System.err.println("Using DynaDup application, minimizing MGD (not ASTRAL).");
+        }
+        if (config.contains("duploss weight")) {
+            criterion = 1;
+            rooted = true;
+            extrarooted = true;
+            String v = config.getString("duploss weight");
+            if (v.equals("auto")) {
+                wh = -1;
+            } else {
+                wh = Double.parseDouble(v);
+                if (wh < 0.0D || wh > 1.0D) {
+                    exitWithErr("duploss weight has to be between 0 and 1",jsap);
+                };
             }
-		    
-			System.err.println("Gene trees are treated as " + (rooted ? "rooted" : "unrooted"));
-			
-			int l = 0;			
-			try {
-				treeBufferReader = new BufferedReader(new FileReader(config.getFile("input file")));
-				while ((line = treeBufferReader.readLine()) != null) {
-					l++;
-					Set<String> previousTreeTaxa = new HashSet<String>();
-					if (line.length() > 0) {
-						line = line.replaceAll("\\)[^,);]*", ")");
-						NewickReader nr = new NewickReader(new StringReader(line));
-						if (rooted) {
-							STITree<Double> gt = new STITree<Double>(true);
-							nr.readTree(gt);
-							if (previousTreeTaxa.isEmpty()) {
-								previousTreeTaxa.addAll(Arrays.asList(gt
-										.getLeaves()));
-							} else {
-								if (!previousTreeTaxa.containsAll(Arrays.asList(gt
-										.getLeaves()))) {
-								    treeBufferReader.close();
-									throw new RuntimeException(
-											"Not all trees are on the same set of taxa: "
-													+ gt.getLeaves() + "\n"
-													+ previousTreeTaxa);
-								}
-							}
-							trees.add(gt);
-						} else {						
-							Tree tr = nr.readTree();
-							trees.add(tr);
-						}
-					}
-				}
-				treeBufferReader.close();
-			} catch (ParseException e) {
-				treeBufferReader.close();
-				throw new RuntimeException("Failed to Parse Tree number: " + l ,e);
-			}			
-		    
-			if (config.getFile("extra trees") != null) {
-			    extraTreebuffer = new BufferedReader(new FileReader(config.getFile("extra trees")));
-				while ((line = extraTreebuffer.readLine()) != null) {
-					if (line.length() > 0) {	
-						line = line.replaceAll("\\)[^,);]*", ")");
-						NewickReader nr = new NewickReader(
-								new StringReader(line));
-						if (extrarooted) {
-							STITree<Double> gt = new STITree<Double>(true);
-							nr.readTree(gt);
-							extraTrees.add(gt);
-						} else {
-							Tree tr = nr.readTree();
-							extraTrees.add(tr);
-						}
-					}
-				}				
-				extraTreebuffer.close();
-			}
-			
-		} catch (IOException e) {
-			System.err.println("Error when reading extra trees.");
-			System.err.println(e.getMessage());
-			e.printStackTrace();
-			return;
-		} catch (ParseException e) {
-			System.err
-					.println("Error when parsing the Newick representation from extra tree files.");
-			System.err.println(e.getMessage());
-			e.printStackTrace();
-			return;
-		}
+            System.err.println("Using DynaDup application, minimizing MGDL (not ASTRAL).");
+        }
+        
+        System.err.println("This is ASTRAL version " + _versinon);
+
+        System.err.println("Gene trees are treated as " + (rooted ? "rooted" : "unrooted"));
+
+        Random random = new Random(config.getLong("seed"));
+        
+        try {
+
+            readInputTrees(new BufferedReader(new FileReader(config.getFile("input file"))), rooted, trees, true);			
+            k = trees.size();
+            
+            if (config.getFile("extra trees") != null) {
+                readInputTrees(new BufferedReader(new FileReader(config.getFile("extra trees"))), extrarooted, extraTrees, false);
+            }
+            
+            if (config.getFile("bootstraps") != null) {
+                String line;
+                BufferedReader rebuff = new BufferedReader(new FileReader(config.getFile("bootstraps")));
+                while ((line = rebuff.readLine()) != null) {
+                    ArrayList<Tree> g = new ArrayList<Tree>();
+                    readInputTrees(new BufferedReader(new FileReader(line)), rooted, g, true);
+                    Collections.shuffle(g, random);
+                    bstrees.add(g);
+                }
+                rebuff.close();
+            }
+
+        } catch (IOException e) {
+            System.err.println("Error when reading extra trees.");
+            System.err.println(e.getMessage());
+            e.printStackTrace();
+            return;
+        } 
+        
 
 		if (trees.size() == 0) {
 			System.err.println("Empty list of trees. The function exits.");
@@ -235,65 +230,201 @@ public class CommandLine {
 		}
 
 		System.err.println("Reading trees in "
-				+ (System.currentTimeMillis() - startTime) / 1000.0D
-				+ " secs");
-
-		startTime = System.currentTimeMillis();
+				+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 				
 		if (taxonMap != null) {
 			GlobalMaps.taxonNameMap = new TaxonNameMap(taxonMap);
-		} else if (rep != null) {	
-			GlobalMaps.taxonNameMap = new TaxonNameMap (pattern, rep);
+		} else if (replace != null) {	
+			GlobalMaps.taxonNameMap = new TaxonNameMap (pattern, replace);
+		}
+	
+		if (config.getFile("bootstraps") != null) {
+	        System.err.println("Bootstrapping with seed "+config.getLong("seed"));
+		    for (int i = 0; i < config.getInt("replicates"); i++) {
+		        List<Tree> input = new ArrayList<Tree>();
+		        inputSets.add(input );                
+		        if (config.getBoolean("gene-sampling")) {
+		            for (int j = 0; j < k; j++) {
+                        trees.add(bstrees.get(random.nextInt(k)).remove(0));                 
+                    }
+		        } else {   		        
+		            for (List<Tree> gene : bstrees) {
+		                input.add(gene.get(i));
+		            }
+		        }
+		    }
 		}
 
+        int j = 0;
+        List<Tree> bootstraps = new ArrayList<Tree>();
+		for ( List<Tree> input : inputSets) {  
+	        System.err.println("\n======== Running bootstrap replicate " + j++);
+	        bootstraps.add(runOnOneInput(criterion, 
+	                rooted, extrarooted, extraTrees, cs, cd,
+                    wh, exact, outbuffer, input, null));
+		}
+	    
+/*		if (bootstraps != null) {
+            TreeConsensusCalculator tcc = new TreeConsensusCalculator();
+            tcc.setInputEdgeWeightsAreSupports(false);
+            tcc.setOutputEdgeWeightsAreSupports(true);       
+            outbuffer.write(tcc.computeUnrootedConsensus(bootstraps.toArray(new Tree[]{}), 0).toString()+ " \n");
+		}*/
 		
-		Inference inference;
-		
+        System.err.println("\n======== Running the main analysis");
+        runOnOneInput(criterion, rooted, extrarooted, extraTrees, cs, cd,
+                wh, exact, outbuffer, trees, bootstraps);
+           
+		outbuffer.close();
+	}
+
+
+    private static Tree runOnOneInput(int criterion, boolean rooted,
+            boolean extrarooted, List<Tree> extraTrees, double cs, double cd,
+            double wh, boolean exact, BufferedWriter outbuffer, List<Tree> input, 
+            Iterable<Tree> bootstraps) {
+        long startTime;
+        startTime = System.currentTimeMillis();
+        
+        Inference inference =
+            initializeInference(criterion, rooted, extrarooted, input,
+                    extraTrees, cs, cd, wh, exact);
+        
+        /* if (scorest != null) {inference.scoreGeneTree(scorest);System.exit(0); }*/
+        List<Solution> solutions = inference.inferSpeciesTree();
+   
+        System.err.println("Optimal tree inferred in "
+        		+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
+   
+        if (bootstraps != null) {
+            for (Solution solution : solutions) {
+                computeEdgeSupports((MutableTree) solution._st, bootstraps);
+            }
+        }
+        writeSolutionToFile(outbuffer, solutions);
+        
+        return solutions.get(0)._st;
+    }
+
+    private static Inference initializeInference(int criterion, boolean rooted,
+            boolean extrarooted, List<Tree> trees, List<Tree> extraTrees,
+            double cs, double cd, double wh, boolean exact) {
+        Inference inference;		
 		if (criterion == 1 || criterion == 0) {
 			inference = new DLInference(rooted, extrarooted, 
-					trees, extraTrees, config.getBoolean("exact"),criterion > 0);			
+					trees, extraTrees,exact ,criterion > 0);			
 		} else if (criterion == 2) {
 			inference = new WQInference(rooted, extrarooted, 
-					trees, extraTrees, config.getBoolean("exact"),criterion > 0, alg);
+					trees, extraTrees, exact,criterion > 0, -1);
 		} else {
 			throw new RuntimeException("criterion not set?");
-		}
-		/*        
-		if (scorest != null) {
-            inference.scoreGeneTree(scorest);
-            System.exit(0);
-        }*/
-		
+		}		
 		inference.setDLbdWeigth(wh); 
 		inference.setCS(cs);
 		inference.setCD(cd);
-		
-		List<Solution> solutions = inference.inferSpeciesTree();
+        return inference;
+    }
 
-		System.err.println("Optimal tree inferred in "
-				+ (System.currentTimeMillis() - startTime) / 1000.0D
-				+ " secs");
 
-		try {
-		    BufferedWriter outbuffer;
-		    
-		    if (config.getFile("output file") == null) {
-		        outbuffer = new BufferedWriter(new OutputStreamWriter(System.out));
-		    } else {
-		        outbuffer = new BufferedWriter(new FileWriter(config.getFile("output file")));
-		    }
+    private static void readInputTrees(BufferedReader treeBufferReader, 
+            boolean rooted, List<Tree> trees, boolean checkCompleteness)
+            throws FileNotFoundException, IOException {
+        String line;
+        int l = 0;			
+        try {
+           while ((line = treeBufferReader.readLine()) != null) {
+        		l++;
+        		Set<String> previousTreeTaxa = new HashSet<String>();
+        		if (line.length() > 0) {
+        			line = line.replaceAll("\\)[^,);]*", ")");
+        			NewickReader nr = new NewickReader(new StringReader(line));
+        			if (rooted) {
+        				STITree<Double> gt = new STITree<Double>(true);
+        				nr.readTree(gt);
+        				if (checkCompleteness) {
+            				if (previousTreeTaxa.isEmpty()) {
+            					previousTreeTaxa.addAll(Arrays.asList(gt
+            							.getLeaves()));
+            				} else {
+            					if (!previousTreeTaxa.containsAll(Arrays.asList(gt
+            							.getLeaves()))) {
+            					    treeBufferReader.close();
+            						throw new RuntimeException(
+            								"Not all trees are on the same set of taxa: "
+            										+ gt.getLeaves() + "\n"
+            										+ previousTreeTaxa);
+            					}
+            				}
+        				}
+        				trees.add(gt);
+        			} else {						
+        				Tree tr = nr.readTree();
+        				trees.add(tr);
+        			}
+        		}
+        	}
+        	treeBufferReader.close();
+        } catch (ParseException e) {
+        	treeBufferReader.close();
+        	throw new RuntimeException("Failed to Parse Tree number: " + l ,e);
+        }
+    }
 
+
+    private static void writeSolutionToFile(BufferedWriter outbuffer,
+            List<Solution> solutions) {
+        try {
 		    for (Solution s : solutions) {
 		        outbuffer.write(s._st.toString()+ " \n");
 		    }
 		    outbuffer.flush();
-		    outbuffer.close();
 		} catch (IOException e) {
 		    System.err.println("Error when writing the species tree");
 		    System.err.println(e.getMessage());
 		    e.printStackTrace();
 		}
-	}
+    }
+
+
+    public static final void computeEdgeSupports(MutableTree support_tree, Iterable<Tree> trees) {
+    
+        // generate leaf assignment
+        Hashtable<String,Integer> leaf_assignment = new Hashtable<String,Integer>();
+        for(TNode n : support_tree.getNodes()) {
+            if(n.isLeaf()) {
+                leaf_assignment.put(n.getName(), leaf_assignment.size());
+            }
+        }
+    
+        // generate all the bipartitions
+        Hashtable<BitVector,TNode> support_partitions = new Hashtable<BitVector,TNode>();
+        Bipartitions.computeBipartitions(support_tree, leaf_assignment, support_partitions);
+    
+        LinkedList<Hashtable<BitVector,TNode>> tree_partitions = new LinkedList<Hashtable<BitVector,TNode>>();
+        for(Tree t : trees) {
+            Hashtable<BitVector,TNode> th = new Hashtable<BitVector,TNode>();
+            Bipartitions.computeBipartitions(t, leaf_assignment, th);
+            tree_partitions.add(th);
+        }
+    
+        // compute the ratios
+        for(Map.Entry<BitVector,TNode> e : support_partitions.entrySet()) {
+            BitVector bvcomp = new BitVector(e.getKey());
+            bvcomp.not();
+    
+            int count = 0;
+    
+            for(Hashtable<BitVector,TNode> h : tree_partitions) {
+                if(h.containsKey(e.getKey()) || h.containsKey(bvcomp)) {
+                    count++;
+                }
+            }
+    
+            ((TMutableNode) e.getValue()).setParentDistance(((double) count) / tree_partitions.size() * 100);
+        }
+    
+        return;
+    }
 
 
     /*      System.out.println("\t-st species tree file: The file containing a species tree to be scored.\n" +
@@ -311,7 +442,7 @@ System.out.println("\t-a mapping file: The file containing the mapping from alle
 */
 //System.out.println("\t-f perform fast and less-accurate subtree-bipartition based search (Not implemented!).");
 
-       /*      if (option[0].equals("-st")) {
+/*      if (option[0].equals("-st")) {
     if (option.length != 2) {
         printUsage();
         return;
