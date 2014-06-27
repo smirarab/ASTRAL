@@ -15,11 +15,12 @@ import phylonet.tree.model.sti.STITreeCluster.Vertex;
 public abstract class BasicClusterCollection implements ClusterCollection{
 
 	protected ArrayList<Set<Vertex>> clusters;
-	static HashMap<STITreeCluster, Vertex> globalVertexCash = new HashMap<STITreeCluster, STITreeCluster.Vertex>();
+	HashMap<STITreeCluster, Vertex> globalVertexCash;// = new HashMap<STITreeCluster, STITreeCluster.Vertex>();
 	protected int topClusterLength;
 	int totalcount = 0;
 
-	protected void initialize(int len) {
+	protected void initialize(int len, HashMap<STITreeCluster, Vertex> globalVertexCash) {
+	    this.globalVertexCash = globalVertexCash;
 		this.topClusterLength = len;
 		 clusters = new ArrayList<Set<Vertex>>(len);
 		for (int i = 0; i <= len; i++) {
@@ -68,7 +69,7 @@ public abstract class BasicClusterCollection implements ClusterCollection{
 	public ClusterCollection getContainedClusters(STITreeCluster cluster) {
 		//if (topClusterLength < 10)
 		//	System.out.println("Contained: "+cluster+" "+clusterToVertx.keySet());
-		DLClusterCollection ret = new DLClusterCollection(cluster.getClusterSize());
+		DLClusterCollection ret = new DLClusterCollection(cluster.getClusterSize(), this.globalVertexCash);
 		int size = cluster.getClusterSize();
 		addClusterToRet(getVertexForCluster(cluster), size, ret);
 		
