@@ -1,11 +1,13 @@
 package phylonet.coalescent;
 
 
+import java.util.HashMap;
 import java.util.List;
 
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITree;
+import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
 public class DLInference extends Inference<STBipartition> {
@@ -63,11 +65,11 @@ public class DLInference extends Inference<STBipartition> {
 	}
 
 	DLClusterCollection newClusterCollection() {
-		return new DLClusterCollection(stTaxa.length);
+		return new DLClusterCollection(GlobalMaps.taxonIdentifier.taxonCount(),  new HashMap<STITreeCluster, STITreeCluster.Vertex>());
 	}
 	
 	DLDataCollection newCounter(ClusterCollection clusters) {
-		return new DLDataCollection(gtTaxa, stTaxa, rooted, (DLClusterCollection)clusters);
+		return new DLDataCollection(gtTaxa, rooted, (DLClusterCollection)clusters);
 	}
 
 	@Override
