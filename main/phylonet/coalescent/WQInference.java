@@ -1,10 +1,12 @@
 package phylonet.coalescent;
 
 
+import java.util.HashMap;
 import java.util.List;
 
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITree;
+import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
 public class WQInference extends Inference<Tripartition> {
@@ -35,11 +37,11 @@ public class WQInference extends Inference<Tripartition> {
 	}
 
 	ClusterCollection newClusterCollection() {
-		return new WQClusterCollection(stTaxa.length);
+		return new WQClusterCollection(GlobalMaps.taxonIdentifier.taxonCount(), new HashMap<STITreeCluster, STITreeCluster.Vertex>());
 	}
 	
 	DataCollection<Tripartition> newCounter(ClusterCollection clusters) {
-		return new WQDataCollection(gtTaxa, stTaxa, (WQClusterCollection)clusters, this.forceAlg);
+		return new WQDataCollection(gtTaxa, (WQClusterCollection)clusters, this.forceAlg);
 	}
 
 

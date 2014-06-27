@@ -23,8 +23,7 @@ import phylonet.util.BitSet;
 public class DLDataCollection extends DataCollection<STBipartition>{
 
 	String[] gtTaxa;
-	String[] stTaxa;
-	
+
 	double sigmaNs;
 
 	// private List<Set<STBipartition>> X;
@@ -39,11 +38,10 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 
 	HashMap<STBipartition, Set<STBipartition>> alreadyWeigthProcessed = new HashMap<STBipartition, Set<STBipartition>>();
 
-	public DLDataCollection(String[] gtTaxa, String[] stTaxa,
+	public DLDataCollection(String[] gtTaxa,
 			boolean rooted,
 			DLClusterCollection clusters) {
 		this.gtTaxa = gtTaxa;
-		this.stTaxa = stTaxa;
 		this.rooted = rooted;
 		this.clusters = clusters;
 	}
@@ -53,7 +51,7 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 		double unweigthedConstant = 0;
 		double weightedConstant = 0;
 		int k = inference.trees.size();
-		int n = stTaxa.length;
+		int n = GlobalMaps.taxonIdentifier.taxonCount();
 		boolean duploss = (((DLInference)inference).getOptimizeDuploss() == 3);		
 
 		geneTreeSTBCount = new HashMap<STBipartition, Integer>(k * n);
@@ -63,10 +61,10 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 		// clusterToSTBs = new HashMap<STITreeCluster, Set<STBipartition>>(k*n);
 
 		STITreeCluster all = new STITreeCluster();
-		for (int i = 0; i < stTaxa.length; i++) {
+		for (int i = 0; i < GlobalMaps.taxonIdentifier.taxonCount(); i++) {
 			all.addLeaf(i);
 		}
-		addToClusters(all, stTaxa.length);
+		addToClusters(all, GlobalMaps.taxonIdentifier.taxonCount());
 
 		for (int t = 0; t < inference.trees.size(); t++) {
 			Tree tr = inference.trees.get(t);
@@ -111,7 +109,7 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 				} else {
 					int childCount = node.getChildCount();
 					STITreeCluster childbslist[] = new STITreeCluster[childCount];
-					BitSet bs = new BitSet(stTaxa.length);
+					BitSet bs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
 					// BitSet gbs = new BitSet(leaves.length);
 					int index = 0;
 					for (TNode child: node.getChildren()) {
@@ -219,8 +217,7 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 	public void addExtraBipartitionsByInput(ClusterCollection extraClusters,
 			List<Tree> trees, boolean extraTreeRooted) {
 
-		String[] leaves = stTaxa;
-		int n = leaves.length;
+		int n = GlobalMaps.taxonIdentifier.taxonCount();
 
 		// STITreeCluster all = extraClusters.getTopVertex().getCluster();
 
@@ -256,7 +253,7 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 				} else {
 					int childCount = node.getChildCount();
 					STITreeCluster childbslist[] = new STITreeCluster[childCount];
-					BitSet bs = new BitSet(leaves.length);
+					BitSet bs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
 					int index = 0;
 					for (TNode child: node.getChildren()) {
 						childbslist[index++] = nodeToSTCluster.get(child);

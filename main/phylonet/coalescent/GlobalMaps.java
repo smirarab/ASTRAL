@@ -38,6 +38,10 @@ public class GlobalMaps{
 		private List<String> idToName = new ArrayList<String>();
 		private int taxonCount = 0;
 		
+		public String[] getAllTaxonNames(){
+		    return idToName.toArray(new String[]{});
+		}
+		
 		public Integer taxonId(String name) {
 			Integer a = nameToId.get(name);
 			if (a ==  null){
