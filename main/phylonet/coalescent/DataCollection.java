@@ -25,7 +25,8 @@ public abstract class DataCollection <T> {
 		return clusters.addCluster(nv, size);
 	}
 
-	void addAllPossibleSubClusters(STITreeCluster cluster, int size) {
+	void addAllPossibleSubClusters(STITreeCluster cluster) {
+	    int size = GlobalMaps.taxonIdentifier.taxonCount();
 		BitSet bs = (BitSet) cluster.getBitSet().clone();
 		bs.clear(0, size);
 		while (true) {
