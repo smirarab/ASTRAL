@@ -46,7 +46,9 @@ public class CommandLine {
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
+        System.err.println();
         System.err.println(extraMessage);
+        System.err.println();
         System.err.println("Usage: java -jar astral."+_versinon+".jar "+ jsap.getUsage());
         System.err.println();
         System.err.println(jsap.getHelp());
@@ -242,15 +244,22 @@ public class CommandLine {
 	        System.err.println("Bootstrapping with seed "+config.getLong("seed"));
 		    for (int i = 0; i < config.getInt("replicates"); i++) {
 		        List<Tree> input = new ArrayList<Tree>();
-		        inputSets.add(input );                
-		        if (config.getBoolean("gene-sampling")) {
-		            for (int j = 0; j < k; j++) {
-                        trees.add(bstrees.get(random.nextInt(k)).remove(0));                 
-                    }
-		        } else {   		        
-		            for (List<Tree> gene : bstrees) {
-		                input.add(gene.get(i));
-		            }
+		        inputSets.add(input );   
+		        try {
+    		        if (config.getBoolean("gene-sampling")) {
+    		            for (int j = 0; j < k; j++) {
+                            input.add(bstrees.get(random.nextInt(k)).remove(0));                 
+                        }
+    		        } else {   		        
+    		            for (List<Tree> gene : bstrees) {
+    		                input.add(gene.get(i));
+    		            }
+    		        }
+		        } catch (IndexOutOfBoundsException e) {
+		            exitWithErr("Error: You seem to have asked for "+config.getInt("replicates")+
+		                    " but only "+ i +" replicaes could be created.\n" + 
+		                    " Note that for gene resampling, you need more input bootstrap" +
+		                    " replicates than the number of species tee replicates.", jsap);
 		        }
 		    }
 		}
