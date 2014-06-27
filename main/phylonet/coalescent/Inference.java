@@ -32,7 +32,7 @@ public abstract class Inference<T> {
 	protected boolean exactSolution;
 	
 	protected String[] gtTaxa;
-	protected String[] stTaxa;
+	//protected String[] stTaxa;
 
 	Collapse.CollapseDescriptor cd = null;
 	private double DLbdWeigth;
@@ -42,13 +42,13 @@ public abstract class Inference<T> {
 	DataCollection<T> dataCollection;
 	WeightCalculator<T> weightCalculator;
 
-	public static Tree buildTreeFromClusters(List<STITreeCluster> clusters) {
+	public Tree buildTreeFromClusters(List<STITreeCluster> clusters) {
 	    if ((clusters == null) || (clusters.size() == 0)) {
 	      System.err.println("Empty list of clusters. The function returns a null tree.");
 	      return null;
 	    }
 	
-	    MutableTree tree = new STITree();
+	    MutableTree tree = new STITree<Double>();
 	
 	    //String[] taxa = ((STITreeCluster)clusters.get(0)).getTaxa();
 	    for (int i = 0; i < GlobalMaps.taxonIdentifier.taxonCount(); i++) {
@@ -96,6 +96,7 @@ public abstract class Inference<T> {
 	      }
 	    }
 	
+	    ((STITree<Double>)tree).setRooted(false);
 	    return (Tree)tree;
 	  }
 
@@ -145,25 +146,23 @@ public abstract class Inference<T> {
 						+ " that hasn't been defined in the mapping file");
 			}
 
-			List temp1 = new LinkedList();
-			List temp2 = new LinkedList();
+			List<String> temp1 = new LinkedList<String>();
+			List<String> temp2 = new LinkedList<String>();
 			for (String s : taxonMap.keySet()) {
 				temp1.add(s);
-				if (!((List) temp2).contains(taxonMap.get(s))) {
-					((List) temp2).add((String) taxonMap.get(s));
+				if (!( temp2).contains(taxonMap.get(s))) {
+					temp2.add(taxonMap.get(s));
 				}
 			}
-			gtTaxa = new String[temp1.size()];
-			stTaxa = new String[temp2.size()];
+			gtTaxa = (String[]) temp2.toArray();
+			/*stTaxa = new String[temp2.size()];
 
-			for (int i = 0; i < gtTaxa.length; i++) {
-				gtTaxa[i] = ((String) temp1.get(i));
-			}
+			
 			for (int i = 0; i < stTaxa.length; i++) {
 				stTaxa[i] = ((String) ((List) temp2).get(i));
 				GlobalMaps.taxonIdentifier.taxonId(stTaxa[i]);
 				
-			}
+			}*/
 		} else if (GlobalMaps.taxonNameMap != null && GlobalMaps.taxonNameMap.taxonMap == null) {
 			
 			Set<String> taxalist = new HashSet<String>();
@@ -177,14 +176,14 @@ public abstract class Inference<T> {
 				}
 			}			
 
-			stTaxa = new String[taxalist.size()];
+			//stTaxa = new String[taxalist.size()];
 			gtTaxa = new String[genelist.size()];
 
 			int index = 0;
-			for (String taxon : taxalist) {
+			/*for (String taxon : taxalist) {
 				stTaxa[(index++)] = taxon;
 				GlobalMaps.taxonIdentifier.taxonId(taxon);
-			}
+			}*/
 			index = 0;
 			for (String gene : genelist) {
 				gtTaxa[(index++)] = gene;
@@ -204,18 +203,17 @@ public abstract class Inference<T> {
 				}
 			}
 
-			stTaxa = new String[taxalist.size()];
+			gtTaxa = new String[taxalist.size()];
 
 			int index = 0;
 			for (String taxon : taxalist) {
-				stTaxa[(index++)] = taxon;
+				gtTaxa[(index++)] = taxon;
 				GlobalMaps.taxonIdentifier.taxonId(taxon);
 			}
-			gtTaxa = stTaxa;
 		}
 
-		System.err.println("Number of taxa: " + stTaxa.length);
-		System.err.println("Taxa: " + Arrays.toString(stTaxa));
+		System.err.println("Number of taxa: " + GlobalMaps.taxonIdentifier.taxonCount());
+		System.err.println("Taxa: " + Arrays.toString(GlobalMaps.taxonIdentifier.getAllTaxonNames()));
 	}
 	public abstract void scoreGeneTree(STITree scorest) ;
 
@@ -309,7 +307,7 @@ public abstract class Inference<T> {
 		if ((minClusters == null) || (minClusters.isEmpty())) {
 			System.err.println("WARN: empty minClusters set.");
 			Object tr = new STITree();
-			for (String s : stTaxa) {
+			for (String s : GlobalMaps.taxonIdentifier.getAllTaxonNames()) {
 				((MutableTree) tr).getRoot().createChild(s);
 			}
 			sol._st = ((Tree) tr);
@@ -319,14 +317,9 @@ public abstract class Inference<T> {
 
 		Object map = new HashMap();
 		for (TNode node : sol._st.postTraverse()) {
-			BitSet bs = new BitSet(stTaxa.length);
+			BitSet bs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
 			if (node.isLeaf()) {
-				for (int i = 0; i < stTaxa.length; i++) {
-					if (node.getName().equals(stTaxa[i])) {
-						bs.set(i);
-						break;
-					}
-				}
+				bs.set(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
 				((Map) map).put(node, bs);
 			} else {
 				for (TNode child : node.getChildren()) {
@@ -341,7 +334,7 @@ public abstract class Inference<T> {
 //            System.err.println("m[0]: "+((STITreeCluster)minClusters.get(0)).toString2());
 //            System.err.println("C: "+c.toString2());
 //            System.err.println("Equals: "+((STITreeCluster)minClusters.get(0)).equals(c));
-			if (c.getClusterSize() == stTaxa.length) {
+			if (c.getClusterSize() == GlobalMaps.taxonIdentifier.taxonCount()) {
 				((STINode) node).setData(Double.valueOf(0));
 			} else {
 				int pos = minClusters.indexOf(c);                                
@@ -357,6 +350,7 @@ public abstract class Inference<T> {
 
 		return (List<Solution>) (List<Solution>) solutions;
 	}
+	
 	public List<Solution> inferSpeciesTree() {
 		long startTime = System.currentTimeMillis();
 
@@ -376,7 +370,7 @@ public abstract class Inference<T> {
 		}
 		
 		if (exactSolution) {
-			dataCollection.addAllPossibleSubClusters(clusters.getTopVertex().getCluster(),  stTaxa.length);
+			dataCollection.addAllPossibleSubClusters(clusters.getTopVertex().getCluster());
 		}
 
 		//counter.addExtraBipartitionsByHeuristics(clusters);
