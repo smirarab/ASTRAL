@@ -18,7 +18,7 @@ public class STITreeCluster implements Iterable<Integer>
   {
     this._cluster = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
   }
-
+  
   public STITreeCluster(STITreeCluster tc)
   {
     this._cluster = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
