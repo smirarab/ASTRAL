@@ -1,13 +1,17 @@
+Version 4.3.0 (command-line options changed!):
+  -- Performs bootstrapping
+  -- Uses a library for argument parsing. This breaks some of the old options, as they now have new names. 
+  -- Does not output number of quartets satisfied by each branch; that information was not interpretable. 
 Version 4.2.1:
   -- Read input gene trees with internal node labels
   -- Updated the prompts and messages (e.g. Score instead of Cost)
   -- Software outputs the version number too
 Version 4.2.0:
   -- (BUG FIX) overflow happened for large number of genes.  Use long instead of int
-  -- Improve the commandline help a bit
+  -- Improve the command-line help a bit
 Version 4.1.1:
   -- Added a hidden option to force algorithm 
 Version 4.1:
-  -- Updated the commandline so that ASTRAL algorithm is the default and DynaDup specific options are removed (-wq omitted and is default now)
+  -- Updated the command-line so that ASTRAL algorithm is the default and DynaDup specific options are removed (-wq omitted and is default now)
 Version 4.0:
   -- Added support for handling missing data by completing bipartitions
