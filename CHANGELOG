@@ -1,3 +1,5 @@
+Version 4.3.1
+  -- Fix default seed number to 692
 Version 4.3.0 (command-line options changed!):
   -- Performs bootstrapping
   -- Uses a library for argument parsing. This breaks some of the old options, as they now have new names. 
