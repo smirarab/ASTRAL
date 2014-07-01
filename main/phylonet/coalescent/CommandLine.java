@@ -42,7 +42,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 	
-    protected static String _versinon = "4.2.1";
+    protected static String _versinon = "4.3.0";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -305,7 +305,7 @@ public class CommandLine {
         System.err.println("Optimal tree inferred in "
         		+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
    
-        if (bootstraps != null) {
+        if ((bootstraps != null) && (bootstraps.iterator().hasNext())) {
             for (Solution solution : solutions) {
                 computeEdgeSupports((MutableTree) solution._st, bootstraps);
             }
