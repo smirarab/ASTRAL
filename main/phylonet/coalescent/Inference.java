@@ -12,7 +12,6 @@ import java.util.Stack;
 
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.MutableTree;
-import phylonet.tree.model.TMutableNode;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STINode;
@@ -41,64 +40,6 @@ public abstract class Inference<T> {
 	
 	DataCollection<T> dataCollection;
 	WeightCalculator<T> weightCalculator;
-
-	public Tree buildTreeFromClusters(List<STITreeCluster> clusters) {
-	    if ((clusters == null) || (clusters.size() == 0)) {
-	      System.err.println("Empty list of clusters. The function returns a null tree.");
-	      return null;
-	    }
-	
-	    MutableTree tree = new STITree<Double>();
-	
-	    //String[] taxa = ((STITreeCluster)clusters.get(0)).getTaxa();
-	    for (int i = 0; i < GlobalMaps.taxonIdentifier.taxonCount(); i++) {
-	      tree.getRoot().createChild(GlobalMaps.taxonIdentifier.getTaxonName(i));
-	    }
-	
-	    for (STITreeCluster tc : clusters) {
-	      if ((tc.getClusterSize() <= 1) || (tc.getClusterSize() == GlobalMaps.taxonIdentifier.taxonCount()))
-	      {
-	        continue;
-	      }
-	
-	      Set clusterLeaves = new HashSet();
-	      TNode node;
-	      for (String l : tc.getClusterLeaves()) {
-	        node = tree.getNode(l);
-	        clusterLeaves.add(node);
-	      }
-	
-	      SchieberVishkinLCA lcaFinder = new SchieberVishkinLCA(tree);
-	      TNode lca = lcaFinder.getLCA(clusterLeaves);
-	
-	      Object movedChildren = new LinkedList();
-	      for (TNode child : lca.getChildren()) {
-	        BitSet childCluster = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
-	        for (TNode cl : child.getLeaves()) {
-	          int i = GlobalMaps.taxonIdentifier.taxonId(cl.getName());
-	          childCluster.set(i);
-	        }
-	        
-	
-	        BitSet temp = (BitSet)childCluster.clone();
-	        temp.and(tc.getBitSet());
-	        if (temp.equals(childCluster)) {
-	          ((List)movedChildren).add(child);
-	        }
-	
-	      }
-	
-	      STINode newChild = ((STINode)lca).createChild();
-	
-	      while (!((List)movedChildren).isEmpty()) {
-	        newChild.adoptChild((TMutableNode)((List)movedChildren).get(0));
-	        ((List)movedChildren).remove(0);
-	      }
-	    }
-	
-	    ((STITree<Double>)tree).setRooted(false);
-	    return (Tree)tree;
-	  }
 
 	public Inference(boolean rooted, boolean extrarooted, List<Tree> trees,
 			List<Tree> extraTrees, boolean exactSolution) {
@@ -312,7 +253,7 @@ public abstract class Inference<T> {
 			}
 			sol._st = ((Tree) tr);
 		} else {
-			sol._st = buildTreeFromClusters(minClusters);
+			sol._st = Utils.buildTreeFromClusters(minClusters);
 		}
 
 		Object map = new HashMap();
