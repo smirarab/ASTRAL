@@ -2,6 +2,7 @@ Version 4.3.1:
   -- Output consensus bootstrap tree as well
   -- Output support only for internal branches
   -- Fix default seed number to 692
+  -- Root all output trees *arbitrarily* on one taxon
 Version 4.3.0 (command-line options changed! Notice some commands are not backward compatible!):
   -- Performs bootstrapping (-b, -r, -g, -s added)
   -- Uses a library for argument parsing. We had to change some of the option names (exact version: -xt -> -x, extra trees: -ex -> -e).
