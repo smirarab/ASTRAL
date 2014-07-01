@@ -131,17 +131,19 @@ The input file here is a simulated dataset with 100 sequences and 100 replicates
 
 
 ### Step 9: Multi-locus Bootstrapping:
-Astral can perform multi-locus bootstrapping [Seo, 2008](http://www.ncbi.nlm.nih.gov/pubmed/18281270). To be able to perform multi-locus bootstrapping, ASTRAL needs to have access to bootstrap replicates for each gene. To start multi-locus bootstrapping using ASTRAL, you need to run:
+Astral can perform multi-locus bootstrapping [Seo, 2008](http://www.ncbi.nlm.nih.gov/pubmed/18281270). To be able to perform multi-locus bootstrapping, ASTRAL needs to have access to bootstrap replicates for each gene. To start multi-locus bootstrapping using ASTRAL, you need to provide the location of all gene tree bootstrap replicates. Decompress the file called `test_data/bs-trees.zip` and run:
 
 ```
 java -jar astral.4.3.0.jar -i test_data/song_mammals.424.gene.tre -b test_data/bs-files
 ```
 
-This will run 100 replicates of bootstrapping. The file `test_data/song_mammals.424.gene.tre` as noted before contains maximum likelihood trees for all genes. The `-b` option tells ASTRAL that bootstrapping needs to be performed. Followd by `-b` is the name of a a file (`test_data/bs-files`) that gives the location of a bootstrap file, one line per gene. For example, the first line is `424genes/100/raxmlboot.gtrgamma/RAxML_bootstrap.allbs`. This tells ASTRAL that the bootsrap replicats of the first gene can be found in a file called `424genes/100/raxmlboot.gtrgamma/RAxML_bootstrap.allbs`.
+This will run 100 replicates of bootstrapping. `test_data/song_mammals.424.gene.tre`, as noted before, contains maximum likelihood trees for all genes. The `-b` option tells ASTRAL that bootstrapping needs to be performed. Following `-b` is the name of a file (`test_data/bs-files`) that contains the location of gene tree bootstrap files, one line per gene. For example, the first line is `424genes/100/raxmlboot.gtrgamma/RAxML_bootstrap.allbs`. This tells ASTRAL that the gene tree bootstrap replicates of the first gene can be found in a file called `424genes/100/raxmlboot.gtrgamma/RAxML_bootstrap.allbs`.
 
-By default ASTRAL performs 100 bootstrap replciates, but `-r` can be used to perform any number of replciates. Note that your input bootstrap files need to have enough bootstrap replicates included for all genes. 
+By default ASTRAL performs 100 bootstrap replicates, but `-r` can be used to perform any number of replicates. Note that your input bootstrap files need to have enough bootstrap replicates for all genes. 
 
-Also by default, ASTRAL performs site-only resampling bootstrapping. ASTRAL can also perform gene/site resampling, which can be activated with the `-g` option. Note that when you use gene/site resampling, you need more gene tree replicates than the number of multi-locus bootstrapping replicates you perform. For example, if you are doing 100 replicates of multi-locus bootstrapping, you might need 150 replicates for some genes (and less than 100 replicates for other genes). This is because when genes are resampled, some genes will be sampled more often than others by chance. 
+Also by default, ASTRAL performs site-only resampling bootstrapping. ASTRAL can also perform gene/site resampling, which can be activated with the `-g` option. Note that when you perform gene/site resampling, you need more gene tree replicates than the number of multi-locus bootstrapping replicates. For example, if you are doing 100 replicates of multi-locus bootstrapping with gene resampling, you might need 150 replicates for some genes (and less than 100 replicates for other genes). This is because when genes are resampled, some genes will be sampled more often than others by chance.
+
+Finally, since bootstrapping involves a random process, a seed number can be provided to ASTRAL to ensure reproducibility. The seed number can be set using the `-s` option. 
 
 
 Miscellaneous :
