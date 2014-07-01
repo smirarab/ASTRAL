@@ -139,13 +139,25 @@ java -jar ../astral.4.3.0.jar -i song_mammals.424.gene.tre -b bs-files
 
 This will run 100 replicates of bootstrapping. The argument after `-i` (here `song_mammals.424.gene.tre`) contains all the maximum likelihood gene trees (just like the case where bootstrapping was not used). The `-b` option tells ASTRAL that bootstrapping needs to be performed. Following `-b` is the name of a file (here `bs-files`) that contains the location of gene tree bootstrap files, one line per gene. For example, the first line is `424genes/100/raxmlboot.gtrgamma/RAxML_bootstrap.allbs`, which tells ASTRAL that the gene tree bootstrap replicates of the first gene can be found in a file called `424genes/100/raxmlboot.gtrgamma/RAxML_bootstrap.allbs`.
 
-By default ASTRAL performs 100 bootstrap replicates, but the `-r` option can be used to perform any number of replicates. Note that your input bootstrap files need to have enough bootstrap replicates for all genes. For example, if you ask for 200 bootstrap replicats, each file listed in `bs-files` should contain at least 200 bootstrap replicates.
+By default ASTRAL performs 100 bootstrap replicates, but the `-r` option can be used to perform any number of replicates. For example, 
 
-Also, ASTRAL performs site-only resampling bootstrapping by default. ASTRAL can also perform gene/site resampling, which can be activated with the `-g` option. Note that when you perform gene/site resampling, you need more gene tree replicates than the number of multi-locus bootstrapping replicates you requested using `-r`. For example, if you have `-g -r 100`, you might need 150 replicates for some genes (and less than 100 replicates for other genes). This is because when genes are resampled, some genes will be sampled more often than others by chance.
+```
+java -jar ../astral.4.3.0.jar -i song_mammals.424.gene.tre -b bs-files -r 150
+```
+
+will do 150 replicates. Note that your input gene tree bootstrap files need to have enough bootstrap replicates for the number of replicates requested using `-r`. For example, if you have `-r 150`, each file listed in `bs-files` should contain at least 150 bootstrap replicates.
+
+Also, ASTRAL performs site-only resampling by default (see [Seo, 2008](http://www.ncbi.nlm.nih.gov/pubmed/18281270)). ASTRAL can also perform gene/site resampling, which can be activated with the `-g` option:
+
+```
+java -jar ../astral.4.3.0.jar -i song_mammals.424.gene.tre -b bs-files -g -r 100
+```
+
+Note that when you perform gene/site resampling, you need more gene tree replicates than the number of multi-locus bootstrapping replicates you requested using `-r`. For example, if you have `-g -r 100`, you might need 150 replicates for some genes (and less than 100 replicates for other genes). This is because when genes are resampled, some genes will be sampled more often than others by chance.
 
 Finally, since bootstrapping involves a random process, a seed number can be provided to ASTRAL to ensure reproducibility. The seed number can be set using the `-s` option (by default 692 is used). 
 
-ASTRAL first performs the boostrapping, and for each replicate, it outputs the bootstrap ASTRAL tree. At the end, it performs the main analyses (i.e. on trees provided using `-i` option) and draws branch support on this main tree using the bootstrap replicates. The tree outputted at the end has support values as branch length values (i.e. after a colon sign). 
+**Output:** ASTRAL first performs the boostrapping, and for each replicate, it outputs the bootstrapped ASTRAL tree. So, if number of replicates is set to 100, it outputs 100 trees. Then, it outputs a greedy consensus of all the 100 bootstrapped trees (with support drawn on branches). Finally, it performs the main analyses (i.e. on trees provided using `-i` option) and draws branch support on this main tree using the bootstrap replicates. The tree outputted at the end therefore is the ASTRAL tree on main input trees, with support values drawn based on bootsrap replicates. Support values are shown as branch length (i.e. after a colon sign). 
 
 Miscellaneous :
 ---------------
