@@ -1,5 +1,10 @@
 #!/bin/sh
 
+set -u
+set -e
+set -x
+set -o pipefail
+
 version=`grep _versinon main/phylonet/coalescent/CommandLine.java|grep String|sed -e "s/.*= .//g" -e "s/.;//g"`
 echo Version $version
 
@@ -15,8 +20,8 @@ cd ..
 
 chmod +x astral.$version.jar
 sed -e "s/__astral.jar__/astral.$version.jar/g" -e "s/__astral.zip__/Astral.$version.zip/g" README.template > README.md
-rm -r Astral/*
-mkdir Astral
+rm -fr Astral/*
+mkdir -p  Astral
 cd Astral
 ln -s ../lib .
 ln -s ../main.jar .
@@ -25,4 +30,5 @@ ln -s ../astral.$version.jar .
 ln -s ../main/test_data .
 ln -s ../astral-tutorial.pdf .
 cd ..
+rm -f Astral.$version.zip
 zip -r Astral.$version.zip Astral 
