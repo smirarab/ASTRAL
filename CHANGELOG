@@ -1,4 +1,6 @@
-Version 4.3.1
+Version 4.3.1:
+  -- Output consensus bootstrap tree as well
+  -- Output support only for internal branches
   -- Fix default seed number to 692
 Version 4.3.0 (command-line options changed! Notice some commands are not backward compatible!):
   -- Performs bootstrapping (-b, -r, -g, -s added)

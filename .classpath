@@ -1,11 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry including="phylonet/coalescent/*.java|phylonet/compatibility/TreeCompatibility.java|phylonet/tree/model/sti/STITreeCluster.java|phylonet/tree/util/Trees.java|phylonet/util/BitSet.java" kind="src" path="main"/>
-	<classpathentry kind="lib" path="lib/jopt-simple-3.2.jar"/>
-	<classpathentry kind="lib" path="lib/junit-4.6.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="main.jar" sourcepath="lib/PhyloNet_3.2.0_Source.zip"/>
-	<classpathentry kind="lib" path="lib/jsr166.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/JSAP"/>
+	<classpathentry kind="lib" path="lib/main.jar"/>
 	<classpathentry kind="output" path="main"/>
 </classpath>
