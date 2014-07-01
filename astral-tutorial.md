@@ -157,7 +157,8 @@ Note that when you perform gene/site resampling, you need more gene tree replica
 
 Finally, since bootstrapping involves a random process, a seed number can be provided to ASTRAL to ensure reproducibility. The seed number can be set using the `-s` option (by default 692 is used). 
 
-**Output:** ASTRAL first performs the boostrapping, and for each replicate, it outputs the bootstrapped ASTRAL tree. So, if number of replicates is set to 100, it outputs 100 trees. Then, it outputs a greedy consensus of all the 100 bootstrapped trees (with support drawn on branches). Finally, it performs the main analyses (i.e. on trees provided using `-i` option) and draws branch support on this main tree using the bootstrap replicates. The tree outputted at the end therefore is the ASTRAL tree on main input trees, with support values drawn based on bootsrap replicates. Support values are shown as branch length (i.e. after a colon sign). 
+**Output:** ASTRAL first performs the boostrapping, and for each replicate, it outputs the bootstrapped ASTRAL tree. So, if number of replicates is set to 100, it outputs 100 trees. Then, it outputs a greedy consensus of all the 100 bootstrapped trees (with support drawn on branches). Finally, it performs the main analysis (i.e. on trees provided using `-i` option) and draws branch support on this main tree using the bootstrap replicates. The tree outputted at the end therefore is the ASTRAL tree on main input trees, with support values drawn based on bootsrap replicates. Support values are shown as branch length (i.e. after a colon sign) and
+are percentages. 
 
 Miscellaneous :
 ---------------
