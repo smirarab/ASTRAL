@@ -26,6 +26,10 @@ java -jar astral.4.3.0.jar -in test_data/song_primates.50.gene.tre
 
 This should quickly finish. There are also other sample input files under `test_data/` that can be used.
 
+ASTRAL can be run from any directories. You just need to run `java -jar /path/to/astral/astral.4.3.0.jar`.
+Also, you can move `astral.4.3.0.jar` to any location you like and run it from there, but note that you need
+to move the `lib` directory as well. 
+
 EXECUTION:
 -----------
 ASTRAL currently has no GUI. You need to run it through command-line. In a terminal, go the location where you have downloaded the software, and issue the following command:
