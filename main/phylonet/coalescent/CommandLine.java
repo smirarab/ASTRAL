@@ -13,23 +13,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import phylonet.bits.BitVector;
 import phylonet.coalescent.GlobalMaps.TaxonNameMap;
 import phylonet.tree.io.NewickReader;
 import phylonet.tree.io.ParseException;
 import phylonet.tree.model.MutableTree;
-import phylonet.tree.model.TMutableNode;
-import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITree;
-import phylonet.tree.util.Bipartitions;
+
 
 import com.martiansoftware.jsap.FlaggedOption;
 import com.martiansoftware.jsap.JSAP;
@@ -42,7 +37,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 	
-    protected static String _versinon = "4.3.0";
+    protected static String _versinon = "4.3.1";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -273,12 +268,13 @@ public class CommandLine {
                     wh, exact, outbuffer, input, null));
 		}
 	    
-/*		if (bootstraps != null) {
-            TreeConsensusCalculator tcc = new TreeConsensusCalculator();
-            tcc.setInputEdgeWeightsAreSupports(false);
-            tcc.setOutputEdgeWeightsAreSupports(true);       
-            outbuffer.write(tcc.computeUnrootedConsensus(bootstraps.toArray(new Tree[]{}), 0).toString()+ " \n");
-		}*/
+		if (bootstraps != null && bootstraps.size() != 0) {
+            MutableTree cons = (MutableTree) Utils.greedyConsensus(bootstraps);
+            Utils.computeEdgeSupports(cons, bootstraps);
+            //Trees.scaleBranchLengths(cons, 100);
+            cons.rerootTreeAtNode(cons.getNode(GlobalMaps.taxonIdentifier.getTaxonName(0)));
+            outbuffer.write(cons.toString()+ " \n");
+		}
 		
         System.err.println("\n======== Running the main analysis");
         runOnOneInput(criterion, rooted, extrarooted, extraTrees, cs, cd,
@@ -307,7 +303,7 @@ public class CommandLine {
    
         if ((bootstraps != null) && (bootstraps.iterator().hasNext())) {
             for (Solution solution : solutions) {
-                computeEdgeSupports((MutableTree) solution._st, bootstraps);
+                Utils.computeEdgeSupports((MutableTree) solution._st, bootstraps);
             }
         }
         writeSolutionToFile(outbuffer, solutions);
@@ -384,6 +380,7 @@ public class CommandLine {
             List<Solution> solutions) {
         try {
 		    for (Solution s : solutions) {
+		        s._st.rerootTreeAtNode(s._st.getNode(GlobalMaps.taxonIdentifier.getTaxonName(0)));
 		        outbuffer.write(s._st.toString()+ " \n");
 		    }
 		    outbuffer.flush();
@@ -392,47 +389,6 @@ public class CommandLine {
 		    System.err.println(e.getMessage());
 		    e.printStackTrace();
 		}
-    }
-
-
-    public static final void computeEdgeSupports(MutableTree support_tree, Iterable<Tree> trees) {
-    
-        // generate leaf assignment
-        Hashtable<String,Integer> leaf_assignment = new Hashtable<String,Integer>();
-        for(TNode n : support_tree.getNodes()) {
-            if(n.isLeaf()) {
-                leaf_assignment.put(n.getName(), leaf_assignment.size());
-            }
-        }
-    
-        // generate all the bipartitions
-        Hashtable<BitVector,TNode> support_partitions = new Hashtable<BitVector,TNode>();
-        Bipartitions.computeBipartitions(support_tree, leaf_assignment, support_partitions);
-    
-        LinkedList<Hashtable<BitVector,TNode>> tree_partitions = new LinkedList<Hashtable<BitVector,TNode>>();
-        for(Tree t : trees) {
-            Hashtable<BitVector,TNode> th = new Hashtable<BitVector,TNode>();
-            Bipartitions.computeBipartitions(t, leaf_assignment, th);
-            tree_partitions.add(th);
-        }
-    
-        // compute the ratios
-        for(Map.Entry<BitVector,TNode> e : support_partitions.entrySet()) {
-            BitVector bvcomp = new BitVector(e.getKey());
-            bvcomp.not();
-    
-            int count = 0;
-    
-            for(Hashtable<BitVector,TNode> h : tree_partitions) {
-                if(h.containsKey(e.getKey()) || h.containsKey(bvcomp)) {
-                    count++;
-                }
-            }
-    
-            ((TMutableNode) e.getValue()).setParentDistance(((double) count) / tree_partitions.size() * 100);
-        }
-    
-        return;
     }
 
 
