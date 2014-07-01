@@ -1,9 +1,9 @@
 Version 4.3.1
   -- Fix default seed number to 692
-Version 4.3.0 (command-line options changed!):
-  -- Performs bootstrapping
-  -- Uses a library for argument parsing. This breaks some of the old options, as they now have new names. 
-  -- Does not output number of quartets satisfied by each branch; that information was not interpretable. 
+Version 4.3.0 (command-line options changed! Notice some commands are not backward compatible!):
+  -- Performs bootstrapping (-b, -r, -g, -s added)
+  -- Uses a library for argument parsing. We had to change some of the option names (exact version: -xt -> -x, extra trees: -ex -> -e).
+  -- Does not output the number of quartets satisfied by each branch; that information was not interpretable. 
 Version 4.2.1:
   -- Read input gene trees with internal node labels
   -- Updated the prompts and messages (e.g. Score instead of Cost)
