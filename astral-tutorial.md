@@ -143,8 +143,9 @@ By default ASTRAL performs 100 bootstrap replicates, but `-r` can be used to per
 
 Also by default, ASTRAL performs site-only resampling bootstrapping. ASTRAL can also perform gene/site resampling, which can be activated with the `-g` option. Note that when you perform gene/site resampling, you need more gene tree replicates than the number of multi-locus bootstrapping replicates. For example, if you are doing 100 replicates of multi-locus bootstrapping with gene resampling, you might need 150 replicates for some genes (and less than 100 replicates for other genes). This is because when genes are resampled, some genes will be sampled more often than others by chance.
 
-Finally, since bootstrapping involves a random process, a seed number can be provided to ASTRAL to ensure reproducibility. The seed number can be set using the `-s` option. 
+Finally, since bootstrapping involves a random process, a seed number can be provided to ASTRAL to ensure reproducibility. The seed number can be set using the `-s` option (by default 692 is used). 
 
+ASTRAL first performs the required number of bootstrapping steps, and for each replicate outputs the estimated tree. At the end, it performs the main analyses (i.e. on trees provided using `-i` option) and draws support on this main tree using the bootstrap replicates. The tree outputted at the end has support values as branch length (i.e. after colon). 
 
 Miscellaneous :
 ---------------

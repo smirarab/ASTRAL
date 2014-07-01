@@ -94,7 +94,7 @@ public class CommandLine {
                             "Set the number of bootstrap replicates done in multi-locus bootstrapping. "),
 
                     new FlaggedOption("seed", 
-                            JSAP.LONG_PARSER, ((long)(Math.random()*10000000))+"", JSAP.NOT_REQUIRED, 's', "seed",
+                            JSAP.LONG_PARSER, "692", JSAP.NOT_REQUIRED, 's', "seed",
                             "Set the seed number used in multi-locus bootstrapping. "),
 
                     new Switch("gene-sampling",
