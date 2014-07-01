@@ -64,7 +64,7 @@ java -jar __astral.jar__ -i best_ml -b bs_paths
 
 In this command, `bs_paths` is a file that gives the location of gene tree bootstrap files, one line per gene. 
 `best_ml` has all the "main" trees (e.g. best ML trees) in one file. 
-ASTRAL outputs 100 bootstrapped replicates, then outputs one main tree (estimated based on the `best_ml` input) and 
+ASTRAL outputs 100 bootstrapped replicates, then outputs a greedy consensus of the 100 bootstrap replicates, and then outputs one main tree (estimated based on the `best_ml` input) and 
 draws support on this main tree using the 100 bootstrap replicates.
 
 Also related to bootstrapping are `-r` (to set the number of replicates), `-g` (to enable gene/site resampling), `-s` (to set the seed number).
