@@ -19,7 +19,7 @@ public class GlobalMaps{
 			this.pattern = pattern;
 			this.rep = rep;
 		}
-		public String getTaxonName(String geneName) {
+		private String getTaxonName(String geneName) {
 			if (geneName == null || "".equals(geneName)) {
 				throw new RuntimeException("Empty name?");
 			}
@@ -30,9 +30,17 @@ public class GlobalMaps{
 			} else {
 				return taxonMap.get(geneName);
 			}
-		}		
+		}	
+		
 	}
 	
+    protected static String getSpeciesName(String geneName) {
+        if (GlobalMaps.taxonNameMap != null) {
+            return  GlobalMaps.taxonNameMap.getTaxonName(geneName);
+        }
+        return geneName;
+    }
+    
 	public static class TaxonIdentifier {
 		private HashMap<String, Integer> nameToId = new HashMap<String, Integer>();
 		private List<String> idToName = new ArrayList<String>();
