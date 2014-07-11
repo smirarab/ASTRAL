@@ -30,7 +30,7 @@ public abstract class Inference<T> {
 	protected List<Tree> extraTrees = null;
 	protected boolean exactSolution;
 	
-	protected String[] gtTaxa;
+	//protected String[] gtTaxa;
 	//protected String[] stTaxa;
 
 	Collapse.CollapseDescriptor cd = null;
@@ -78,6 +78,12 @@ public abstract class Inference<T> {
 		if ((trees == null) || (trees.size() == 0)) {
 			throw new IllegalArgumentException("empty or null list of trees");
 		}
+        for (Tree tr : trees) {
+            String[] leaves = tr.getLeaves();
+            for (int i = 0; i < leaves.length; i++) {
+                GlobalMaps.taxonIdentifier.taxonId(leaves[i]);
+            }
+        }
 		if (GlobalMaps.taxonNameMap != null && GlobalMaps.taxonNameMap.taxonMap != null) {
 			Map<String,String> taxonMap = GlobalMaps.taxonNameMap.taxonMap;
 			String error = Trees.checkMapping(trees, taxonMap);
@@ -86,24 +92,6 @@ public abstract class Inference<T> {
 						+ error
 						+ " that hasn't been defined in the mapping file");
 			}
-
-			List<String> temp1 = new LinkedList<String>();
-			List<String> temp2 = new LinkedList<String>();
-			for (String s : taxonMap.keySet()) {
-				temp1.add(s);
-				if (!( temp2).contains(taxonMap.get(s))) {
-					temp2.add(taxonMap.get(s));
-				}
-			}
-			gtTaxa = (String[]) temp2.toArray();
-			/*stTaxa = new String[temp2.size()];
-
-			
-			for (int i = 0; i < stTaxa.length; i++) {
-				stTaxa[i] = ((String) ((List) temp2).get(i));
-				GlobalMaps.taxonIdentifier.taxonId(stTaxa[i]);
-				
-			}*/
 		} else if (GlobalMaps.taxonNameMap != null && GlobalMaps.taxonNameMap.taxonMap == null) {
 			
 			Set<String> taxalist = new HashSet<String>();
@@ -113,50 +101,16 @@ public abstract class Inference<T> {
 				for (int i = 0; i < leaves.length; i++) {
 					String leaf = leaves[i];				
 					genelist.add(leaf);
-					taxalist.add(GlobalMaps.taxonNameMap.getTaxonName(leaf));
+					taxalist.add(GlobalMaps.getSpeciesName(leaf));
 				}
 			}			
-
-			//stTaxa = new String[taxalist.size()];
-			gtTaxa = new String[genelist.size()];
-
-			int index = 0;
-			/*for (String taxon : taxalist) {
-				stTaxa[(index++)] = taxon;
-				GlobalMaps.taxonIdentifier.taxonId(taxon);
-			}*/
-			index = 0;
-			for (String gene : genelist) {
-				gtTaxa[(index++)] = gene;
-			}
-		} else {
-/*			cd = null;
-			if (rooted & extraTrees == null & GlobalMaps.taxonNameMap == null && false) {
-				cd = doCollapse(trees);
-			}*/
-
-			List<String> taxalist = new ArrayList<String>();
-			for (Tree tr : trees) {
-				for (TNode node : tr.postTraverse()) {
-					if ((node.isLeaf()) && (!taxalist.contains(node.getName()))) {
-						taxalist.add(node.getName());
-					}
-				}
-			}
-
-			gtTaxa = new String[taxalist.size()];
-
-			int index = 0;
-			for (String taxon : taxalist) {
-				gtTaxa[(index++)] = taxon;
-				GlobalMaps.taxonIdentifier.taxonId(taxon);
-			}
-		}
+		} 
 
 		System.err.println("Number of taxa: " + GlobalMaps.taxonIdentifier.taxonCount());
 		System.err.println("Taxa: " + Arrays.toString(GlobalMaps.taxonIdentifier.getAllTaxonNames()));
 	}
-	public abstract void scoreGeneTree(STITree scorest) ;
+	
+	public abstract void scoreGeneTree(Tree scorest) ;
 
 	List<Solution> findTreesByDP(ClusterCollection clusters) {
 		List<Solution> solutions = new ArrayList<Solution>();
@@ -185,7 +139,7 @@ public abstract class Inference<T> {
 
 		try {
 			//vertexStack.push(all);
-			ComputeMinCostTask allTask = newComputeMinCostTask(this,all,clusters);
+			ComputeMinCostTask<T> allTask = newComputeMinCostTask(this,all,clusters);
 			//ForkJoinPool pool = new ForkJoinPool(1);
 			allTask.compute();
 			double v = all._max_score;
@@ -205,9 +159,9 @@ public abstract class Inference<T> {
 		//}
 		//System.out.println("domination calcs:" + counter.cnt);
 
-		List minClusters = new LinkedList();
-		List coals = new LinkedList();
-		Stack minVertices = new Stack();
+		List<STITreeCluster> minClusters = new LinkedList<STITreeCluster>();
+		List<Double> coals = new LinkedList<Double>();
+		Stack<Vertex> minVertices = new Stack<Vertex>();
 		if (all._min_rc != null) {
 			minVertices.push(all._min_rc);
 		}
@@ -247,27 +201,27 @@ public abstract class Inference<T> {
 		Solution sol = new Solution();
 		if ((minClusters == null) || (minClusters.isEmpty())) {
 			System.err.println("WARN: empty minClusters set.");
-			Object tr = new STITree();
+			STITree<Double> tr = new STITree<Double>();
 			for (String s : GlobalMaps.taxonIdentifier.getAllTaxonNames()) {
 				((MutableTree) tr).getRoot().createChild(s);
 			}
-			sol._st = ((Tree) tr);
+			sol._st = tr;
 		} else {
 			sol._st = Utils.buildTreeFromClusters(minClusters);
 		}
 
-		Object map = new HashMap();
+		HashMap<TNode,BitSet> map = new HashMap<TNode,BitSet>();
 		for (TNode node : sol._st.postTraverse()) {
 			BitSet bs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
 			if (node.isLeaf()) {
 				bs.set(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
-				((Map) map).put(node, bs);
+				map.put(node, bs);
 			} else {
 				for (TNode child : node.getChildren()) {
-					BitSet childCluster = (BitSet) ((Map) map).get(child);
+					BitSet childCluster = map.get(child);
 					bs.or(childCluster);
 				}
-				((Map) map).put(node, bs);
+				map.put(node, bs);
 			}
 //            System.err.println("Node: "+node);
 			STITreeCluster c = new STITreeCluster();
@@ -276,10 +230,10 @@ public abstract class Inference<T> {
 //            System.err.println("C: "+c.toString2());
 //            System.err.println("Equals: "+((STITreeCluster)minClusters.get(0)).equals(c));
 			if (c.getClusterSize() == GlobalMaps.taxonIdentifier.taxonCount()) {
-				((STINode) node).setData(Double.valueOf(0));
+				((STINode<Double>) node).setData(Double.valueOf(0));
 			} else {
 				int pos = minClusters.indexOf(c);                                
-				((STINode) node).setData((Double) coals.get(pos));
+				((STINode<Double>) node).setData((Double) coals.get(pos));
 			}
 		}
 
@@ -337,7 +291,7 @@ public abstract class Inference<T> {
 
 	abstract ClusterCollection newClusterCollection();
 	
-	abstract DataCollection newCounter(ClusterCollection clusters);
+	abstract DataCollection<T> newCounter(ClusterCollection clusters);
 	
 	abstract WeightCalculator<T> newWeightCalculator();
 
@@ -368,60 +322,6 @@ public abstract class Inference<T> {
 
 	public void setCD(double cD) {
 		CD = cD;
-	}
-
-	protected int [] calc(Tree gtTree, SchieberVishkinLCA lcaLookup, Tree stTree) {
-		int [] res = {0,0,0};
-		Stack<TNode> stack = new Stack<TNode>();			
-		for (TNode gtNode : gtTree.postTraverse()) {
-			if (gtNode.isLeaf()) {
-			    	TNode node = stTree.getNode(GlobalMaps.taxonNameMap !=null ? 
-					GlobalMaps.taxonNameMap.getTaxonName(gtNode.getName()):
-						gtNode.getName());
-			    	if (node == null) {
-					throw new RuntimeException("Leaf " + gtNode.getName() +
-						" was not found in species tree; mapped as: "+
-						GlobalMaps.taxonNameMap.getTaxonName(gtNode.getName())); 
-			    	}
-			    	stack.push(node);
-				//System.out.println("stack: " +this.taxonNameMap.getTaxonName(gtNode.getName()));
-			} else {
-				TNode rightLCA = stack.pop();
-				TNode leftLCA = stack.pop();
-				// If gene trees are incomplete, we can have this case
-				if (rightLCA == null || leftLCA == null) {
-					stack.push(null);
-					continue;
-				}
-				TNode lca = lcaLookup.getLCA(leftLCA, rightLCA);
-				stack.push(lca);
-				if (lca == leftLCA || lca == rightLCA) {
-					// LCA in stTree dominates gtNode in gene tree
-					res[0]++;
-					if (lca == leftLCA && lca == rightLCA) {
-						res[1] += 0;
-					} else {
-						res[1] += (lca == leftLCA) ?
-									d(rightLCA,lca) + 1:
-									d(leftLCA,lca) + 1;
-					}
-				} else {
-					res[1] += (d(rightLCA,lca) + d(leftLCA,lca));
-				}
-			}
-		}
-		TNode rootLCA = stack.pop();
-		res[2] = res[1];
-		res[1] += d(rootLCA,stTree.getRoot()) + (rootLCA == stTree.getRoot()?0:1);
-		return res;
-	}
-
-	private int d(TNode down, TNode upp) {
-		int ret = 0;
-		TNode t = down;
-		//System.err.println("Down: "+down+"\nUPP: "+upp);
-		while (t != upp) {ret++; t=t.getParent();}
-		return Math.max(ret-1,0);
 	}
 
 	

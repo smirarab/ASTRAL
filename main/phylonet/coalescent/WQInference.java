@@ -19,7 +19,7 @@ public class WQInference extends Inference<Tripartition> {
 		this.forceAlg = alg;
 	}
 
-	public void scoreGeneTree(STITree st) {
+	public void scoreGeneTree(Tree st) {
 		throw new RuntimeException("Not implemented yet");
 	}
 
@@ -41,7 +41,7 @@ public class WQInference extends Inference<Tripartition> {
 	}
 	
 	DataCollection<Tripartition> newCounter(ClusterCollection clusters) {
-		return new WQDataCollection(gtTaxa, (WQClusterCollection)clusters, this.forceAlg);
+		return new WQDataCollection((WQClusterCollection)clusters, this.forceAlg);
 	}
 
 
