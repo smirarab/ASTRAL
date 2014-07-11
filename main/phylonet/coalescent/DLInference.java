@@ -3,8 +3,10 @@ package phylonet.coalescent;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Stack;
 
 import phylonet.lca.SchieberVishkinLCA;
+import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITree;
 import phylonet.tree.model.sti.STITreeCluster;
@@ -23,8 +25,61 @@ public class DLInference extends Inference<STBipartition> {
 	public int getOptimizeDuploss() {
 		return this.optimizeDuploss; 
 	}
-
-	public void scoreGeneTree(STITree st) {
+	
+	protected int [] calc(Tree gtTree, SchieberVishkinLCA lcaLookup, Tree stTree) {
+        int [] res = {0,0,0};
+        Stack<TNode> stack = new Stack<TNode>();            
+        for (TNode gtNode : gtTree.postTraverse()) {
+            if (gtNode.isLeaf()) {
+                    TNode node = stTree.getNode(GlobalMaps.getSpeciesName(
+                        gtNode.getName()));
+                    if (node == null) {
+                        throw new RuntimeException("Leaf " + gtNode.getName() +
+                            " was not found in species tree; mapped as: "+
+                            GlobalMaps.getSpeciesName(gtNode.getName())); 
+                    }
+                    stack.push(node);
+                //System.out.println("stack: " +this.taxonNameMap.getTaxonName(gtNode.getName()));
+            } else {
+                TNode rightLCA = stack.pop();
+                TNode leftLCA = stack.pop();
+                // If gene trees are incomplete, we can have this case
+                if (rightLCA == null || leftLCA == null) {
+                    stack.push(null);
+                    continue;
+                }
+                TNode lca = lcaLookup.getLCA(leftLCA, rightLCA);
+                stack.push(lca);
+                if (lca == leftLCA || lca == rightLCA) {
+                    // LCA in stTree dominates gtNode in gene tree
+                    res[0]++;
+                    if (lca == leftLCA && lca == rightLCA) {
+                        res[1] += 0;
+                    } else {
+                        res[1] += (lca == leftLCA) ?
+                                    d(rightLCA,lca) + 1:
+                                    d(leftLCA,lca) + 1;
+                    }
+                } else {
+                    res[1] += (d(rightLCA,lca) + d(leftLCA,lca));
+                }
+            }
+        }
+        TNode rootLCA = stack.pop();
+        res[2] = res[1];
+        res[1] += d(rootLCA,stTree.getRoot()) + (rootLCA == stTree.getRoot()?0:1);
+        return res;
+    }
+	
+	private int d(TNode down, TNode upp) {
+	    int ret = 0;
+	    TNode t = down;
+	    //System.err.println("Down: "+down+"\nUPP: "+upp);
+	    while (t != upp) {ret++; t=t.getParent();}
+	    return Math.max(ret-1,0);
+	}
+	
+	public void scoreGeneTree(Tree st) {
 		// first calculated duplication cost by looking at gene trees. 
 		
 		SchieberVishkinLCA lcaLookup = new SchieberVishkinLCA(st);
@@ -37,7 +92,7 @@ public class DLInference extends Inference<STBipartition> {
 			duplications += res[0];
 			losses += res[1];
 			
-			STITree hmst = new STITree(st);
+			Tree hmst = new STITree(st);
 			//hmst.constrainByLeaves(Arrays.asList(gtTree.getLeaves()));
 			SchieberVishkinLCA hmlcaLookup = new SchieberVishkinLCA(hmst);
 			int[] res2 = calc(gtTree,hmlcaLookup, hmst);
@@ -69,7 +124,7 @@ public class DLInference extends Inference<STBipartition> {
 	}
 	
 	DLDataCollection newCounter(ClusterCollection clusters) {
-		return new DLDataCollection(gtTaxa, rooted, (DLClusterCollection)clusters);
+		return new DLDataCollection(rooted, (DLClusterCollection)clusters);
 	}
 
 	@Override
