@@ -22,8 +22,6 @@ import phylonet.util.BitSet;
 
 public class DLDataCollection extends DataCollection<STBipartition>{
 
-	String[] gtTaxa;
-
 	double sigmaNs;
 
 	// private List<Set<STBipartition>> X;
@@ -38,10 +36,7 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 
 	HashMap<STBipartition, Set<STBipartition>> alreadyWeigthProcessed = new HashMap<STBipartition, Set<STBipartition>>();
 
-	public DLDataCollection(String[] gtTaxa,
-			boolean rooted,
-			DLClusterCollection clusters) {
-		this.gtTaxa = gtTaxa;
+	public DLDataCollection(boolean rooted, DLClusterCollection clusters) {
 		this.rooted = rooted;
 		this.clusters = clusters;
 	}
@@ -74,7 +69,7 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 			String[] gtLeaves = tr.getLeaves();
 			for (int i = 0; i < gtLeaves.length; i++) {
 				allInducedByGT.addLeaf(
-						GlobalMaps.taxonIdentifier.taxonId(getSpeciesName(gtLeaves[i])));
+						GlobalMaps.taxonIdentifier.taxonId(GlobalMaps.getSpeciesName(gtLeaves[i])));
 			}
 			treeAlls.add(allInducedByGT);
 			int allInducedByGTSize = allInducedByGT.getClusterSize();
@@ -90,7 +85,7 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 			for (TNode node : tr.postTraverse()) {				
 				// System.err.println("Node is:" + node);
 				if (node.isLeaf()) {
-					String nodeName = getSpeciesName(node.getName());
+					String nodeName = GlobalMaps.getSpeciesName(node.getName());
 					
 					STITreeCluster cluster = new STITreeCluster();
 					cluster.addLeaf(GlobalMaps.taxonIdentifier.taxonId(nodeName));
@@ -237,7 +232,7 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 				TNode node = nodeIt.next();
 				if (node.isLeaf()) {
 					String treeName = node.getName();
-					String nodeName = getSpeciesName(treeName);
+					String nodeName = GlobalMaps.getSpeciesName(treeName);
 
 					STITreeCluster tb = new STITreeCluster();
 					tb.addLeaf(GlobalMaps.taxonIdentifier.taxonId(nodeName));
