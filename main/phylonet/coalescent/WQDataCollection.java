@@ -16,7 +16,6 @@ import phylonet.util.BitSet;
 
 public class WQDataCollection extends DataCollection<Tripartition> {
 
-	String[] gtTaxa;
 
 	List<STITreeCluster> treeAllClusters = new ArrayList<STITreeCluster>();
 
@@ -29,8 +28,7 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 	private int n;
 	private int algorithm;
 	
-	public WQDataCollection(String[] gtTaxa, WQClusterCollection clusters, int alg) {
-		this.gtTaxa = gtTaxa;
+	public WQDataCollection( WQClusterCollection clusters, int alg) {
 		this.clusters = clusters;
 		this.algorithm = alg;
 	}
@@ -51,7 +49,7 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 			for (TNode node : tr.postTraverse()) {				
 				// System.err.println("Node is:" + node);
 				if (node.isLeaf()) {
-					String nodeName = getSpeciesName(node.getName());
+					String nodeName = node.getName(); //GlobalMaps.TaxonNameMap.getSpeciesName(node.getName());
 					
 					STITreeCluster cluster = new STITreeCluster();
 					Integer taxonID = GlobalMaps.taxonIdentifier.taxonId(nodeName);
