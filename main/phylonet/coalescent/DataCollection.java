@@ -11,14 +11,6 @@ public abstract class DataCollection <T> {
 
 	protected ClusterCollection clusters;
 
-	protected String getSpeciesName(String geneName) {
-		String stName = geneName;
-		if (GlobalMaps.taxonNameMap != null) {
-			stName = GlobalMaps.taxonNameMap.getTaxonName(geneName);
-		}
-		return stName;
-	}
-
 	protected boolean addToClusters(STITreeCluster c, int size) {
 		if (size == 0) return false;
 		Vertex nv = c.new Vertex();
