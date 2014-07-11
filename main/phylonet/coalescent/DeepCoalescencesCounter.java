@@ -526,7 +526,7 @@ public class DeepCoalescencesCounter {
 		int count = 0;
 		for (TNode node : tr.postTraverse()) {
 			if (node.isLeaf()) {
-				String stTaxon = (String) GlobalMaps.taxonNameMap.getTaxonName(node.getName());
+				String stTaxon = GlobalMaps.getSpeciesName(node.getName());
 				int index = GlobalMaps.taxonIdentifier.taxonId(stTaxon);
 				BitSet bs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
 				bs.set(index);
@@ -573,8 +573,7 @@ public class DeepCoalescencesCounter {
 		STITreeCluster concluster = new STITreeCluster();
 		for (TNode n : tr.getNodes()) {
 			if ((!n.isLeaf())
-					|| (!cluster.containsLeaf((String) GlobalMaps.taxonNameMap
-							.getTaxonName(n.getName()))))
+					|| (!cluster.containsLeaf(GlobalMaps.getSpeciesName(n.getName()))))
 				continue;
 			concluster.addLeaf(GlobalMaps.taxonIdentifier.taxonId(n.getName()));
 		}
