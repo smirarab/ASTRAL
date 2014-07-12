@@ -1,3 +1,5 @@
+Version 4.4.0:
+  -- Bug fix: when gene trees had extreme levels of missing taxa, an uncaught division by zero would leave to wrong placement
 Version 4.3.1:
   -- Output consensus bootstrap tree as well
   -- Output support only for internal branches
