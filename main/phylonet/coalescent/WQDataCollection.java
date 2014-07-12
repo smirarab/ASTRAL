@@ -236,7 +236,10 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 			
 			for (int i = 0; i < n; i++) {
 				for (int j = i; j < n; j++) {
-					distMatrix[i][j] = distMatrix[i][j] / denom[i][j];
+					if (denom[i][j] == 0)
+						distMatrix[i][j] = 0;
+					 else
+					        distMatrix[i][j] = distMatrix[i][j] / denom[i][j];
 					distMatrix[j][i] = distMatrix[i][j];
 				}
 			}
