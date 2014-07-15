@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import phylonet.coalescent.GlobalMaps.SpeciesMapper;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
@@ -22,6 +23,7 @@ public abstract class ComputeMinCostTask<T> {
 
 	// final int maxEL = 10000000;
 	ClusterCollection containedVertecies;
+    private SpeciesMapper spm;
 
 	protected Double compute() {
 		try {
@@ -36,6 +38,7 @@ public abstract class ComputeMinCostTask<T> {
 		this.inference = inference;
 		this.v = v;
 		this.clusters = clusters;
+		this.spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
 	}
 
 	private void addComplementaryClusters(int clusterSize) {
@@ -69,11 +72,11 @@ public abstract class ComputeMinCostTask<T> {
 			return v._max_score;
 		}
 		//
-
+		
 		int clusterSize = v.getCluster().getClusterSize();
 
 		// SIA: base case for singelton clusters.
-		if (clusterSize <= 1) {
+		if (clusterSize <= 1 || spm.isSingleSP(v.getCluster().getBitSet())) {
 			
 			v._max_score = scoreBaseCase(inference.rooted, inference.trees);
 			
