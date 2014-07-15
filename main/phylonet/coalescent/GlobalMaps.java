@@ -2,9 +2,14 @@ package phylonet.coalescent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeSet;
+
+import phylonet.util.BitSet;
 
 
 public class GlobalMaps{
@@ -113,19 +118,25 @@ public class GlobalMaps{
 	public static class SpeciesMapper {
 	    
 	    private int [] taxonIdToSpeciesId;
+	    private List<Set<Integer>> speciesIdtoTaxonId;
 	    TaxonIdentifier speciesNameIdMap;
 	    
 	    public SpeciesMapper(int taxonCount) {
 	        this.taxonIdToSpeciesId = new int[taxonCount];
 	        this.speciesNameIdMap = new TaxonIdentifier();
+	        this.speciesIdtoTaxonId = new ArrayList<Set<Integer>>();
 	    }
 	    
 	    public int getSpeciesIdForTaxon(int id) {
 	        return this.taxonIdToSpeciesId[id];
 	    }
 	    
-	    protected void setSpeciesIdForTaxon(int taxonId, int speciesId) {
+	    private void setSpeciesIdForTaxon(int taxonId, int speciesId) {
 	        this.taxonIdToSpeciesId[taxonId] = speciesId;
+	        for (int i = this.speciesIdtoTaxonId.size(); i <= speciesId; i++) {
+                this.speciesIdtoTaxonId.add(new TreeSet<Integer>());
+            }
+	        this.speciesIdtoTaxonId.get(speciesId).add(taxonId);
             //System.err.println("Mapped taxon "+taxonId +" to species "+speciesId);
 	    }
 	    
@@ -138,12 +149,35 @@ public class GlobalMaps{
                    this.speciesNameIdMap.taxonId(speciesName));
        }
        
+       public Set<Integer> getTaxonsForSpecies(Integer species){
+           return this.speciesIdtoTaxonId.get(species);
+       }
+       
        public int getSpeciesCount() {
            return this.speciesNameIdMap.taxonCount();
        }
        
        public String getSpeciesName(int stId) {
            return this.speciesNameIdMap.getTaxonName(stId);
+       }
+       
+       private BitSet geneBitsetToSTBitSt(BitSet bs) {
+           BitSet stbs = new BitSet(this.getSpeciesCount());
+           for (int i = bs.nextSetBit(0); i >=0 ; i = bs.nextSetBit(i+1)) {
+               stbs.set(this.getSpeciesIdForTaxon(i));
+           }
+           return stbs;
+       }
+       
+       public void addMissingIndividuals(BitSet geneBS) {
+           BitSet stBS = this.geneBitsetToSTBitSt(geneBS);
+           for (int i = stBS.nextSetBit(0); i >=0 ; i = stBS.nextSetBit(i+1)) {
+               Set<Integer> taxonsForSpecies = this.getTaxonsForSpecies(i);
+               for (Iterator<Integer> it = taxonsForSpecies.iterator(); it.hasNext();) {
+                Integer gi = it.next();
+                geneBS.set(gi);               
+            }
+           }
        }
 	    
 	}
