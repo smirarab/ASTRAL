@@ -12,6 +12,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -24,7 +25,6 @@ import phylonet.tree.io.ParseException;
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITree;
-
 
 import com.martiansoftware.jsap.FlaggedOption;
 import com.martiansoftware.jsap.JSAP;
@@ -95,8 +95,14 @@ public class CommandLine {
                     new Switch("gene-sampling",
                             'g', "gene-resampling",
                             "perform gene tree resampling in addition to site resampling. Useful only with the -b option."),
-       
 
+                    new FlaggedOption("mapping file", 
+                            FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 'a', "namemapfile",
+                            "a file containing the mapping between names in gene tree and names in the species tree. "
+                            + "The mapping file has one line per species, with one of two formats:\n"
+                            + " species: gene1,gene2,gene3,gene4\n"
+                            + " species 4 gene1 gene2 gene3 gene4\n"),
+ 
                     new Switch( "duplication",
                             'd', "dup",
                             "Solves MGD problem. Minimizes the number duplications required to explain "
@@ -192,10 +198,49 @@ public class CommandLine {
 
         Random random = new Random(config.getLong("seed"));
         
+        if (config.getFile("mapping file") != null) {
+
+            BufferedReader br = new BufferedReader(new FileReader(
+                    config.getFile("mapping file")));
+
+            taxonMap = new HashMap<String, String>();
+            String s;
+            while ((s = br.readLine()) != null) {
+                s = s.trim();
+                String species;
+                String[] alleles;
+                if (s.indexOf(":") != -1) {
+                    species = s.substring(0, s.indexOf(":")).trim();
+                    s = s.substring(s.indexOf(":") + 1);
+                    alleles = s.split(",");
+                } else {
+                    alleles = s.split(" ",3);
+                    species = alleles[0];
+                    alleles = alleles[2].split(" ");
+                }
+                for (String allele : alleles) {
+                    allele = allele.trim();
+                    if (taxonMap.containsKey(allele)) {
+                        System.err
+                        .println("The input file is not in correct format");
+                        System.err
+                        .println("Any gene name can only map to one species");
+                        System.exit(-1);
+                    } else {
+                        //System.err.println("Mapping '"+allele+"' to '"+species+"'");
+                        taxonMap.put(allele, species);
+                    }
+                }
+            }
+            br.close();
+        }
+        
         try {
 
             readInputTrees(new BufferedReader(new FileReader(config.getFile("input file"))), rooted, trees, true);			
             k = trees.size();
+            
+            GlobalMaps.taxonIdentifier.lock();
             
             if (config.getFile("extra trees") != null) {
                 readInputTrees(new BufferedReader(new FileReader(config.getFile("extra trees"))), extrarooted, extraTrees, false);
@@ -233,6 +278,8 @@ public class CommandLine {
 			GlobalMaps.taxonNameMap = new TaxonNameMap(taxonMap);
 		} else if (replace != null) {	
 			GlobalMaps.taxonNameMap = new TaxonNameMap (pattern, replace);
+		} else {
+		    GlobalMaps.taxonNameMap = new TaxonNameMap();
 		}
 	
 		if (config.getFile("bootstraps") != null) {
@@ -365,6 +412,10 @@ public class CommandLine {
         			} else {						
         				Tree tr = nr.readTree();
         				trees.add(tr);
+        				String[] leaves = tr.getLeaves();
+        				for (int i = 0; i < leaves.length; i++) {
+                            GlobalMaps.taxonIdentifier.taxonId(leaves[i]);
+                        }
         			}
         		}
         	}
@@ -424,34 +475,7 @@ System.out.println("\t-a mapping file: The file containing the mapping from alle
         return;
     }
     if (option.length == 2) {
-        BufferedReader br = new BufferedReader(new FileReader(
-                option[1]));
-
-        taxonMap = new HashMap<String, String>();
-        while ((line = br.readLine()) != null) {
-            // String line;
-            String[] mapString = line.trim().split(";");
-            for (String s : mapString) {
-                String species = s.substring(0, s.indexOf(":"))
-                        .trim();
-                s = s.substring(s.indexOf(":") + 1);
-                String[] alleles = s.split(",");
-                for (String allele : alleles) {
-                    allele = allele.trim();
-                    if (taxonMap.containsKey(allele)) {
-                        System.err
-                                .println("The input file is not in correct format");
-                        System.err
-                                .println("Any gene name can only map to one species");
-                        System.exit(-1);
-                    } else {
-                        taxonMap.put(allele, species);
-                    }
-                }
-            }
-        }
-        br.close();
-    } else {
+        else {
         pattern = option[1];
         rep = option [2];
         if (rep.equals("/delete/")) {
