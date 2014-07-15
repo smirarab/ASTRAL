@@ -106,8 +106,10 @@ public abstract class Inference<T> {
 			}			
 		} 
 
-		System.err.println("Number of taxa: " + GlobalMaps.taxonIdentifier.taxonCount());
-		System.err.println("Taxa: " + Arrays.toString(GlobalMaps.taxonIdentifier.getAllTaxonNames()));
+		System.err.println("Number of taxa: " + GlobalMaps.taxonIdentifier.taxonCount()+
+		        " (" + GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount() +" species)"
+		);
+		System.err.println("Taxa: " + GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesNames());
 	}
 	
 	public abstract void scoreGeneTree(Tree scorest) ;
