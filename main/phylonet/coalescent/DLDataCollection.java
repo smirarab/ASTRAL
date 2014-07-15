@@ -69,7 +69,7 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 			String[] gtLeaves = tr.getLeaves();
 			for (int i = 0; i < gtLeaves.length; i++) {
 				allInducedByGT.addLeaf(
-						GlobalMaps.taxonIdentifier.taxonId(GlobalMaps.getSpeciesName(gtLeaves[i])));
+						GlobalMaps.taxonIdentifier.taxonId(GlobalMaps.taxonNameMap.getTaxonName(gtLeaves[i])));
 			}
 			treeAlls.add(allInducedByGT);
 			int allInducedByGTSize = allInducedByGT.getClusterSize();
@@ -85,7 +85,7 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 			for (TNode node : tr.postTraverse()) {				
 				// System.err.println("Node is:" + node);
 				if (node.isLeaf()) {
-					String nodeName = GlobalMaps.getSpeciesName(node.getName());
+					String nodeName = GlobalMaps.taxonNameMap.getTaxonName(node.getName());
 					
 					STITreeCluster cluster = new STITreeCluster();
 					cluster.addLeaf(GlobalMaps.taxonIdentifier.taxonId(nodeName));
@@ -232,7 +232,7 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 				TNode node = nodeIt.next();
 				if (node.isLeaf()) {
 					String treeName = node.getName();
-					String nodeName = GlobalMaps.getSpeciesName(treeName);
+					String nodeName = GlobalMaps.taxonNameMap.getTaxonName(treeName);
 
 					STITreeCluster tb = new STITreeCluster();
 					tb.addLeaf(GlobalMaps.taxonIdentifier.taxonId(nodeName));
