@@ -192,6 +192,7 @@ public class CommandLine {
             System.err.println("Using DynaDup application, minimizing MGDL (not ASTRAL).");
         }
         
+        System.err.println("\n================== ASTRAL ===================== \n" );
         System.err.println("This is ASTRAL version " + _versinon);
 
         System.err.println("Gene trees are treated as " + (rooted ? "rooted" : "unrooted"));
@@ -239,11 +240,13 @@ public class CommandLine {
 
             readInputTrees(new BufferedReader(new FileReader(config.getFile("input file"))), rooted, trees, true);			
             k = trees.size();
+            System.err.println(k+" trees read from " + config.getFile("input file"));
             
             GlobalMaps.taxonIdentifier.lock();
             
             if (config.getFile("extra trees") != null) {
                 readInputTrees(new BufferedReader(new FileReader(config.getFile("extra trees"))), extrarooted, extraTrees, false);
+                System.err.println(extraTrees.size() + " extra trees read from " + config.getFile("extra trees"));
             }
             
             if (config.getFile("bootstraps") != null) {
@@ -271,8 +274,8 @@ public class CommandLine {
 			return;
 		}
 
-		System.err.println("Reading trees in "
-				+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
+		//System.err.println("Trees in "
+		//		+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 				
 		if (taxonMap != null) {
 			GlobalMaps.taxonNameMap = new TaxonNameMap(taxonMap);
@@ -328,6 +331,8 @@ public class CommandLine {
                 wh, exact, outbuffer, trees, bootstraps);
            
 		outbuffer.close();
+		
+	    System.err.println("ASTRAL finished in "  + (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 	}
 
 
