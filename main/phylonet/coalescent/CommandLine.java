@@ -284,6 +284,9 @@ public class CommandLine {
 		} else {
 		    GlobalMaps.taxonNameMap = new TaxonNameMap();
 		}
+		
+		String outgroup = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesName(0);
+		System.err.println("All outputted trees will be *arbitrarily* rooted at "+outgroup);
 	
 		if (config.getFile("bootstraps") != null) {
 	        System.err.println("Bootstrapping with seed "+config.getLong("seed"));
@@ -315,7 +318,7 @@ public class CommandLine {
 	        System.err.println("\n======== Running bootstrap replicate " + j++);
 	        bootstraps.add(runOnOneInput(criterion, 
 	                rooted, extrarooted, extraTrees, cs, cd,
-                    wh, exact, outbuffer, input, null));
+                    wh, exact, outbuffer, input, null, outgroup));
 		}
 	    
 		if (bootstraps != null && bootstraps.size() != 0) {
@@ -328,7 +331,7 @@ public class CommandLine {
 		
         System.err.println("\n======== Running the main analysis");
         runOnOneInput(criterion, rooted, extrarooted, extraTrees, cs, cd,
-                wh, exact, outbuffer, trees, bootstraps);
+                wh, exact, outbuffer, trees, bootstraps, outgroup);
            
 		outbuffer.close();
 		
@@ -339,7 +342,7 @@ public class CommandLine {
     private static Tree runOnOneInput(int criterion, boolean rooted,
             boolean extrarooted, List<Tree> extraTrees, double cs, double cd,
             double wh, boolean exact, BufferedWriter outbuffer, List<Tree> input, 
-            Iterable<Tree> bootstraps) {
+            Iterable<Tree> bootstraps, String outgroup) {
         long startTime;
         startTime = System.currentTimeMillis();
         
@@ -358,7 +361,7 @@ public class CommandLine {
                 Utils.computeEdgeSupports((MutableTree) solution._st, bootstraps);
             }
         }
-        writeSolutionToFile(outbuffer, solutions);
+        writeSolutionToFile(outbuffer, solutions, outgroup);
         
         return solutions.get(0)._st;
     }
@@ -433,10 +436,10 @@ public class CommandLine {
 
 
     private static void writeSolutionToFile(BufferedWriter outbuffer,
-            List<Solution> solutions) {
+            List<Solution> solutions, String outgroup) {
         try {
 		    for (Solution s : solutions) {
-		        s._st.rerootTreeAtNode(s._st.getNode(GlobalMaps.taxonIdentifier.getTaxonName(0)));
+		        s._st.rerootTreeAtNode(s._st.getNode(outgroup));
 		        outbuffer.write(s._st.toString()+ " \n");
 		    }
 		    outbuffer.flush();

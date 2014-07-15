@@ -127,6 +127,10 @@ public class GlobalMaps{
 	        this.speciesIdtoTaxonId = new ArrayList<Set<Integer>>();
 	    }
 	    
+	    public TaxonIdentifier getSTTaxonIdentifier() {
+	        return this.speciesNameIdMap;
+	    }
+	    
 	    public int getSpeciesIdForTaxon(int id) {
 	        return this.taxonIdToSpeciesId[id];
 	    }
@@ -161,7 +165,11 @@ public class GlobalMaps{
            return this.speciesNameIdMap.getTaxonName(stId);
        }
        
-       private BitSet geneBitsetToSTBitSt(BitSet bs) {
+       public Integer speciesId(String name) {
+           return this.speciesNameIdMap.taxonId(name);
+       }
+       
+       protected BitSet geneBitsetToSTBitSt(BitSet bs) {
            BitSet stbs = new BitSet(this.getSpeciesCount());
            for (int i = bs.nextSetBit(0); i >=0 ; i = bs.nextSetBit(i+1)) {
                stbs.set(this.getSpeciesIdForTaxon(i));
@@ -179,6 +187,19 @@ public class GlobalMaps{
             }
            }
        }
+
+    public boolean isSingleSP(BitSet bs) {
+        int i = bs.nextSetBit(0);
+        int prevId =  this.getSpeciesIdForTaxon(i);
+        for (; i >=0 ; i = bs.nextSetBit(i+1)) {
+            int stID = this.getSpeciesIdForTaxon(i);
+            if (prevId != stID) {
+                return false;
+            }
+            prevId = stID;
+        }
+        return true;
+    }
 	    
 	}
 	
