@@ -13,7 +13,6 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import phylonet.bits.BitVector;
-import phylonet.coalescent.GlobalMaps.SpeciesMapper;
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TMutableNode;
