@@ -146,12 +146,10 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 
 	private void addBipartition(BitSet gtAllBS,
 			STITreeCluster c1, STITreeCluster c2) {
-		STITreeCluster c1c = c1;
-		STITreeCluster c2c = c2;
+		STITreeCluster c1c = new STITreeCluster (c1);
+		STITreeCluster c2c = new STITreeCluster (c2);
 		if (distMatrix != null) {
-			c1c = new STITreeCluster (c1c);
 			BitSet b1c = c1c.getBitSet();
-			c2c = new STITreeCluster (c2c);
 			BitSet b2c = c2c.getBitSet();
 			for (int i = gtAllBS.nextClearBit(0); i < n ; i = gtAllBS.nextClearBit(i+1)) {
 				float dist1 = 0, dist2 = 0;
@@ -169,39 +167,12 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 			}
 		}
 		SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
-		int [] countsC1c = new int [spm.getSpeciesCount()];		
-		int prevSpecies = -1;
-		boolean multiSpecies = false;
-		for (int i = c1c.getBitSet().nextSetBit(0); i >=0 ; i = c1c.getBitSet().nextSetBit(i+1)) {
-		    int sId = spm.getSpeciesIdForTaxon(i);
-		    countsC1c[sId]++;
-		    if (prevSpecies != -1 && sId !=prevSpecies) {
-		        multiSpecies = true;
-		    }
-		    prevSpecies = sId;
-		}
-	    int [] countsC2c = new int [spm.getSpeciesCount()];     
-	    int prevSpeciesC2 = -1;
-	    boolean multiSpeciesC2 = false;
-		for (int i = c2c.getBitSet().nextSetBit(0); i >=0 ; i = c2c.getBitSet().nextSetBit(i+1)) {
-	            int sId = spm.getSpeciesIdForTaxon(i);
-	            countsC2c[sId]++;
-	            if (prevSpeciesC2 != -1 && sId !=prevSpeciesC2) {
-	                multiSpeciesC2 = true;
-	            }
-	            prevSpeciesC2 = sId;
-        }
-        if (multiSpecies && multiSpeciesC2 ) {
-            for (int i = 0; i < countsC2c.length; i++) {
-                if (countsC1c[i] != 0 && countsC2c[i] != 0) {
-                    //System.err.println("!!!! Species "+spm.getSpeciesName(i)+ " is not monophyletic in "+c1c+"|"+c2c);
-                    return;
-                }
-            }
-        }
-        
-		
+		spm.addMissingIndividuals(c1c.getBitSet());
+		spm.addMissingIndividuals(c2c.getBitSet());
+
+        // TODO: should this be treated differently?
 		if (c1.getClusterSize() == 1) {
+		    //spm.addMissingIndividuals(c1.getBitSet());
 			addToClusters(c1, c1.getClusterSize());
 		}
 		
@@ -210,8 +181,12 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 		if (remSize != 0) {
 			addToClusters(c2c, remSize);
 		}
+
+        
+        
 	}
 
+    
 	public void computeTreePartitions(Inference<Tripartition> inference) {
 
 		int k = inference.trees.size();
