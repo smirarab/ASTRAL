@@ -175,9 +175,12 @@ public abstract class Inference<T> {
 		}		
 		while (!minVertices.isEmpty()) {
 			Vertex pe = (Vertex) minVertices.pop();
+			STITreeCluster stCluster = new STITreeCluster(GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
+			stCluster.setCluster(GlobalMaps.taxonNameMap.getSpeciesIdMapper().geneBitsetToSTBitSt(
+			                pe.getCluster().getBitSet()));
 			//System.out.println(pe._min_rc);
 			//System.out.println(pe._min_lc);
-			minClusters.add(pe.getCluster());
+			minClusters.add(stCluster);
 			//System.out.println(pe.getCluster().getClusterSize()+"\t"+pe._max_score);
 			// int k = sigmaNs/(stTaxa.length-1);
 
@@ -208,33 +211,6 @@ public abstract class Inference<T> {
 			sol._st = tr;
 		} else {
 			sol._st = Utils.buildTreeFromClusters(minClusters);
-		}
-
-		HashMap<TNode,BitSet> map = new HashMap<TNode,BitSet>();
-		for (TNode node : sol._st.postTraverse()) {
-			BitSet bs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
-			if (node.isLeaf()) {
-				bs.set(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
-				map.put(node, bs);
-			} else {
-				for (TNode child : node.getChildren()) {
-					BitSet childCluster = map.get(child);
-					bs.or(childCluster);
-				}
-				map.put(node, bs);
-			}
-//            System.err.println("Node: "+node);
-			STITreeCluster c = new STITreeCluster();
-			c.setCluster(bs);
-//            System.err.println("m[0]: "+((STITreeCluster)minClusters.get(0)).toString2());
-//            System.err.println("C: "+c.toString2());
-//            System.err.println("Equals: "+((STITreeCluster)minClusters.get(0)).equals(c));
-			if (c.getClusterSize() == GlobalMaps.taxonIdentifier.taxonCount()) {
-				((STINode<Double>) node).setData(Double.valueOf(0));
-			} else {
-				int pos = minClusters.indexOf(c);                                
-				((STINode<Double>) node).setData((Double) coals.get(pos));
-			}
 		}
 
 		Long cost = getTotalCost(all);

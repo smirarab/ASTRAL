@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import phylonet.bits.BitVector;
+import phylonet.coalescent.GlobalMaps.SpeciesMapper;
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TMutableNode;
@@ -32,15 +33,16 @@ public class Utils {
           return null;
         }
     
+        SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
         MutableTree tree = new STITree<Double>();
     
         //String[] taxa = ((STITreeCluster)clusters.get(0)).getTaxa();
-        for (int i = 0; i < GlobalMaps.taxonIdentifier.taxonCount(); i++) {
-          tree.getRoot().createChild(GlobalMaps.taxonIdentifier.getTaxonName(i));
+        for (int i = 0; i < spm.getSpeciesCount(); i++) {
+          tree.getRoot().createChild(spm.getSpeciesName(i));
         }
     
         for (STITreeCluster tc : clusters) {
-          if ((tc.getClusterSize() <= 1) || (tc.getClusterSize() == GlobalMaps.taxonIdentifier.taxonCount()))
+          if ((tc.getClusterSize() <= 1) || (tc.getClusterSize() == spm.getSpeciesCount()))
           {
             continue;
           }
@@ -58,9 +60,9 @@ public class Utils {
           LinkedList<TNode> movedChildren = new LinkedList<TNode>();
           int nodes = clusterLeaves.size();
           for (TNode child : lca.getChildren()) {
-            BitSet childCluster = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
+            BitSet childCluster = new BitSet(spm.getSpeciesCount());
             for (TNode cl : child.getLeaves()) {
-              int i = GlobalMaps.taxonIdentifier.taxonId(cl.getName());
+              int i = spm.speciesId(cl.getName());
               childCluster.set(i);
             }
             
