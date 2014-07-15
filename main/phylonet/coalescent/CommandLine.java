@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import phylonet.coalescent.GlobalMaps.TaxonNameMap;
 import phylonet.tree.io.NewickReader;
 import phylonet.tree.io.ParseException;
 import phylonet.tree.model.MutableTree;
