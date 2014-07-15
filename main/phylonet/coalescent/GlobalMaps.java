@@ -1,6 +1,7 @@
 package phylonet.coalescent;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -159,6 +160,22 @@ public class GlobalMaps{
        
        public int getSpeciesCount() {
            return this.speciesNameIdMap.taxonCount();
+       }
+       public String getSpeciesNames() {
+           if (this.taxonIdToSpeciesId.length == this.speciesNameIdMap.taxonCount()) {
+               return Arrays.toString(this.speciesNameIdMap.getAllTaxonNames());
+           } else {
+               HashMap<String, String> stToGtNameMap = new HashMap<String, String>();
+               int i = 0;
+               for (Set<Integer> set : this.speciesIdtoTaxonId) {
+                   ArrayList<String> gtNames = new ArrayList<String>();
+                   for (Integer gi : set) {
+                       gtNames.add(GlobalMaps.taxonIdentifier.getTaxonName(gi));
+                   }
+                   stToGtNameMap.put(this.getSpeciesName(i++), gtNames.toString());
+               }
+               return stToGtNameMap.toString();
+           }
        }
        
        public String getSpeciesName(int stId) {
