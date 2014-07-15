@@ -101,7 +101,7 @@ public abstract class Inference<T> {
 				for (int i = 0; i < leaves.length; i++) {
 					String leaf = leaves[i];				
 					genelist.add(leaf);
-					taxalist.add(GlobalMaps.getSpeciesName(leaf));
+					taxalist.add(GlobalMaps.taxonNameMap.getTaxonName(leaf));
 				}
 			}			
 		} 
