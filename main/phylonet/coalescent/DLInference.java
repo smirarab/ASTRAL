@@ -31,12 +31,12 @@ public class DLInference extends Inference<STBipartition> {
         Stack<TNode> stack = new Stack<TNode>();            
         for (TNode gtNode : gtTree.postTraverse()) {
             if (gtNode.isLeaf()) {
-                    TNode node = stTree.getNode(GlobalMaps.getSpeciesName(
+                    TNode node = stTree.getNode(GlobalMaps.taxonNameMap.getTaxonName(
                         gtNode.getName()));
                     if (node == null) {
                         throw new RuntimeException("Leaf " + gtNode.getName() +
                             " was not found in species tree; mapped as: "+
-                            GlobalMaps.getSpeciesName(gtNode.getName())); 
+                            GlobalMaps.taxonNameMap.getTaxonName(gtNode.getName())); 
                     }
                     stack.push(node);
                 //System.out.println("stack: " +this.taxonNameMap.getTaxonName(gtNode.getName()));

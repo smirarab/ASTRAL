@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import phylonet.coalescent.GlobalMaps.SpeciesMapper;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
@@ -167,6 +168,38 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 				}
 			}
 		}
+		SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
+		int [] countsC1c = new int [spm.getSpeciesCount()];		
+		int prevSpecies = -1;
+		boolean multiSpecies = false;
+		for (int i = c1c.getBitSet().nextSetBit(0); i >=0 ; i = c1c.getBitSet().nextSetBit(i+1)) {
+		    int sId = spm.getSpeciesIdForTaxon(i);
+		    countsC1c[sId]++;
+		    if (prevSpecies != -1 && sId !=prevSpecies) {
+		        multiSpecies = true;
+		    }
+		    prevSpecies = sId;
+		}
+	    int [] countsC2c = new int [spm.getSpeciesCount()];     
+	    int prevSpeciesC2 = -1;
+	    boolean multiSpeciesC2 = false;
+		for (int i = c2c.getBitSet().nextSetBit(0); i >=0 ; i = c2c.getBitSet().nextSetBit(i+1)) {
+	            int sId = spm.getSpeciesIdForTaxon(i);
+	            countsC2c[sId]++;
+	            if (prevSpeciesC2 != -1 && sId !=prevSpeciesC2) {
+	                multiSpeciesC2 = true;
+	            }
+	            prevSpeciesC2 = sId;
+        }
+        if (multiSpecies && multiSpeciesC2 ) {
+            for (int i = 0; i < countsC2c.length; i++) {
+                if (countsC1c[i] != 0 && countsC2c[i] != 0) {
+                    //System.err.println("!!!! Species "+spm.getSpeciesName(i)+ " is not monophyletic in "+c1c+"|"+c2c);
+                    return;
+                }
+            }
+        }
+        
 		
 		if (c1.getClusterSize() == 1) {
 			addToClusters(c1, c1.getClusterSize());
