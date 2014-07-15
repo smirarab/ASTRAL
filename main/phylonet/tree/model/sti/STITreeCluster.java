@@ -1,9 +1,8 @@
 package phylonet.tree.model.sti;
 
 import phylonet.coalescent.GlobalMaps;
-import phylonet.coalescent.GlobalMaps.TaxonIdentifier;
+import phylonet.coalescent.TaxonIdentifier;
 import phylonet.util.BitSet;
-
 
 import java.util.Iterator;
 import java.util.List;
