@@ -64,9 +64,11 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 					int childCount = node.getChildCount();
 					
 					if (childCount >3 || (childCount == 3 && node != tr.getRoot()) ) {
-						throw new RuntimeException(
+					    if (fromGeneTrees) {
+					        throw new RuntimeException(
 								"not a bifurcating tree: " + tr + "\n"
 										+ node);
+					    } 
 					}
 					STITreeCluster childbslist[] = new STITreeCluster[childCount];
 					BitSet bs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
@@ -89,53 +91,56 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 					
 					addBipartition(gtAll.getBitSet(), cluster, remaining);
 
-					if (childCount == 2 ) {
-						if (size != n) {
-							tryAddingTripartition( childbslist[0],  childbslist[1], 
-									remaining, node, fromGeneTrees, geneTreeTripartitonCount);
-						}
-					} else if (childCount == 3) {
-						tryAddingTripartition(childbslist[0], childbslist[1], childbslist[2] , 
-								node, fromGeneTrees, geneTreeTripartitonCount);
+					if (fromGeneTrees) {
+					    if (childCount == 2 ) {
+					        if (size != n) {
+					            tryAddingTripartition( childbslist[0],  childbslist[1], 
+					                    remaining, node, geneTreeTripartitonCount);
+					        }
+					    } else if (childCount == 3) {
+					        tryAddingTripartition(childbslist[0], childbslist[1], childbslist[2] , 
+					                node, geneTreeTripartitonCount);
 
-					} else {
-						throw new RuntimeException("hmmm?");
-						/*
-						 * if (childCount == 2) { STITreeCluster l_cluster =
-						 * childbslist[0];
-						 * 
-						 * STITreeCluster r_cluster = childbslist[1];
-						 * 
-						 * STITreeCluster allMinuslAndr_cluster =
-						 * treeComplementary(null this should be
-						 * gtCluster?,leaves);
-						 * 
-						 * STITreeCluster lAndr_cluster = cluster;
-						 * 
-						 * if (allMinuslAndr_cluster.getClusterSize() != 0) { //
-						 * add Vertex STBs tryAddingSTB(l_cluster, r_cluster,
-						 * cluster, node, true); tryAddingSTB( r_cluster,
-						 * allMinuslAndr_cluster, null, node, true);
-						 * tryAddingSTB(l_cluster, allMinuslAndr_cluster, null,
-						 * node, true);
-						 * 
-						 * // Add the Edge STB tryAddingSTB(lAndr_cluster,
-						 * allMinuslAndr_cluster, null, node, true); }
-						 * 
-						 * } else if (childCount == 3 && node.isRoot()) {
-						 * STITreeCluster l_cluster = childbslist[0];
-						 * 
-						 * STITreeCluster m_cluster = childbslist[1];
-						 * 
-						 * STITreeCluster r_cluster = childbslist[2];
-						 * 
-						 * tryAddingSTB(l_cluster, r_cluster, null, node, true);
-						 * tryAddingSTB(r_cluster, m_cluster, null, node, true);
-						 * tryAddingSTB(l_cluster, m_cluster, null, node, true);
-						 * } else { throw new
-						 * RuntimeException("None bifurcating tree: "+ tr+ "\n"
-						 * + node); }
-						 */}
+					    } else {
+					        throw new RuntimeException("hmmm?");
+					        /*
+					         * if (childCount == 2) { STITreeCluster l_cluster =
+					         * childbslist[0];
+					         * 
+					         * STITreeCluster r_cluster = childbslist[1];
+					         * 
+					         * STITreeCluster allMinuslAndr_cluster =
+					         * treeComplementary(null this should be
+					         * gtCluster?,leaves);
+					         * 
+					         * STITreeCluster lAndr_cluster = cluster;
+					         * 
+					         * if (allMinuslAndr_cluster.getClusterSize() != 0) { //
+					         * add Vertex STBs tryAddingSTB(l_cluster, r_cluster,
+					         * cluster, node, true); tryAddingSTB( r_cluster,
+					         * allMinuslAndr_cluster, null, node, true);
+					         * tryAddingSTB(l_cluster, allMinuslAndr_cluster, null,
+					         * node, true);
+					         * 
+					         * // Add the Edge STB tryAddingSTB(lAndr_cluster,
+					         * allMinuslAndr_cluster, null, node, true); }
+					         * 
+					         * } else if (childCount == 3 && node.isRoot()) {
+					         * STITreeCluster l_cluster = childbslist[0];
+					         * 
+					         * STITreeCluster m_cluster = childbslist[1];
+					         * 
+					         * STITreeCluster r_cluster = childbslist[2];
+					         * 
+					         * tryAddingSTB(l_cluster, r_cluster, null, node, true);
+					         * tryAddingSTB(r_cluster, m_cluster, null, node, true);
+					         * tryAddingSTB(l_cluster, m_cluster, null, node, true);
+					         * } else { throw new
+					         * RuntimeException("None bifurcating tree: "+ tr+ "\n"
+					         * + node); }
+					         */
+					    }
+					}
 				}
 			}
 
@@ -348,14 +353,12 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 
 	private void tryAddingTripartition(STITreeCluster l_cluster,
 			STITreeCluster r_cluster, STITreeCluster remaining, TNode node,
-			boolean fromGeneTrees, Map<Tripartition, Integer> geneTreeTripartitonCount) {
-		
-		if (fromGeneTrees) {
+			 Map<Tripartition, Integer> geneTreeTripartitonCount) {
+
 			Tripartition trip = new Tripartition(l_cluster, r_cluster, remaining);
 			geneTreeTripartitonCount.put(trip,
 					geneTreeTripartitonCount.containsKey(trip) ? 
 							geneTreeTripartitonCount.get(trip) + 1 : 1);
-		}
 	}
 
 

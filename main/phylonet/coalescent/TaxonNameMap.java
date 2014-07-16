@@ -1,13 +1,17 @@
 package phylonet.coalescent;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import phylonet.tree.model.Tree;
+import phylonet.tree.util.Trees;
+
 public class TaxonNameMap {
-		Map<String, String> taxonMap = null;
-		String pattern = null;
-		String rep = null;
-		SpeciesMapper speciesIdMapper;
+		private Map<String, String> taxonMap = null;
+		private String pattern = null;
+		private String rep = null;
+		private SpeciesMapper speciesIdMapper;
 		//Map<String, BitSet> speciesBitSet = null;
 		
 		public TaxonNameMap (Map<String, String> taxonMap) {
@@ -54,6 +58,18 @@ public class TaxonNameMap {
 		public SpeciesMapper getSpeciesIdMapper() {
 		    return this.speciesIdMapper;
 		}
+        public void checkMapping(List<Tree> trees) {
+            if (this.taxonMap != null) {
+                Map<String,String> taxonMap = GlobalMaps.taxonNameMap.taxonMap;
+                String error = Trees.checkMapping(trees, taxonMap);
+                if (error != null) {
+                    throw new RuntimeException("Gene trees have a leaf named "
+                            + error
+                            + " that hasn't been defined in the mapping file");
+                }
+            } 
+            
+        }
 		
 /*		public BitSet getTaxonBitSet(String speciesName) {
 		    if (speciesName == null || "".equals(speciesName)) {
