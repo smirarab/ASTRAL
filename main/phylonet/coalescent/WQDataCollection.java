@@ -55,7 +55,7 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 					Integer taxonID = GlobalMaps.taxonIdentifier.taxonId(nodeName);
 					cluster.addLeaf(taxonID);
 
-					addBipartition(gtAll.getBitSet(), cluster,
+					addBipartitionToX(gtAll.getBitSet(), cluster,
 						cluster.complementaryCluster());
 
 					nodeToSTCluster.put(node, cluster);
@@ -89,8 +89,9 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 					STITreeCluster remaining = cluster.complementaryCluster();
 					remaining.getBitSet().and(gtAll.getBitSet());
 					
-					if (addBipartition(gtAll.getBitSet(), cluster, remaining) && !fromGeneTrees) {
-					    System.err.println("Extra bipartition added: " + cluster +" | "+remaining);
+					if (addBipartitionToX(gtAll.getBitSet(), cluster, remaining) && !fromGeneTrees) {
+					    SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
+					    System.err.println("Extra bipartition added: " + spm.getSTClusterForGeneCluster(cluster) +" | "+spm.getSTClusterForGeneCluster(remaining));
 					}
 
 					if (fromGeneTrees) {
@@ -150,7 +151,7 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 
 	}
 
-	private boolean addBipartition(BitSet gtAllBS,
+	private boolean addBipartitionToX(BitSet gtAllBS,
 			STITreeCluster c1, STITreeCluster c2) {
 	    
 	    boolean added = false;
@@ -183,24 +184,45 @@ public class WQDataCollection extends DataCollection<Tripartition> {
         }
         
 		SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
+		
+		int [] countsC1c = new int [spm.getSpeciesCount()];    
+        int [] countsC2c = new int [spm.getSpeciesCount()];  
+        for (int i = c1c.getBitSet().nextSetBit(0); i >=0 ; i = c1c.getBitSet().nextSetBit(i+1)) {
+            countsC1c[spm.getSpeciesIdForTaxon(i)]++;           
+        }
+        for (int i = c2c.getBitSet().nextSetBit(0); i >=0 ; i = c2c.getBitSet().nextSetBit(i+1)) {
+            countsC2c[spm.getSpeciesIdForTaxon(i)]++;           
+        }  
+        BitSet bs1 = new BitSet(spm.getSpeciesCount()); 
+        for (int i = 0; i < countsC2c.length; i++) {
+            if (countsC1c[i] > countsC2c[i]) {
+                bs1.set(i);
+            } //TODO: arbitrariy
+        }
+        STITreeCluster c1s = spm.getGeneClusterForSTCluster(bs1);
+        added |=  this.addCompletedBipartionToX(c1s, c1s.complementaryCluster());
+		
+		
 		spm.addMissingIndividuals(c1c.getBitSet());
 		spm.addMissingIndividuals(c2c.getBitSet());
 		
-		int mainSize = c1c.getClusterSize();
-		added |= addToClusters(c1c, mainSize);	
-		int remSize  = c2c.getClusterSize();
-		added |= addToClusters(c2c, remSize);
+		added |= this.addCompletedBipartionToX(c1c, c2c);
 		
 		c1c = c1c.complementaryCluster();
 		c2c = c2c.complementaryCluster();
-
-		mainSize = c1c.getClusterSize();
-		added |= addToClusters(c1c, mainSize);  
-		remSize  = c2c.getClusterSize();
-		added |= addToClusters(c2c, remSize);
+		
+		added |= this.addCompletedBipartionToX(c1c, c2c);
 
         return added;
         
+	}
+	
+	private boolean addCompletedBipartionToX(STITreeCluster c1, STITreeCluster c2) {
+	    int size = c1.getClusterSize();
+	    boolean added = addToClusters(c1, size);  
+	    size  = c2.getClusterSize();
+	    added |= addToClusters(c2, size);
+	    return added;
 	}
 
     
