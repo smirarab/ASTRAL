@@ -185,19 +185,21 @@ public class WQDataCollection extends DataCollection<Tripartition> {
         
 		SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
 		
-		int [] countsC1c = new int [spm.getSpeciesCount()];    
-        int [] countsC2c = new int [spm.getSpeciesCount()];  
+		int [] countsC1c = new int [spm.getSpeciesCount()], countsC2c = new int [spm.getSpeciesCount()];
+        int s1 = 0, s2 = 0;
         for (int i = c1c.getBitSet().nextSetBit(0); i >=0 ; i = c1c.getBitSet().nextSetBit(i+1)) {
-            countsC1c[spm.getSpeciesIdForTaxon(i)]++;           
+            countsC1c[spm.getSpeciesIdForTaxon(i)]++;  
+            s1++;
         }
         for (int i = c2c.getBitSet().nextSetBit(0); i >=0 ; i = c2c.getBitSet().nextSetBit(i+1)) {
-            countsC2c[spm.getSpeciesIdForTaxon(i)]++;           
+            countsC2c[spm.getSpeciesIdForTaxon(i)]++;   
+            s2++;
         }  
         BitSet bs1 = new BitSet(spm.getSpeciesCount()); 
         for (int i = 0; i < countsC2c.length; i++) {
-            if (countsC1c[i] > countsC2c[i]) {
+            if (countsC1c[i] > countsC2c[i] || ((countsC1c[i] == countsC2c[i]) && (s1 < s2))) {
                 bs1.set(i);
-            } //TODO: arbitrariy
+            } //TODO: arbitrary
         }
         STITreeCluster c1s = spm.getGeneClusterForSTCluster(bs1);
         added |=  this.addCompletedBipartionToX(c1s, c1s.complementaryCluster());
