@@ -84,27 +84,8 @@ public abstract class Inference<T> {
                 GlobalMaps.taxonIdentifier.taxonId(leaves[i]);
             }
         }
-		if (GlobalMaps.taxonNameMap != null && GlobalMaps.taxonNameMap.taxonMap != null) {
-			Map<String,String> taxonMap = GlobalMaps.taxonNameMap.taxonMap;
-			String error = Trees.checkMapping(trees, taxonMap);
-			if (error != null) {
-				throw new RuntimeException("Gene trees have a leaf named "
-						+ error
-						+ " that hasn't been defined in the mapping file");
-			}
-		} else if (GlobalMaps.taxonNameMap != null && GlobalMaps.taxonNameMap.taxonMap == null) {
-			
-			Set<String> taxalist = new HashSet<String>();
-			Set<String> genelist = new HashSet<String>();
-			for (Tree tr : trees) {
-				String[] leaves = tr.getLeaves();
-				for (int i = 0; i < leaves.length; i++) {
-					String leaf = leaves[i];				
-					genelist.add(leaf);
-					taxalist.add(GlobalMaps.taxonNameMap.getTaxonName(leaf));
-				}
-			}			
-		} 
+        
+        GlobalMaps.taxonNameMap.checkMapping(trees);
 
 		System.err.println("Number of taxa: " + GlobalMaps.taxonIdentifier.taxonCount()+
 		        " (" + GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount() +" species)"
