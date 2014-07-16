@@ -14,6 +14,7 @@ import phylonet.tree.model.TMutableNode;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITree;
+import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.util.BitSet;
 
 public class SpeciesMapper {
@@ -87,16 +88,41 @@ public class SpeciesMapper {
         return this.speciesNameIdMap.taxonId(name);
     }
 
-    protected BitSet geneBitsetToSTBitSt(BitSet bs) {
+    protected BitSet getSTBisetForGeneBitset(BitSet bs) {
         BitSet stbs = new BitSet(this.getSpeciesCount());
         for (int i = bs.nextSetBit(0); i >=0 ; i = bs.nextSetBit(i+1)) {
             stbs.set(this.getSpeciesIdForTaxon(i));
         }
         return stbs;
     }
+    
+    protected BitSet getGeneBisetForSTBitset(BitSet bs) {
+        BitSet gtbs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
+        for (int i = bs.nextSetBit(0); i >=0 ; i = bs.nextSetBit(i+1)) {
+            for (int j : this.getTaxonsForSpecies(i)) {
+                gtbs.set(j);
+            }
+        }
+        return gtbs;
+    }
+    
+    public STITreeCluster getSTClusterForGeneCluster(STITreeCluster geneCluster) {
+        STITreeCluster stCluster = new STITreeCluster(this.speciesNameIdMap);
+        stCluster.setCluster(this.getSTBisetForGeneBitset(geneCluster.getBitSet()));
+        return stCluster;
+    }
 
+    public STITreeCluster getGeneClusterForSTCluster(BitSet stBitset) {
+        STITreeCluster geneCluster = new STITreeCluster();
+        geneCluster.setCluster(this.getGeneBisetForSTBitset(stBitset));
+        return geneCluster;
+    }
+    public STITreeCluster getGeneClusterForSTCluster(STITreeCluster stCluster) {
+        return this.getGeneClusterForSTCluster(stCluster.getBitSet());
+    }
+    
     public void addMissingIndividuals(BitSet geneBS) {
-        BitSet stBS = this.geneBitsetToSTBitSt(geneBS);
+        BitSet stBS = this.getSTBisetForGeneBitset(geneBS);
         for (int i = stBS.nextSetBit(0); i >=0 ; i = stBS.nextSetBit(i+1)) {
             Set<Integer> taxonsForSpecies = this.getTaxonsForSpecies(i);
             for (Iterator<Integer> it = taxonsForSpecies.iterator(); it.hasNext();) {
