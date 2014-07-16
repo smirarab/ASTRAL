@@ -158,9 +158,8 @@ public abstract class Inference<T> {
 		}		
 		while (!minVertices.isEmpty()) {
 			Vertex pe = (Vertex) minVertices.pop();
-			STITreeCluster stCluster = new STITreeCluster(GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
-			stCluster.setCluster(GlobalMaps.taxonNameMap.getSpeciesIdMapper().geneBitsetToSTBitSt(
-			                pe.getCluster().getBitSet()));
+			STITreeCluster stCluster =GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTClusterForGeneCluster(
+			                pe.getCluster());
 			//System.out.println(pe._min_rc);
 			//System.out.println(pe._min_lc);
 			minClusters.add(stCluster);
