@@ -89,7 +89,9 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 					STITreeCluster remaining = cluster.complementaryCluster();
 					remaining.getBitSet().and(gtAll.getBitSet());
 					
-					addBipartition(gtAll.getBitSet(), cluster, remaining);
+					if (addBipartition(gtAll.getBitSet(), cluster, remaining) && !fromGeneTrees) {
+					    System.err.println("Extra bipartition added: " + cluster +" | "+remaining);
+					}
 
 					if (fromGeneTrees) {
 					    if (childCount == 2 ) {
@@ -148,8 +150,11 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 
 	}
 
-	private void addBipartition(BitSet gtAllBS,
+	private boolean addBipartition(BitSet gtAllBS,
 			STITreeCluster c1, STITreeCluster c2) {
+	    
+	    boolean added = false;
+	    
 		STITreeCluster c1c = new STITreeCluster (c1);
 		STITreeCluster c2c = new STITreeCluster (c2);
 		if (distMatrix != null) {
@@ -170,23 +175,31 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 				}
 			}
 		}
+		
+        // TODO: should this be treated differently?
+        if (c1.getClusterSize() == 1) {
+            //spm.addMissingIndividuals(c1.getBitSet());
+            added |= addToClusters(c1, c1.getClusterSize());
+        }
+        
 		SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
 		spm.addMissingIndividuals(c1c.getBitSet());
 		spm.addMissingIndividuals(c2c.getBitSet());
-
-        // TODO: should this be treated differently?
-		if (c1.getClusterSize() == 1) {
-		    //spm.addMissingIndividuals(c1.getBitSet());
-			addToClusters(c1, c1.getClusterSize());
-		}
 		
-		addToClusters(c1c, c1c.getClusterSize());	
+		int mainSize = c1c.getClusterSize();
+		added |= addToClusters(c1c, mainSize);	
 		int remSize  = c2c.getClusterSize();
-		if (remSize != 0) {
-			addToClusters(c2c, remSize);
-		}
+		added |= addToClusters(c2c, remSize);
+		
+		c1c = c1c.complementaryCluster();
+		c2c = c2c.complementaryCluster();
 
-        
+		mainSize = c1c.getClusterSize();
+		added |= addToClusters(c1c, mainSize);  
+		remSize  = c2c.getClusterSize();
+		added |= addToClusters(c2c, remSize);
+
+        return added;
         
 	}
 
@@ -347,7 +360,7 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 		 * for (Integer c: clusters2.keySet()){ s += clusters2.get(c).size(); }
 		 */
 		System.err
-				.println("Number of Clusters After additions from extra Trees: "
+				.println("Number of Clusters after additions from extra trees: "
 						+ s);
 	}
 
