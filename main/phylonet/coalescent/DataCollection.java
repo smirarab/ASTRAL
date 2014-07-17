@@ -41,4 +41,6 @@ public abstract class DataCollection <T> {
 			List<Tree> trees, boolean extraTreeRooted);
 	
 	public abstract void computeTreePartitions(Inference<T> inference);
+
+    public abstract void addExtraBipartitionByExtension();
 }
