@@ -3,11 +3,16 @@ package phylonet.coalescent;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
 
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
@@ -25,12 +30,15 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 	Integer [] geneTreesAsInts;
 
 	float [][] distMatrix;
+	float [][] distSTMatrix;
 	private int n;
 	private int algorithm;
+    private SpeciesMapper spm;
 	
 	public WQDataCollection( WQClusterCollection clusters, int alg) {
 		this.clusters = clusters;
 		this.algorithm = alg;
+		this.spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
 	}
 	
 	
@@ -90,7 +98,6 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 					remaining.getBitSet().and(gtAll.getBitSet());
 					
 					if (addBipartitionToX(gtAll.getBitSet(), cluster, remaining) && !fromGeneTrees) {
-					    SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
 					    System.err.println("Extra bipartition added: " + spm.getSTClusterForGeneCluster(cluster) +" | "+spm.getSTClusterForGeneCluster(remaining));
 					}
 
@@ -158,7 +165,7 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 	    
 		STITreeCluster c1c = new STITreeCluster (c1);
 		STITreeCluster c2c = new STITreeCluster (c2);
-		if (distMatrix != null) {
+		if (distMatrix != null && gtAllBS != null) {
 			BitSet b1c = c1c.getBitSet();
 			BitSet b2c = c2c.getBitSet();
 			for (int i = gtAllBS.nextClearBit(0); i < n ; i = gtAllBS.nextClearBit(i+1)) {
@@ -182,8 +189,6 @@ public class WQDataCollection extends DataCollection<Tripartition> {
             //spm.addMissingIndividuals(c1.getBitSet());
             added |= addToClusters(c1, c1.getClusterSize());
         }
-        
-		SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
 		
 		int [] countsC1c = new int [spm.getSpeciesCount()], countsC2c = new int [spm.getSpeciesCount()];
         int s1 = 0, s2 = 0;
@@ -199,7 +204,7 @@ public class WQDataCollection extends DataCollection<Tripartition> {
         for (int i = 0; i < countsC2c.length; i++) {
             if (countsC1c[i] > countsC2c[i] || ((countsC1c[i] == countsC2c[i]) && (s1 < s2))) {
                 bs1.set(i);
-            } //TODO: arbitrary
+            } 
         }
         STITreeCluster c1s = spm.getGeneClusterForSTCluster(bs1);
         added |=  this.addCompletedBipartionToX(c1s, c1s.complementaryCluster());
@@ -218,6 +223,7 @@ public class WQDataCollection extends DataCollection<Tripartition> {
         return added;
         
 	}
+	
 	
 	private boolean addCompletedBipartionToX(STITreeCluster c1, STITreeCluster c2) {
 	    int size = c1.getClusterSize();
@@ -239,61 +245,47 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 				haveMissing++;
 			}
 		}
-		int [][] denom = new int [n][n];
-		Deque<List<Integer>> stack = new ArrayDeque<List<Integer>>();
-		if (haveMissing > k/3) {
-			distMatrix = new float[n][n];
-			for (Tree tree : inference.trees) {
-				Integer treeall = tree.getLeafCount();
-				for (TNode node : tree.postTraverse()) {
-					if (node.isLeaf()) {
-						ArrayList<Integer> tmp = new ArrayList<Integer>();
-						tmp.add(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
-						stack.push(tmp);
-					} else if (node.isRoot() && node.getChildCount() == 3){
-						List<Integer> left = stack.pop();
-						List<Integer> middle = stack.pop();
-						List<Integer> right = stack.pop();
-						updateDistanceForTwoNodes(treeall, left, right);
-						updateDistanceForTwoNodes(treeall, left, middle);
-						updateDistanceForTwoNodes(treeall, middle, right);
-						left.addAll(right);
-						left.addAll(middle);
-						stack.push(left);
-					} else {
-						List<Integer> left = stack.pop();
-						List<Integer> right = stack.pop();
-						updateDistanceForTwoNodes(treeall, left, right);
-						left.addAll(right);
-						right.clear();
-						stack.push(left);
-					}
-					if (node.isRoot()) {
-						List<Integer> all = stack.pop();
-						int c = all.size() - 2;
-						for (Integer l : all) {
-							for (Integer r : all) {
-								denom[l][r] += c*(c-1)/2;
-								denom[r][l] = denom[l][r];
-							}
-						}
-					}
-				}
-			}
-			
-			for (int i = 0; i < n; i++) {
-				for (int j = i; j < n; j++) {
-					if (denom[i][j] == 0)
-						distMatrix[i][j] = 0;
-					 else
-					        distMatrix[i][j] = distMatrix[i][j] / denom[i][j];
-					distMatrix[j][i] = distMatrix[i][j];
-				}
-			}
+		float[][] geneDists = calculateDistances(inference);
+
+		if (haveMissing > k/20) {
+			this.distMatrix = geneDists;
 		}
 
+		boolean addByDist = true;
+		if (addByDist) {
+		    this.distSTMatrix = new float[spm.getSpeciesCount()][spm.getSpeciesCount()];
+		    float[][] denum = new float[spm.getSpeciesCount()][spm.getSpeciesCount()];
+	        for (int i = 0; i < n; i++) {
+	            for (int j = i; j < n; j++) {
+	                int stI =  spm.getSpeciesIdForTaxon(i);
+	                int stJ =  spm.getSpeciesIdForTaxon(j);
+	                this.distSTMatrix[stI][stJ] += geneDists[i][j]; 
+	                this.distSTMatrix[stJ][stI] = this.distSTMatrix[stI][stJ];
+	                denum[stI][stJ] ++;
+	                denum[stJ][stI] ++;
+	            }
+	        }
+	        for (int i = 0; i < spm.getSpeciesCount(); i++) {
+	            for (int j = 0; j < spm.getSpeciesCount(); j++) {
+	                this.distSTMatrix[i][j] = denum[i][j] == 0 ? 0 : 
+	                    this.distSTMatrix[i][j] / denum[i][j];
+	            }
+	            this.distSTMatrix[i][i] = 1;
+	        }
+		}
 		
-
+                 
+        /*for (String s :spm.getSTTaxonIdentifier().getAllTaxonNames()) {
+            System.err.print(String.format("%1$8s",s));
+        }
+        System.err.println();
+        for (int i = 0; i < spm.getSpeciesCount(); i++) {
+            for (int j = 0; j< spm.getSpeciesCount(); j++) {
+                System.err.print(String.format("%1$8.3f",distSTMatrix[i][j]));
+            }
+            System.err.println();
+        }*/
+		
 		Map<Tripartition, Integer> geneTreeTripartitonCount = new HashMap<Tripartition, Integer>(k * n);
 		//geneTreeInvalidSTBCont = new HashMap<AbstractMap.SimpleEntry<STITreeCluster, STITreeCluster>, Integer>();
 		// geneTreeRootSTBs = new HashMap<Tripartition, Integer>(k*n);
@@ -364,15 +356,70 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 	}
 
 	private void updateDistanceForTwoNodes(Integer treeall, List<Integer> left,
-			List<Integer> right) {
+			List<Integer> right, float[][] matrix) {
 		int c = treeall - left.size() - right.size();
 		c = c*(c-1)/2;
 		for (Integer l : left) {
 			for (Integer r : right) {
-				distMatrix[l][r] += c;
-				distMatrix[r][l] = distMatrix[l][r];
+			    matrix[l][r] += c;
+			    matrix[r][l] = matrix[l][r];
 			}
 		}
+	}
+	
+	private float[][] calculateDistances(Inference<Tripartition> inference) {
+	    Deque<List<Integer>> stack = new ArrayDeque<List<Integer>>();
+	    float [][] matrix = new float[n][n];
+        int [][] denom = new int [n][n];
+        
+        for (Tree tree : inference.trees) {
+            Integer treeall = tree.getLeafCount();
+            for (TNode node : tree.postTraverse()) {
+                if (node.isLeaf()) {
+                    ArrayList<Integer> tmp = new ArrayList<Integer>();
+                    tmp.add(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
+                    stack.push(tmp);
+                } else if (node.isRoot() && node.getChildCount() == 3){
+                    List<Integer> left = stack.pop();
+                    List<Integer> middle = stack.pop();
+                    List<Integer> right = stack.pop();
+                    updateDistanceForTwoNodes(treeall, left, right, matrix);
+                    updateDistanceForTwoNodes(treeall, left, middle, matrix);
+                    updateDistanceForTwoNodes(treeall, middle, right, matrix);
+                    left.addAll(right);
+                    left.addAll(middle);
+                    stack.push(left);
+                } else {
+                    List<Integer> left = stack.pop();
+                    List<Integer> right = stack.pop();
+                    updateDistanceForTwoNodes(treeall, left, right, matrix);
+                    left.addAll(right);
+                    right.clear();
+                    stack.push(left);
+                }
+                if (node.isRoot()) {
+                    List<Integer> all = stack.pop();
+                    int c = all.size() - 2;
+                    for (Integer l : all) {
+                        for (Integer r : all) {
+                            denom[l][r] += c*(c-1)/2;
+                            denom[r][l] = denom[l][r];
+                        }
+                    }
+                }
+            }
+        }
+        for (int i = 0; i < n; i++) {
+            for (int j = i; j < n; j++) {
+                if (denom[i][j] == 0)
+                    matrix[i][j] = 0;
+                 else
+                    matrix[i][j] = matrix[i][j] / denom[i][j];
+                matrix[j][i] = matrix[i][j];
+            }
+        }
+        
+        return matrix;
 	}
 
 	public void addExtraBipartitionsByInput(ClusterCollection extraClusters,
@@ -387,6 +434,32 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 				.println("Number of Clusters after additions from extra trees: "
 						+ s);
 	}
+	
+	public void addExtraBipartitionByDistance() {
+	    float[][] dists = this.distSTMatrix;
+	    ArrayList<Integer> inds = new ArrayList<Integer> (dists.length);
+	    for (int i = 0; i < dists.length; i++) {
+	        inds.add(i);
+	    }
+	    for (final float[] fs : dists) {
+	        Collections.sort(inds, new Comparator<Integer>() {
+
+                @Override
+                public int compare(Integer i1, Integer i2) {
+                    return -(Float.compare(fs[i1],fs[i2]));
+                }
+            });
+
+	        BitSet stBS = new BitSet(spm.getSpeciesCount());
+	        for (int sp : inds) {
+	            stBS.set(sp);
+	            STITreeCluster g = spm.getGeneClusterForSTCluster(stBS);
+	            this.addCompletedBipartionToX(g, g.complementaryCluster());
+	        }
+        }
+	    
+	    System.err.println("Number of Clusters after addition by distance: " + clusters.getClusterCount());
+	}
 
 	private void tryAddingTripartition(STITreeCluster l_cluster,
 			STITreeCluster r_cluster, STITreeCluster remaining, TNode node,
@@ -397,6 +470,12 @@ public class WQDataCollection extends DataCollection<Tripartition> {
 					geneTreeTripartitonCount.containsKey(trip) ? 
 							geneTreeTripartitonCount.get(trip) + 1 : 1);
 	}
+
+
+    @Override
+    public void addExtraBipartitionByExtension() {
+        this.addExtraBipartitionByDistance();       
+    }
 
 
 
