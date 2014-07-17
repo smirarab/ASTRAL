@@ -55,7 +55,7 @@ public class SpeciesMapper {
                 this.speciesNameIdMap.taxonId(speciesName));
     }
 
-    public Set<Integer> getTaxonsForSpecies(Integer species){
+    public Set<Integer> getTaxaForSpecies(Integer species){
         return this.speciesIdtoTaxonId.get(species);
     }
 
@@ -99,7 +99,7 @@ public class SpeciesMapper {
     protected BitSet getGeneBisetForSTBitset(BitSet bs) {
         BitSet gtbs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
         for (int i = bs.nextSetBit(0); i >=0 ; i = bs.nextSetBit(i+1)) {
-            for (int j : this.getTaxonsForSpecies(i)) {
+            for (int j : this.getTaxaForSpecies(i)) {
                 gtbs.set(j);
             }
         }
@@ -124,7 +124,7 @@ public class SpeciesMapper {
     public void addMissingIndividuals(BitSet geneBS) {
         BitSet stBS = this.getSTBisetForGeneBitset(geneBS);
         for (int i = stBS.nextSetBit(0); i >=0 ; i = stBS.nextSetBit(i+1)) {
-            Set<Integer> taxonsForSpecies = this.getTaxonsForSpecies(i);
+            Set<Integer> taxonsForSpecies = this.getTaxaForSpecies(i);
             for (Iterator<Integer> it = taxonsForSpecies.iterator(); it.hasNext();) {
                 Integer gi = it.next();
                 geneBS.set(gi);               
