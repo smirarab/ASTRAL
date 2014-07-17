@@ -388,6 +388,11 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 		}
 	}
 
+    @Override
+    public void addExtraBipartitionByExtension() {
+        
+    }
+
 
 	/*
 	 * public void addGoodSTB (STBipartition good, int size) {
