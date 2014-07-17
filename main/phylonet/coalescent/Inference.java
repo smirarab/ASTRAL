@@ -218,13 +218,19 @@ public abstract class Inference<T> {
 
 		dataCollection.computeTreePartitions(this);
 
+		if (true) {
+		    dataCollection.addExtraBipartitionByExtension();
+		}
+		
+		if (exactSolution) {
+		    dataCollection.addAllPossibleSubClusters(clusters.getTopVertex().getCluster());
+		}
+
+	      
 		if (extraTrees != null) {		
 			dataCollection.addExtraBipartitionsByInput(clusters, extraTrees,extrarooted);					
 		}
 		
-		if (exactSolution) {
-			dataCollection.addAllPossibleSubClusters(clusters.getTopVertex().getCluster());
-		}
 
 		//counter.addExtraBipartitionsByHeuristics(clusters);
 
