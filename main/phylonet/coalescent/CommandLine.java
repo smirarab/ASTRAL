@@ -37,7 +37,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 	
-    protected static String _versinon = "4.4.0";
+    protected static String _versinon = "4.4.1";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -194,13 +194,28 @@ public class CommandLine {
         
         try {
 
-            readInputTrees(new BufferedReader(new FileReader(config.getFile("input file"))), rooted, trees, true);			
+            readInputTrees(new BufferedReader(new FileReader(config.getFile("input file"))),
+                    rooted, trees, true);			
             k = trees.size();
             
+            GlobalMaps.taxonIdentifier.lock();  
+
+        } catch (IOException e) {
+            System.err.println("Error when reading trees.");
+            System.err.println(e.getMessage());
+            e.printStackTrace();
+            return;
+        }      
+        
+        if (trees.size() == 0) {
+            System.err.println("Empty list of trees. The function exits.");
+            return;
+        }
             if (config.getFile("extra trees") != null) {
                 readInputTrees(new BufferedReader(new FileReader(config.getFile("extra trees"))), extrarooted, extraTrees, false);
             }
             
+        try {
             if (config.getFile("bootstraps") != null) {
                 String line;
                 BufferedReader rebuff = new BufferedReader(new FileReader(config.getFile("bootstraps")));
@@ -365,6 +380,14 @@ public class CommandLine {
         			} else {						
         				Tree tr = nr.readTree();
         				trees.add(tr);
+        				String[] leaves = tr.getLeaves();
+                        for (int i = 0; i < leaves.length; i++) {
+                            //if (!stLablel) {
+                                GlobalMaps.taxonIdentifier.taxonId(leaves[i]);
+                            //} else {
+                             //   GlobalMaps.taxonNameMap.getSpeciesIdMapper().speciesId(leaves[i]);
+                            //}
+                        }
         			}
         		}
         	}
