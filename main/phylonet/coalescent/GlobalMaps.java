@@ -1,8 +1,5 @@
 package phylonet.coalescent;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 
@@ -41,38 +38,6 @@ public class GlobalMaps{
         return geneName;
     }
     
-	public static class TaxonIdentifier {
-		private HashMap<String, Integer> nameToId = new HashMap<String, Integer>();
-		private List<String> idToName = new ArrayList<String>();
-		private int taxonCount = 0;
-		
-		public String[] getAllTaxonNames(){
-		    return idToName.toArray(new String[]{});
-		}
-		
-		public Integer taxonId(String name) {
-			Integer a = nameToId.get(name);
-			if (a ==  null){
-				nameToId.put(name,taxonCount);
-				idToName.add(name);
-				a = taxonCount;
-				taxonCount ++;
-			}
-			return a;
-		}
-		
-		public String getTaxonName(Integer id) {
-			return idToName.get(id);
-		}
-		public int taxonCount(){
-			return taxonCount;
-		}
-		
-/*		public List<String> getTaxonList() {
-			return idToName;
-		}*/
-	}
-	
 	public static TaxonIdentifier taxonIdentifier = new TaxonIdentifier();
 	public static TaxonNameMap taxonNameMap;
 }
