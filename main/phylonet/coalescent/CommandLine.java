@@ -85,7 +85,7 @@ public class CommandLine {
                             FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 'b', "bootstraps",
                             "perform multi-locus bootstrapping using input bootstrap replicate files (use --rep to change the number of replications). "
                             + "The file given with this option should have a list of the gene tree bootstrap files, one per line, and each line corresponding to one gene. "
-                            + "By default performs site-only resampling, but gene only resampling can also be used. "),
+                            + "By default performs site-only resampling, but gene/site resampling can also be used. "),
 
                     new FlaggedOption("replicates", 
                             JSAP.INTEGER_PARSER, "100", JSAP.NOT_REQUIRED, 'r', "reps",
