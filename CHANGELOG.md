@@ -1,4 +1,7 @@
- - Version 4.4.0:
+- Version 4.4.1:
+    - Print a user-friendly error when extra trees have taxon not in main trees.
+
+- Version 4.4.0:
     - **Bug fix:** when gene trees had extreme levels of missing taxa, and there existed two taxa that never appeared together in the same gene tree, an uncaught division by zero could leave to wrong placement of one or both taxa. 
     
 - Version 4.3.1:
