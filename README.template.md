@@ -7,14 +7,16 @@ The algorithm used is described in:
 S. Mirarab, R. Reaz, Md. S. Bayzid, T. Zimmermann, M.S. Swenson, and T. Warnow1
 "ASTRAL: Genome-Scale Coalescent-Based Species Tree Estimation", accepted in ECCB 2014 and to appear in Bioinformatics.
 
-See our [tutorial](astral-tutorial.pdf) in addition to the rest of this README file. 
+See our [tutorial](astral-tutorial.md) in addition to the rest of this README file. 
 
 Email: `astral-users@googlegroups.com` for questions.
 
 
 INSTALLATION:
 -----------
-There is no installation required to run ASTRAL. You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/__astral.zip__) and extract the contents to a folder of your choice. Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/). You can run make.sh to build the project or simply use the jar file that is included with the repository. 
+There is no installation required to run ASTRAL. 
+You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/__astral.zip__) 
+and extract the contents to a folder of your choice. Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/). You can run make.sh to build the project or simply use the jar file that is included with the repository. 
 
 ASTRAL is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. Java 1.5 or later is required. We have tested ASTRAL only on Linux and MAC.
 
