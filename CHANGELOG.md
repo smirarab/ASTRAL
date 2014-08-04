@@ -1,4 +1,13 @@
- - Version 4.4.0:
+- Version 4.6.0:
+    - Handle unresolved gene trees
+    
+- Version 4.5.1:
+	- This version automatically adds extra bipartitions using a calculations based on quartet distances between two taxa 	
+	
+- Version 4.5.0:
+	- ASTRAL can now handle multi individual gene trees
+      
+- Version 4.4.0:
     - **Bug fix:** when gene trees had extreme levels of missing taxa, and there existed two taxa that never appeared together in the same gene tree, an uncaught division by zero could leave to wrong placement of one or both taxa. 
     
 - Version 4.3.1:
