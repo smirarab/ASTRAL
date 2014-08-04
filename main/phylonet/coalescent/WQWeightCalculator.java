@@ -1,6 +1,7 @@
 package phylonet.coalescent;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
@@ -81,6 +82,26 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 				this.s2 = s2;
 			}
 			
+			public Intersects(Intersects other) {
+			    this.s0 = other.s0;
+			    this.s1 = other.s1;
+			    this.s2 = other.s2;
+			}
+
+            public void addin(Intersects pop) {
+                this.s0 += pop.s0;
+                this.s1 += pop.s1;
+                this.s2 += pop.s2;               
+            }
+            
+            public void subtract(Intersects pop) {
+                this.s0 -= pop.s0;
+                this.s1 -= pop.s1;
+                this.s2 -= pop.s2;               
+            }
+            
+            
+			
 		}
 		
 		long calculateMissingWeight2() {
@@ -104,27 +125,52 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 				} else if (gtb == Integer.MIN_VALUE) {
 					stack.clear();
 					newTree = true;
-				} else {
-					for (int i = 0; i > gtb; i--) {
+				} else if (gtb == -2) {
 						Intersects side1 = stack.pop();
 						Intersects side2 = stack.pop();
-						Intersects side = new Intersects(
+						Intersects newSide = new Intersects(
 								side1.s0+side2.s0,
 								side1.s1+side2.s1,
 								side1.s2+side2.s2);
-						stack.push(side);
-						Intersects side3 = new Intersects  (
-								(allsides.s0 - side.s0 ),
-								(allsides.s1 - side.s1 ),
-								(allsides.s2 - side.s2 )
-						);
+						stack.push(newSide);
+						Intersects side3 = new Intersects (allsides);
+						side3.subtract(newSide);
 						weight += F(side1.s0,side2.s1,side3.s2)+
 								F(side1.s0,side2.s2,side3.s1)+
 								F(side1.s1,side2.s0,side3.s2)+
 								F(side1.s1,side2.s2,side3.s0)+
 								F(side1.s2,side2.s0,side3.s1)+
 								F(side1.s2,side2.s1,side3.s0);
-					}
+					
+				} else {
+				    ArrayList<Intersects> children = new ArrayList<Intersects>();
+				    Intersects newSide = new Intersects(0,0,0);
+				    for (int i = gtb; i < 0 ; i++) {
+				        Intersects pop = stack.pop();
+				        children.add(pop);
+				        newSide.addin(pop);
+				    }
+				    stack.push(newSide);
+                    Intersects sideRemaining = new Intersects (allsides);
+                    sideRemaining.subtract(newSide);
+                    if ( sideRemaining.s0 !=0 || sideRemaining.s1 !=0 || sideRemaining.s2 != 0) {
+                        children.add(sideRemaining);
+                    }
+                    for (int i = 0; i < children.size(); i++) {
+                        for (int j = i+1; j < children.size(); j++) {
+                            for (int k = j+1; k < children.size(); k++) {
+                                Intersects side1 = children.get(i);
+                                Intersects side2 = children.get(j);
+                                Intersects side3 = children.get(k);
+                                weight += F(side1.s0,side2.s1,side3.s2)+
+                                        F(side1.s0,side2.s2,side3.s1)+
+                                        F(side1.s1,side2.s0,side3.s2)+
+                                        F(side1.s1,side2.s2,side3.s0)+
+                                        F(side1.s2,side2.s0,side3.s1)+
+                                        F(side1.s2,side2.s1,side3.s0);
+                            }
+                        }
+                    }
 				}
 			}
 			return weight;
