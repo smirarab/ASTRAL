@@ -52,7 +52,13 @@ The results will be outputted to the standard output. To save the results in a f
 java -jar __astral.jar__ -i in.tree -o out.tre
 ```
 
-Note that, currently, the input gene trees need to be fully resolved, and each taxon name should appear at most once in each gene tree (missing data are fine). 
+The input gene trees can have missing taxa, polytommies (unresolved branches), and also multiple individuals per species. When multiple individuals from the same species are available, a mapping file needs to be provided using a `-a` option. This mapping file should have one line per species, and each line needs to be in one of two formats:
+
+```
+species_name [number of individuals] individual_1 individual_2 ...
+
+species_name:individual_1,individual_2,...
+```
 
 ### Bootstrapping:
 
