@@ -82,7 +82,7 @@ public class CommandLine {
                             FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 'b', "bootstraps",
                             "perform multi-locus bootstrapping using input bootstrap replicate files (use --rep to change the number of replications). "
                             + "The file given with this option should have a list of the gene tree bootstrap files, one per line, and each line corresponding to one gene. "
-                            + "By default performs site-only resampling, but gene only resampling can also be used. "),
+                            + "By default performs site-only resampling, but gene/site resampling can also be used. "),
 
                     new FlaggedOption("replicates", 
                             JSAP.INTEGER_PARSER, "100", JSAP.NOT_REQUIRED, 'r', "reps",
@@ -186,6 +186,7 @@ public class CommandLine {
             System.err.println("Using DynaDup application, minimizing MGDL (not ASTRAL).");
         }
         
+        System.err.println("\n================== ASTRAL ===================== \n" );
         System.err.println("This is ASTRAL version " + _versinon);
 
         System.err.println("Gene trees are treated as " + (rooted ? "rooted" : "unrooted"));
@@ -197,6 +198,7 @@ public class CommandLine {
             readInputTrees(new BufferedReader(new FileReader(config.getFile("input file"))),
                     rooted, trees, true);			
             k = trees.size();
+            System.err.println(k+" trees read from " + config.getFile("input file"));
             
             GlobalMaps.taxonIdentifier.lock();  
 
@@ -211,11 +213,19 @@ public class CommandLine {
             System.err.println("Empty list of trees. The function exits.");
             return;
         }
-            if (config.getFile("extra trees") != null) {
-                readInputTrees(new BufferedReader(new FileReader(config.getFile("extra trees"))), extrarooted, extraTrees, false);
-            }
+        
+        String outgroup = GlobalMaps.taxonIdentifier.getTaxonName(0);
+        System.err.println("All outputted trees will be *arbitrarily* rooted at "+outgroup);
             
         try {
+            
+            if (config.getFile("extra trees") != null) {
+                readInputTrees(new BufferedReader(new FileReader(config.getFile("extra trees"))), 
+                        extrarooted, extraTrees, false);
+                System.err.println(extraTrees.size() + " extra trees read from "
+                        + config.getFile("extra trees"));
+            }
+            
             if (config.getFile("bootstraps") != null) {
                 String line;
                 BufferedReader rebuff = new BufferedReader(new FileReader(config.getFile("bootstraps")));
@@ -234,16 +244,7 @@ public class CommandLine {
             e.printStackTrace();
             return;
         } 
-        
 
-		if (trees.size() == 0) {
-			System.err.println("Empty list of trees. The function exits.");
-			return;
-		}
-
-		System.err.println("Reading trees in "
-				+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
-				
 		if (taxonMap != null) {
 			GlobalMaps.taxonNameMap = new TaxonNameMap(taxonMap);
 		} else if (replace != null) {	
@@ -280,7 +281,7 @@ public class CommandLine {
 	        System.err.println("\n======== Running bootstrap replicate " + j++);
 	        bootstraps.add(runOnOneInput(criterion, 
 	                rooted, extrarooted, extraTrees, cs, cd,
-                    wh, exact, outbuffer, input, null));
+                    wh, exact, outbuffer, input, null, outgroup));
 		}
 	    
 		if (bootstraps != null && bootstraps.size() != 0) {
@@ -293,7 +294,7 @@ public class CommandLine {
 		
         System.err.println("\n======== Running the main analysis");
         runOnOneInput(criterion, rooted, extrarooted, extraTrees, cs, cd,
-                wh, exact, outbuffer, trees, bootstraps);
+                wh, exact, outbuffer, trees, bootstraps, outgroup);
            
 		outbuffer.close();
 	}
@@ -302,7 +303,7 @@ public class CommandLine {
     private static Tree runOnOneInput(int criterion, boolean rooted,
             boolean extrarooted, List<Tree> extraTrees, double cs, double cd,
             double wh, boolean exact, BufferedWriter outbuffer, List<Tree> input, 
-            Iterable<Tree> bootstraps) {
+            Iterable<Tree> bootstraps, String outgroup) {
         long startTime;
         startTime = System.currentTimeMillis();
         
@@ -317,7 +318,7 @@ public class CommandLine {
         		+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
         
         Tree st = solutions.get(0)._st;
-        st.rerootTreeAtNode(st.getNode(GlobalMaps.taxonIdentifier.getTaxonName(0)));
+        st.rerootTreeAtNode(st.getNode(outgroup));
    
         if ((bootstraps != null) && (bootstraps.iterator().hasNext())) {
             for (Solution solution : solutions) {
