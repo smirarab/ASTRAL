@@ -37,7 +37,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 	
-    protected static String _versinon = "4.4.1";
+    protected static String _versinon = "4.4.2";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -285,9 +285,9 @@ public class CommandLine {
 	    
 		if (bootstraps != null && bootstraps.size() != 0) {
             MutableTree cons = (MutableTree) Utils.greedyConsensus(bootstraps);
+            cons.rerootTreeAtNode(cons.getNode(GlobalMaps.taxonIdentifier.getTaxonName(0)));
             Utils.computeEdgeSupports(cons, bootstraps);
             //Trees.scaleBranchLengths(cons, 100);
-            cons.rerootTreeAtNode(cons.getNode(GlobalMaps.taxonIdentifier.getTaxonName(0)));
             outbuffer.write(cons.toString()+ " \n");
 		}
 		
@@ -315,6 +315,9 @@ public class CommandLine {
    
         System.err.println("Optimal tree inferred in "
         		+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
+        
+        Tree st = solutions.get(0)._st;
+        st.rerootTreeAtNode(st.getNode(GlobalMaps.taxonIdentifier.getTaxonName(0)));
    
         if ((bootstraps != null) && (bootstraps.iterator().hasNext())) {
             for (Solution solution : solutions) {
@@ -323,7 +326,7 @@ public class CommandLine {
         }
         writeSolutionToFile(outbuffer, solutions);
         
-        return solutions.get(0)._st;
+        return st;
     }
 
     private static Inference initializeInference(int criterion, boolean rooted,
@@ -403,7 +406,6 @@ public class CommandLine {
             List<Solution> solutions) {
         try {
 		    for (Solution s : solutions) {
-		        s._st.rerootTreeAtNode(s._st.getNode(GlobalMaps.taxonIdentifier.getTaxonName(0)));
 		        outbuffer.write(s._st.toString()+ " \n");
 		    }
 		    outbuffer.flush();
