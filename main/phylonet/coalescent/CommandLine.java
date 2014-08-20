@@ -36,7 +36,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 	
-    protected static String _versinon = "4.6.0";
+    protected static String _versinon = "4.6.1";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -279,6 +279,15 @@ public class CommandLine {
                 System.err.println(extraTrees.size() + " extra trees read from "
                         + config.getFile("extra trees"));
             }
+            
+        } catch (IOException e) {
+            System.err.println("Error when reading extra trees.");
+            System.err.println(e.getMessage());
+            e.printStackTrace();
+            return;
+        } 
+        
+        try {           
             if (config.getFile("extra species trees") != null) {
                 readInputTrees(new BufferedReader(new FileReader(config.getFile("extra species trees"))), 
                         extrarooted, extraTrees, false, true);
@@ -299,7 +308,7 @@ public class CommandLine {
             }
 
         } catch (IOException e) {
-            System.err.println("Error when reading extra trees.");
+            System.err.println("Error when reading bootstrap trees.");
             System.err.println(e.getMessage());
             e.printStackTrace();
             return;
@@ -341,8 +350,8 @@ public class CommandLine {
 	    
 		if (bootstraps != null && bootstraps.size() != 0) {
             MutableTree cons = (MutableTree) Utils.greedyConsensus(bootstraps);
-            Utils.computeEdgeSupports(cons, bootstraps);
             cons.rerootTreeAtNode(cons.getNode(GlobalMaps.taxonIdentifier.getTaxonName(0)));
+            Utils.computeEdgeSupports(cons, bootstraps);
             outbuffer.write(cons.toString()+ " \n");
 		}
 		
@@ -373,15 +382,18 @@ public class CommandLine {
    
         System.err.println("Optimal tree inferred in "
         		+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
+        
+        Tree st = solutions.get(0)._st;
+        st.rerootTreeAtNode(st.getNode(outgroup));
    
         if ((bootstraps != null) && (bootstraps.iterator().hasNext())) {
             for (Solution solution : solutions) {
                 Utils.computeEdgeSupports((MutableTree) solution._st, bootstraps);
             }
         }
-        writeSolutionToFile(outbuffer, solutions, outgroup);
+        writeSolutionToFile(outbuffer, solutions);
         
-        return solutions.get(0)._st;
+        return st;
     }
 
     private static Inference initializeInference(int criterion, boolean rooted,
@@ -461,10 +473,9 @@ public class CommandLine {
 
 
     private static void writeSolutionToFile(BufferedWriter outbuffer,
-            List<Solution> solutions, String outgroup) {
+            List<Solution> solutions) {
         try {
 		    for (Solution s : solutions) {
-		        s._st.rerootTreeAtNode(s._st.getNode(outgroup));
 		        outbuffer.write(s._st.toString()+ " \n");
 		    }
 		    outbuffer.flush();
