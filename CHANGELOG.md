@@ -1,5 +1,6 @@
 - Version 4.4.2:
   - *Bug Fix (IMPORTANT):** Support values drawn on the main tree were incorrect in previous versions since 4.3.1 (related to rerooting of trees). 
+  - Prompts changed slightly 
  
 - Version 4.4.1:
   - Print a user-friendly error when extra trees have taxon not in main trees.
