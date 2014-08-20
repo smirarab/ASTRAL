@@ -1,8 +1,11 @@
+- Version 4.4.2:
+  - *Bug Fix (IMPORTANT):** Support values drawn on the main tree were incorrect in previous versions since 4.3.1 (related to rerooting of trees). 
+ 
 - Version 4.4.1:
-    - Print a user-friendly error when extra trees have taxon not in main trees.
+  - Print a user-friendly error when extra trees have taxon not in main trees.
 
 - Version 4.4.0:
-    - **Bug fix:** when gene trees had extreme levels of missing taxa, and there existed two taxa that never appeared together in the same gene tree, an uncaught division by zero could leave to wrong placement of one or both taxa. 
+  - **Bug fix:** when gene trees had extreme levels of missing taxa, and there existed two taxa that never appeared together in the same gene tree, an uncaught division by zero could leave to wrong placement of one or both taxa. 
     
 - Version 4.3.1:
   - Output consensus bootstrap tree as well
