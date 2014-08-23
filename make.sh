@@ -10,11 +10,11 @@ echo Version $version
 
 cd main
 
-rm -f phylonet/coalescent/*.class phylonet/util/BitSet.class phylonet/tree/model/sti/STITreeCluster*.class  
+rm -f phylonet/coalescent/*.class phylonet/util/BitSet.class phylonet/tree/model/sti/STITreeCluster.class phylonet/tree/io/NewickWriter.class
 
-javac -source 1.5  -target 1.5 -classpath ../lib/main.jar:../lib/JSAP-2.1.jar phylonet/util/BitSet.java phylonet/coalescent/*java phylonet/tree/model/sti/STITreeCluster.java
+javac -source 1.5  -target 1.5 -classpath ../lib/main.jar:../lib/JSAP-2.1.jar phylonet/util/BitSet.java phylonet/coalescent/*java phylonet/tree/model/sti/STITreeCluster.java phylonet/tree/io/NewickWriter.java
 
-jar cvfm ../astral.$version.jar ../manifest.text phylonet/util/BitSet.* phylonet/coalescent/*.* phylonet/tree/model/sti/STITreeCluster*.*
+jar cvfm ../astral.$version.jar ../manifest.text phylonet/util/BitSet.* phylonet/coalescent/*.* phylonet/tree/model/sti/STITreeCluster*.* phylonet/tree/io/NewickWriter.*
 
 cd ..
 

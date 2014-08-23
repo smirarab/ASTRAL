@@ -21,10 +21,8 @@ import java.util.Set;
 import phylonet.coalescent.GlobalMaps.TaxonNameMap;
 import phylonet.tree.io.NewickReader;
 import phylonet.tree.io.ParseException;
-import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITree;
-
 
 import com.martiansoftware.jsap.FlaggedOption;
 import com.martiansoftware.jsap.JSAP;
@@ -37,7 +35,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 	
-    protected static String _versinon = "4.4.2";
+    protected static String _versinon = "4.4.3";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -285,11 +283,10 @@ public class CommandLine {
 		}
 	    
 		if (bootstraps != null && bootstraps.size() != 0) {
-            MutableTree cons = (MutableTree) Utils.greedyConsensus(bootstraps);
+		    STITree<Double> cons = (STITree<Double>) Utils.greedyConsensus(bootstraps);
             cons.rerootTreeAtNode(cons.getNode(GlobalMaps.taxonIdentifier.getTaxonName(0)));
             Utils.computeEdgeSupports(cons, bootstraps);
-            //Trees.scaleBranchLengths(cons, 100);
-            outbuffer.write(cons.toString()+ " \n");
+            writeTreeToFile(outbuffer, cons);
 		}
 		
         System.err.println("\n======== Running the main analysis");
@@ -297,6 +294,9 @@ public class CommandLine {
                 wh, exact, outbuffer, trees, bootstraps, outgroup);
            
 		outbuffer.close();
+		
+	    System.err.println("ASTRAL finished in "  + 
+	            (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 	}
 
 
@@ -322,10 +322,10 @@ public class CommandLine {
    
         if ((bootstraps != null) && (bootstraps.iterator().hasNext())) {
             for (Solution solution : solutions) {
-                Utils.computeEdgeSupports((MutableTree) solution._st, bootstraps);
+                Utils.computeEdgeSupports((STITree<Double>) solution._st, bootstraps);
             }
         }
-        writeSolutionToFile(outbuffer, solutions);
+        writeTreeToFile(outbuffer, solutions.get(0)._st);
         
         return st;
     }
@@ -403,12 +403,9 @@ public class CommandLine {
     }
 
 
-    private static void writeSolutionToFile(BufferedWriter outbuffer,
-            List<Solution> solutions) {
+    private static void writeTreeToFile(BufferedWriter outbuffer, Tree t) {
         try {
-		    for (Solution s : solutions) {
-		        outbuffer.write(s._st.toString()+ " \n");
-		    }
+		    outbuffer.write(t.toStringWD()+ " \n");
 		    outbuffer.flush();
 		} catch (IOException e) {
 		    System.err.println("Error when writing the species tree");
