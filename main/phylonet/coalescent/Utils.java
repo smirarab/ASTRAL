@@ -159,7 +159,7 @@ public class Utils {
                if (a != 0) {
                    return a;
                }
-               if  (o2.getKey().equals(o1)) {
+               if  (o2.getKey().equals(o1.getKey())) {
                    return 0;
                }
                int i = 0;
