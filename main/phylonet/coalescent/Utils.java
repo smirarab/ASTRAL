@@ -90,7 +90,7 @@ public class Utils {
         return (Tree)tree;
       }
 
-    public static final void computeEdgeSupports(MutableTree support_tree, Iterable<Tree> trees) {
+    public static final void computeEdgeSupports(STITree<Double> support_tree, Iterable<Tree> trees) {
     
         // generate leaf assignment
         Hashtable<String,Integer> leaf_assignment = new Hashtable<String,Integer>();
@@ -124,7 +124,7 @@ public class Utils {
                 }
             }
             if (!e.getValue().isLeaf())
-                ((TMutableNode) e.getValue()).setParentDistance(((double) count) / tree_partitions.size() * 100);
+                ((STINode<Double>) e.getValue()).setData(((double) count) / tree_partitions.size() * 100);
         }
     
         return;
@@ -169,6 +169,9 @@ public class Utils {
                    if (j != jj) {
                        return (j > jj) ? -1 : 1;
                    } else {
+                       if (j == -1) {
+                           break;
+                       }
                        i = j + 1;
                    }
                }
@@ -176,12 +179,10 @@ public class Utils {
             }
         });
         countSorted.addAll(count.entrySet());
-        
         List<STITreeCluster> clusters = new ArrayList<STITreeCluster>();       
         for (Entry<STITreeCluster, Integer> entry : countSorted) {
             clusters.add(entry.getKey());
         }
-        
         return Utils.buildTreeFromClusters(clusters);
     }
 
