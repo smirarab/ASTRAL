@@ -1,5 +1,8 @@
+- Version 4.4.3:
+  - Print bootstrap support as internal branch labels instead of branch length values
+    
 - Version 4.4.2:
-  - *Bug Fix (IMPORTANT):** Support values drawn on the main tree were incorrect in previous versions since 4.3.1 (related to rerooting of trees). 
+  - **Bug Fix (IMPORTANT):** Support values drawn on the main tree were incorrect in previous versions since 4.3.1 (related to rerooting of trees). 
   - Prompts changed slightly 
  
 - Version 4.4.1:

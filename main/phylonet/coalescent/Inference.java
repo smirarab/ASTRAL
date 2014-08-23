@@ -210,7 +210,7 @@ public abstract class Inference<T> {
 			sol._st = Utils.buildTreeFromClusters(minClusters);
 		}
 
-		HashMap<TNode,BitSet> map = new HashMap<TNode,BitSet>();
+		/* HashMap<TNode,BitSet> map = new HashMap<TNode,BitSet>();
 		for (TNode node : sol._st.postTraverse()) {
 			BitSet bs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
 			if (node.isLeaf()) {
@@ -235,7 +235,7 @@ public abstract class Inference<T> {
 				int pos = minClusters.indexOf(c);                                
 				((STINode<Double>) node).setData((Double) coals.get(pos));
 			}
-		}
+		}*/
 
 		Long cost = getTotalCost(all);
 		sol._totalCoals = cost;
