@@ -10,7 +10,7 @@ echo Version $version
 
 cd main
 
-rm -f phylonet/coalescent/*.class phylonet/util/BitSet.class phylonet/tree/model/sti/STITreeCluster.class phylonet/tree/io/NewickWriter.class
+rm -f phylonet/coalescent/*.class phylonet/util/BitSet.class phylonet/tree/model/sti/STITreeCluster*.class phylonet/tree/io/NewickWriter.class
 
 javac -source 1.5  -target 1.5 -classpath ../lib/main.jar:../lib/JSAP-2.1.jar phylonet/util/BitSet.java phylonet/coalescent/*java phylonet/tree/model/sti/STITreeCluster.java phylonet/tree/io/NewickWriter.java
 
