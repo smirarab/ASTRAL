@@ -1,3 +1,6 @@
+- Version 4.4.4:
+  - Added a script to fix support values on output files that were incorrect from version 4.3.1 to 4.4.1
+
 - Version 4.4.3:
   - Print bootstrap support as internal branch labels instead of branch length values
   - ** Bug fix**: on some machines greedy used to choke (see 807edf316f3d415256026ffc0b5974dc9f146f98)
