@@ -1,5 +1,12 @@
 package phylonet.coalescent;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -14,6 +21,8 @@ import java.util.TreeSet;
 
 import phylonet.bits.BitVector;
 import phylonet.lca.SchieberVishkinLCA;
+import phylonet.tree.io.NewickReader;
+import phylonet.tree.io.ParseException;
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TMutableNode;
 import phylonet.tree.model.TNode;
@@ -91,7 +100,7 @@ public class Utils {
         return (Tree)tree;
       }
 
-    public static final void computeEdgeSupports(MutableTree support_tree, Iterable<Tree> trees) {
+    public static final void computeEdgeSupports(STITree<Double> support_tree, Iterable<Tree> trees) {
     
         // generate leaf assignment
         Hashtable<String,Integer> leaf_assignment = new Hashtable<String,Integer>();
@@ -125,7 +134,7 @@ public class Utils {
                 }
             }
             if (!e.getValue().isLeaf())
-                ((TMutableNode) e.getValue()).setParentDistance(((double) count) / tree_partitions.size() * 100);
+                ((STINode<Double>) e.getValue()).setData(((double) count) / tree_partitions.size() * 100);
         }
     
         return;
@@ -160,7 +169,7 @@ public class Utils {
                if (a != 0) {
                    return a;
                }
-               if  (o2.getKey().equals(o1)) {
+               if  (o2.getKey().equals(o1.getKey())) {
                    return 0;
                }
                int i = 0;
@@ -170,6 +179,9 @@ public class Utils {
                    if (j != jj) {
                        return (j > jj) ? -1 : 1;
                    } else {
+                       if (j == -1) {
+                           break;
+                       }
                        i = j + 1;
                    }
                }
@@ -177,12 +189,10 @@ public class Utils {
             }
         });
         countSorted.addAll(count.entrySet());
-        
         List<STITreeCluster> clusters = new ArrayList<STITreeCluster>();       
         for (Entry<STITreeCluster, Integer> entry : countSorted) {
             clusters.add(entry.getKey());
         }
-        
         return Utils.buildTreeFromClusters(clusters);
     }
 
@@ -224,4 +234,63 @@ public class Utils {
         return biClusters;              
     }
     
+    public static void main(String[] args) throws IOException{
+        if ("--fixsupport".equals(args[0])) {
+            String line;
+            int l = 0;          
+            BufferedReader treeBufferReader = new BufferedReader(new FileReader(args[1]));;
+            List<Tree> trees = new ArrayList<Tree>();
+            try {
+                while ((line = treeBufferReader.readLine()) != null) {
+                    l++;
+                    if (line.length() > 0) {
+                        line = line.replaceAll("\\)[^,);]*", ")");
+                        NewickReader nr = new NewickReader(new StringReader(line));
+
+                        Tree tr = nr.readTree();
+                        trees.add(tr);
+                        String[] leaves = tr.getLeaves();
+                        for (int i = 0; i < leaves.length; i++) {
+                            GlobalMaps.taxonIdentifier.taxonId(leaves[i]);
+                        }
+                    }
+                }
+                treeBufferReader.close();
+            } catch (ParseException e) {
+                treeBufferReader.close();
+                throw new RuntimeException("Failed to Parse Tree number: " + l ,e);
+            }
+            int k = trees.size();
+            System.err.println(k+" trees read from " + args[1]);
+            STITree<Double> best = (STITree<Double>) trees.remove(k-1);
+            STITree<Double> consensus = (STITree<Double>) trees.remove(k-2);
+            
+            for (TNode node : best.postTraverse()) {
+                node.setParentDistance(TNode.NO_DISTANCE);
+            }
+            for (TNode node : consensus.postTraverse()) {
+                node.setParentDistance(TNode.NO_DISTANCE);
+            }
+            
+            Utils.computeEdgeSupports(consensus, trees);
+            Utils.computeEdgeSupports(best, trees);
+            trees.add(consensus);
+            trees.add(best);
+            
+            String outfile = args[1] + ".autofixed.tre";
+            BufferedWriter outbuffer;
+            if (outfile == null) {
+                outbuffer = new BufferedWriter(new OutputStreamWriter(System.out));
+            } else {
+                outbuffer = new BufferedWriter(new FileWriter(outfile));
+            }
+            for (Tree tree : trees) {
+                outbuffer.write(tree.toStringWD()+ " \n");
+            }
+            outbuffer.flush();
+            System.err.println("File "+args[1]+" fixed and saved as " + outfile);
+        } else {
+            System.err.println("Command " + args[0]+ " not found.");
+        }
+    }
 }
