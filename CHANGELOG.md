@@ -3,7 +3,7 @@
 
 - Version 4.4.3:
   - Print bootstrap support as internal branch labels instead of branch length values
-  - ** Bug fix**: on some machines greedy used to choke (see 807edf316f3d415256026ffc0b5974dc9f146f98)
+  - ** Bug fix**: on some machines greedy used to choke (see smirarab/ASTRAL@807edf316f3d415256026ffc0b5974dc9f146f98)
     
 - Version 4.4.2:
   - **Bug Fix (IMPORTANT):** Support values drawn on the main tree were incorrect in previous versions since 4.3.1 (related to rerooting of trees). 
