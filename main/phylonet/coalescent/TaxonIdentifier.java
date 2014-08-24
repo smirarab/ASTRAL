@@ -34,11 +34,8 @@ public class TaxonIdentifier {
     public String getTaxonName(Integer id) {
         return idToName.get(id);
     }
+    
     public int taxonCount(){
         return taxonCount;
     }
-
-    /*		public List<String> getTaxonList() {
-			return idToName;
-		}*/
 }
