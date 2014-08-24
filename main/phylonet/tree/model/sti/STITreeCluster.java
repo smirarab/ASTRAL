@@ -88,7 +88,6 @@ public class STITreeCluster implements Iterable<Integer>
 
   public boolean equals(Object o)
   {
-      
     if (!(o instanceof STITreeCluster)) {
       return false;
     }
@@ -104,7 +103,7 @@ public class STITreeCluster implements Iterable<Integer>
 //  /static HashMap<STITreeCluster,HashSet<STITreeCluster>> contains = new HashMap<STITreeCluster, HashSet<STITreeCluster>>();
   
   public int hashCode()
-  {
+  { 
 	  if (hashCode == 0)
 		  hashCode =  this._cluster.hashCode() ;
 	  return hashCode;

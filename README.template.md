@@ -14,7 +14,9 @@ Email: `astral-users@googlegroups.com` for questions.
 
 INSTALLATION:
 -----------
-There is no installation required to run ASTRAL. You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/__astral.zip__) and extract the contents to a folder of your choice. Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/). You can run make.sh to build the project or simply use the jar file that is included with the repository. 
+There is no installation required to run ASTRAL. 
+You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/__astral.zip__) 
+and extract the contents to a folder of your choice. Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/). You can run make.sh to build the project or simply use the jar file that is included with the repository. 
 
 ASTRAL is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. Java 1.5 or later is required. We have tested ASTRAL only on Linux and MAC.
 
