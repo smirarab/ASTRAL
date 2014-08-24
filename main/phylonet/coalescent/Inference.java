@@ -195,6 +195,33 @@ public abstract class Inference<T> {
 			sol._st = Utils.buildTreeFromClusters(minClusters);
 		}
 
+		/* HashMap<TNode,BitSet> map = new HashMap<TNode,BitSet>();
+		for (TNode node : sol._st.postTraverse()) {
+			BitSet bs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
+			if (node.isLeaf()) {
+				bs.set(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
+				map.put(node, bs);
+			} else {
+				for (TNode child : node.getChildren()) {
+					BitSet childCluster = map.get(child);
+					bs.or(childCluster);
+				}
+				map.put(node, bs);
+			}
+//            System.err.println("Node: "+node);
+			STITreeCluster c = new STITreeCluster();
+			c.setCluster(bs);
+//            System.err.println("m[0]: "+((STITreeCluster)minClusters.get(0)).toString2());
+//            System.err.println("C: "+c.toString2());
+//            System.err.println("Equals: "+((STITreeCluster)minClusters.get(0)).equals(c));
+			if (c.getClusterSize() == GlobalMaps.taxonIdentifier.taxonCount()) {
+				((STINode<Double>) node).setData(Double.valueOf(0));
+			} else {
+				int pos = minClusters.indexOf(c);                                
+				((STINode<Double>) node).setData((Double) coals.get(pos));
+			}
+		}*/
+
 		Long cost = getTotalCost(all);
 		sol._totalCoals = cost;
 		System.err.println("Total Number of elements weighted: "+ weightCalculator.getCalculatedWeightCount());
