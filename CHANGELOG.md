@@ -1,3 +1,9 @@
+- Version 4.6.2:
+  - Merge in 4.4.3 and 4.4.4 to mutli-allele branch
+  
+- Version 4.6.1:
+  - Merge in 4.4.2 changes to mutli-allele branch
+  
 - Version 4.6.0:
   - Incorporate bug fix from 4.4.1
   
@@ -10,10 +16,17 @@
 - Version 4.5.0:
   - ASTRAL can now handle multi individual gene trees
 
+- Version 4.4.4:
+  - Added a script to fix support values on output files that were incorrect from version 4.3.1 to 4.4.1
+
+- Version 4.4.3:
+  - Print bootstrap support as internal branch labels instead of branch length values
+  - ** Bug fix**: on some machines greedy used to choke (see commit 807edf)
+    
 - Version 4.4.2:
-  - *Bug Fix (IMPORTANT):** Support values drawn on the main tree were incorrect in previous versions since 4.3.1 (related to rerooting of trees). 
+  - **Bug Fix (IMPORTANT):** Support values drawn on the main tree were incorrect in previous versions since 4.3.1 (related to rerooting of trees). 
   - Prompts changed slightly 
-  
+ 
 - Version 4.4.1:
   - Print a user-friendly error when extra trees have taxon not in main trees.
 
