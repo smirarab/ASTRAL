@@ -163,7 +163,7 @@ Miscellaneous :
 ---------------
 
 ### Memory:
-For big datasets (say more than 100 taxon) increasing the memory available to Java can result in speed up. Note that you should give Java only as much as free memory you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke ASTRAL using the following command to make all the 3GB available to Java:
+For big datasets (say more than 100 taxon) increasing the memory available to Java might be necessary. Note that you should never give Java more memory than what you have available on your machine. So, for example, if you have 4GB of free memory, you can invoke ASTRAL using the following command to make 3GB available to Java:
 
 ```
 java -Xmx3000M -jar astral.4.4.4.jar -i in.tree
