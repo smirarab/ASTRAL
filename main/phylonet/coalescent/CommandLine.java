@@ -36,7 +36,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.6.2";
+    protected static String _versinon = "4.6.3test.2";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -72,6 +72,10 @@ public class CommandLine {
                     new Switch("exact",
                             'x', "exact",
                             "find the exact solution by looking at all clusters - recommended only for small (<18) numer of taxa."),
+   
+                    new Switch("noDistExtra",
+                            'p', "noDistExtra",
+                            "Do not add extra bipartitions based on weights."),
    
                     new FlaggedOption("extra trees", 
                             FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 'e', "extra",
@@ -152,6 +156,7 @@ public class CommandLine {
 		double cd = 1.0D;
 		double wh = 1.0D;
 		boolean exact = false;
+		boolean addExtra = true;
 		int k = 0;
         BufferedWriter outbuffer;
 		
@@ -169,6 +174,8 @@ public class CommandLine {
         }
         
         exact = config.getBoolean("exact");
+        
+        addExtra = ! config.getBoolean("noDistExtra");
         
         if (config.getBoolean("duplication") && config.contains("duploss weight")) {
             exitWithErr("dup and duploss options cannot be used together. Choose only one. ",jsap);
@@ -345,7 +352,7 @@ public class CommandLine {
 	        System.err.println("\n======== Running bootstrap replicate " + j++);
 	        bootstraps.add(runOnOneInput(criterion, 
 	                rooted, extrarooted, extraTrees, cs, cd,
-                    wh, exact, outbuffer, input, null, outgroup));
+                    wh, exact, outbuffer, input, null, outgroup, addExtra));
 		}
 	    
 		if (bootstraps != null && bootstraps.size() != 0) {
@@ -357,7 +364,7 @@ public class CommandLine {
 		
         System.err.println("\n======== Running the main analysis");
         runOnOneInput(criterion, rooted, extrarooted, extraTrees, cs, cd,
-                wh, exact, outbuffer, trees, bootstraps, outgroup);
+                wh, exact, outbuffer, trees, bootstraps, outgroup, addExtra);
            
 		outbuffer.close();
 		
@@ -369,13 +376,13 @@ public class CommandLine {
     private static Tree runOnOneInput(int criterion, boolean rooted,
             boolean extrarooted, List<Tree> extraTrees, double cs, double cd,
             double wh, boolean exact, BufferedWriter outbuffer, List<Tree> input, 
-            Iterable<Tree> bootstraps, String outgroup) {
+            Iterable<Tree> bootstraps, String outgroup, boolean addExtra) {
         long startTime;
         startTime = System.currentTimeMillis();
         
-        Inference inference =
+        AbstractInference inference =
             initializeInference(criterion, rooted, extrarooted, input,
-                    extraTrees, cs, cd, wh, exact);
+                    extraTrees, cs, cd, wh, exact, addExtra);
         
         /* if (scorest != null) {inference.scoreGeneTree(scorest);System.exit(0); }*/
         List<Solution> solutions = inference.inferSpeciesTree();
@@ -396,16 +403,16 @@ public class CommandLine {
         return st;
     }
 
-    private static Inference initializeInference(int criterion, boolean rooted,
+    private static AbstractInference initializeInference(int criterion, boolean rooted,
             boolean extrarooted, List<Tree> trees, List<Tree> extraTrees,
-            double cs, double cd, double wh, boolean exact) {
-        Inference inference;		
+            double cs, double cd, double wh, boolean exact, boolean addExtra) {
+        AbstractInference inference;		
 		if (criterion == 1 || criterion == 0) {
 			inference = new DLInference(rooted, extrarooted, 
 					trees, extraTrees,exact ,criterion > 0);			
 		} else if (criterion == 2) {
 			inference = new WQInference(rooted, extrarooted, 
-					trees, extraTrees, exact,criterion > 0, -1);
+					trees, extraTrees, exact,criterion > 0, -1, addExtra);
 		} else {
 			throw new RuntimeException("criterion not set?");
 		}		
