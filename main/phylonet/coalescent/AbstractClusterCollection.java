@@ -12,7 +12,7 @@ import java.util.Set;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
-public abstract class BasicClusterCollection implements ClusterCollection{
+public abstract class AbstractClusterCollection implements IClusterCollection{
 
 	protected ArrayList<Set<Vertex>> clusters;
 	HashMap<STITreeCluster, Vertex> globalVertexCash;// = new HashMap<STITreeCluster, STITreeCluster.Vertex>();
@@ -66,11 +66,11 @@ public abstract class BasicClusterCollection implements ClusterCollection{
 	}
 
 	@Override
-	public ClusterCollection getContainedClusters(STITreeCluster cluster) {
+	public IClusterCollection getContainedClusters(STITreeCluster cluster) {
 		//if (topClusterLength < 10)
 		//	System.out.println("Contained: "+cluster+" "+clusterToVertx.keySet());
-		DLClusterCollection ret = new DLClusterCollection(cluster.getClusterSize(), this.globalVertexCash);
 		int size = cluster.getClusterSize();
+		AbstractClusterCollection ret = newInstance(size);
 		addClusterToRet(getVertexForCluster(cluster), size, ret);
 		
 		for (int i = size - 1 ; i > 0; i--) {
@@ -85,7 +85,7 @@ public abstract class BasicClusterCollection implements ClusterCollection{
 		return ret;
 	}
 	
-	protected void addClusterToRet(Vertex vertex, int size, ClusterCollection ret) {
+	protected void addClusterToRet(Vertex vertex, int size, IClusterCollection ret) {
 		ret.addCluster(vertex, size);	
 	}
 
@@ -124,6 +124,8 @@ public abstract class BasicClusterCollection implements ClusterCollection{
 		}
 		return ret;
 	}
+	
+	public abstract AbstractClusterCollection newInstance(int size);
 
 	@Override
 	public Iterable<Set<Vertex>> getSubClusters() {

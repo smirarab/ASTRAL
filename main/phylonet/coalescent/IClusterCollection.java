@@ -6,7 +6,7 @@ import java.util.Set;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
-public interface ClusterCollection {
+public interface IClusterCollection {
 
 	Vertex getTopVertex();
 
@@ -16,7 +16,7 @@ public interface ClusterCollection {
 
 	boolean contains(Vertex reverse);
 
-	ClusterCollection getContainedClusters(STITreeCluster cluster);
+	IClusterCollection getContainedClusters(STITreeCluster cluster);
 
 	Vertex getVertexForCluster(STITreeCluster cluster1);
 

@@ -7,9 +7,9 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.util.BitSet;
 
-public abstract class DataCollection <T> {
+public abstract class AbstractDataCollection <T> {
 
-	protected ClusterCollection clusters;
+	protected IClusterCollection clusters;
 
 	protected boolean addToClusters(STITreeCluster c, int size) {
 		if (size == 0) return false;
@@ -37,10 +37,10 @@ public abstract class DataCollection <T> {
 						+ clusters.getClusterCount());
 	}
 
-	public abstract void addExtraBipartitionsByInput(ClusterCollection extraClusters,
+	public abstract void addExtraBipartitionsByInput(IClusterCollection extraClusters,
 			List<Tree> trees, boolean extraTreeRooted);
 	
-	public abstract void computeTreePartitions(Inference<T> inference);
+	public abstract void computeTreePartitions(AbstractInference<T> inference, boolean addExtra);
 
     public abstract void addExtraBipartitionByExtension();
 }

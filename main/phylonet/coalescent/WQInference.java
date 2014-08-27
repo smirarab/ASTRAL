@@ -9,13 +9,13 @@ import phylonet.tree.model.sti.STITree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
-public class WQInference extends Inference<Tripartition> {
+public class WQInference extends AbstractInference<Tripartition> {
 	
 	int forceAlg = -1;
 	
 	public WQInference(boolean rooted, boolean extrarooted, List<Tree> trees,
-			List<Tree> extraTrees, boolean exactSolution, boolean duploss, int alg) {
-		super(rooted, extrarooted, trees, extraTrees, exactSolution);
+			List<Tree> extraTrees, boolean exactSolution, boolean duploss, int alg, boolean addExtra) {
+		super(rooted, extrarooted, trees, extraTrees, exactSolution, addExtra);
 		this.forceAlg = alg;
 	}
 
@@ -31,23 +31,23 @@ public class WQInference extends Inference<Tripartition> {
 
 
 	@Override
-	ComputeMinCostTask<Tripartition> newComputeMinCostTask(Inference<Tripartition> dlInference,
-			Vertex all, ClusterCollection clusters) {
+	AbstractComputeMinCostTask<Tripartition> newComputeMinCostTask(AbstractInference<Tripartition> dlInference,
+			Vertex all, IClusterCollection clusters) {
 		return new WQComputeMinCostTask( (WQInference) dlInference, all,  clusters);
 	}
 
-	ClusterCollection newClusterCollection() {
+	IClusterCollection newClusterCollection() {
 		return new WQClusterCollection(GlobalMaps.taxonIdentifier.taxonCount(), new HashMap<STITreeCluster, STITreeCluster.Vertex>());
 	}
 	
-	DataCollection<Tripartition> newCounter(ClusterCollection clusters) {
+	AbstractDataCollection<Tripartition> newCounter(IClusterCollection clusters) {
 		return new WQDataCollection((WQClusterCollection)clusters, this.forceAlg);
 	}
 
 
 
 	@Override
-	WeightCalculator<Tripartition> newWeightCalculator() {
+	AbstractWeightCalculator<Tripartition> newWeightCalculator() {
 		return new WQWeightCalculator(this);
 	}
 
