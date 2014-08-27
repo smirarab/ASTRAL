@@ -1,3 +1,10 @@
+- Version 4.6.3:
+  - Improved scalability of missing taxon completion algorithm (n^2 logn+n|X|^2)
+  - 
+  - A bit of code refactoring
+  - Adding more stderr logs
+  - Added option to prevent addition of extra taxa
+  
 - Version 4.6.2:
   - Merge in 4.4.3 and 4.4.4 to mutli-allele branch
   
