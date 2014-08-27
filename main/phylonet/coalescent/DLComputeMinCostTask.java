@@ -2,21 +2,21 @@ package phylonet.coalescent;
 
 import java.util.List;
 
-import phylonet.coalescent.ClusterCollection;
-import phylonet.coalescent.ComputeMinCostTask;
+import phylonet.coalescent.IClusterCollection;
+import phylonet.coalescent.AbstractComputeMinCostTask;
 import phylonet.coalescent.DLWeightCalculator.DPWeightTask;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
-public class DLComputeMinCostTask extends ComputeMinCostTask<STBipartition>{
+public class DLComputeMinCostTask extends AbstractComputeMinCostTask<STBipartition>{
 
 	DLInference inference;
 	DLDataCollection dataCollection;
 	DLWeightCalculator weightCalculator;
 	
 	public DLComputeMinCostTask(DLInference inference, Vertex v,
-			ClusterCollection clusters) {
+			IClusterCollection clusters) {
 		super(inference, v, clusters);
 		this.inference = inference;
 		dataCollection = (DLDataCollection)inference.dataCollection;
@@ -76,8 +76,8 @@ public class DLComputeMinCostTask extends ComputeMinCostTask<STBipartition>{
 	}
 
 	@Override
-	protected ComputeMinCostTask<STBipartition> newMinCostTask(
-			 Vertex v, ClusterCollection clusters) {
+	protected AbstractComputeMinCostTask<STBipartition> newMinCostTask(
+			 Vertex v, IClusterCollection clusters) {
 		return new DLComputeMinCostTask(inference, v, clusters);
 	}
 	
