@@ -22,7 +22,7 @@ import phylonet.tree.util.Collapse;
 import phylonet.tree.util.Trees;
 import phylonet.util.BitSet;
 
-public abstract class Inference<T> {
+public abstract class AbstractInference<T> {
 
 	protected boolean rooted = true;
 	protected boolean extrarooted = true;
@@ -38,17 +38,19 @@ public abstract class Inference<T> {
 	private double CS;
 	private double CD;
 	
-	DataCollection<T> dataCollection;
-	WeightCalculator<T> weightCalculator;
+	AbstractDataCollection<T> dataCollection;
+	AbstractWeightCalculator<T> weightCalculator;
+	private boolean addExtra;
 
-	public Inference(boolean rooted, boolean extrarooted, List<Tree> trees,
-			List<Tree> extraTrees, boolean exactSolution) {
+	public AbstractInference(boolean rooted, boolean extrarooted, List<Tree> trees,
+			List<Tree> extraTrees, boolean exactSolution, boolean addExtra) {
 		super();
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
 		this.trees = trees;
 		this.extraTrees = extraTrees;
 		this.exactSolution = exactSolution;
+		this.addExtra = addExtra;
 	}
 
 	protected Collapse.CollapseDescriptor doCollapse(List<Tree> trees) {
@@ -95,7 +97,7 @@ public abstract class Inference<T> {
 	
 	public abstract void scoreGeneTree(Tree scorest) ;
 
-	List<Solution> findTreesByDP(ClusterCollection clusters) {
+	List<Solution> findTreesByDP(IClusterCollection clusters) {
 		List<Solution> solutions = new ArrayList<Solution>();
 
 		/*
@@ -122,7 +124,7 @@ public abstract class Inference<T> {
 
 		try {
 			//vertexStack.push(all);
-			ComputeMinCostTask<T> allTask = newComputeMinCostTask(this,all,clusters);
+			AbstractComputeMinCostTask<T> allTask = newComputeMinCostTask(this,all,clusters);
 			//ForkJoinPool pool = new ForkJoinPool(1);
 			allTask.compute();
 			double v = all._max_score;
@@ -141,6 +143,8 @@ public abstract class Inference<T> {
 				//	+ counter.weights);
 		//}
 		//System.out.println("domination calcs:" + counter.cnt);
+		
+		System.err.println("Total Number of elements weighted: "+ weightCalculator.getCalculatedWeightCount());
 
 		List<STITreeCluster> minClusters = new LinkedList<STITreeCluster>();
 		List<Double> coals = new LinkedList<Double>();
@@ -224,7 +228,6 @@ public abstract class Inference<T> {
 
 		Long cost = getTotalCost(all);
 		sol._totalCoals = cost;
-		System.err.println("Total Number of elements weighted: "+ weightCalculator.getCalculatedWeightCount());
 		solutions.add(sol);
         System.err.println("Final optimization score: " + cost);
 
@@ -236,25 +239,28 @@ public abstract class Inference<T> {
 
 		mapNames();
 
-		ClusterCollection clusters = newClusterCollection();
+		IClusterCollection clusters = newClusterCollection();
 
 		List<Solution> solutions;
 
 		dataCollection = newCounter(clusters);
 		weightCalculator = newWeightCalculator();
 
-		dataCollection.computeTreePartitions(this);
+		dataCollection.computeTreePartitions(this, this.isAddExtra());
 
-		if (true) {
+		if (this.isAddExtra()) {
+		    System.err.println("calculating extra bipartitions to be added ...");
 		    dataCollection.addExtraBipartitionByExtension();
 		}
 		
 		if (exactSolution) {
+	          System.err.println("calculating all possible bipartitions ...");
 		    dataCollection.addAllPossibleSubClusters(clusters.getTopVertex().getCluster());
 		}
 
 	      
 		if (extraTrees != null) {		
+	          System.err.println("calculating extra bipartitions from extra input trees ...");
 			dataCollection.addExtraBipartitionsByInput(clusters, extraTrees,extrarooted);					
 		}
 		
@@ -280,14 +286,14 @@ public abstract class Inference<T> {
 		return (List<Solution>) solutions;
 	}
 
-	abstract ClusterCollection newClusterCollection();
+	abstract IClusterCollection newClusterCollection();
 	
-	abstract DataCollection<T> newCounter(ClusterCollection clusters);
+	abstract AbstractDataCollection<T> newCounter(IClusterCollection clusters);
 	
-	abstract WeightCalculator<T> newWeightCalculator();
+	abstract AbstractWeightCalculator<T> newWeightCalculator();
 
-	abstract ComputeMinCostTask<T> newComputeMinCostTask(Inference<T> dlInference,
-			Vertex all, ClusterCollection clusters);
+	abstract AbstractComputeMinCostTask<T> newComputeMinCostTask(AbstractInference<T> dlInference,
+			Vertex all, IClusterCollection clusters);
 	
 	abstract Long getTotalCost(Vertex all);
 	
@@ -315,5 +321,8 @@ public abstract class Inference<T> {
 		CD = cD;
 	}
 
-	
+    public boolean isAddExtra() {
+        return addExtra;
+    }
+
 }

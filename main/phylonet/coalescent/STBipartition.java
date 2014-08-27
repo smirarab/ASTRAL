@@ -48,7 +48,7 @@ public class STBipartition {
 				(dominant.cluster2.containsCluster(this.cluster1) && dominant.cluster1.containsCluster(this.cluster2));
 	}
 	
-	public boolean isDominatedBy(ClusterCollection left_contained,ClusterCollection rigth_contained, Vertex lv, Vertex rv) {
+	public boolean isDominatedBy(IClusterCollection left_contained,IClusterCollection rigth_contained, Vertex lv, Vertex rv) {
 		/*Vertex thisc = contained.getVertexForCluster(this.c);
 		if (! contained.contains(thisc)) {
 			return false;
