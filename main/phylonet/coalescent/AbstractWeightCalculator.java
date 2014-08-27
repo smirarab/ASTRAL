@@ -5,11 +5,13 @@ import java.util.List;
 
 import phylonet.tree.model.Tree;
 
-public abstract class WeightCalculator<T> {
+public abstract class AbstractWeightCalculator<T> {
 	
+	private static final boolean TESTRUN = false;
+	private int callcounter = 0;
 	protected HashMap<T, Long> weights;
 
-	public WeightCalculator() {
+	public AbstractWeightCalculator() {
 	}
 	
 	public void initializeWeightContainer(int size) {
@@ -17,6 +19,7 @@ public abstract class WeightCalculator<T> {
 	}
 	
 	public int getCalculatedWeightCount() {
+		System.err.println("Weights requested "+this.callcounter +" times");
 		return weights.size();
 	}
 	
@@ -28,23 +31,24 @@ public abstract class WeightCalculator<T> {
 		return weights.get(bi);
 	}
 	
-	public Long getWeight(T t, ComputeMinCostTask<T> minCostTask) {
+	public Long getWeight(T t, AbstractComputeMinCostTask<T> minCostTask) {
+		this.callcounter ++;
 		Long weight = getCalculatedWeight(t);
-		
 		if (weight == null) {
-//						if (clusterSize > 9 && v._max_score > (2-0.02*clusterSize)*(lscore + rscore))
-//							continue;
-			CalculateWeightTask<T> weigthWork = getWeightCalculateTask(t);
+//			if (clusterSize > 9 && v._max_score > (2-0.02*clusterSize)*(lscore + rscore))
+//			continue;
+			ICalculateWeightTask<T> weigthWork = getWeightCalculateTask(t);
 			prepareWeightTask(weigthWork, minCostTask);
 			// MP_VERSION: smallWork.fork();
-			weight = weigthWork.calculateWeight();
+			weight = TESTRUN ? 0 : weigthWork.calculateWeight();
+			weights.put(t, weight);
 		}
 		return weight;
 	}
 	
-	protected abstract void prepareWeightTask(CalculateWeightTask<T> weigthWork,ComputeMinCostTask<T> task);
+	protected abstract void prepareWeightTask(ICalculateWeightTask<T> weigthWork,AbstractComputeMinCostTask<T> task);
 	
-	public abstract CalculateWeightTask<T> getWeightCalculateTask(T t);
+	public abstract ICalculateWeightTask<T> getWeightCalculateTask(T t);
 	
 	public abstract void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees);
 }
