@@ -19,29 +19,33 @@ public abstract class AbstractWeightCalculator<T> {
 	}
 	
 	public int getCalculatedWeightCount() {
+		//return this.callcounter;	
 		System.err.println("Weights requested "+this.callcounter +" times");
 		return weights.size();
 	}
 	
-	public Long getCalculatedWeight(T bi) {
-//		if (!weights.containsKey(bi)) {
-//			// weights.put(bi,calculateMissingWeight(bi));
-//			return null;
-//		}
-		return weights.get(bi);
+	public Long getCalculatedWeight(T t) {
+		return weights.get(t);
 	}
 	
 	public Long getWeight(T t, AbstractComputeMinCostTask<T> minCostTask) {
 		this.callcounter ++;
 		Long weight = getCalculatedWeight(t);
 		if (weight == null) {
-//			if (clusterSize > 9 && v._max_score > (2-0.02*clusterSize)*(lscore + rscore))
-//			continue;
 			ICalculateWeightTask<T> weigthWork = getWeightCalculateTask(t);
 			prepareWeightTask(weigthWork, minCostTask);
 			// MP_VERSION: smallWork.fork();
 			weight = TESTRUN ? 0 : weigthWork.calculateWeight();
-			weights.put(t, weight);
+			if (! TESTRUN ) 
+				weights.put(t, weight);
+			int count = weights.size();
+			if (count % 100000 == 0)
+				System.err.println("Calculated "+ count +" weights; time:" + System.currentTimeMillis());
+/*			if (weights.size() == 75318) {
+				System.err.println("here");
+			}*/
+		} else {
+			//System.err.println("Found " + t );
 		}
 		return weight;
 	}
