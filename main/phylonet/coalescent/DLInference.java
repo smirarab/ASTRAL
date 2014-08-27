@@ -12,13 +12,13 @@ import phylonet.tree.model.sti.STITree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
-public class DLInference extends Inference<STBipartition> {
+public class DLInference extends AbstractInference<STBipartition> {
 	private int optimizeDuploss = 1; //one means dup, 3 means duploss
 	//Map<STITreeCluster, Vertex> clusterToVertex;
 	
 	public DLInference(boolean rooted, boolean extrarooted, List<Tree> trees,
 			List<Tree> extraTrees, boolean exactSolution, boolean duploss) {
-		super(rooted, extrarooted, trees, extraTrees, exactSolution);
+		super(rooted, extrarooted, trees, extraTrees, exactSolution, false);
 		this.optimizeDuploss = duploss ? 3 : 1;
 	}
 
@@ -114,8 +114,8 @@ public class DLInference extends Inference<STBipartition> {
 
 
 	@Override
-	ComputeMinCostTask<STBipartition> newComputeMinCostTask(Inference<STBipartition> dlInference,
-			Vertex all, ClusterCollection clusters) {
+	AbstractComputeMinCostTask<STBipartition> newComputeMinCostTask(AbstractInference<STBipartition> dlInference,
+			Vertex all, IClusterCollection clusters) {
 		return new DLComputeMinCostTask( (DLInference) dlInference, all,  clusters);
 	}
 
@@ -123,12 +123,12 @@ public class DLInference extends Inference<STBipartition> {
 		return new DLClusterCollection(GlobalMaps.taxonIdentifier.taxonCount(),  new HashMap<STITreeCluster, STITreeCluster.Vertex>());
 	}
 	
-	DLDataCollection newCounter(ClusterCollection clusters) {
+	DLDataCollection newCounter(IClusterCollection clusters) {
 		return new DLDataCollection(rooted, (DLClusterCollection)clusters);
 	}
 
 	@Override
-	WeightCalculator<STBipartition> newWeightCalculator() {
+	AbstractWeightCalculator<STBipartition> newWeightCalculator() {
 		return new DLWeightCalculator(this);
 	}
 
