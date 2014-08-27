@@ -20,7 +20,7 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.util.BitSet;
 
-public class DLDataCollection extends DataCollection<STBipartition>{
+public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 
 	double sigmaNs;
 
@@ -41,7 +41,7 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 		this.clusters = clusters;
 	}
 
-	public void computeTreePartitions(Inference<STBipartition> inference) {
+	public void computeTreePartitions(AbstractInference<STBipartition> inference, boolean addExtra) {
 
 		double unweigthedConstant = 0;
 		double weightedConstant = 0;
@@ -209,7 +209,7 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 	}
 
 
-	public void addExtraBipartitionsByInput(ClusterCollection extraClusters,
+	public void addExtraBipartitionsByInput(IClusterCollection extraClusters,
 			List<Tree> trees, boolean extraTreeRooted) {
 
 		int n = GlobalMaps.taxonIdentifier.taxonCount();
