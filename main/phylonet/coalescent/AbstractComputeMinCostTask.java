@@ -10,18 +10,18 @@ import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
-public abstract class ComputeMinCostTask<T> {
+public abstract class AbstractComputeMinCostTask<T> {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 244989909835073096L;
-	Inference<T> inference;
+	AbstractInference<T> inference;
 	Vertex v;
-	ClusterCollection clusters;
+	IClusterCollection clusters;
 
 	// final int maxEL = 10000000;
-	ClusterCollection containedVertecies;
+	IClusterCollection containedVertecies;
     private SpeciesMapper spm;
 
 	protected Double compute() {
@@ -32,8 +32,8 @@ public abstract class ComputeMinCostTask<T> {
 		}
 	}
 
-	public ComputeMinCostTask(Inference<T> inference, Vertex v, 
-			ClusterCollection clusters) {
+	public AbstractComputeMinCostTask(AbstractInference<T> inference, Vertex v, 
+			IClusterCollection clusters) {
 		this.inference = inference;
 		this.v = v;
 		this.clusters = clusters;
@@ -91,11 +91,21 @@ public abstract class ComputeMinCostTask<T> {
 		do {
 			tryAnotherTime = false;
 
-			if (clusterSize >= GlobalMaps.taxonIdentifier.taxonCount() * inference.getCS()) {
-				addComplementaryClusters(clusterSize);
+			Collection<STBipartition> clusterResolutions;
+			
+			if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) {
+				STITreeCluster c1 = new STITreeCluster();
+				c1.addLeaf(0);
+				STBipartition stb1 = new STBipartition(c1, c1.complementaryCluster(), this.v.getCluster());
+				clusterResolutions = new ArrayList<STBipartition>();
+				clusterResolutions.add(stb1);
+			} else {
+				if (clusterSize >= GlobalMaps.taxonIdentifier.taxonCount() * inference.getCS()) {
+					addComplementaryClusters(clusterSize);
+				}
+				clusterResolutions = containedVertecies
+						.getClusterResolutions();
 			}
-			Collection<STBipartition> clusterResolutions = containedVertecies
-					.getClusterResolutions();
 			
 			int clusterLevelCost = 0;
 			if (!clusterResolutions.isEmpty()) {
@@ -111,11 +121,11 @@ public abstract class ComputeMinCostTask<T> {
 				try {
 					Vertex smallV = containedVertecies.getVertexForCluster(bi.cluster1);
 					Vertex bigv = containedVertecies.getVertexForCluster(bi.cluster2);
-					ComputeMinCostTask<T> smallWork = newMinCostTask(
+					AbstractComputeMinCostTask<T> smallWork = newMinCostTask(
 							smallV, containedVertecies);
-					ComputeMinCostTask<T> bigWork = newMinCostTask(
+					AbstractComputeMinCostTask<T> bigWork = newMinCostTask(
 							bigv, containedVertecies);
-					CalculateWeightTask<T> weigthWork = null;
+					ICalculateWeightTask<T> weigthWork = null;
 
 					// MP_VERSION: smallWork.fork();
 					Double rscore = bigWork.compute();
@@ -223,8 +233,8 @@ public abstract class ComputeMinCostTask<T> {
 
 	abstract Long defaultWeightForFullClusters();
 
-	protected abstract ComputeMinCostTask<T> newMinCostTask(Vertex v, 
-	ClusterCollection clusters);
+	protected abstract AbstractComputeMinCostTask<T> newMinCostTask(Vertex v, 
+	IClusterCollection clusters);
 
 	abstract protected double adjustWeight(int clusterLevelCost, Vertex smallV,
 			Vertex bigv, Long Wdom);
@@ -236,7 +246,7 @@ public abstract class ComputeMinCostTask<T> {
 	abstract protected T STB2T(STBipartition stb);
 
 	void addAllPossibleSubClusters(STITreeCluster cluster,
-			ClusterCollection containedVertecies) {
+			IClusterCollection containedVertecies) {
 		int size = cluster.getClusterSize();
 		for (int i = cluster.getBitSet().nextSetBit(0); i >= 0; i = cluster
 				.getBitSet().nextSetBit(i + 1)) {

@@ -9,17 +9,17 @@ import java.util.List;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 
-class WQWeightCalculator extends WeightCalculator<Tripartition> {
+class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 	WQInference inference;
 	private WQDataCollection dataCollection;
 
-	public WQWeightCalculator(Inference<Tripartition> inference) {
+	public WQWeightCalculator(AbstractInference<Tripartition> inference) {
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
 		this.inference = (WQInference) inference;
 	}
 	
-	class QuartetWeightTask implements CalculateWeightTask<Tripartition>{
+	class QuartetWeightTask implements ICalculateWeightTask<Tripartition>{
 
 		private Tripartition trip;
 
@@ -180,9 +180,6 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 			Long r = dataCollection.geneTreesAsInts != null? 
 					calculateMissingWeight2():
 						calculateMissingWeight();
-			weights.put(trip, r);
-			if (weights.size() % 100000 == 0)
-				System.err.println("Calculated "+weights.size()+" weights");
 			return r;
 		}
 	}
@@ -192,13 +189,13 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 
 
 	@Override
-	public CalculateWeightTask<Tripartition> getWeightCalculateTask(Tripartition t) {
+	public ICalculateWeightTask<Tripartition> getWeightCalculateTask(Tripartition t) {
 		return new QuartetWeightTask(t);
 	}
 	
 	
 	@Override
-	protected void prepareWeightTask(CalculateWeightTask<Tripartition> weigthWork, ComputeMinCostTask<Tripartition> task) {
+	protected void prepareWeightTask(ICalculateWeightTask<Tripartition> weigthWork, AbstractComputeMinCostTask<Tripartition> task) {
 	}
 
 }
