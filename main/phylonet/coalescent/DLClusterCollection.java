@@ -8,7 +8,7 @@ import java.util.Iterator;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
-public class DLClusterCollection extends BasicClusterCollection {
+public class DLClusterCollection extends AbstractClusterCollection {
 	
 	protected HashMap<STITreeCluster, HashSet<STBipartition>> geneTreeSTBByCluster;
 	
@@ -26,7 +26,7 @@ public class DLClusterCollection extends BasicClusterCollection {
 	}
 	
 	@Override
-	protected void addClusterToRet(Vertex vertex, int size, ClusterCollection ret) {
+	protected void addClusterToRet(Vertex vertex, int size, IClusterCollection ret) {
 		super.addClusterToRet(vertex, size, ret);
 		DLClusterCollection rett = (DLClusterCollection) ret;
 		HashSet<STBipartition> STBs = geneTreeSTBByCluster.get(vertex.getCluster());
@@ -75,6 +75,11 @@ public class DLClusterCollection extends BasicClusterCollection {
 			}
 			
 		};
+	}
+
+	@Override
+	public AbstractClusterCollection newInstance(int size) {
+		return new DLClusterCollection(size, this.globalVertexCash);
 	}
 	
 /*	class BasicSubClusterCollection extends BasicClusterCollection {
