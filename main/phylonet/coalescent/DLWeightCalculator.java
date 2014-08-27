@@ -15,12 +15,12 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
 
-class DLWeightCalculator extends WeightCalculator<STBipartition>{
+class DLWeightCalculator extends AbstractWeightCalculator<STBipartition>{
 	
 	private DLDataCollection dataCollection;
 	private DLInference inference;
 	
-	public DLWeightCalculator(Inference<STBipartition> inference) {
+	public DLWeightCalculator(AbstractInference<STBipartition> inference) {
 		dataCollection = (DLDataCollection) inference.dataCollection;
 		this.inference = (DLInference) inference;
 	}
@@ -136,7 +136,7 @@ class DLWeightCalculator extends WeightCalculator<STBipartition>{
 							if (alreadyProcessedSTBs.contains(stSTB)) {
 								continue;
 							}
-
+							//TODO: this should happen in abstract class?
 							weights.put(
 									stSTB,
 									(weights.containsKey(stSTB) ? weights
@@ -152,17 +152,17 @@ class DLWeightCalculator extends WeightCalculator<STBipartition>{
 
 	
 	@Override
-	public CalculateWeightTask getWeightCalculateTask(
+	public ICalculateWeightTask getWeightCalculateTask(
 			STBipartition stb) {
 		return new DPWeightTask(stb);
 	}
 	
 	@Override
-	protected void prepareWeightTask(CalculateWeightTask<STBipartition> weigthWork, ComputeMinCostTask<STBipartition> task) {
+	protected void prepareWeightTask(ICalculateWeightTask<STBipartition> weigthWork, AbstractComputeMinCostTask<STBipartition> task) {
 		((DPWeightTask)weigthWork).setContainedClusterCollection((DLClusterCollection)task.containedVertecies);
 	}
 	
-	class DPWeightTask implements CalculateWeightTask<STBipartition> {
+	class DPWeightTask implements ICalculateWeightTask<STBipartition> {
 
 		private static final long serialVersionUID = -2614161117603289345L;
 		private STBipartition stb;
@@ -204,7 +204,6 @@ class DLWeightCalculator extends WeightCalculator<STBipartition>{
 				 * //System.err.print(" . " + weight); } } }
 				 */
 			}
-			weights.put(stb, weight);
 			// System.err.println("Weight of " + biggerSTB + " is " + weight);
 			return weight;
 		}

@@ -1,5 +1,5 @@
 package phylonet.coalescent;
 
-interface CalculateWeightTask<T> {
+interface ICalculateWeightTask<T> {
 	Long calculateWeight();
 }
