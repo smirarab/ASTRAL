@@ -23,6 +23,8 @@ public interface IClusterCollection {
 	Collection<STBipartition> getClusterResolutions();
 
 	Iterable<Set<Vertex>> getSubClusters();
+	
+	Set<Vertex> getSubClusters(int size);
 //
 //	void addGeneTreeSTB(STBipartition stb, int size);
 //
