@@ -39,7 +39,9 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		}
 
 		private long F(int a,int b,int c) {
-			return a*b*c*(a+b+c-3);
+			long ret = (a+b+c-3);
+			ret *= a*b*c;
+			return ret;
 		}	
 		
 		long sharedQuartetCount(Tripartition that, Tripartition other) {
