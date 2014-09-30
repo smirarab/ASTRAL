@@ -36,9 +36,12 @@ public abstract class AbstractWeightCalculator<T> {
 			prepareWeightTask(weigthWork, minCostTask);
 			// MP_VERSION: smallWork.fork();
 			weight = TESTRUN ? 0 : weigthWork.calculateWeight();
-			if (! TESTRUN ) 
+			int count;
+			if (! TESTRUN ) {
 				weights.put(t, weight);
-			int count = weights.size();
+				count = weights.size();
+			} else
+				count = this.callcounter;
 			if (count % 100000 == 0)
 				System.err.println("Calculated "+ count +" weights; time:" + System.currentTimeMillis());
 /*			if (weights.size() == 75318) {
