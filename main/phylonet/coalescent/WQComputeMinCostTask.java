@@ -15,14 +15,14 @@ public class WQComputeMinCostTask extends AbstractComputeMinCostTask<Tripartitio
 		this.wqDataCollection = (WQDataCollection)inference.dataCollection;
 	}
 	
-	protected double adjustWeight(int clusterLevelCost, Vertex smallV,
+	protected double adjustWeight(long clusterLevelCost, Vertex smallV,
 			Vertex bigv, Long Wdom) {	
 		return Wdom;
 	}
 	
 	@Override
-	protected int scoreBaseCase(boolean rooted, List<Tree> trees) {	
-		return 0;
+	protected long scoreBaseCase(boolean rooted, List<Tree> trees) {	
+		return 0l;
 	}
 
 	@Override
@@ -32,8 +32,8 @@ public class WQComputeMinCostTask extends AbstractComputeMinCostTask<Tripartitio
 	}
 	
 	@Override
-	protected int calculateClusterLevelCost() {
-		return 0;
+	protected long calculateClusterLevelCost() {
+		return 0l;
 	}
 
 	@Override
