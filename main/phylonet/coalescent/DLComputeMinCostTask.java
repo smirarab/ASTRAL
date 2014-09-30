@@ -23,7 +23,7 @@ public class DLComputeMinCostTask extends AbstractComputeMinCostTask<STBipartiti
 		weightCalculator = (DLWeightCalculator) inference.weightCalculator;
 	}
 	
-	protected double adjustWeight(int clusterLevelCost, Vertex smallV,
+	protected double adjustWeight(long clusterLevelCost, Vertex smallV,
 			Vertex bigv, Long Wdom) {
 		double c;
 		if (inference.getOptimizeDuploss() == 3) {
@@ -58,8 +58,8 @@ public class DLComputeMinCostTask extends AbstractComputeMinCostTask<STBipartiti
 	}
 	
 	@Override
-	protected int scoreBaseCase(boolean rooted, List<Tree> trees) {
-		int _el_num = -1;
+	protected long scoreBaseCase(boolean rooted, List<Tree> trees) {
+		long _el_num = -1;
 		if (inference.getOptimizeDuploss() == 3) {
 			if (GlobalMaps.taxonNameMap == null) {
 				_el_num = DeepCoalescencesCounter.getClusterCoalNum(trees,
@@ -82,7 +82,7 @@ public class DLComputeMinCostTask extends AbstractComputeMinCostTask<STBipartiti
 	}
 	
 	@Override
-	protected int calculateClusterLevelCost() {
+	protected long calculateClusterLevelCost() {
 		if (inference.getOptimizeDuploss() == 3) {
 			return weightCalculator.calculateDLstdClusterCost(
 					this.v.getCluster(), inference.trees);
