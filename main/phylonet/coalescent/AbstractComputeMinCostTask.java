@@ -20,7 +20,6 @@ public abstract class AbstractComputeMinCostTask<T> {
 	Vertex v;
 	IClusterCollection clusters;
 
-	// final int maxEL = 10000000;
 	IClusterCollection containedVertecies;
     private SpeciesMapper spm;
 
@@ -107,7 +106,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 						.getClusterResolutions();
 			}
 			
-			int clusterLevelCost = 0;
+			long clusterLevelCost = 0;
 			if (!clusterResolutions.isEmpty()) {
 				clusterLevelCost = calculateClusterLevelCost();
 			}
@@ -188,7 +187,8 @@ public abstract class AbstractComputeMinCostTask<T> {
 					// System.err.println(maxSubClusters);
 					Iterator<Set<Vertex>> it = containedVertecies.getSubClusters().iterator();
 					if (it.hasNext()) {
-						Collection<Vertex> biggestSubClusters = new ArrayList<Vertex>(it.next());
+						Collection<Vertex> biggestSubClusters = new ArrayList<STITreeCluster.Vertex>(it.next());
+						//if (it.hasNext()) {biggestSubClusters = new ArrayList<STITreeCluster.Vertex>(it.next());}
 						int i = -1;
 						for (Vertex x : biggestSubClusters) {
 							i = i > 0 ? i : x.getCluster().getClusterSize();
@@ -209,6 +209,9 @@ public abstract class AbstractComputeMinCostTask<T> {
 					}
 
 				}
+			}
+			if (tryAnotherTime) {
+				System.err.println("... auto expanding " + this.v.getCluster().getClusterSize()+"\n"+this.v.getCluster());
 			}
 		} while (tryAnotherTime);
 
@@ -236,12 +239,12 @@ public abstract class AbstractComputeMinCostTask<T> {
 	protected abstract AbstractComputeMinCostTask<T> newMinCostTask(Vertex v, 
 	IClusterCollection clusters);
 
-	abstract protected double adjustWeight(int clusterLevelCost, Vertex smallV,
+	abstract protected double adjustWeight(long clusterLevelCost, Vertex smallV,
 			Vertex bigv, Long Wdom);
 
-    abstract protected int calculateClusterLevelCost();
+    abstract protected long calculateClusterLevelCost();
 	
-	abstract protected int scoreBaseCase(boolean rooted, List<Tree> trees);
+	abstract protected long scoreBaseCase(boolean rooted, List<Tree> trees);
 	
 	abstract protected T STB2T(STBipartition stb);
 
