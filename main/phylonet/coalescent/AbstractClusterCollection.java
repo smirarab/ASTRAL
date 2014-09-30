@@ -128,6 +128,11 @@ public abstract class AbstractClusterCollection implements IClusterCollection{
 	public abstract AbstractClusterCollection newInstance(int size);
 
 	@Override
+	public Set<Vertex> getSubClusters(int size) {
+		return this.clusters.get(size);
+	}
+	
+	@Override
 	public Iterable<Set<Vertex>> getSubClusters() {
 		return new Iterable<Set<Vertex>>() {
 	
