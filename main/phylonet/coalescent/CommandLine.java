@@ -36,7 +36,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.6.3test.2";
+    protected static String _versinon = "4.6.3";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
