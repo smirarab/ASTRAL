@@ -46,14 +46,15 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 			Map<Tripartition, Integer> geneTreeTripartitonCount, boolean complete) {
 
 		System.err.println("Building clusters (and more) from gene trees ");
+		int t = 0;
 		for (Tree tr : trees) {
 			Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
-			STITreeCluster gtAll = new STITreeCluster();
-			String[] gtLeaves = tr.getLeaves();
-			for (int i = 0; i < gtLeaves.length; i++) {
-				gtAll.addLeaf(GlobalMaps.taxonIdentifier.taxonId(gtLeaves[i]));
-			}
-			treeAllClusters.add(gtAll);
+			STITreeCluster gtAll = this.treeAllClusters.get(t++);
+//			String[] gtLeaves = tr.getLeaves();
+//			for (int i = 0; i < gtLeaves.length; i++) {
+//				gtAll.addLeaf(GlobalMaps.taxonIdentifier.taxonId(gtLeaves[i]));
+//			}
+//			treeAllClusters.add(gtAll);
 			BitSet gtAllBS = gtAll.getBitSet();
 			
 			int [] neighbor = null;
@@ -238,6 +239,12 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 			if (tree.getLeafCount() != n) {
 				haveMissing++;
 			}
+			String[] gtLeaves = tree.getLeaves();
+			STITreeCluster gtAll = new STITreeCluster();
+			for (int i = 0; i < gtLeaves.length; i++) {
+				gtAll.addLeaf(GlobalMaps.taxonIdentifier.taxonId(gtLeaves[i]));
+			}
+			treeAllClusters.add(gtAll);
 		}
 		System.err.println( haveMissing + " trees have missing taxa");
 		
@@ -380,12 +387,12 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 	}
 
 
-	private void updateDistanceForTwoNodes (Integer treeall, List<Integer> left,
-			List<Integer> right, float[][] matrix) {
-		int c = treeall - left.size() - right.size();
+	private void updateDistanceForTwoNodes (Integer treeall, BitSet left,
+			BitSet right, float[][] matrix) {
+		int c = treeall - left.cardinality() - right.cardinality();
 		c = c*(c-1)/2;
-		for (Integer l : left) {
-			for (Integer r : right) {
+		for (int l = left.nextSetBit(0); l >= 0; l=left.nextSetBit(l+1)) {
+			for (int r = right.nextSetBit(0); r >= 0; r=right.nextSetBit(r+1)) {
 				matrix[l][r] += c;
 				matrix[r][l] = matrix[l][r];
 			}
@@ -393,46 +400,53 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 	}
 
 	private void calculateDistances(AbstractInference<Tripartition> inference) {
-		Deque<List<Integer>> stack = new ArrayDeque<List<Integer>>();
+		Deque<BitSet> stack = new ArrayDeque<BitSet>();
 		this.distMatrix = new float[n][n];
 		int [][] denom = new int [n][n];
 
+		int k = 0;
 		for (Tree tree : inference.trees) {
-			Integer treeall = tree.getLeafCount();
+			STITreeCluster treeallCL = treeAllClusters.get(k++);
+			
+			Integer treeall = treeallCL.getClusterSize();
+			
 			for (TNode node : tree.postTraverse()) {
 				if (node.isLeaf()) {
-					ArrayList<Integer> tmp = new ArrayList<Integer>();
-					tmp.add(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
+					BitSet tmp = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
+					tmp.set(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
 					stack.push(tmp);
 				} else if (node.isRoot() && node.getChildCount() == 3){
-					List<Integer> left = stack.pop();
-					List<Integer> middle = stack.pop();
-					List<Integer> right = stack.pop();
+					BitSet left = stack.pop();
+					BitSet middle = stack.pop();
+					BitSet right = stack.pop();
 					updateDistanceForTwoNodes(treeall, left, right, distMatrix);
 					updateDistanceForTwoNodes(treeall, left, middle, distMatrix);
 					updateDistanceForTwoNodes(treeall, middle, right, distMatrix);
-					left.addAll(right);
-					left.addAll(middle);
-					stack.push(left);
 				} else {
-					List<Integer> left = stack.pop();
-					List<Integer> right = stack.pop();
+					BitSet left = stack.pop();
+					BitSet right = stack.pop();
+					BitSet both = new BitSet();
+					both.or(left);
+					both.or(right);
+					BitSet middle = new BitSet();
+					middle.or(treeallCL.getBitSet());
+					middle.andNot(both); 
 					updateDistanceForTwoNodes(treeall, left, right, distMatrix);
-					left.addAll(right);
-					right.clear();
-					stack.push(left);
-				}
-				if (node.isRoot()) {
-					List<Integer> all = stack.pop();
-					int c = all.size() - 2;
-					for (Integer l : all) {
-						for (Integer r : all) {
-							denom[l][r] += c*(c-1)/2;
-							denom[r][l] = denom[l][r];
-						}
-					}
+					updateDistanceForTwoNodes(treeall, left, middle, distMatrix);
+					updateDistanceForTwoNodes(treeall, middle, right, distMatrix);
+					stack.push(both);
 				}
 			}
+
+			BitSet all = treeallCL.getBitSet();
+			int c = all.cardinality() - 2;
+			for (int l = all.nextSetBit(0); l >= 0; l=all.nextSetBit(l+1)) {
+				for (int r = all.nextSetBit(0); r >= 0; r=all.nextSetBit(r+1)) {
+					denom[l][r] += c*(c-1)/2;
+					denom[r][l] = denom[l][r];
+				}
+			}
+			
 		}
 		for (int i = 0; i < n; i++) {
 			for (int j = i; j < n; j++) {
