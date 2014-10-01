@@ -1,6 +1,7 @@
 - Version 4.6.3:
+  - Fixed bug in calculation of the distance matrix
   - Improved scalability of missing taxon completion algorithm (n^2 logn+n|X|^2)
-  - 
+  - Fixed numerical bugs related to 1000 taxon case (long used everywhere)
   - A bit of code refactoring
   - Adding more stderr logs
   - Added option to prevent addition of extra taxa
