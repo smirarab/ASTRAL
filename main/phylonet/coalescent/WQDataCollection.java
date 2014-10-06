@@ -43,18 +43,14 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 
 
 	void traverseTrees(List<Tree> trees, boolean addTripartition,
-			Map<Tripartition, Integer> geneTreeTripartitonCount, boolean complete) {
+			Map<Tripartition, Integer> geneTreeTripartitonCount, boolean complete,
+			List<STITreeCluster> treeCompteleClusters) {
 
 		System.err.println("Building clusters (and more) from gene trees ");
 		int t = 0;
 		for (Tree tr : trees) {
 			Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
-			STITreeCluster gtAll = this.treeAllClusters.get(t++);
-//			String[] gtLeaves = tr.getLeaves();
-//			for (int i = 0; i < gtLeaves.length; i++) {
-//				gtAll.addLeaf(GlobalMaps.taxonIdentifier.taxonId(gtLeaves[i]));
-//			}
-//			treeAllClusters.add(gtAll);
+			STITreeCluster gtAll = treeCompteleClusters.get(t++);
 			BitSet gtAllBS = gtAll.getBitSet();
 			
 			int [] neighbor = null;
@@ -235,6 +231,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		n = GlobalMaps.taxonIdentifier.taxonCount();
 
 		int haveMissing = 0;
+		
 		for (Tree tree : inference.trees) {
 			if (tree.getLeafCount() != n) {
 				haveMissing++;
@@ -250,7 +247,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		
 		if ( (haveMissing > k/20) || addExtra) {
 			System.err.println("Calculating quartet distance matrix (for completion of X)");
-			calculateDistances(inference);
+			calculateDistances(inference, treeAllClusters);
 		}
 
 		if (haveMissing > k/20 ) {
@@ -303,7 +300,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		STITreeCluster all = new STITreeCluster();
 		all.getBitSet().set(0, n);
 		addToClusters(all, GlobalMaps.taxonIdentifier.taxonCount());		
-		traverseTrees(inference.trees, true, geneTreeTripartitonCount, this.orderedTaxonByDist != null);
+		traverseTrees(inference.trees, true, geneTreeTripartitonCount, 
+				this.orderedTaxonByDist != null,treeAllClusters);
 
 		this.setAlgorithm(geneTreeTripartitonCount.size(), k);
 		
@@ -399,7 +397,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		}
 	}
 
-	private void calculateDistances(AbstractInference<Tripartition> inference) {
+	private void calculateDistances(AbstractInference<Tripartition> inference,List<STITreeCluster> treeAllClusters) {
 		Deque<BitSet> stack = new ArrayDeque<BitSet>();
 		this.distMatrix = new float[n][n];
 		int [][] denom = new int [n][n];
@@ -461,8 +459,18 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 
 	public void addExtraBipartitionsByInput(IClusterCollection extraClusters,
 			List<Tree> trees, boolean extraTreeRooted) {
+		
+		List<STITreeCluster> extraTreeAllCluster = new ArrayList<STITreeCluster>();
+		for (Tree tr: trees) {
+			String[] gtLeaves = tr.getLeaves();
+			STITreeCluster gtAll = new STITreeCluster();
+			for (int i = 0; i < gtLeaves.length; i++) {
+				gtAll.addLeaf(GlobalMaps.taxonIdentifier.taxonId(gtLeaves[i]));
+			}
+			extraTreeAllCluster.add(gtAll);
+		}
 
-		traverseTrees(trees, false, null, this.orderedTaxonByDist != null);
+		traverseTrees(trees, false, null, this.orderedTaxonByDist != null, extraTreeAllCluster);
 		int s = extraClusters.getClusterCount();
 		/*
 		 * for (Integer c: clusters2.keySet()){ s += clusters2.get(c).size(); }
