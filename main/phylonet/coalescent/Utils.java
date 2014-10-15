@@ -140,10 +140,12 @@ public class Utils {
         return;
     }
 
-    public static final Tree greedyConsensus(Iterable<Tree> trees) {
+    public static final Tree greedyConsensus(Iterable<Tree> trees, double ratio) {
     
         HashMap<STITreeCluster, Integer> count = new HashMap<STITreeCluster, Integer>();
+        int treecount = 0;
         for (Tree tree : trees) {
+        	treecount++;
             List<STITreeCluster> bipartitionClusters = Utils.getClusters(tree);
             for (STITreeCluster cluster: bipartitionClusters) {
                 if (count.containsKey(cluster)) {
@@ -189,9 +191,11 @@ public class Utils {
             }
         });
         countSorted.addAll(count.entrySet());
-        List<STITreeCluster> clusters = new ArrayList<STITreeCluster>();       
+        List<STITreeCluster> clusters = new ArrayList<STITreeCluster>();   
         for (Entry<STITreeCluster, Integer> entry : countSorted) {
-            clusters.add(entry.getKey());
+        	if (ratio <= (entry.getValue()+.0d)/treecount) {	
+        		clusters.add(entry.getKey());
+        	}
         }
         return Utils.buildTreeFromClusters(clusters);
     }
@@ -293,4 +297,5 @@ public class Utils {
             System.err.println("Command " + args[0]+ " not found.");
         }
     }
+    
 }
