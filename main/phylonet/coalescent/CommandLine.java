@@ -36,7 +36,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.6.3";
+    protected static String _versinon = "4.6.4g";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -62,41 +62,54 @@ public class CommandLine {
                 new Parameter[] {
                     
                     new FlaggedOption("input file", 
-                            FileStringParser.getParser().setMustExist(true), null, JSAP.REQUIRED, 'i', "input",
+                            FileStringParser.getParser().setMustExist(true), null, JSAP.REQUIRED, 
+                            'i', "input",
                             "a file containing input gene trees in newick format. (required)"),
                             
                     new FlaggedOption( "output file",
-                            FileStringParser.getParser(), null, JSAP.NOT_REQUIRED, 'o', "output",
+                            FileStringParser.getParser(), null, JSAP.NOT_REQUIRED,
+                            'o', "output",
                             "a filename for storing the output species tree. Defaults to outputting to stdout."),
                             
                     new Switch("exact",
                             'x', "exact",
                             "find the exact solution by looking at all clusters - recommended only for small (<18) numer of taxa."),
    
-                    new Switch("noDistExtra",
-                            'p', "noDistExtra",
-                            "Do not add extra bipartitions based on weights."),
+                    new FlaggedOption("extraLevel",
+                    		JSAP.INTEGER_PARSER, "2", JSAP.NOT_REQUIRED,
+                            'p', "extraLevel",
+                            "How much extra bipartitions should be added: 0, 1, or 2"),
    
                     new FlaggedOption("extra trees", 
-                            FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 'e', "extra",
+                            FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 
+                            'e', "extra",
                             "provide extra trees (with gene labels) used to enrich the set of clusters searched"),
 
                     new FlaggedOption("extra species trees", 
-                            FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 'f', "extra-species",
+                            FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 
+                            'f', "extra-species",
                             "provide extra trees (with species lables) used to enrich the set of clusters searched"),
 
+                    new FlaggedOption("score species trees", 
+                            FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 
+                            'q', "score-tree",
+                            "score the provided species tree and exit"),
+
                     new FlaggedOption("bootstraps", 
-                            FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 'b', "bootstraps",
+                            FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED,
+                            'b', "bootstraps",
                             "perform multi-locus bootstrapping using input bootstrap replicate files (use --rep to change the number of replications). "
                             + "The file given with this option should have a list of the gene tree bootstrap files, one per line, and each line corresponding to one gene. "
                             + "By default performs site-only resampling, but gene/site resampling can also be used. "),
 
                     new FlaggedOption("replicates", 
-                            JSAP.INTEGER_PARSER, "100", JSAP.NOT_REQUIRED, 'r', "reps",
+                            JSAP.INTEGER_PARSER, "100", JSAP.NOT_REQUIRED, 
+                            'r', "reps",
                             "Set the number of bootstrap replicates done in multi-locus bootstrapping. "),
 
                     new FlaggedOption("seed", 
-                            JSAP.LONG_PARSER, "692", JSAP.NOT_REQUIRED, 's', "seed",
+                            JSAP.LONG_PARSER, "692", JSAP.NOT_REQUIRED,
+                            's', "seed",
                             "Set the seed number used in multi-locus bootstrapping. "),
 
                     new Switch("gene-sampling",
@@ -104,7 +117,8 @@ public class CommandLine {
                             "perform gene tree resampling in addition to site resampling. Useful only with the -b option."),
 
                     new FlaggedOption("mapping file", 
-                            FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 'a', "namemapfile",
+                            FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 
+                            'a', "namemapfile",
                             "a file containing the mapping between names in gene tree and names in the species tree. "
                             + "The mapping file has one line per species, with one of two formats:\n"
                             + " species: gene1,gene2,gene3,gene4\n"
@@ -117,7 +131,8 @@ public class CommandLine {
                             + "DynaDyp would be used *instead of* ASTRAL."),
                             
                     new FlaggedOption( "duploss weight",
-                            JSAP.STRING_PARSER, null, JSAP.NOT_REQUIRED, 'l', "duploss",
+                            JSAP.STRING_PARSER, null, JSAP.NOT_REQUIRED,
+                            'l', "duploss",
                             "Solves MGDL problem. Minimizes the number duplication and losses required"
                             + " to explain gene trees using DynaDup algorithm. Note that with this option, "
                             + "DynaDyp would be used *instead of* ASTRAL. "
@@ -156,7 +171,7 @@ public class CommandLine {
 		double cd = 1.0D;
 		double wh = 1.0D;
 		boolean exact = false;
-		boolean addExtra = true;
+		int addExtra;
 		int k = 0;
         BufferedWriter outbuffer;
 		
@@ -175,7 +190,7 @@ public class CommandLine {
         
         exact = config.getBoolean("exact");
         
-        addExtra = ! config.getBoolean("noDistExtra");
+        addExtra = config.getInt("extraLevel");
         
         if (config.getBoolean("duplication") && config.contains("duploss weight")) {
             exitWithErr("dup and duploss options cannot be used together. Choose only one. ",jsap);
@@ -207,7 +222,7 @@ public class CommandLine {
 
         System.err.println("Gene trees are treated as " + (rooted ? "rooted" : "unrooted"));
 
-        Random random = new Random(config.getLong("seed"));
+        GlobalMaps.random = new Random(config.getLong("seed"));
         
         if (config.getFile("mapping file") != null) {
 
@@ -247,6 +262,8 @@ public class CommandLine {
         }
         
         try {
+        	
+        	//GlobalMaps.taxonIdentifier.taxonId("0");
 
             readInputTrees(new BufferedReader(new FileReader(config.getFile("input file"))),
                     rooted, trees, true, false);			
@@ -275,6 +292,20 @@ public class CommandLine {
             GlobalMaps.taxonNameMap = new TaxonNameMap();
         }
         
+        if (config.getFile("score species trees") != null) {
+        	ArrayList<Tree> toScore = new ArrayList<Tree>();
+        	readInputTrees(new BufferedReader(new FileReader(config.getFile("score species trees"))),
+                     rooted, toScore, true, true);
+        	
+            AbstractInference inference =
+                    initializeInference(criterion, rooted, extrarooted, trees,
+                            extraTrees, cs, cd, wh, exact, addExtra);
+        	for (Tree tr : toScore) {
+        		inference.scoreGeneTree(tr);
+        	}
+        	System.exit(0);
+        }
+        
         String outgroup = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesName(0);
         System.err.println("All outputted trees will be *arbitrarily* rooted at "+outgroup);
         
@@ -286,6 +317,7 @@ public class CommandLine {
                 System.err.println(extraTrees.size() + " extra trees read from "
                         + config.getFile("extra trees"));
             }
+            
             
         } catch (IOException e) {
             System.err.println("Error when reading extra trees.");
@@ -308,7 +340,7 @@ public class CommandLine {
                 while ((line = rebuff.readLine()) != null) {
                     ArrayList<Tree> g = new ArrayList<Tree>();
                     readInputTrees(new BufferedReader(new FileReader(line)), rooted, g, true, false);
-                    Collections.shuffle(g, random);
+                    Collections.shuffle(g, GlobalMaps.random);
                     bstrees.add(g);
                 }
                 rebuff.close();
@@ -330,7 +362,7 @@ public class CommandLine {
 		        try {
     		        if (config.getBoolean("gene-sampling")) {
     		            for (int j = 0; j < k; j++) {
-                            input.add(bstrees.get(random.nextInt(k)).remove(0));                 
+                            input.add(bstrees.get(GlobalMaps.random.nextInt(k)).remove(0));                 
                         }
     		        } else {   		        
     		            for (List<Tree> gene : bstrees) {
@@ -356,7 +388,7 @@ public class CommandLine {
 		}
 	    
 		if (bootstraps != null && bootstraps.size() != 0) {
-            STITree<Double> cons = (STITree<Double>) Utils.greedyConsensus(bootstraps);
+            STITree<Double> cons = (STITree<Double>) Utils.greedyConsensus(bootstraps,0);
             cons.rerootTreeAtNode(cons.getNode(outgroup));
             Utils.computeEdgeSupports(cons, bootstraps);
             writeTreeToFile(outbuffer, cons);
@@ -376,7 +408,7 @@ public class CommandLine {
     private static Tree runOnOneInput(int criterion, boolean rooted,
             boolean extrarooted, List<Tree> extraTrees, double cs, double cd,
             double wh, boolean exact, BufferedWriter outbuffer, List<Tree> input, 
-            Iterable<Tree> bootstraps, String outgroup, boolean addExtra) {
+            Iterable<Tree> bootstraps, String outgroup, int addExtra) {
         long startTime;
         startTime = System.currentTimeMillis();
         
@@ -384,7 +416,6 @@ public class CommandLine {
             initializeInference(criterion, rooted, extrarooted, input,
                     extraTrees, cs, cd, wh, exact, addExtra);
         
-        /* if (scorest != null) {inference.scoreGeneTree(scorest);System.exit(0); }*/
         List<Solution> solutions = inference.inferSpeciesTree();
    
         System.err.println("Optimal tree inferred in "
@@ -405,14 +436,14 @@ public class CommandLine {
 
     private static AbstractInference initializeInference(int criterion, boolean rooted,
             boolean extrarooted, List<Tree> trees, List<Tree> extraTrees,
-            double cs, double cd, double wh, boolean exact, boolean addExtra) {
+            double cs, double cd, double wh, boolean exact, int addExtra) {
         AbstractInference inference;		
 		if (criterion == 1 || criterion == 0) {
 			inference = new DLInference(rooted, extrarooted, 
 					trees, extraTrees,exact ,criterion > 0);			
 		} else if (criterion == 2) {
 			inference = new WQInference(rooted, extrarooted, 
-					trees, extraTrees, exact,criterion > 0, -1, addExtra);
+					trees, extraTrees, exact,criterion > 0, 1, addExtra);
 		} else {
 			throw new RuntimeException("criterion not set?");
 		}		
