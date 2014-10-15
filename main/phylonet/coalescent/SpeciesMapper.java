@@ -158,7 +158,8 @@ public class SpeciesMapper {
             TMutableNode node = gt.getNode(leave);
             List<String> geneNamesForSpeciesName = this.getGeneNamesForSpeciesName(node.getName());
             if (geneNamesForSpeciesName.size() == 1) {
-                node.setName(geneNamesForSpeciesName.get(0));
+            	if (! node.getName().equals(geneNamesForSpeciesName.get(0)))
+            		node.setName(geneNamesForSpeciesName.get(0));
             } else {
                 for (String gene: geneNamesForSpeciesName) {
                     node.createChild(gene);
