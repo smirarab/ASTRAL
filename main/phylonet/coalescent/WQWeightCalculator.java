@@ -39,6 +39,9 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		}
 
 		private long F(int a,int b,int c) {
+			if (a<0 || b<0 || c<0) {
+				throw new RuntimeException("negative side not expected: "+a+" "+b+" "+c);
+			}
 			long ret = (a+b+c-3);
 			ret *= a*b*c;
 			return ret;
@@ -68,8 +71,10 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 				return new Intersects(1,0,0);
 			} else if (trip.cluster2.getBitSet().get(i)) {
 				return new Intersects(0,1,0);
-			} else {
+			} else if (trip.cluster3.getBitSet().get(i)) {
 				return  new Intersects(0,0,1);
+			} else {
+				return  new Intersects(0,0,0);
 			}
 		}
 		
@@ -112,7 +117,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
 			boolean newTree = true;
 			
-			Deque<Intersects> stack = new ArrayDeque<WQWeightCalculator.QuartetWeightTask.Intersects>();
+			Deque<Intersects> stack = new ArrayDeque<Intersects>();
 			for (Integer gtb: dataCollection.geneTreesAsInts){
 				if (newTree) {
 					STITreeCluster all = tit.next();
@@ -159,10 +164,18 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
                         children.add(sideRemaining);
                     }
                     for (int i = 0; i < children.size(); i++) {
+                        Intersects side1 = children.get(i);
+                        
                         for (int j = i+1; j < children.size(); j++) {
+                            Intersects side2 = children.get(j);
+                            if (children.size() > 5) {
+                            	if ((side1.s0+side2.s0 == 0? 1 :0) +
+                            			(side1.s1+side2.s1 == 0? 1 :0) + 
+                            			(side1.s2+side2.s2 == 0? 1:0) > 1)
+                            		continue;
+                            }
+                            
                             for (int k = j+1; k < children.size(); k++) {
-                                Intersects side1 = children.get(i);
-                                Intersects side2 = children.get(j);
                                 Intersects side3 = children.get(k);
                                 weight += F(side1.s0,side2.s1,side3.s2)+
                                         F(side1.s0,side2.s2,side3.s1)+
