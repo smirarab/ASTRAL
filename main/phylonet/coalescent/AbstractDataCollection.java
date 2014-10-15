@@ -37,10 +37,11 @@ public abstract class AbstractDataCollection <T> {
 						+ clusters.getClusterCount());
 	}
 
-	public abstract void addExtraBipartitionsByInput(IClusterCollection extraClusters,
+	public abstract void addExtraBipartitionsByInput(
 			List<Tree> trees, boolean extraTreeRooted);
 	
-	public abstract void computeTreePartitions(AbstractInference<T> inference, boolean addExtra);
+	public abstract void computeTreePartitions(AbstractInference<T> inference);
 
-    public abstract void addExtraBipartitionByExtension();
+    public abstract void addExtraBipartitionByExtension(AbstractInference<T> inference);
+
 }
