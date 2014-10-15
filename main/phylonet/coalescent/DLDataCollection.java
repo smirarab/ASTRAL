@@ -41,7 +41,7 @@ public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 		this.clusters = clusters;
 	}
 
-	public void computeTreePartitions(AbstractInference<STBipartition> inference, boolean addExtra) {
+	public void computeTreePartitions(AbstractInference<STBipartition> inference) {
 
 		double unweigthedConstant = 0;
 		double weightedConstant = 0;
@@ -209,7 +209,7 @@ public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 	}
 
 
-	public void addExtraBipartitionsByInput(IClusterCollection extraClusters,
+	public void addExtraBipartitionsByInput(
 			List<Tree> trees, boolean extraTreeRooted) {
 
 		int n = GlobalMaps.taxonIdentifier.taxonCount();
@@ -315,13 +315,6 @@ public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 			}
 
 		}
-		int s = extraClusters.getClusterCount();
-		/*
-		 * for (Integer c: clusters2.keySet()){ s += clusters2.get(c).size(); }
-		 */
-		System.err
-				.println("Number of Clusters After additions from extra Trees: "
-						+ s);
 	}
 
 	private void tryAddingSTB(STITreeCluster l_cluster,
@@ -389,7 +382,7 @@ public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 	}
 
     @Override
-    public void addExtraBipartitionByExtension() {
+    public void addExtraBipartitionByExtension(AbstractInference<STBipartition> inference) {
         
     }
 

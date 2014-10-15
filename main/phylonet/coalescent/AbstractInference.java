@@ -40,10 +40,10 @@ public abstract class AbstractInference<T> {
 	
 	AbstractDataCollection<T> dataCollection;
 	AbstractWeightCalculator<T> weightCalculator;
-	private boolean addExtra;
+	private int addExtra;
 
 	public AbstractInference(boolean rooted, boolean extrarooted, List<Tree> trees,
-			List<Tree> extraTrees, boolean exactSolution, boolean addExtra) {
+			List<Tree> extraTrees, boolean exactSolution, int addExtra) {
 		super();
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
@@ -246,11 +246,11 @@ public abstract class AbstractInference<T> {
 		dataCollection = newCounter(clusters);
 		weightCalculator = newWeightCalculator();
 
-		dataCollection.computeTreePartitions(this, this.isAddExtra());
+		dataCollection.computeTreePartitions(this);
 
-		if (this.isAddExtra()) {
-		    System.err.println("calculating extra bipartitions to be added ...");
-		    dataCollection.addExtraBipartitionByExtension();
+		if (this.getAddExtra() != 0) {
+		    System.err.println("calculating extra bipartitions to be added at level " + this.getAddExtra() +" ...");
+		    dataCollection.addExtraBipartitionByExtension(this);
 		}
 		
 		if (exactSolution) {
@@ -260,8 +260,15 @@ public abstract class AbstractInference<T> {
 
 	      
 		if (extraTrees != null) {		
-	          System.err.println("calculating extra bipartitions from extra input trees ...");
-			dataCollection.addExtraBipartitionsByInput(clusters, extraTrees,extrarooted);					
+	        System.err.println("calculating extra bipartitions from extra input trees ...");
+			dataCollection.addExtraBipartitionsByInput(extraTrees,extrarooted);
+			int s = clusters.getClusterCount();
+			/*
+			 * for (Integer c: clusters2.keySet()){ s += clusters2.get(c).size(); }
+			 */
+			System.err
+			.println("Number of Clusters after additions from extra trees: "
+					+ s);
 		}
 		
 
@@ -321,7 +328,7 @@ public abstract class AbstractInference<T> {
 		CD = cD;
 	}
 
-    public boolean isAddExtra() {
+    public int getAddExtra() {
         return addExtra;
     }
 
