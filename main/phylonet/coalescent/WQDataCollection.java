@@ -374,10 +374,12 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 			}
 			String[] gtLeaves = tree.getLeaves();
 			STITreeCluster gtAll = new STITreeCluster();
-			for (int i = 0; i < gtLeaves.length; i++) {
+			int ni = gtLeaves.length;
+			for (int i = 0; i < ni ; i++) {
 				gtAll.addLeaf(GlobalMaps.taxonIdentifier.taxonId(gtLeaves[i]));
 			}
 			treeAllClusters.add(gtAll);
+			((WQInference)inference).maxpossible += ni * (ni -1) * (ni - 2) * (ni -3) / 24l;
 		}
 		
 		System.err.println( haveMissing + " trees have missing taxa");
@@ -395,7 +397,10 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 				Tree trc = getCompleteTree(tr, this.treeAllClusters.get(t++).getBitSet());		
 				this.completedGeeneTrees.add(trc);
 			}
+		} else  {
+			this.completedGeeneTrees = this.geneTrees;
 		}
+			
 
 
 		/*
