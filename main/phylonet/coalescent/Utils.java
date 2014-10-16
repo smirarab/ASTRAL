@@ -298,4 +298,12 @@ public class Utils {
         }
     }
     
+	public static String getLeftmostLeaf(TNode from){
+		for (TNode node : from.postTraverse()) {
+			if (node.isLeaf()) {
+				return node.getName();
+			}
+		}
+		throw new RuntimeException("not possible");	
+	}
 }
