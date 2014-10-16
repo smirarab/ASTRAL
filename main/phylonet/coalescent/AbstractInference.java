@@ -259,15 +259,14 @@ public abstract class AbstractInference<T> {
 		}
 
 	      
-		if (extraTrees != null) {		
+		if (extraTrees != null && extraTrees.size() > 0) {		
 	        System.err.println("calculating extra bipartitions from extra input trees ...");
 			dataCollection.addExtraBipartitionsByInput(extraTrees,extrarooted);
 			int s = clusters.getClusterCount();
 			/*
 			 * for (Integer c: clusters2.keySet()){ s += clusters2.get(c).size(); }
 			 */
-			System.err
-			.println("Number of Clusters after additions from extra trees: "
+			System.err.println("Number of Clusters after additions from extra trees: "
 					+ s);
 		}
 		
@@ -281,8 +280,7 @@ public abstract class AbstractInference<T> {
 		
 
 		System.err.println("Dynamic Programming starting after "
-				+ (System.currentTimeMillis() - startTime) / 1000.0D
-				+ " secs");
+				+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 
 		solutions = findTreesByDP(clusters);
 
