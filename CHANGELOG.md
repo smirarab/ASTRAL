@@ -1,3 +1,14 @@
+- Version 4.7.0:
+  - Changed how bipartitions from trees with missing data are completed. In new version, gene trees are completed based on a four point condition approach. 
+  - Added a new mechanism based on greedy consensus for adding bipartitions to X
+  - Added arbitrary resolutions of polytomies in input gene trees to set X
+  - Optimization for scoring gene trees with polytomies (prune 0,0,0 sides)
+  - Fixed to tree-based algorithm for score calculation (a bit slower for small and low ILS datasets)
+  - Changed option p to have three values: 0 (no addition), 1 (addition by greedy), and 2 (addition by greedy and distance) 
+  - Added option q to score a given species tree
+  - Changed log messages a bit.
+  - More code refactoring
+	 
 - Version 4.6.3:
   - Fixed bug in calculation of the distance matrix for addition of extra bipartitions and completion of incomplete gene trees
   - Improved scalability of missing taxon completion algorithm (n^2 logn+n|X|^2)
@@ -5,6 +16,7 @@
   - A bit of code refactoring
   - Adding more stderr logs
   - Added `-p` option to prevent addition of extra taxa
+ 
   
 - Version 4.6.2:
   - Merge in 4.4.3 and 4.4.4 to mutli-allele branch
