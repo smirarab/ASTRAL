@@ -2,6 +2,23 @@ DESCRIPTION:
 -----------
 ASTRAL is a Java program for estimating a species tree given a set of unrooted gene trees. ASTRAL is statistically consistent under multi-species coalescent model (and thus is useful for handling ILS). It finds the tree that maximizes the number of induced quartet trees in the set of gene trees that are shared by the species tree. The algorithm has an exact version that can run for small datasets (less than 18 taxa) and a more useful version that can handle large datasets (103 taxa an 800 genes were analyzed in few minutes).
 
+
+Warnings:
+-----------
+
+ASTRAL is under active development (see the [development branch](https://github.com/smirarab/ASTRAL/tree/development)). There are many features that we are adding to ASTRAL (multi-alleles, unresolved gene trees, etc.). However, the most important one that needs mention is the definition of set X (see our paper), which restricts the search space. 
+
+The significance of set X is that all bipartitions in our species tree are restricted to those that are in X. By default, X is the set of bipartitions in the input gene set. We can build scenarios in simulations where our default strategy for setting X fails to produce good results. We need to enlarge this set in such situations (lots of taxa, too few genes, lots of ILS, too much missing data). There are two ways to do this: automatically using heuristic algorithms, and by using additional trees that might include reasonable hypotheses of the species tree. We are actively working on the first approach and our development branch has new methods that greatly alleviate this potential issue. As a user, you can try finding other trees, anything that might have a chance of containing bipartitions from the species tree, and add those to the set X (using `-e` option). However, if your dataset has one of the following criteria, we **strongly recommend that you test the latest version from the development branch** on your dataset:
+
+* Very high levels of ILS
+* Few genes. What is few depends on the number of taxa. 100 genes is quite a lot for 10 taxa, but not much at all for 100 taxa. 
+* Lots of missing data. 
+
+For more about this, see [Step 10 of our tutorial on the development branch](https://github.com/smirarab/ASTRAL/blob/development/astral-tutorial.md#step-10-automatic-addition-of-bipartitions-to-x).
+
+Reference and contact
+----------
+
 The algorithm used is described in:
 
 S. Mirarab, R. Reaz, Md. S. Bayzid, T. Zimmermann, M.S. Swenson, and T. Warnow1
@@ -10,6 +27,7 @@ S. Mirarab, R. Reaz, Md. S. Bayzid, T. Zimmermann, M.S. Swenson, and T. Warnow1
 See our [tutorial](astral-tutorial.md) in addition to the rest of this README file. 
 
 Email: `astral-users@googlegroups.com` for questions.
+
 
 
 INSTALLATION:
