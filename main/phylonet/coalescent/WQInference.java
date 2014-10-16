@@ -15,6 +15,7 @@ import phylonet.util.BitSet;
 public class WQInference extends AbstractInference<Tripartition> {
 	
 	int forceAlg = -1;
+	long maxpossible;
 	
 	public WQInference(boolean rooted, boolean extrarooted, List<Tree> trees,
 			List<Tree> extraTrees, boolean exactSolution, boolean duploss, int alg, int addExtra) {
@@ -90,7 +91,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	@Override
 	Long getTotalCost(Vertex all) {
-		return (long) (all._max_score/4);
+		System.err.println("Normalized score: " + all._max_score/4./this.maxpossible);
+		return (long) (all._max_score/4l);
 	}
 
 
