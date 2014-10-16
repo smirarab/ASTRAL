@@ -24,6 +24,7 @@ import phylonet.tree.io.ParseException;
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITree;
+import phylonet.tree.util.Trees;
 
 import com.martiansoftware.jsap.FlaggedOption;
 import com.martiansoftware.jsap.JSAP;
@@ -390,6 +391,7 @@ public class CommandLine {
 		if (bootstraps != null && bootstraps.size() != 0) {
             STITree<Double> cons = (STITree<Double>) Utils.greedyConsensus(bootstraps,0);
             cons.rerootTreeAtNode(cons.getNode(outgroup));
+			Trees.removeBinaryNodes(cons);
             Utils.computeEdgeSupports(cons, bootstraps);
             writeTreeToFile(outbuffer, cons);
 		}
@@ -423,6 +425,7 @@ public class CommandLine {
         
         Tree st = solutions.get(0)._st;
         st.rerootTreeAtNode(st.getNode(outgroup));
+		Trees.removeBinaryNodes((MutableTree) st);
    
         if ((bootstraps != null) && (bootstraps.iterator().hasNext())) {
             for (Solution solution : solutions) {
