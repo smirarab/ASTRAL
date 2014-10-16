@@ -8,6 +8,7 @@
   - Added option q to score a given species tree
   - Changed log messages a bit.
   - More code refactoring
+  - Added normalized score
 	 
 - Version 4.6.3:
   - Fixed bug in calculation of the distance matrix for addition of extra bipartitions and completion of incomplete gene trees
