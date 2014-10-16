@@ -124,7 +124,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 							smallV, containedVertecies);
 					AbstractComputeMinCostTask<T> bigWork = newMinCostTask(
 							bigv, containedVertecies);
-					ICalculateWeightTask<T> weigthWork = null;
+					ICalculateWeightTask<T> weigthWork = null; 
 
 					// MP_VERSION: smallWork.fork();
 					Double rscore = bigWork.compute();
