@@ -374,7 +374,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 			}
 			String[] gtLeaves = tree.getLeaves();
 			STITreeCluster gtAll = new STITreeCluster();
-			int ni = gtLeaves.length;
+			long ni = gtLeaves.length;
 			for (int i = 0; i < ni ; i++) {
 				gtAll.addLeaf(GlobalMaps.taxonIdentifier.taxonId(gtLeaves[i]));
 			}
