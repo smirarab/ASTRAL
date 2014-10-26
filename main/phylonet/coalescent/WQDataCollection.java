@@ -1,5 +1,8 @@
 package phylonet.coalescent;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,14 +56,17 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 	//private final int M = 1000;
 	private List<Tree> geneTrees;
 	private List<Tree> completedGeeneTrees;
+	private boolean outputCompleted;
 
-	public WQDataCollection( WQClusterCollection clusters, int alg, AbstractInference<Tripartition> inference) {
+	public WQDataCollection( WQClusterCollection clusters, int alg, 
+			AbstractInference<Tripartition> inference) {
 		this.clusters = clusters;
 		this.algorithm = alg;
 		this.spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
 		this.DISTANCE_ADDITION = inference.getAddExtra() >= 2;
 		this.geneTrees = inference.trees;
 		this.completedGeeneTrees = new ArrayList<Tree>();
+		this.outputCompleted = inference.outputCompleted;
 	}
 
 
@@ -342,7 +348,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 			for (int i = 0; i < gtLeaves.length; i++) {
 				gtAll.addLeaf(GlobalMaps.taxonIdentifier.taxonId(gtLeaves[i]));
 			}	
-			Tree trc = getCompleteTree(tr, gtAll.getBitSet());		
+			Tree trc = getCompleteTree(tr, gtAll.getBitSet());	
+			
 			completedExtraGeeneTrees.add(trc);
 		}
 		addTreeBipartitionsToX(completedExtraGeeneTrees);
@@ -393,15 +400,38 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 			this.orderedTaxonBySimilarity = sortByDistance();
 			System.err.println("Will attempt to complete bipartitions from X before adding using a distance matrix.");
 			int t = 0;
+			BufferedWriter completedFile = null;
+			if (this.outputCompleted) {
+				String fn = GlobalMaps.outputfilename + ".completed_gene_trees";
+				System.err.println("Ouputting completed gene trees to " + fn);
+				try {
+					completedFile = new BufferedWriter(new FileWriter(fn));
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			}
 			for (Tree tr : this.geneTrees) {
 				Tree trc = getCompleteTree(tr, this.treeAllClusters.get(t++).getBitSet());		
 				this.completedGeeneTrees.add(trc);
+				if (completedFile != null) {
+					try {
+						completedFile.write(trc.toStringWD()+ " \n");
+						completedFile.flush();
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
+				}
+			}
+			if (completedFile != null) {
+				try {
+					completedFile.close();
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
 			}
 		} else  {
 			this.completedGeeneTrees = this.geneTrees;
 		}
-			
-
 
 		/*
 		 * Calculate gene tree clusters and bipartitions for X
@@ -706,7 +736,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 						//notadded ++;
 						if (!sampleAndResolve(this.completedGeeneTrees, childbs)) {
 							j++;
-							//System.err.println(". "+clusters.getClusterCount());
+							//System.err.println("+");
 							
 						} else {
 							//System.err.print("+");
@@ -788,6 +818,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 			randomSample.add(GlobalMaps.taxonIdentifier.getTaxonName(p));
 		}
 
+		//System.err.print(".");
 		// get bipartition counts in the induced trees
 		HashMap<BitSet, Integer> counts = returnBitSetCounts(genetrees, randomSample);
 		
@@ -806,6 +837,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		  ((STINode<BitSet>)tmpnodes[i]).setData(bs);
 		}				       
 		    
+		//System.err.print("^");
 		for (Entry<BitSet, Integer> entry : countSorted) {
 
 			BitSet newbs = entry.getKey();
@@ -847,7 +879,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 
 			if (GREEDY_ADDITION_MIN_FREQ <= (entry.getValue()+.0d)/genetrees.size()) {			        		
 				if (addSubSampledBitSetToX(childbs, newbs)) {
-					//System.err.print(".");
+					//System.err.print("*");
 					added = true;
 				}
 			} else if (forceAdd) {
