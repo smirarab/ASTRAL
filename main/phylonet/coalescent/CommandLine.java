@@ -79,7 +79,7 @@ public class CommandLine {
                     new FlaggedOption("extraLevel",
                     		JSAP.INTEGER_PARSER, "2", JSAP.NOT_REQUIRED,
                             'p', "extraLevel",
-                            "How much extra bipartitions should be added: 0, 1, or 2"),
+                            "How much extra bipartitions should be added: 0, 1, or 2. 0 means nothing. 1 means greedy-based addition (highly recommended). 2 means greedy and distance-based addition (could be slow)."),
    
                     new FlaggedOption("extra trees", 
                             FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 
@@ -156,9 +156,9 @@ public class CommandLine {
 		Map<String, String> taxonMap = null;
 		String replace = null;
 		String pattern = null;
-		List<Tree> trees = new ArrayList<Tree>();
-		List<List<Tree>> bstrees = new ArrayList<List<Tree>>();
-		List<List<Tree>> inputSets = new ArrayList<List<Tree>>();
+		List<Tree> mainTrees;
+		List<List<String>> bstrees = new ArrayList<List<String>>();
+		List<List<String>> inputSets = new ArrayList<List<String>>();
 		List<Tree> extraTrees = new ArrayList<Tree>();
 		// STITree scorest = null;
 		// boolean explore = false;
@@ -266,9 +266,10 @@ public class CommandLine {
         	
         	//GlobalMaps.taxonIdentifier.taxonId("0");
 
-            readInputTrees(new BufferedReader(new FileReader(config.getFile("input file"))),
-                    rooted, trees, true, false);			
-            k = trees.size();
+        	mainTrees = readInputTrees(
+        			readTreeFileAsString(config.getFile("input file")),
+        					rooted, true, false);			
+            k = mainTrees.size();
             System.err.println(k+" trees read from " + config.getFile("input file"));
             
             GlobalMaps.taxonIdentifier.lock();        
@@ -280,7 +281,7 @@ public class CommandLine {
             return;
         } 
         
-        if (trees.size() == 0) {
+        if (mainTrees.size() == 0) {
             System.err.println("Empty list of trees. The function exits.");
             return;
         }
@@ -294,12 +295,12 @@ public class CommandLine {
         }
         
         if (config.getFile("score species trees") != null) {
-        	ArrayList<Tree> toScore = new ArrayList<Tree>();
-        	readInputTrees(new BufferedReader(new FileReader(config.getFile("score species trees"))),
-                     rooted, toScore, true, true);
+        	List<Tree> toScore = readInputTrees(
+        			readTreeFileAsString(config.getFile("score species trees")),
+                     rooted, true, true);
         	
             AbstractInference inference =
-                    initializeInference(criterion, rooted, extrarooted, trees,
+                    initializeInference(criterion, rooted, extrarooted, mainTrees,
                             extraTrees, cs, cd, wh, exact, addExtra);
         	for (Tree tr : toScore) {
         		inference.scoreGeneTree(tr);
@@ -313,12 +314,20 @@ public class CommandLine {
         try {
 
             if (config.getFile("extra trees") != null) {
-                readInputTrees(new BufferedReader(new FileReader(config.getFile("extra trees"))), 
-                        extrarooted, extraTrees, false, false);
+            	extraTrees = readInputTrees(
+                	readTreeFileAsString(config.getFile("extra trees")), 
+                        extrarooted, true, false);
                 System.err.println(extraTrees.size() + " extra trees read from "
                         + config.getFile("extra trees"));
             }
             
+            if (config.getFile("extra species trees") != null) {
+            	extraTrees = readInputTrees(
+                	readTreeFileAsString(config.getFile("extra species trees")), 
+                        extrarooted, true, true);
+                System.err.println(extraTrees.size() + " extra trees read from "
+                        + config.getFile("extra trees"));
+            }
             
         } catch (IOException e) {
             System.err.println("Error when reading extra trees.");
@@ -328,19 +337,12 @@ public class CommandLine {
         } 
         
         try {           
-            if (config.getFile("extra species trees") != null) {
-                readInputTrees(new BufferedReader(new FileReader(config.getFile("extra species trees"))), 
-                        extrarooted, extraTrees, false, true);
-                System.err.println(extraTrees.size() + " extra trees read from "
-                        + config.getFile("extra trees"));
-            }
 
             if (config.getFile("bootstraps") != null) {
                 String line;
                 BufferedReader rebuff = new BufferedReader(new FileReader(config.getFile("bootstraps")));
                 while ((line = rebuff.readLine()) != null) {
-                    ArrayList<Tree> g = new ArrayList<Tree>();
-                    readInputTrees(new BufferedReader(new FileReader(line)), rooted, g, true, false);
+                    List<String> g = readTreeFileAsString(new File(line));
                     Collections.shuffle(g, GlobalMaps.random);
                     bstrees.add(g);
                 }
@@ -358,15 +360,15 @@ public class CommandLine {
 		if (config.getFile("bootstraps") != null) {
 	        System.err.println("Bootstrapping with seed "+config.getLong("seed"));
 		    for (int i = 0; i < config.getInt("replicates"); i++) {
-		        List<Tree> input = new ArrayList<Tree>();
-		        inputSets.add(input );   
+		        List<String> input = new ArrayList<String>();
+		        inputSets.add(input);   
 		        try {
     		        if (config.getBoolean("gene-sampling")) {
     		            for (int j = 0; j < k; j++) {
                             input.add(bstrees.get(GlobalMaps.random.nextInt(k)).remove(0));                 
                         }
     		        } else {   		        
-    		            for (List<Tree> gene : bstrees) {
+    		            for (List<String> gene : bstrees) {
     		                input.add(gene.get(i));
     		            }
     		        }
@@ -381,11 +383,13 @@ public class CommandLine {
 
         int j = 0;
         List<Tree> bootstraps = new ArrayList<Tree>();
-		for ( List<Tree> input : inputSets) {  
+		for ( List<String> input : inputSets) {  
 	        System.err.println("\n======== Running bootstrap replicate " + j++);
 	        bootstraps.add(runOnOneInput(criterion, 
 	                rooted, extrarooted, extraTrees, cs, cd,
-                    wh, exact, outbuffer, input, null, outgroup, addExtra));
+                    wh, exact, outbuffer, 
+                    readInputTrees(input, rooted, false, false),
+                    null, outgroup, addExtra));
 		}
 	    
 		if (bootstraps != null && bootstraps.size() != 0) {
@@ -398,7 +402,7 @@ public class CommandLine {
 		
         System.err.println("\n======== Running the main analysis");
         runOnOneInput(criterion, rooted, extrarooted, extraTrees, cs, cd,
-                wh, exact, outbuffer, trees, bootstraps, outgroup, addExtra);
+                wh, exact, outbuffer, mainTrees, bootstraps, outgroup, addExtra);
            
 		outbuffer.close();
 		
@@ -456,60 +460,74 @@ public class CommandLine {
         return inference;
     }
 
+    private static List<String> readTreeFileAsString(File file)
+    				throws FileNotFoundException, IOException {
+    	String line;		
+    	List<String> trees = new ArrayList<String>();
+    	BufferedReader treeBufferReader = new BufferedReader(new FileReader(file));
+		while ((line = treeBufferReader .readLine()) != null) {
+    		if (line.length() > 0) {
+    			line = line.replaceAll("\\)[^,);]*", ")");
+    			trees.add(line);
+    		}
+    	}
+    	treeBufferReader.close();
+    	return trees;
 
-    private static void readInputTrees(BufferedReader treeBufferReader, 
-            boolean rooted, List<Tree> trees, boolean checkCompleteness, boolean stLablel)
-            throws FileNotFoundException, IOException {
-        String line;
-        int l = 0;			
-        try {
-           while ((line = treeBufferReader.readLine()) != null) {
-        		l++;
-        		Set<String> previousTreeTaxa = new HashSet<String>();
-        		if (line.length() > 0) {
-        			line = line.replaceAll("\\)[^,);]*", ")");
-        			NewickReader nr = new NewickReader(new StringReader(line));
-        			if (rooted) {
-        				STITree<Double> gt = new STITree<Double>(true);
-        				nr.readTree(gt);
-        				if (checkCompleteness) {
-            				if (previousTreeTaxa.isEmpty()) {
-            					previousTreeTaxa.addAll(Arrays.asList(gt
-            							.getLeaves()));
-            				} else {
-            					if (!previousTreeTaxa.containsAll(Arrays.asList(gt
-            							.getLeaves()))) {
-            					    treeBufferReader.close();
-            						throw new RuntimeException(
-            								"Not all trees are on the same set of taxa: "
-            										+ gt.getLeaves() + "\n"
-            										+ previousTreeTaxa);
-            					}
-            				}
-        				}
-        				trees.add(gt);
-        			} else {						
-        				Tree tr = nr.readTree();
-        				trees.add(tr);
-        				if (stLablel) {
-        				    GlobalMaps.taxonNameMap.getSpeciesIdMapper().stToGt((MutableTree) tr);
-        				}
-                        String[] leaves = tr.getLeaves();
-        				for (int i = 0; i < leaves.length; i++) {
-        				    //if (!stLablel) {
-        				        GlobalMaps.taxonIdentifier.taxonId(leaves[i]);
-        				    //} else {
-        				     //   GlobalMaps.taxonNameMap.getSpeciesIdMapper().speciesId(leaves[i]);
-        				    //}
-                        }
-        			}
-        		}
-        	}
-        	treeBufferReader.close();
-        } catch (ParseException e) {
-        	treeBufferReader.close();
-        	throw new RuntimeException("Failed to Parse Tree number: " + l ,e);
-        }
+    }
+
+    private static List<Tree> readInputTrees(List<String> lines, 
+    		boolean rooted, boolean checkCompleteness, boolean stLablel)
+    				throws FileNotFoundException, IOException {
+    	List<Tree> trees = new ArrayList<Tree>();
+    	int l = 0;			
+    	try {
+    		for (String line : lines) {
+    			l++;
+    			Set<String> previousTreeTaxa = new HashSet<String>();
+    			if (line.length()  == 0) {
+    				continue;
+    			}
+    			NewickReader nr = new NewickReader(new StringReader(line));
+    			if (rooted) {
+    				STITree<Double> gt = new STITree<Double>(true);
+    				nr.readTree(gt);
+    				if (checkCompleteness) {
+    					if (previousTreeTaxa.isEmpty()) {
+    						previousTreeTaxa.addAll(Arrays.asList(gt
+    								.getLeaves()));
+    					} else {
+    						if (!previousTreeTaxa.containsAll(Arrays.asList(gt
+    								.getLeaves()))) {
+    							throw new RuntimeException(
+    									"Not all trees are on the same set of taxa: "
+    											+ gt.getLeaves() + "\n"
+    											+ previousTreeTaxa);
+    						}
+    					}
+    				}
+    				trees.add(gt);
+    			} else {						
+    				Tree tr = nr.readTree();
+    				trees.add(tr);
+    				if (stLablel) {
+    					GlobalMaps.taxonNameMap.getSpeciesIdMapper().stToGt((MutableTree) tr);
+    				}
+    				String[] leaves = tr.getLeaves();
+    				for (int i = 0; i < leaves.length; i++) {
+    					//if (!stLablel) {
+    						GlobalMaps.taxonIdentifier.taxonId(leaves[i]);
+    						//} else {
+    						//   GlobalMaps.taxonNameMap.getSpeciesIdMapper().speciesId(leaves[i]);
+    						//}
+    				}
+    			}
+
+    		}
+    	} catch (ParseException e) {
+    		throw new RuntimeException("Failed to Parse Tree number: " + l ,e);
+    	}
+    	return trees;
     }
 
 
