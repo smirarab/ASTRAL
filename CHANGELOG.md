@@ -1,3 +1,9 @@
+- Version 4.7.1:
+  - Fixed bootstrapping to consume much less memory.
+  - Don't cache weights. Consumes memory and there is barely any reuse.
+  - New option to output completed gene trees
+  - New option to just output bootstrap inputs and exit. 
+
 - Version 4.7.0:
   - Changed how bipartitions from trees with missing data are completed. In new version, gene trees are completed based on a four point condition approach. 
   - Added a new mechanism based on greedy consensus for adding bipartitions to X
