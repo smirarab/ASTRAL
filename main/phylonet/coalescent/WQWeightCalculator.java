@@ -15,6 +15,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	private WQDataCollection dataCollection;
 
 	public WQWeightCalculator(AbstractInference<Tripartition> inference) {
+		super(false);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
 		this.inference = (WQInference) inference;
 	}
