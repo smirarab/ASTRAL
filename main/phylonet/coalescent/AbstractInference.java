@@ -41,9 +41,11 @@ public abstract class AbstractInference<T> {
 	AbstractDataCollection<T> dataCollection;
 	AbstractWeightCalculator<T> weightCalculator;
 	private int addExtra;
+	public boolean outputCompleted;
 
 	public AbstractInference(boolean rooted, boolean extrarooted, List<Tree> trees,
-			List<Tree> extraTrees, boolean exactSolution, int addExtra) {
+			List<Tree> extraTrees, boolean exactSolution, int addExtra, 
+			boolean outputCompletedGenes) {
 		super();
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
@@ -51,6 +53,7 @@ public abstract class AbstractInference<T> {
 		this.extraTrees = extraTrees;
 		this.exactSolution = exactSolution;
 		this.addExtra = addExtra;
+		this.outputCompleted = outputCompletedGenes;
 	}
 
 	protected Collapse.CollapseDescriptor doCollapse(List<Tree> trees) {
