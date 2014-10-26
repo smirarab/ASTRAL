@@ -21,6 +21,7 @@ class DLWeightCalculator extends AbstractWeightCalculator<STBipartition>{
 	private DLInference inference;
 	
 	public DLWeightCalculator(AbstractInference<STBipartition> inference) {
+		super(true);
 		dataCollection = (DLDataCollection) inference.dataCollection;
 		this.inference = (DLInference) inference;
 	}
