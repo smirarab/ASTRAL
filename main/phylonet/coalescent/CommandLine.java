@@ -108,6 +108,15 @@ public class CommandLine {
                             'r', "reps",
                             "Set the number of bootstrap replicates done in multi-locus bootstrapping. "),
 
+                    new FlaggedOption("keep", 
+                            JSAP.STRING_PARSER, null, JSAP.NOT_REQUIRED, 
+                            'k', "keep",
+                              " -k completed: outputs completed gene trees (i.e. after adding missing taxa) to a file called [output file name].completed_gene_trees.\n"
+                            + " -k bootstraps: outputs individual bootstrap replciates to a file called [output file name].[i].bs\n"
+                            + " -k bootstraps_norun: just like -k bootstraps, but exits after outputting bootstraps.\n"
+                            + "When -k option is used, -o option needs to be given. "
+                            + "The file name specified using -o is used as the prefix for the name of the extra output files.").setAllowMultipleDeclarations(true),
+
                     new FlaggedOption("seed", 
                             JSAP.LONG_PARSER, "692", JSAP.NOT_REQUIRED,
                             's', "seed",
@@ -175,6 +184,7 @@ public class CommandLine {
 		int addExtra;
 		int k = 0;
         BufferedWriter outbuffer;
+        Set<String> keepOptions = new HashSet<String>();
 		
         jsap = getJSAP();     
         config = jsap.parse(args);  
@@ -187,6 +197,7 @@ public class CommandLine {
             outbuffer = new BufferedWriter(new OutputStreamWriter(System.out));
         } else {
             outbuffer = new BufferedWriter(new FileWriter(outfile));
+            GlobalMaps.outputfilename = config.getFile("output file").getCanonicalPath();
         }
         
         exact = config.getBoolean("exact");
@@ -301,7 +312,7 @@ public class CommandLine {
         	
             AbstractInference inference =
                     initializeInference(criterion, rooted, extrarooted, mainTrees,
-                            extraTrees, cs, cd, wh, exact, addExtra);
+                            extraTrees, cs, cd, wh, exact, addExtra, keepOptions);
         	for (Tree tr : toScore) {
         		inference.scoreGeneTree(tr);
         	}
@@ -310,6 +321,21 @@ public class CommandLine {
         
         String outgroup = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesName(0);
         System.err.println("All outputted trees will be *arbitrarily* rooted at "+outgroup);
+        
+        if (config.getStringArray("keep") != null) {
+        	if (GlobalMaps.outputfilename == null) {
+        		throw new JSAPException("When -k option is used, -o is also needed.");
+        	}
+        	for (String koption : config.getStringArray("keep")) {
+        		if ("completed".equals(koption) ||
+        			"bootstraps".equals(koption) ||
+        			"bootstraps_norun".equals(koption)) {
+        			keepOptions.add(koption);
+        		} else {
+        			throw new JSAPException("-k "+koption+" not recognized.");
+        		}
+        	}
+        }
         
         try {
 
@@ -378,6 +404,24 @@ public class CommandLine {
 		                    " Note that for gene resampling, you need more input bootstrap" +
 		                    " replicates than the number of species tee replicates.", jsap);
 		        }
+			    if (keepOptions.contains("bootstraps_norun") ||
+				    	keepOptions.contains("bootstraps")) {
+			    	String bsfn = outfile + ( "." + i + ".bs" );
+				    BufferedWriter bsoutbuffer = new BufferedWriter(new FileWriter(bsfn));
+				    for (String tree: input) {
+				    	bsoutbuffer.write(tree + " \n");
+				    }
+				    bsoutbuffer.close();
+				}
+		    }
+		    if (keepOptions.contains("bootstraps_norun") ||
+			    	keepOptions.contains("bootstraps")) {
+		    	System.err.println("bootstrap files written to files "+ outfile + ( "." + 0 + ".bs" ) + 
+		    			" to "+outfile + ( "." + config.getInt("replicates") + ".bs" ));
+		    }
+		    if (keepOptions.contains("bootstraps_norun")) {
+		    	System.err.println("Exiting after outputting the bootstrap files");
+		    	System.exit(0);
 		    }
 		}
 
@@ -389,7 +433,7 @@ public class CommandLine {
 	                rooted, extrarooted, extraTrees, cs, cd,
                     wh, exact, outbuffer, 
                     readInputTrees(input, rooted, false, false),
-                    null, outgroup, addExtra));
+                    null, outgroup, addExtra, keepOptions));
 		}
 	    
 		if (bootstraps != null && bootstraps.size() != 0) {
@@ -402,7 +446,7 @@ public class CommandLine {
 		
         System.err.println("\n======== Running the main analysis");
         runOnOneInput(criterion, rooted, extrarooted, extraTrees, cs, cd,
-                wh, exact, outbuffer, mainTrees, bootstraps, outgroup, addExtra);
+                wh, exact, outbuffer, mainTrees, bootstraps, outgroup, addExtra, keepOptions);
            
 		outbuffer.close();
 		
@@ -414,13 +458,13 @@ public class CommandLine {
     private static Tree runOnOneInput(int criterion, boolean rooted,
             boolean extrarooted, List<Tree> extraTrees, double cs, double cd,
             double wh, boolean exact, BufferedWriter outbuffer, List<Tree> input, 
-            Iterable<Tree> bootstraps, String outgroup, int addExtra) {
+            Iterable<Tree> bootstraps, String outgroup, int addExtra, Set<String> keepOptions) {
         long startTime;
         startTime = System.currentTimeMillis();
         
         AbstractInference inference =
             initializeInference(criterion, rooted, extrarooted, input,
-                    extraTrees, cs, cd, wh, exact, addExtra);
+                    extraTrees, cs, cd, wh, exact, addExtra, keepOptions);
         
         List<Solution> solutions = inference.inferSpeciesTree();
    
@@ -443,14 +487,14 @@ public class CommandLine {
 
     private static AbstractInference initializeInference(int criterion, boolean rooted,
             boolean extrarooted, List<Tree> trees, List<Tree> extraTrees,
-            double cs, double cd, double wh, boolean exact, int addExtra) {
+            double cs, double cd, double wh, boolean exact, int addExtra, Set<String> keepOptions) {
         AbstractInference inference;		
 		if (criterion == 1 || criterion == 0) {
 			inference = new DLInference(rooted, extrarooted, 
-					trees, extraTrees,exact ,criterion > 0);			
+					trees, extraTrees,exact ,criterion > 0, keepOptions.contains("completed"));			
 		} else if (criterion == 2) {
 			inference = new WQInference(rooted, extrarooted, 
-					trees, extraTrees, exact,criterion > 0, 1, addExtra);
+					trees, extraTrees, exact,criterion > 0, 1, addExtra, keepOptions.contains("completed"));
 		} else {
 			throw new RuntimeException("criterion not set?");
 		}		
