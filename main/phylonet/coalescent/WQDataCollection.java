@@ -734,7 +734,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 					for (int j = 0; j < GREEDY_ADDITION_NOIMPROVEMENT_LIMIT;) {						
 
 						//notadded ++;
-						if (!sampleAndResolve(this.completedGeeneTrees, childbs)) {
+						if (!sampleAndResolve(childbs)) {
 							j++;
 							//System.err.println("+");
 							
@@ -804,7 +804,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		return counts;
 	}
 	
-	private boolean sampleAndResolve(List<Tree> genetrees, BitSet[] childbs) {
+	private boolean sampleAndResolve(BitSet[] childbs) {
 		
 		boolean added = false;
 		// random sample taxa
@@ -820,7 +820,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 
 		//System.err.print(".");
 		// get bipartition counts in the induced trees
-		HashMap<BitSet, Integer> counts = returnBitSetCounts(genetrees, randomSample);
+		HashMap<BitSet, Integer> counts = returnBitSetCounts(this.completedGeeneTrees, randomSample);
 		
 		// sort bipartitions
 		TreeSet<Entry<BitSet,Integer>> countSorted = new 
@@ -877,7 +877,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 				forceAdd = true;
 			}
 
-			if (GREEDY_ADDITION_MIN_FREQ <= (entry.getValue()+.0d)/genetrees.size()) {			        		
+			if (GREEDY_ADDITION_MIN_FREQ <= (entry.getValue()+.0d)/this.completedGeeneTrees.size()) {			        		
 				if (addSubSampledBitSetToX(childbs, newbs)) {
 					//System.err.print("*");
 					added = true;
