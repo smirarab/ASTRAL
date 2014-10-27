@@ -322,7 +322,7 @@ public class CommandLine {
         String outgroup = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesName(0);
         System.err.println("All outputted trees will be *arbitrarily* rooted at "+outgroup);
         
-        if (config.getStringArray("keep") != null) {
+        if (config.getStringArray("keep") != null && config.getStringArray("keep").length != 0) {
         	if (GlobalMaps.outputfilename == null) {
         		throw new JSAPException("When -k option is used, -o is also needed.");
         	}
