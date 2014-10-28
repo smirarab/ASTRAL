@@ -771,7 +771,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 							j--;
 						}
 					}
-					System.err.println("; rounds with success at "+GREEDY_ADDITION_MIN_FREQ+ " level: " + k + "; clusters: "+clusters.getClusterCount());
+					System.err.println("; rounds with additions with at least "+GREEDY_ADDITION_MIN_FREQ+ " support: " + k + "; clusters: "+clusters.getClusterCount());
 				}
 			}
 		}
