@@ -1,3 +1,10 @@
+- Version 4.7.2:
+  - Changed the way extra bipartitions are added for unresolved gene trees
+  - Made some changes to the default strategy for addition of extra bipartitions (don't add incompatible bipartitions - these can increase running time drastically with little benefit)
+  - Fixed a bug regarding addition of extra bipartitions using greedy (affects running time)
+  - Change some logging statements. 
+  - Some code refactoring
+  
 - Version 4.7.1:
   - Fixed bootstrapping to consume much less memory.
   - Don't cache weights. Consumes memory and there is barely any reuse.

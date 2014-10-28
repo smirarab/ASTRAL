@@ -20,9 +20,9 @@ public abstract class AbstractClusterCollection implements IClusterCollection{
 	int totalcount = 0;
 
 	protected void initialize(int len, HashMap<STITreeCluster, Vertex> globalVertexCash) {
-	    this.globalVertexCash = globalVertexCash;
+		this.globalVertexCash = globalVertexCash;
 		this.topClusterLength = len;
-		 clusters = new ArrayList<Set<Vertex>>(len);
+		clusters = new ArrayList<Set<Vertex>>(len);
 		for (int i = 0; i <= len; i++) {
 			clusters.add(new HashSet<Vertex>());
 			//geneTreeSTBBySize.add(new HashSet<STBipartition>());
