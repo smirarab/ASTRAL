@@ -51,7 +51,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 	private boolean DISTANCE_ADDITION = false;
 	private final double [] GREEDY_ADDITION_THRESHOLDS = new double [] {0, 1/100., 1/50., 1/20., 1/10., 1/5., 1/3.} ;
 	private final double GREEDY_ADDITION_MIN_FREQ = 0.01;
-	private final int GREEDY_ADDITION_NOIMPROVEMENT_LIMIT = 10;
+	private final int GREEDY_ADDITION_NOIMPROVEMENT_LIMIT = 20;
 	//private final int P = 100;
 	//private final int M = 1000;
 	private List<Tree> geneTrees;
@@ -143,6 +143,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 
 	void addTreeBipartitionsToX(List<Tree> trees) {
 
+		Tree greedy = Utils.greedyConsensus(trees);
+		
 		for (Tree tr : trees) {
 			
 			Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
@@ -155,11 +157,11 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 					STITreeCluster remaining = cluster.complementaryCluster();
 					addBipartitionToX(cluster,remaining);
 				} else {
-					ArrayList<STITreeCluster> childbslist = new ArrayList<STITreeCluster>();
+					ArrayList<BitSet> childbslist = new ArrayList<BitSet>();
 					BitSet bs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
 					for (TNode child: node.getChildren()) {
 						STITreeCluster pop = stack.pop();
-						childbslist.add(pop);
+						childbslist.add(pop.getBitSet());
 						bs.or(pop.getBitSet());
 					}
 
@@ -174,7 +176,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 						//}
 					}
 					
-					while (childbslist.size() > 2) {						
+					/*while (childbslist.size() > 2) {						
 						STITreeCluster c1 = childbslist.remove(GlobalMaps.random.nextInt(childbslist.size()));
 						STITreeCluster c2 = childbslist.remove(GlobalMaps.random.nextInt(childbslist.size()));
 						
@@ -184,11 +186,37 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 						addBipartitionToX(newcl, remm);
 						
 						childbslist.add(newcl);
+					}*/
+				
+					if (childbslist.size() > 2) {	
+						//sampleAndResolve(childbslist.toArray(new BitSet[]{}), false);
+						boolean isRoot = remaining.getClusterSize() == 0;
+						int d = childbslist.size() + (isRoot ? 0 : 1);
+						BitSet[] polytomy = new BitSet[d];
+						int i = 0;
+						for (BitSet child : childbslist) {
+							polytomy[i++] = child;
+						}
+						if (!isRoot)
+							polytomy[i] = remaining.getBitSet();
+						
+						List<String> randomSample = this.randomSampleAroundPolytomy(polytomy);
+						
+						STITree<Boolean> restrictedTree = new STITree(greedy);
+						restrictedTree.constrainByLeaves(randomSample);
+						Utils.randomlyResolve(restrictedTree);
+						List<BitSet> restrictedBitsets = Utils.getBitsets(randomSample, restrictedTree);
 						
 						
+						for (BitSet restrictedBitSet : restrictedBitsets) {
+							this.addSubSampledBitSetToX(polytomy, restrictedBitSet);
+						}
+						
+						//System.err.print(".");
 					}
 				}
 			}
+			//System.err.println("+");
 
 		}
 
@@ -359,6 +387,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 	private boolean addCompletedBipartionToX(STITreeCluster c1, STITreeCluster c2) {
 		boolean added = false;
 		int size = c1.getClusterSize();
+		if (size == n || size == 0) {
+			return false;
+		}
 		added |= addToClusters(c1, size);  
 		size  = c2.getClusterSize();
 		added |= addToClusters(c2, size);
@@ -687,10 +718,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 	
 		System.err.println("Adding to X using resolutions of greedy consensus ...");
 		for (Tree tree:  this.completedGeeneTrees) {
-			if (tree.getLeafCount() == n) {
-				tree.rerootTreeAtNode(tree.getNode(GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesName(0)));
-				Trees.removeBinaryNodes((MutableTree) tree);
-			}
+			tree.rerootTreeAtNode(tree.getNode(GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesName(0)));
+			Trees.removeBinaryNodes((MutableTree) tree);
 		}
 
 		/*if (completeTrees.size() < 2) {
@@ -698,9 +727,11 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 			return;
 		}*/
 
-		for (double t: GREEDY_ADDITION_THRESHOLDS) {
-			STITree<Double> cons = (STITree<Double>) Utils.greedyConsensus(this.completedGeeneTrees, t);	
-			System.err.println("Threshold " +t+":");
+		Tree[] allGreedies = Utils.greedyConsensus(this.completedGeeneTrees, GREEDY_ADDITION_THRESHOLDS);	
+
+		int th = 0;
+		for (Tree cons: allGreedies) {
+			System.err.println("Threshold " +GREEDY_ADDITION_THRESHOLDS[th++]+":");
 
 			Stack<BitSet> greedyNodeStack = new Stack<BitSet>();
 			for (TNode greedyNode :  cons.postTraverse()) {
@@ -713,7 +744,6 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 
 				BitSet[] childbs = new BitSet [greedyNode.getChildCount()+1];
 
-				//int pChildCount = greedyNode.getChildCount(); 
 				BitSet greedyBS = new BitSet();
 				for (int i = 0; i <  greedyNode.getChildCount(); i++) {
 					BitSet pop = greedyNodeStack.pop();
@@ -728,27 +758,23 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 					comp.flip(0,n);
 					childbs[greedyNode.getChildCount()] = comp;
 
-					 //int notadded = 0;
 					System.err.print("polytomy of size " + greedyNode.getChildCount());
 					
+					int k = 0;
 					for (int j = 0; j < GREEDY_ADDITION_NOIMPROVEMENT_LIMIT;) {						
 
-						//notadded ++;
-						if (!sampleAndResolve(childbs)) {
+						if (!sampleAndResolve(childbs, true)) {
 							j++;
 							//System.err.println("+");
-							
 						} else {
-							//System.err.print("+");
+							k++;
+							j--;
 						}
 					}
-					//System.err.println();
-					System.err.println(" " +clusters.getClusterCount());
+					System.err.println("; rounds with success at "+GREEDY_ADDITION_MIN_FREQ+ " level: " + k + "; clusters: "+clusters.getClusterCount());
 				}
-				//l.add(t);
 			}
 		}
-		//this.addExtraBipartitionsByInput(l, false);
 		System.err.println("Number of Clusters after addition by greedy: " + clusters.getClusterCount());
 	}
 
@@ -758,35 +784,11 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		HashMap<BitSet, Integer> counts = new HashMap<BitSet, Integer>();
 		
 		for (Tree gt : genetrees) {
-			STITree<Boolean> rgt = new STITree(gt);
-			rgt.constrainByLeaves(randomSample);
-
-			Stack<BitSet> stack = new Stack<BitSet>();
-			for (TNode rgtn : rgt.postTraverse()) {
-
-				if (rgtn.isRoot() && rgtn.getChildCount() == 2) {
-					continue;
-				}
-				BitSet bs = new BitSet(randomSample.size());
-				if (rgtn.isLeaf()) {
-					// Find the index of this leaf.
-					int i =  randomSample.indexOf(rgtn.getName());               
-					bs.set(i); 
-					stack.push(bs);
-					continue;
-				}
-				else {
-					int childCount = rgtn.getChildCount();
-
-					for (int i = 0; i < childCount; i++) {
-						bs.or(stack.pop());
-					}
-					stack.push(bs);
-				}
-
-				if (bs.cardinality() >= randomSample.size() - 1) {
-					continue;
-				}
+			STITree<Boolean> restrictedTree = new STITree(gt);
+			restrictedTree.constrainByLeaves(randomSample);	
+			List<BitSet> bsList = Utils.getBitsets(randomSample, restrictedTree);
+			
+			for (BitSet bs : bsList) {
 				if (counts.containsKey(bs)) {
 					counts.put(bs, counts.get(bs) + 1);
 					continue;
@@ -797,26 +799,20 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 					counts.put(bs2, counts.get(bs2) + 1);
 					continue;
 				}
-				counts.put(bs2, 1);       
-
+				counts.put(bs2, 1);
 			}
 		}
 		return counts;
 	}
+
+
 	
-	private boolean sampleAndResolve(BitSet[] childbs) {
+	
+	private boolean sampleAndResolve(BitSet[] polytomyBSList, boolean beyondGreedy) {
 		
 		boolean added = false;
 		// random sample taxa
-		List<String> randomSample = new ArrayList<String>();
-		for (BitSet child : childbs) {
-			int sample = GlobalMaps.random.nextInt(child.cardinality());
-			int p = child.nextSetBit(0);
-			for (int i = 0; i< sample; i++) {
-				p = child.nextSetBit(p+1);
-			}
-			randomSample.add(GlobalMaps.taxonIdentifier.getTaxonName(p));
-		}
+		List<String> randomSample = randomSampleAroundPolytomy(polytomyBSList);
 
 		//System.err.print(".");
 		// get bipartition counts in the induced trees
@@ -864,8 +860,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 
 			}
 
-			boolean forceAdd = false;
-			if (!(movedChildren.size() == 0 || nodes != 0)) {
+			//boolean isPartOfGreedy = false;
+			if ( movedChildren.size() != 0 && nodes == 0) {
 				
 				STINode<BitSet> newChild = ((STINode<BitSet>)lca).createChild();
 				newChild.setData(newbs);
@@ -874,17 +870,23 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 					newChild.adoptChild((TMutableNode)movedChildren.get(0));
 					movedChildren.remove(0);
 				}
-				forceAdd = true;
+
+				if (addSubSampledBitSetToX(polytomyBSList, newbs)) {
+					if (GREEDY_ADDITION_MIN_FREQ <= (entry.getValue()+.0d)/this.completedGeeneTrees.size()) {
+						added = true;
+					}
+				}
 			}
 
-			if (GREEDY_ADDITION_MIN_FREQ <= (entry.getValue()+.0d)/this.completedGeeneTrees.size()) {			        		
-				if (addSubSampledBitSetToX(childbs, newbs)) {
+/*			if (beyondGreedy &&
+					GREEDY_ADDITION_MIN_FREQ <= (entry.getValue()+.0d)/this.completedGeeneTrees.size()) {			        		
+				if (addSubSampledBitSetToX(polytomyBSList, newbs)) {
 					//System.err.print("*");
 					added = true;
 				}
-			} else if (forceAdd) {
-				addSubSampledBitSetToX(childbs, newbs);
-			}
+			} else if (isPartOfGreedy) {
+				addSubSampledBitSetToX(polytomyBSList, newbs);
+			}*/
 		}
 		
 		
@@ -901,8 +903,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 					BitSet c2 = children.remove(GlobalMaps.random.nextInt(children.size()));
 					
 					BitSet newbs = (BitSet) c1.clone();
-					c1.or(c2);				
-					addSubSampledBitSetToX(childbs, newbs);					
+					newbs.or(c2);				
+					addSubSampledBitSetToX(polytomyBSList, newbs);					
 					children.add(newbs);
 				}
 
@@ -910,12 +912,11 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		}
 		return added;
 	}
-	private boolean sampleAndResolve2(List<Tree> genetrees, BitSet[] childbs) {
-		
-		boolean added = false;
-		// random sample taxa
+
+
+	private List<String> randomSampleAroundPolytomy(BitSet[] polyTomy) {
 		List<String> randomSample = new ArrayList<String>();
-		for (BitSet child : childbs) {
+		for (BitSet child : polyTomy) {
 			int sample = GlobalMaps.random.nextInt(child.cardinality());
 			int p = child.nextSetBit(0);
 			for (int i = 0; i< sample; i++) {
@@ -923,6 +924,13 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 			}
 			randomSample.add(GlobalMaps.taxonIdentifier.getTaxonName(p));
 		}
+		return randomSample;
+	}
+	
+	private boolean sampleAndResolve2(List<Tree> genetrees, BitSet[] childbs) {
+		
+		boolean added = false;
+		List<String> randomSample = randomSampleAroundPolytomy(childbs);
 
 		// get bipartition counts in the induced trees
 		for (Tree gt : genetrees) {
@@ -940,17 +948,13 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 					// Find the index of this leaf.
 					int i =  randomSample.indexOf(rgtn.getName());               
 					bs.set(i); 
-					stack.push(bs);
-					continue;
 				}
 				else {
-					int childCount = rgtn.getChildCount();
-
-					for (int i = 0; i < childCount; i++) {
+					for (int i = 0; i <  rgtn.getChildCount(); i++) {
 						bs.or(stack.pop());
 					}
-					stack.push(bs);
 				}
+				stack.push(bs);
 
 				if (bs.cardinality() >= randomSample.size() - 1) {
 					continue;
@@ -966,11 +970,10 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 	}
 
 
-	private boolean addSubSampledBitSetToX(BitSet[] childbs, 
-			BitSet newbs) {
+	private boolean addSubSampledBitSetToX(BitSet[] childbs, BitSet restrictedBitSet) {
 		BitSet stNewbs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
-		for (int i = newbs.nextSetBit(0); i >= 0; i = newbs.nextSetBit(i+1)) {
-			stNewbs.or(childbs[i]);
+		for (int j = restrictedBitSet.nextSetBit(0); j >= 0; j = restrictedBitSet.nextSetBit(j+1)) {
+			stNewbs.or(childbs[j]);
 		}
 		STITreeCluster g = new STITreeCluster();
 		g.setCluster(stNewbs);
