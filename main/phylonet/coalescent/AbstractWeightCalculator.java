@@ -10,10 +10,12 @@ public abstract class AbstractWeightCalculator<T> {
 	private static final boolean TESTRUN = false;
 	private int callcounter = 0;
 	protected HashMap<T, Long> weights;
-	boolean save = false;
+	boolean save;
+	long lastTime;
 
 	public AbstractWeightCalculator(boolean save) {
 		this.save = save;
+		this.lastTime = System.currentTimeMillis();
 	}
 	
 	public void initializeWeightContainer(int size) {
@@ -40,14 +42,16 @@ public abstract class AbstractWeightCalculator<T> {
 			// MP_VERSION: smallWork.fork();
 			weight = TESTRUN ? 0 : weigthWork.calculateWeight();
 			int count;
-			if (!save && !TESTRUN ) {
+			if (save && !TESTRUN ) {
 				weights.put(t, weight);
 				count = weights.size();
 			} else {
 				count = this.callcounter;
 			}
-			if (count % 100000 == 0)
-				System.err.println("Calculated "+ count +" weights; time:" + System.currentTimeMillis());
+			if (count % 100000 == 0) {
+				System.err.println("Calculated "+ count +" weights; time (seconds): " + (System.currentTimeMillis() - lastTime)/1000);
+				lastTime = System.currentTimeMillis();
+			}
 /*			if (weights.size() == 75318) {
 				System.err.println("here");
 			}*/
