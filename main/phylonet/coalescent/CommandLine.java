@@ -37,7 +37,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.7.1";
+    protected static String _versinon = "4.7.2a";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -437,7 +437,7 @@ public class CommandLine {
 		}
 	    
 		if (bootstraps != null && bootstraps.size() != 0) {
-            STITree<Double> cons = (STITree<Double>) Utils.greedyConsensus(bootstraps,0);
+            STITree<Double> cons = (STITree<Double>) Utils.greedyConsensus(bootstraps);
             cons.rerootTreeAtNode(cons.getNode(outgroup));
 			Trees.removeBinaryNodes(cons);
             Utils.computeEdgeSupports(cons, bootstraps);

@@ -15,11 +15,13 @@ import java.util.Hashtable;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeSet;
 
 import phylonet.bits.BitVector;
+import phylonet.graph.model.MutableNode;
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.io.NewickReader;
 import phylonet.tree.io.ParseException;
@@ -140,8 +142,14 @@ public class Utils {
         return;
     }
 
-    public static final Tree greedyConsensus(Iterable<Tree> trees, double ratio) {
+    public static final Tree greedyConsensus(Iterable<Tree> trees) {
+    	return greedyConsensus(trees,new double[]{0d})[0];
+    }
     
+    public static final Tree[] greedyConsensus(Iterable<Tree> trees, double[] thresholds) {
+    
+    	Tree[] outTrees = new Tree[thresholds.length];
+    	
         HashMap<STITreeCluster, Integer> count = new HashMap<STITreeCluster, Integer>();
         int treecount = 0;
         for (Tree tree : trees) {
@@ -191,13 +199,27 @@ public class Utils {
             }
         });
         countSorted.addAll(count.entrySet());
+        
+        int ti = thresholds.length - 1;
+        double threshold = thresholds[ti];
         List<STITreeCluster> clusters = new ArrayList<STITreeCluster>();   
         for (Entry<STITreeCluster, Integer> entry : countSorted) {
-        	if (ratio <= (entry.getValue()+.0d)/treecount) {	
-        		clusters.add(entry.getKey());
+        	if (threshold > (entry.getValue()+.0d)/treecount) {	
+        		outTrees[ti] = Utils.buildTreeFromClusters(clusters);
+        		ti--;
+        		if (ti < 0) {
+        			break;
+        		}
+        		threshold = thresholds[ti];
         	}
+    		clusters.add(entry.getKey());
         }
-        return Utils.buildTreeFromClusters(clusters);
+        while (ti >= 0) {
+        	outTrees[ti] = Utils.buildTreeFromClusters(clusters);
+    		ti--;
+        }
+        
+        return outTrees;
     }
 
     
@@ -305,5 +327,59 @@ public class Utils {
 			}
 		}
 		throw new RuntimeException("not possible");	
+	}
+	
+	public static List<BitSet> getBitsets(List<String> sample, Tree restrictedTree) {
+		ArrayList<BitSet> ret = new ArrayList<BitSet>();
+
+		Stack<BitSet> stack = new Stack<BitSet>();
+		for (TNode rgtn : restrictedTree.postTraverse()) {
+
+			if (rgtn.isRoot() && rgtn.getChildCount() == 2) {
+				continue;
+			}
+			BitSet bs = new BitSet(sample.size());
+			if (rgtn.isLeaf()) {
+				// Find the index of this leaf.
+				int i =  sample.indexOf(rgtn.getName());               
+				bs.set(i); 
+				stack.push(bs);
+				continue;
+			}
+			else {
+				int childCount = rgtn.getChildCount();
+
+				for (int i = 0; i < childCount; i++) {
+					bs.or(stack.pop());
+				}
+				stack.push(bs);
+			}
+
+			if (bs.cardinality() >= sample.size() - 1) {
+				continue;
+			}       
+			ret.add(bs);
+		}
+		return ret;
+	}
+	
+	public static void randomlyResolve(MutableTree tree) {
+		for (TNode node : tree.postTraverse()) {
+			if (node.getChildCount() < 3) {
+				continue;
+			}
+			TNode first = node.getChildren().iterator().next();
+			List<TNode> children = first.getSiblings();
+			children.add(first);
+			while (children.size() > 2) {
+				TNode c1 = children.remove(GlobalMaps.random.nextInt(children.size()));
+				TNode c2 = children.remove(GlobalMaps.random.nextInt(children.size()));
+				TMutableNode mnode = (TMutableNode) node;
+				TMutableNode newChild = mnode.createChild();
+				newChild.adoptChild((TMutableNode) c1);
+				newChild.adoptChild((TMutableNode) c2);
+				children.add(newChild);
+			}
+		}
 	}
 }
