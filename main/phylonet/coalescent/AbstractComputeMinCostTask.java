@@ -211,7 +211,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 				}
 			}
 			if (tryAnotherTime) {
-				//System.err.println("... auto expanding " + this.v.getCluster().getClusterSize()+"\n"+this.v.getCluster());
+				System.err.println("... auto expanding: " + this.v.getCluster().getClusterSize()+" "+this.v.getCluster());
 			}
 		} while (tryAnotherTime);
 
