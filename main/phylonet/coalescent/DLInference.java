@@ -120,7 +120,7 @@ public class DLInference extends AbstractInference<STBipartition> {
 	}
 
 	DLClusterCollection newClusterCollection() {
-		return new DLClusterCollection(GlobalMaps.taxonIdentifier.taxonCount(),  new HashMap<STITreeCluster, STITreeCluster.Vertex>());
+		return new DLClusterCollection(GlobalMaps.taxonIdentifier.taxonCount());
 	}
 	
 	DLDataCollection newCounter(IClusterCollection clusters) {

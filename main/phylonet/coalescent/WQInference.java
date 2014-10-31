@@ -2,7 +2,6 @@ package phylonet.coalescent;
 
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
@@ -24,7 +23,6 @@ public class WQInference extends AbstractInference<Tripartition> {
 	}
 
 	public void scoreGeneTree(Tree st) {
-		long startTime = System.currentTimeMillis();
 
 		mapNames();
 
@@ -44,7 +42,6 @@ public class WQInference extends AbstractInference<Tripartition> {
 				STITreeCluster cluster = new STITreeCluster();
 				Integer taxonID = GlobalMaps.taxonIdentifier.taxonId(nodeName);
 				cluster.addLeaf(taxonID);
-				STITreeCluster remaining = cluster.complementaryCluster();
 
 				stack.add(cluster);
 
@@ -103,7 +100,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 	}
 
 	IClusterCollection newClusterCollection() {
-		return new WQClusterCollection(GlobalMaps.taxonIdentifier.taxonCount(), new HashMap<STITreeCluster, STITreeCluster.Vertex>());
+		return new WQClusterCollection(GlobalMaps.taxonIdentifier.taxonCount());
 	}
 	
 	AbstractDataCollection<Tripartition> newCounter(IClusterCollection clusters) {
