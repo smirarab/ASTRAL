@@ -1,3 +1,6 @@
+- Version 4.7.3:
+  - Removing the unnecessary global vertex cache (better memory/time)
+   
 - Version 4.7.2:
   - Changed the way extra bipartitions are added for unresolved gene trees
   - Made some changes to the default strategy for addition of extra bipartitions (don't add incompatible bipartitions - these can increase running time drastically with little benefit)
