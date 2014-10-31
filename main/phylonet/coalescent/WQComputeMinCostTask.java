@@ -2,6 +2,7 @@ package phylonet.coalescent;
 
 import java.util.List;
 
+import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
@@ -37,8 +38,8 @@ public class WQComputeMinCostTask extends AbstractComputeMinCostTask<Tripartitio
 	}
 
 	@Override
-	protected Tripartition STB2T(STBipartition stb) {
-		return new Tripartition(stb.cluster1, stb.cluster2, stb.c.complementaryCluster());
+	protected Tripartition STB2T(VertexPair vp) {
+		return new Tripartition(vp.cluster1.getCluster(), vp.cluster2.getCluster());
 	}
 
 	@Override
