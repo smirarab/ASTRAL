@@ -6,16 +6,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
 public abstract class AbstractComputeMinCostTask<T> {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 244989909835073096L;
 	AbstractInference<T> inference;
 	Vertex v;
 	IClusterCollection clusters;
@@ -85,19 +82,25 @@ public abstract class AbstractComputeMinCostTask<T> {
 
 		boolean tryAnotherTime = false;
 
-		containedVertecies = clusters.getContainedClusters(v.getCluster());
+		containedVertecies = clusters.getContainedClusters(v);
 
 		do {
 			tryAnotherTime = false;
 
-			Collection<STBipartition> clusterResolutions;
+			Iterable<VertexPair> clusterResolutions;
 			
 			if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) {
-				STITreeCluster c1 = new STITreeCluster();
-				c1.addLeaf(0);
-				STBipartition stb1 = new STBipartition(c1, c1.complementaryCluster(), this.v.getCluster());
-				clusterResolutions = new ArrayList<STBipartition>();
-				clusterResolutions.add(stb1);
+				Vertex v1 = containedVertecies.getSubClusters(1).iterator().next();
+				clusterResolutions = new ArrayList<VertexPair>();
+				for (Vertex v2: containedVertecies.getSubClusters(GlobalMaps.taxonIdentifier.taxonCount()-1))
+				{
+					if (v1.getCluster().isDisjoint(v2.getCluster())) {
+						VertexPair vp = new VertexPair(v1, v2);
+						((ArrayList<VertexPair>) clusterResolutions).add(vp);
+						break;
+					}
+				}
+				
 			} else {
 				if (clusterSize >= GlobalMaps.taxonIdentifier.taxonCount() * inference.getCS()) {
 					addComplementaryClusters(clusterSize);
@@ -107,7 +110,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 			}
 			
 			long clusterLevelCost = 0;
-			if (!clusterResolutions.isEmpty()) {
+			if (clusterResolutions.iterator().hasNext()) {
 				clusterLevelCost = calculateClusterLevelCost();
 			}
 			/*
@@ -116,15 +119,14 @@ public abstract class AbstractComputeMinCostTask<T> {
 			 * .getClusterCoalNum(this.inference.trees, this.v.getCluster(),
 			 * taxonNameMap, true));
 			 */
-			for (STBipartition bi : clusterResolutions) {
+			for (VertexPair bi : clusterResolutions) {
 				try {
-					Vertex smallV = containedVertecies.getVertexForCluster(bi.cluster1);
-					Vertex bigv = containedVertecies.getVertexForCluster(bi.cluster2);
+					Vertex smallV = bi.cluster1;
+					Vertex bigv = bi.cluster2;
 					AbstractComputeMinCostTask<T> smallWork = newMinCostTask(
 							smallV, containedVertecies);
 					AbstractComputeMinCostTask<T> bigWork = newMinCostTask(
 							bigv, containedVertecies);
-					ICalculateWeightTask<T> weigthWork = null; 
 
 					// MP_VERSION: smallWork.fork();
 					Double rscore = bigWork.compute();
@@ -246,7 +248,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 	
 	abstract protected long scoreBaseCase(boolean rooted, List<Tree> trees);
 	
-	abstract protected T STB2T(STBipartition stb);
+	abstract protected T STB2T(VertexPair stb);
 
 	void addAllPossibleSubClusters(STITreeCluster cluster,
 			IClusterCollection containedVertecies) {

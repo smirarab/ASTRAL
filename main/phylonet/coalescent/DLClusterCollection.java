@@ -12,8 +12,8 @@ public class DLClusterCollection extends AbstractClusterCollection {
 	
 	protected HashMap<STITreeCluster, HashSet<STBipartition>> geneTreeSTBByCluster;
 	
-	public DLClusterCollection(int len, HashMap<STITreeCluster, Vertex> globalVertexCash) {
-		initialize(len, globalVertexCash);
+	public DLClusterCollection(int len) {
+		initialize(len);
 		geneTreeSTBByCluster = new HashMap<STITreeCluster, HashSet<STBipartition>>();
 	}
 
@@ -79,7 +79,7 @@ public class DLClusterCollection extends AbstractClusterCollection {
 
 	@Override
 	public AbstractClusterCollection newInstance(int size) {
-		return new DLClusterCollection(size, this.globalVertexCash);
+		return new DLClusterCollection(size);
 	}
 	
 /*	class BasicSubClusterCollection extends BasicClusterCollection {
