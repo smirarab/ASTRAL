@@ -24,9 +24,10 @@ public abstract class AbstractWeightCalculator<T> {
 	
 	public int getCalculatedWeightCount() {
 		//return this.callcounter;	
-		if (save)
-			System.err.println("Weights requested "+this.callcounter +" times");
-		return weights.size();
+		if (!save)
+			return this.callcounter;
+		else 
+			return weights.size();
 	}
 	
 	public Long getCalculatedWeight(T t) {

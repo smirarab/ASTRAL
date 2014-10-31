@@ -1,9 +1,7 @@
 package phylonet.coalescent;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.ConcurrentModificationException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -15,17 +13,14 @@ import phylonet.tree.model.sti.STITreeCluster.Vertex;
 public abstract class AbstractClusterCollection implements IClusterCollection{
 
 	protected ArrayList<Set<Vertex>> clusters;
-	HashMap<STITreeCluster, Vertex> globalVertexCash;// = new HashMap<STITreeCluster, STITreeCluster.Vertex>();
 	protected int topClusterLength;
 	int totalcount = 0;
 
-	protected void initialize(int len, HashMap<STITreeCluster, Vertex> globalVertexCash) {
-		this.globalVertexCash = globalVertexCash;
+	protected void initialize(int len) {
 		this.topClusterLength = len;
 		clusters = new ArrayList<Set<Vertex>>(len);
 		for (int i = 0; i <= len; i++) {
 			clusters.add(new HashSet<Vertex>());
-			//geneTreeSTBBySize.add(new HashSet<STBipartition>());
 		}
 	}
 	
@@ -45,16 +40,9 @@ public abstract class AbstractClusterCollection implements IClusterCollection{
 
 	@Override
 	public boolean addCluster(Vertex vertex, int size) {
-		// See if this vertex is available in cash
-		Vertex nv = globalVertexCash.get(vertex.getCluster());
-		if (nv == null) {
-			nv = vertex;
-		}
 		
-		boolean added = clusters.get(size).add(nv);
+		boolean added = clusters.get(size).add(vertex);
 		if (added) {
-			//nv.index=++vertexIndex;
-			globalVertexCash.put(nv.getCluster(),nv);
 			totalcount++;
 		}
 		return added;
@@ -66,12 +54,11 @@ public abstract class AbstractClusterCollection implements IClusterCollection{
 	}
 
 	@Override
-	public IClusterCollection getContainedClusters(STITreeCluster cluster) {
-		//if (topClusterLength < 10)
-		//	System.out.println("Contained: "+cluster+" "+clusterToVertx.keySet());
+	public IClusterCollection getContainedClusters(Vertex v) {
+		STITreeCluster cluster = v.getCluster();
 		int size = cluster.getClusterSize();
 		AbstractClusterCollection ret = newInstance(size);
-		addClusterToRet(getVertexForCluster(cluster), size, ret);
+		addClusterToRet(v, size, ret);
 		
 		for (int i = size - 1 ; i > 0; i--) {
 			Set<Vertex> sizeClusters = clusters.get(i);
@@ -90,15 +77,37 @@ public abstract class AbstractClusterCollection implements IClusterCollection{
 	}
 
 	@Override
-	public Vertex getVertexForCluster(STITreeCluster cluster1) {
-		return globalVertexCash.get(cluster1);
-	}
-
-	@Override
-	public Collection<STBipartition> getClusterResolutions() {
+	public Iterable<VertexPair> getClusterResolutions() {
 		//System.out.println(topClusterLength+ " "+getTopVertex());
-		STITreeCluster c = getTopVertex().getCluster();
-		ArrayList<STBipartition> ret = new ArrayList<STBipartition>();
+		//TODO: return an iterator directly instead of building a collection.
+		ArrayList<VertexPair> ret = new ArrayList<VertexPair>();
+		/*Iterable<VertexPair> r= new Iterable<IClusterCollection.VertexPair>() {
+			
+			@Override
+			public Iterator<VertexPair> iterator() {
+				
+				return new Iterator<VertexPair>() {
+
+					@Override
+					public boolean hasNext() {
+						// TODO Auto-generated method stub
+						return false;
+					}
+
+					@Override
+					public VertexPair next() {
+						// TODO Auto-generated method stub
+						return null;
+					}
+
+					@Override
+					public void remove() {
+						throw new UnsupportedOperationException();
+					}
+				};
+			}
+		};*/
+		
 		int clusterSize = topClusterLength;
 		for (int i = 1; i <= (clusterSize / 2); i++) {
 			Set<Vertex> left = this.clusters.get(i);
@@ -115,9 +124,8 @@ public abstract class AbstractClusterCollection implements IClusterCollection{
 					if (!smallV.getCluster().isDisjoint(bigv.getCluster())) {
 						continue;
 					}
-					STBipartition bi = new STBipartition(
-							smallV.getCluster(), bigv.getCluster(),
-							c);
+					VertexPair bi = new VertexPair(
+							smallV, bigv);
 					ret.add(bi);
 				}
 			}

@@ -1,9 +1,7 @@
 package phylonet.coalescent;
 
-import java.util.Collection;
 import java.util.Set;
 
-import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
 public interface IClusterCollection {
@@ -16,18 +14,21 @@ public interface IClusterCollection {
 
 	boolean contains(Vertex reverse);
 
-	IClusterCollection getContainedClusters(STITreeCluster cluster);
+	IClusterCollection getContainedClusters(Vertex v);
 
-	Vertex getVertexForCluster(STITreeCluster cluster1);
-
-	Collection<STBipartition> getClusterResolutions();
+	Iterable<VertexPair> getClusterResolutions();
 
 	Iterable<Set<Vertex>> getSubClusters();
 	
 	Set<Vertex> getSubClusters(int size);
-//
-//	void addGeneTreeSTB(STBipartition stb, int size);
-//
-//	Iterable<STBipartition> getContainedGeneTreeSTBs();
+	
+	class VertexPair {
+		public final Vertex cluster1;
+		public final Vertex cluster2;
+		public VertexPair(Vertex c1, Vertex c2) {
+			cluster1 = c1;
+			cluster2 = c2;
+		}
+	}
 
 }
