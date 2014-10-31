@@ -5,6 +5,7 @@ import java.util.List;
 import phylonet.coalescent.IClusterCollection;
 import phylonet.coalescent.AbstractComputeMinCostTask;
 import phylonet.coalescent.DLWeightCalculator.DPWeightTask;
+import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
@@ -92,8 +93,8 @@ public class DLComputeMinCostTask extends AbstractComputeMinCostTask<STBipartiti
 
 
 	@Override
-	protected STBipartition STB2T(STBipartition stb) {
-		return stb;
+	protected STBipartition STB2T(VertexPair vp) {
+		return new STBipartition(vp.cluster1.getCluster(), vp.cluster2.getCluster());
 	}
 	
 	int calculateDLbdAdjustment(Vertex smallV, Vertex bigv) {
