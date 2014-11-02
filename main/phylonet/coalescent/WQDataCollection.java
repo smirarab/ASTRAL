@@ -143,7 +143,11 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 
 	void addTreeBipartitionsToX(List<Tree> trees) {
 
-		Tree greedy = Utils.greedyConsensus(trees);
+		Tree[] greedies = new Tree[1];
+		for (int i = 0; i < greedies.length; i++ ) {
+			greedies[i] = Utils.greedyConsensus(trees, true);
+			Utils.randomlyResolve((MutableTree) greedies[i]);
+		}
 		
 		for (Tree tr : trees) {
 			
@@ -197,19 +201,19 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 						for (BitSet child : childbslist) {
 							polytomy[i++] = child;
 						}
-						if (!isRoot)
+						if (!isRoot) {
 							polytomy[i] = remaining.getBitSet();
+						}
 						
-						List<String> randomSample = this.randomSampleAroundPolytomy(polytomy);
+						HashMap<String, Integer> randomSample = this.randomSampleAroundPolytomy(polytomy);
 						
-						STITree<Boolean> restrictedTree = new STITree(greedy);
-						restrictedTree.constrainByLeaves(randomSample);
-						Utils.randomlyResolve(restrictedTree);
-						List<BitSet> restrictedBitsets = Utils.getBitsets(randomSample, restrictedTree);
-						
-						
-						for (BitSet restrictedBitSet : restrictedBitsets) {
-							this.addSubSampledBitSetToX(polytomy, restrictedBitSet);
+						//STITree<Boolean> restrictedTree = new STITree(greedy);
+						//restrictedTree.constrainByLeaves(randomSample.keySet());
+						//Utils.randomlyResolve(restrictedTree);
+						for (int j = 0; j < greedies.length; j++) {
+							for (BitSet restrictedBitSet :  Utils.getBitsets(randomSample, greedies[j])) {
+								this.addSubSampledBitSetToX(polytomy, restrictedBitSet);
+							}
 						}
 						
 						//System.err.print(".");
@@ -727,12 +731,19 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 			return;
 		}*/
 
-		Tree[] allGreedies = Utils.greedyConsensus(this.completedGeeneTrees, GREEDY_ADDITION_THRESHOLDS);	
-
+		List<Tree> allGreedies = new ArrayList<Tree>();
+		
+		for (int j = 0; j < 1; j++) {
+			allGreedies.addAll(Utils.greedyConsensus(this.completedGeeneTrees,
+					GREEDY_ADDITION_THRESHOLDS, true));	
+		}
+		
 		int th = 0;
 		for (Tree cons: allGreedies) {
 			System.err.println("Threshold " +GREEDY_ADDITION_THRESHOLDS[th++]+":");
-
+			if (th == GREEDY_ADDITION_THRESHOLDS.length) 
+				th = 0;
+			System.err.println(cons);
 			Stack<BitSet> greedyNodeStack = new Stack<BitSet>();
 			for (TNode greedyNode :  cons.postTraverse()) {
 				if (greedyNode.isLeaf()) {
@@ -752,7 +763,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 				}
 				greedyNodeStack.push(greedyBS);
 
-				if ( greedyNode.getChildCount() > 2) {
+				if ( greedyNode.getChildCount() > 2 ) { // && greedyNode.getChildCount() < P) {
 
 					BitSet comp = (BitSet) greedyBS.clone();
 					comp.flip(0,n);
@@ -763,7 +774,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 					int k = 0;
 					for (int j = 0; j < GREEDY_ADDITION_NOIMPROVEMENT_LIMIT;) {						
 
-						if (!sampleAndResolve(childbs, true)) {
+						if (!sampleAndResolve(childbs)) {
 							j++;
 							//System.err.println("+");
 						} else {
@@ -779,14 +790,14 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 	}
 
 	private HashMap<BitSet, Integer> returnBitSetCounts(List<Tree> genetrees,
-			List<String> randomSample) {
+			HashMap<String, Integer> randomSample) {
 		
 		HashMap<BitSet, Integer> counts = new HashMap<BitSet, Integer>();
 		
 		for (Tree gt : genetrees) {
-			STITree<Boolean> restrictedTree = new STITree(gt);
-			restrictedTree.constrainByLeaves(randomSample);	
-			List<BitSet> bsList = Utils.getBitsets(randomSample, restrictedTree);
+			//STITree<Boolean> restrictedTree = new STITree(gt);
+			//restrictedTree.constrainByLeaves(randomSample.keySet());	
+			List<BitSet> bsList = Utils.getBitsets(randomSample, gt);
 			
 			for (BitSet bs : bsList) {
 				if (counts.containsKey(bs)) {
@@ -808,11 +819,11 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 
 	
 	
-	private boolean sampleAndResolve(BitSet[] polytomyBSList, boolean beyondGreedy) {
+	private boolean sampleAndResolve(BitSet[] polytomyBSList) {
 		
-		boolean added = false;
+		boolean addedHighFreq = false;
 		// random sample taxa
-		List<String> randomSample = randomSampleAroundPolytomy(polytomyBSList);
+		HashMap<String, Integer> randomSample = randomSampleAroundPolytomy(polytomyBSList);
 
 		//System.err.print(".");
 		// get bipartition counts in the induced trees
@@ -820,7 +831,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		
 		// sort bipartitions
 		TreeSet<Entry<BitSet,Integer>> countSorted = new 
-				TreeSet<Entry<BitSet,Integer>>(new BSComparator());
+				TreeSet<Entry<BitSet,Integer>>(new Utils.BSComparator(true,randomSample.size()));
 		countSorted.addAll(counts.entrySet()); 
 		
 		// build the greedy tree
@@ -833,6 +844,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		  ((STINode<BitSet>)tmpnodes[i]).setData(bs);
 		}				       
 		    
+		boolean added = false;
 		//System.err.print("^");
 		for (Entry<BitSet, Integer> entry : countSorted) {
 
@@ -873,7 +885,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 
 				if (addSubSampledBitSetToX(polytomyBSList, newbs)) {
 					if (GREEDY_ADDITION_MIN_FREQ <= (entry.getValue()+.0d)/this.completedGeeneTrees.size()) {
-						added = true;
+						addedHighFreq = true;
+						added  = true;
 					}
 				}
 			}
@@ -890,39 +903,42 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		}
 		
 		
-		
-		for (TNode node : greedyTree.postTraverse()) {
-			if (node.getChildCount() > 2) {
-				ArrayList<BitSet> children = new ArrayList<BitSet> ();
-				for (TNode child : node.getChildren()) {
-					children.add(((STINode<BitSet>)child).getData());
-				}
-				
-				while (children.size() > 2) {
-					BitSet c1 = children.remove(GlobalMaps.random.nextInt(children.size()));
-					BitSet c2 = children.remove(GlobalMaps.random.nextInt(children.size()));
-					
-					BitSet newbs = (BitSet) c1.clone();
-					newbs.or(c2);				
-					addSubSampledBitSetToX(polytomyBSList, newbs);					
-					children.add(newbs);
-				}
+		if (added) {
+			for (TNode node : greedyTree.postTraverse()) {
+				if (node.getChildCount() > 2) {
+					ArrayList<BitSet> children = new ArrayList<BitSet> ();
+					for (TNode child : node.getChildren()) {
+						children.add(((STINode<BitSet>)child).getData());
+					}
 
-			}
+					while (children.size() > 2) {
+						BitSet c1 = children.remove(GlobalMaps.random.nextInt(children.size()));
+						BitSet c2 = children.remove(GlobalMaps.random.nextInt(children.size()));
+
+						BitSet newbs = (BitSet) c1.clone();
+						newbs.or(c2);				
+						addSubSampledBitSetToX(polytomyBSList, newbs);					
+						children.add(newbs);
+					}
+
+				}
+			} 
 		}
-		return added;
+		return addedHighFreq;
 	}
 
 
-	private List<String> randomSampleAroundPolytomy(BitSet[] polyTomy) {
-		List<String> randomSample = new ArrayList<String>();
+	private HashMap<String,Integer>  randomSampleAroundPolytomy(BitSet[] polyTomy) {
+		HashMap<String,Integer>  randomSample = new HashMap<String, Integer>();
+		int ind = 0;
 		for (BitSet child : polyTomy) {
 			int sample = GlobalMaps.random.nextInt(child.cardinality());
 			int p = child.nextSetBit(0);
 			for (int i = 0; i< sample; i++) {
 				p = child.nextSetBit(p+1);
 			}
-			randomSample.add(GlobalMaps.taxonIdentifier.getTaxonName(p));
+			randomSample.put(GlobalMaps.taxonIdentifier.getTaxonName(p),ind);
+			ind++;
 		}
 		return randomSample;
 	}
@@ -930,12 +946,12 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 	private boolean sampleAndResolve2(List<Tree> genetrees, BitSet[] childbs) {
 		
 		boolean added = false;
-		List<String> randomSample = randomSampleAroundPolytomy(childbs);
+		HashMap<String,Integer> randomSample = randomSampleAroundPolytomy(childbs);
 
 		// get bipartition counts in the induced trees
 		for (Tree gt : genetrees) {
 			STITree<Boolean> rgt = new STITree(gt);
-			rgt.constrainByLeaves(randomSample);
+			rgt.constrainByLeaves(randomSample.keySet());
 
 			Stack<BitSet> stack = new Stack<BitSet>();
 			for (TNode rgtn : rgt.postTraverse()) {
@@ -946,7 +962,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 				BitSet bs = new BitSet(randomSample.size());
 				if (rgtn.isLeaf()) {
 					// Find the index of this leaf.
-					int i =  randomSample.indexOf(rgtn.getName());               
+					int i =  randomSample.get(rgtn.getName());               
 					bs.set(i); 
 				}
 				else {
@@ -979,41 +995,5 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		g.setCluster(stNewbs);
 
 		return this.addCompletedBipartionToX(g, g.complementaryCluster());
-	}
-
-
-
-
-	public class BSComparator implements Comparator<Entry<BitSet,Integer>> {
-
-		private int random;
-		public BSComparator () {
-			this.random = GlobalMaps.random.nextBoolean() ? -1 : 1;
-		}
-		@Override
-		public int compare(Entry<BitSet, Integer> o1,
-				Entry<BitSet, Integer> o2) {
-			int a = o2.getValue().compareTo(o1.getValue());
-			if (a != 0) {
-				return a;
-			}
-			if  (o2.getKey().equals(o1.getKey())) {
-				return 0;
-			}
-			int i = 0;
-			while (i >= 0) {
-				int j = o1.getKey().nextSetBit(i);
-				int jj = o2.getKey().nextSetBit(i);
-				if (j != jj) {
-					return (j > jj) ? random : -random;
-				} else {
-					if (j == -1) {
-						break;
-					}
-					i = j + 1;
-				}
-			}
-			throw new RuntimeException("hmm! this should never be reached");
-		}
 	}
 }
