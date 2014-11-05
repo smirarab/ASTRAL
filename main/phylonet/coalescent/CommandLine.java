@@ -37,7 +37,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.7.3a";
+    protected static String _versinon = "4.7.3";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -77,9 +77,12 @@ public class CommandLine {
                             "find the exact solution by looking at all clusters - recommended only for small (<18) numer of taxa."),
    
                     new FlaggedOption("extraLevel",
-                    		JSAP.INTEGER_PARSER, "2", JSAP.NOT_REQUIRED,
+                    		JSAP.INTEGER_PARSER, "1", JSAP.NOT_REQUIRED,
                             'p', "extraLevel",
-                            "How much extra bipartitions should be added: 0, 1, or 2. 0 means nothing. 1 means greedy-based addition (highly recommended). 2 means greedy and distance-based addition (could be slow)."),
+                            "How much extra bipartitions should be added: 0, 1, or 2. "
+                            + "0: adds nothing extra. "
+                            + "1 (default): adds to X but not excessively (greedy resolutions). "
+                            + "2: addes a potentially large number and therefore can be slow (quadratic distance-based)."),
    
                     new FlaggedOption("extra trees", 
                             FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 
