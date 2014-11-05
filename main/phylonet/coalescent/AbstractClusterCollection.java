@@ -109,6 +109,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection{
 		};*/
 		
 		int clusterSize = topClusterLength;
+		Vertex v = this.getTopVertex();
 		for (int i = 1; i <= (clusterSize / 2); i++) {
 			Set<Vertex> left = this.clusters.get(i);
 			if (left == null || left.size() == 0) {
@@ -125,7 +126,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection{
 						continue;
 					}
 					VertexPair bi = new VertexPair(
-							smallV, bigv);
+							smallV, bigv, v);
 					ret.add(bi);
 				}
 			}
