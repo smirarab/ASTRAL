@@ -25,9 +25,11 @@ public interface IClusterCollection {
 	class VertexPair {
 		public final Vertex cluster1;
 		public final Vertex cluster2;
-		public VertexPair(Vertex c1, Vertex c2) {
+		public final Vertex both;
+		public VertexPair(Vertex c1, Vertex c2, Vertex b) {
 			cluster1 = c1;
 			cluster2 = c2;
+			both = b;
 		}
 	}
 
