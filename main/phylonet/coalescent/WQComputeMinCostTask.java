@@ -39,7 +39,7 @@ public class WQComputeMinCostTask extends AbstractComputeMinCostTask<Tripartitio
 
 	@Override
 	protected Tripartition STB2T(VertexPair vp) {
-		return new Tripartition(vp.cluster1.getCluster(), vp.cluster2.getCluster());
+		return new Tripartition(vp.cluster1.getCluster(), vp.cluster2.getCluster(), vp.both.getCluster().complementaryCluster());
 	}
 
 	@Override
