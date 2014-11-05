@@ -94,7 +94,7 @@ public class DLComputeMinCostTask extends AbstractComputeMinCostTask<STBipartiti
 
 	@Override
 	protected STBipartition STB2T(VertexPair vp) {
-		return new STBipartition(vp.cluster1.getCluster(), vp.cluster2.getCluster());
+		return new STBipartition(vp.cluster1.getCluster(), vp.cluster2.getCluster(), vp.both.getCluster());
 	}
 	
 	int calculateDLbdAdjustment(Vertex smallV, Vertex bigv) {
