@@ -1,6 +1,12 @@
 - Version 4.7.3:
-  - Removing the unnecessary global vertex cache (better memory/time)
-   
+  - Resolving gene tree polytomies using a hybrid greedy/distance method
+  - Adding to X by resolving polytomies using distances in addition to greedy
+  - Changing -p1 and -p2 settings. -p2 is now much slower than -p1
+  - Now -p1 is the default
+  - Code refactoring
+  - Some log changes
+  - Removing the unnecessary global vertex cache (used up memory/time)
+  
 - Version 4.7.2:
   - Changed the way extra bipartitions are added for unresolved gene trees
   - Made some changes to the default strategy for addition of extra bipartitions (don't add incompatible bipartitions - these can increase running time drastically with little benefit)

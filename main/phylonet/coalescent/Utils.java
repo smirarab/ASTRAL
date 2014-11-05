@@ -144,10 +144,27 @@ public class Utils {
     }
 
     public static final Tree greedyConsensus(Iterable<Tree> trees, boolean randomize) {
-    	return greedyConsensus(trees,new double[]{0d}, randomize).iterator().next();
+    	return greedyConsensus(trees,new double[]{0d}, randomize, 1).iterator().next();
     }
     
-    public static final Collection<Tree> greedyConsensus(Iterable<Tree> trees, double[] thresholds, boolean randomzie) {
+	
+    public static List<Integer> getRange(int n) {
+		List<Integer> range = new ArrayList<Integer>(n);
+		for (int j = 0; j < n; j++) {
+			range.add(j);
+		}
+		return range;
+	}
+	
+    public static List<Integer> getOnes(int n) {
+		List<Integer> range = new ArrayList<Integer>(n);
+		for (int j = 0; j < n; j++) {
+			range.add(1);
+		}
+		return range;
+	}
+    
+    public static final Collection<Tree> greedyConsensus(Iterable<Tree> trees, double[] thresholds, boolean randomzie, int repeat) {
     
     	List<Tree> outTrees = new ArrayList<Tree>();
     	
@@ -172,28 +189,30 @@ public class Utils {
             }
         }
         
-        TreeSet<Entry<STITreeCluster,Integer>> countSorted = new 
-            TreeSet<Entry<STITreeCluster,Integer>>(new ClusterComparator(randomzie, size));
+        for (int gi = 0; gi < repeat; gi++) {
+        	TreeSet<Entry<STITreeCluster,Integer>> countSorted = new 
+        			TreeSet<Entry<STITreeCluster,Integer>>(new ClusterComparator(randomzie, size));
         
-        countSorted.addAll(count.entrySet());
-        
-        int ti = thresholds.length - 1;
-        double threshold = thresholds[ti];
-        List<STITreeCluster> clusters = new ArrayList<STITreeCluster>();   
-        for (Entry<STITreeCluster, Integer> entry : countSorted) {
-        	if (threshold > (entry.getValue()+.0d)/treecount) {	
-        		outTrees.add(0,Utils.buildTreeFromClusters(clusters));
-        		ti--;
-        		if (ti < 0) {
-        			break;
-        		}
-        		threshold = thresholds[ti];
-        	}
-    		clusters.add(entry.getKey());
-        }
-        while (ti >= 0) {
-        	outTrees.add(0, Utils.buildTreeFromClusters(clusters));
-    		ti--;
+	        countSorted.addAll(count.entrySet());
+	        
+	        int ti = thresholds.length - 1;
+	        double threshold = thresholds[ti];
+	        List<STITreeCluster> clusters = new ArrayList<STITreeCluster>();   
+	        for (Entry<STITreeCluster, Integer> entry : countSorted) {
+	        	if (threshold > (entry.getValue()+.0d)/treecount) {	
+	        		outTrees.add(0,Utils.buildTreeFromClusters(clusters));
+	        		ti--;
+	        		if (ti < 0) {
+	        			break;
+	        		}
+	        		threshold = thresholds[ti];
+	        	}
+	    		clusters.add(entry.getKey());
+	        }
+	        while (ti >= 0) {
+	        	outTrees.add(0, Utils.buildTreeFromClusters(clusters));
+	    		ti--;
+	        }
         }
         
         return outTrees;
@@ -353,7 +372,7 @@ public class Utils {
 		return ret;
 	}
 	
-	public static void randomlyResolve(MutableTree tree) {
+	/*public static void randomlyResolve(MutableTree tree) {
 		for (TNode node : tree.postTraverse()) {
 			if (node.getChildCount() < 3) {
 				continue;
@@ -371,8 +390,10 @@ public class Utils {
 				children.add(newChild);
 			}
 		}
-	}
+	}*/
 
+	
+	
 	public static class ClusterComparator implements Comparator<Entry<STITreeCluster,Integer>> {
 		private BSComparator bsComparator;
 

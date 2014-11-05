@@ -95,7 +95,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 				for (Vertex v2: containedVertecies.getSubClusters(GlobalMaps.taxonIdentifier.taxonCount()-1))
 				{
 					if (v1.getCluster().isDisjoint(v2.getCluster())) {
-						VertexPair vp = new VertexPair(v1, v2);
+						VertexPair vp = new VertexPair(v1, v2, v);
 						((ArrayList<VertexPair>) clusterResolutions).add(vp);
 						break;
 					}
