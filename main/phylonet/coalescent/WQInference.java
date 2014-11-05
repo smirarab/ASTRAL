@@ -88,7 +88,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	@Override
 	Long getTotalCost(Vertex all) {
-		System.err.println("Normalized score: " + all._max_score/4./this.maxpossible);
+		System.err.println("Normalized score (portion of input quartet trees satisfied): " + 
+				all._max_score/4./this.maxpossible);
 		return (long) (all._max_score/4l);
 	}
 
