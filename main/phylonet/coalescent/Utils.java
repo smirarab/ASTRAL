@@ -38,10 +38,17 @@ import phylonet.util.BitSet;
 
 public class Utils {
 
-    public static Tree buildTreeFromClusters(Iterable<STITreeCluster> clusters) {
+	public static ArrayList<TNode> getChildrenAsList(TNode node) {
+		ArrayList<TNode> children = new ArrayList<TNode>();
+		for (TNode child : node.getChildren()) {
+			children.add(child);
+		}
+		return children;
+	}
+
+	public static Tree buildTreeFromClusters(Iterable<STITreeCluster> clusters) {
         if ((clusters == null) || (!clusters.iterator().hasNext())) {
-          System.err.println("Empty list of clusters. The function returns a null tree.");
-          return null;
+          throw new RuntimeException("Empty list of clusters. The function returns a null tree.");
         }
     
         SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
