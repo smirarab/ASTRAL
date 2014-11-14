@@ -51,7 +51,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 	private boolean SLOW = false;
 	private final double [] GREEDY_ADDITION_THRESHOLDS = new double [] {0, 1/100., 1/50., 1/20., 1/10., 1/5., 1/3.} ;
 	private final int GREEDY_DIST_ADDITTION_LAST_THRESHOLD_INDX = 3;
-	private final double GREEDY_ADDITION_MAX_POLYTOMY_SIZE = 0.5;
+	private final int GREEDY_ADDITION_MAX_POLYTOMY_MIN = 50;
+	private final int GREEDY_ADDITION_MAX_POLYTOMY_MULT = 10;
 	private final int GREEDY_ADDITION_DEFAULT_RUNS = 10;
 	private final double GREEDY_ADDITION_MIN_FREQ = 0.01;
 	private final int GREEDY_ADDITION_IMPROVEMENT_REWARD = 2;
@@ -210,6 +211,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 							polytomy[i] = remaining.getBitSet();
 						}
 						
+						//TODO: do multiple samples
 						HashMap<String, Integer> randomSample = this.randomSampleAroundPolytomy(polytomy);
 						
 						//STITree<Boolean> restrictedTree = new STITree(greedy);
@@ -575,7 +577,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 	
 		System.err.println("Adding to X using resolutions of greedy consensus ...");
 		for (Tree tree:  this.completedGeeneTrees) {
-			tree.rerootTreeAtNode(tree.getNode(GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesName(0)));
+			tree.rerootTreeAtEdge(GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesName(0));
 			Trees.removeBinaryNodes((MutableTree) tree);
 		}
 
@@ -614,7 +616,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 				greedyNodeStack.push(greedyBS);
 
 				if ( greedyNode.getChildCount() > 2 && 
-						greedyNode.getChildCount() < GREEDY_ADDITION_MAX_POLYTOMY_SIZE * n) {
+						greedyNode.getChildCount() < this.getRoundCount()) {
 
 					BitSet comp = (BitSet) greedyBS.clone();
 					comp.flip(0,n);
@@ -645,6 +647,12 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		System.err.println("Number of Clusters after addition by greedy: " + clusters.getClusterCount());
 	}
 	
+	private long getRoundCount() {
+		return this.GREEDY_ADDITION_MAX_POLYTOMY_MIN +
+				Math.round(Math.sqrt(n*this.GREEDY_ADDITION_MAX_POLYTOMY_MULT));
+	}
+
+
 	private boolean resolveByUPGMA(BitSet [] polytomyBSList) {
 		boolean added = false;
 		for (BitSet bs: this.similarityMatrix.resolveByUPGMA(Arrays.asList(polytomyBSList),true)) {
@@ -682,7 +690,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 					counts.put(bs2, counts.get(bs2) + 1);
 					continue;
 				}
-				counts.put(bs2, 1);
+				counts.put(bs, 1);
 			}
 		}
 		return counts;
@@ -697,14 +705,14 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		// random sample taxa
 		HashMap<String, Integer> randomSample = randomSampleAroundPolytomy(polytomyBSList);
 
-		addedHighFreq = resolveByGreedy(polytomyBSList, randomSample);
+		addedHighFreq = resolveLinearly(polytomyBSList, randomSample);
 		
-		resolveByQuadraticDistance(polytomyBSList, randomSample, addQuadratic);
+		resolveByDistance(polytomyBSList, randomSample, addQuadratic);
 
 		return addedHighFreq;
 	}
 
-	private boolean resolveByGreedy(BitSet[] polytomyBSList, HashMap<String, Integer> randomSample) {
+	private boolean resolveLinearly(BitSet[] polytomyBSList, HashMap<String, Integer> randomSample) {
 		int sampleSize = randomSample.size();
 		// get bipartition counts in the induced trees
 		HashMap<BitSet, Integer> counts = returnBitSetCounts(this.completedGeeneTrees, randomSample);
@@ -818,7 +826,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 	}
 
 
-	private boolean resolveByQuadraticDistance(BitSet[] polytomyBSList, 
+	private boolean resolveByDistance(BitSet[] polytomyBSList, 
 			HashMap<String, Integer> randomSample, boolean quartetAddition) {
 		boolean added = false;
 		
