@@ -1,6 +1,6 @@
 - Version 4.7.4:
   - Adjust max polytomy size using sqrt of n
-  - Misc refactoring and small bug fix
+  - Misc refactoring and small bug fix (speed mostly)
 
 - Version 4.7.3:
   - Resolving gene tree polytomies using a hybrid greedy/distance method
