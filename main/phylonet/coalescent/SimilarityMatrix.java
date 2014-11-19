@@ -306,8 +306,9 @@ public class SimilarityMatrix {
 				is[j] /= c;
 			}
 		
+			range.remove(i);
 			TreeSet<Integer> sortColumn = this.sortColumn(range, is);
-			sortColumn.pollFirst();
+			range.add(i,i);
 			indsBySim.add(sortColumn);
 		}
 		
@@ -328,8 +329,9 @@ public class SimilarityMatrix {
 			bsList.add(bs);
 			final float[] is = this.similarityMatrix[i].clone();
 			sims.add(is);
+			range.remove(i);
 			TreeSet<Integer> sortColumn = this.sortColumn(range, is);
-			sortColumn.pollFirst();
+			range.add(i,i);
 			indsBySim.add(sortColumn);
 		}
 		
