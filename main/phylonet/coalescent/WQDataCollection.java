@@ -804,7 +804,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 					rest.or(((STINode<BitSet>)child).getData());
 				}
 				rest.flip(0,sampleSize);
-				children.add(rest);
+				if (rest.cardinality() != 0)
+					children.add(rest);
 
 				for (BitSet bs: this.similarityMatrix.resolveByUPGMA(children, true)) {
 					addSubSampledBitSetToX(polytomyBSList, bs);	
