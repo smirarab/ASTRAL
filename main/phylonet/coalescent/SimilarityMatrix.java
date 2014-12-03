@@ -303,6 +303,9 @@ public class SimilarityMatrix {
 						c++;
 					}
 				}
+				if (c == 0) {
+					throw new RuntimeException("Error: "+bsI + " "+bsJ);
+				}
 				is[j] /= c;
 			}
 		
