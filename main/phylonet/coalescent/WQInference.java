@@ -17,8 +17,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 	long maxpossible;
 	
 	public WQInference(boolean rooted, boolean extrarooted, List<Tree> trees,
-			List<Tree> extraTrees, boolean exactSolution, boolean duploss, int alg, int addExtra, boolean outputCompletedGenes) {
-		super(rooted, extrarooted, trees, extraTrees, exactSolution, addExtra, outputCompletedGenes);
+			List<Tree> extraTrees, boolean exactSolution, boolean duploss, int alg, int addExtra,
+			boolean outputCompletedGenes, boolean outSearch) {
+		super(rooted, extrarooted, trees, extraTrees, exactSolution, addExtra, outputCompletedGenes, outSearch);
 		this.forceAlg = alg;
 	}
 
