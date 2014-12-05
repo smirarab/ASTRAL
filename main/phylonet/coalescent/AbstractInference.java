@@ -42,10 +42,11 @@ public abstract class AbstractInference<T> {
 	AbstractWeightCalculator<T> weightCalculator;
 	private int addExtra;
 	public boolean outputCompleted;
-
+	boolean searchSpace;
+	
 	public AbstractInference(boolean rooted, boolean extrarooted, List<Tree> trees,
 			List<Tree> extraTrees, boolean exactSolution, int addExtra, 
-			boolean outputCompletedGenes) {
+			boolean outputCompletedGenes, boolean outSearch) {
 		super();
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
@@ -54,6 +55,7 @@ public abstract class AbstractInference<T> {
 		this.exactSolution = exactSolution;
 		this.addExtra = addExtra;
 		this.outputCompleted = outputCompletedGenes;
+		this.searchSpace = outSearch;
 	}
 
 	protected Collapse.CollapseDescriptor doCollapse(List<Tree> trees) {
@@ -273,6 +275,14 @@ public abstract class AbstractInference<T> {
 					+ s);
 		}
 		
+		if (this.searchSpace) {
+			for (Set<Vertex> s: dataCollection.clusters.getSubClusters()) {
+				for (Vertex v : s) {
+					System.out.println(v.getCluster());
+				}
+			}
+			System.exit(0);
+		}
 
 		//counter.addExtraBipartitionsByHeuristics(clusters);
 
