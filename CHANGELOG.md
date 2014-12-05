@@ -1,3 +1,5 @@
+- Version 4.7.5:
+  - Added an option to output the search space () 	
 - Version 4.7.4:
   - Adjust max polytomy size using sqrt of n
   - Misc refactoring and small bug fix (speed mostly)
