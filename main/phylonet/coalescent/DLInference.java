@@ -18,7 +18,7 @@ public class DLInference extends AbstractInference<STBipartition> {
 	
 	public DLInference(boolean rooted, boolean extrarooted, List<Tree> trees,
 			List<Tree> extraTrees, boolean exactSolution, boolean duploss, boolean outputCompletedGenes) {
-		super(rooted, extrarooted, trees, extraTrees, exactSolution, 0, outputCompletedGenes);
+		super(rooted, extrarooted, trees, extraTrees, exactSolution, 0, outputCompletedGenes, false);
 		this.optimizeDuploss = duploss ? 3 : 1;
 	}
 
