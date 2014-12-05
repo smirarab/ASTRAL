@@ -37,7 +37,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.7.4";
+    protected static String _versinon = "4.7.5";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -117,6 +117,7 @@ public class CommandLine {
                               " -k completed: outputs completed gene trees (i.e. after adding missing taxa) to a file called [output file name].completed_gene_trees.\n"
                             + " -k bootstraps: outputs individual bootstrap replciates to a file called [output file name].[i].bs\n"
                             + " -k bootstraps_norun: just like -k bootstraps, but exits after outputting bootstraps.\n"
+                            + " -k searchspace_norun: outputs the search space and exits"
                             + "When -k option is used, -o option needs to be given. "
                             + "The file name specified using -o is used as the prefix for the name of the extra output files.").setAllowMultipleDeclarations(true),
 
@@ -332,7 +333,8 @@ public class CommandLine {
         	for (String koption : config.getStringArray("keep")) {
         		if ("completed".equals(koption) ||
         			"bootstraps".equals(koption) ||
-        			"bootstraps_norun".equals(koption)) {
+        			"bootstraps_norun".equals(koption)||
+        			"searchspace_norun".equals(koption)) {
         			keepOptions.add(koption);
         		} else {
         			throw new JSAPException("-k "+koption+" not recognized.");
@@ -497,7 +499,9 @@ public class CommandLine {
 					trees, extraTrees,exact ,criterion > 0, keepOptions.contains("completed"));			
 		} else if (criterion == 2) {
 			inference = new WQInference(rooted, extrarooted, 
-					trees, extraTrees, exact,criterion > 0, 1, addExtra, keepOptions.contains("completed"));
+					trees, extraTrees, exact,criterion > 0, 1, addExtra, 
+					keepOptions.contains("completed"),
+					keepOptions.contains("searchspace_norun"));
 		} else {
 			throw new RuntimeException("criterion not set?");
 		}		
