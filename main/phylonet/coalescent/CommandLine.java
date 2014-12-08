@@ -442,7 +442,7 @@ public class CommandLine {
 		}
 	    
 		if (bootstraps != null && bootstraps.size() != 0) {
-            STITree<Double> cons = (STITree<Double>) Utils.greedyConsensus(bootstraps,false);
+            STITree<Double> cons = (STITree<Double>) Utils.greedyConsensus(bootstraps,false, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
             cons.rerootTreeAtNode(cons.getNode(outgroup));
 			Trees.removeBinaryNodes(cons);
             Utils.computeEdgeSupports(cons, bootstraps);
