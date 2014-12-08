@@ -10,6 +10,7 @@ import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
+import phylonet.util.BitSet;
 
 public abstract class AbstractComputeMinCostTask<T> {
 
@@ -90,9 +91,17 @@ public abstract class AbstractComputeMinCostTask<T> {
 			Iterable<VertexPair> clusterResolutions;
 			
 			if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) {
-				Vertex v1 = containedVertecies.getSubClusters(1).iterator().next();
 				clusterResolutions = new ArrayList<VertexPair>();
-				for (Vertex v2: containedVertecies.getSubClusters(GlobalMaps.taxonIdentifier.taxonCount()-1))
+				Vertex v1 = null;
+				int smallestSize = 1;
+				while (v1 == null) {
+					Set<Vertex> cs = containedVertecies.getSubClusters(smallestSize);
+					if (cs.size() != 0)
+						v1 = cs.iterator().next();
+					else 
+						smallestSize++;
+				}
+				for (Vertex v2: containedVertecies.getSubClusters(GlobalMaps.taxonIdentifier.taxonCount()-smallestSize))
 				{
 					if (v1.getCluster().isDisjoint(v2.getCluster())) {
 						VertexPair vp = new VertexPair(v1, v2, v);
