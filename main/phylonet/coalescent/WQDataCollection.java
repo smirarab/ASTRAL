@@ -303,6 +303,11 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		return trc;
 	}
 
+	private boolean addARawBitSetToX(BitSet bs) {
+		STITreeCluster cluster = new STITreeCluster();
+		cluster.setCluster(bs);
+		return this.addARawBipartitionToX(cluster, cluster.complementaryCluster());
+	}
 
 	/*
 	 * Adds bipartitions to X, ensuring that individuals from the same
@@ -313,53 +318,52 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 
 		boolean added = false;
 
-		// TODO: should this be treated differently?
+		// TODO: should this be treated differently? For multi-allelse I think yes.
 		if (c1.getClusterSize() == 1) {
 			added |= addToClusters(c1, c1.getClusterSize());
 		}
 
 		
-		STITreeCluster c1c = new STITreeCluster (c1);
-		STITreeCluster c2c = new STITreeCluster (c2);
-		
-		BitSet b1c = c1c.getBitSet();
-		BitSet b2c = c2c.getBitSet();
+		STITreeCluster c1copy = new STITreeCluster (c1);
+		STITreeCluster c2copy = new STITreeCluster (c2);
+		BitSet b1copy = c1copy.getBitSet();
+		BitSet b2copy = c2copy.getBitSet();
 				
 		/*
 		 * Find out for each species whether they are more frequent in left or right
 		 */
 		int [] countsC1c = new int [spm.getSpeciesCount()], countsC2c = new int [spm.getSpeciesCount()];
 		int s1 = 0, s2 = 0;
-		for (int i = b1c.nextSetBit(0); i >=0 ; i = b1c.nextSetBit(i+1)) {
+		for (int i = b1copy.nextSetBit(0); i >=0 ; i = b1copy.nextSetBit(i+1)) {
 			countsC1c[spm.getSpeciesIdForTaxon(i)]++;  
 			s1++;
 		}
-		for (int i = b2c.nextSetBit(0); i >=0 ; i = b2c.nextSetBit(i+1)) {
+		for (int i = b2copy.nextSetBit(0); i >=0 ; i = b2copy.nextSetBit(i+1)) {
 			countsC2c[spm.getSpeciesIdForTaxon(i)]++;   
 			s2++;
 		}  		
 		/*
 		 * Add a bipartition where every individual is moved to the side where it is more common
 		 */
-		BitSet bs1 = new BitSet(spm.getSpeciesCount()); 
+		BitSet bs1Voted = new BitSet(spm.getSpeciesCount()); 
 		for (int i = 0; i < countsC2c.length; i++) {
 			if (countsC1c[i] > countsC2c[i] || ((countsC1c[i] == countsC2c[i]) && (s1 < s2))) {
-				bs1.set(i);
+				bs1Voted.set(i);
 			} 
 		}
-		STITreeCluster c1s = spm.getGeneClusterForSTCluster(bs1);
-		added |=  this.addCompletedSpeciesFixedBipartionToX(c1s, c1s.complementaryCluster());
+		STITreeCluster c1Voted = spm.getGeneClusterForSTCluster(bs1Voted);
+		added |=  this.addCompletedSpeciesFixedBipartionToX(c1Voted, c1Voted.complementaryCluster());
 
 
 		/*
 		 * Add two more bipartitions by adding all individuals from each species to each side they appear at least once
 		 */
-		spm.addMissingIndividuals(c1c.getBitSet());
-		spm.addMissingIndividuals(c2c.getBitSet());
-		STITreeCluster c1cComp = c1c.complementaryCluster();
-		STITreeCluster c2cComp = c2c.complementaryCluster();
-		added |= this.addCompletedSpeciesFixedBipartionToX(c1c, c1cComp);
-		added |= this.addCompletedSpeciesFixedBipartionToX(c2c, c2cComp);
+		spm.addMissingIndividuals(c1copy.getBitSet());
+		spm.addMissingIndividuals(c2copy.getBitSet());
+		STITreeCluster c1cComp = c1copy.complementaryCluster();
+		STITreeCluster c2cComp = c2copy.complementaryCluster();
+		added |= this.addCompletedSpeciesFixedBipartionToX(c1copy, c1cComp);
+		added |= this.addCompletedSpeciesFixedBipartionToX(c2copy, c2cComp);
 
 		return added;
 
@@ -922,7 +926,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 			stNewbs.or(childbs[j]);
 		}
 		
-		return addCompleteSpeciesFixedBitSetToX(stNewbs);
+		return this.addARawBitSetToX(stNewbs);
 	}
 	
 	private void resolveByUPGMA(MutableTree tree) {
