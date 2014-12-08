@@ -165,10 +165,11 @@ public abstract class AbstractInference<T> {
 				minVertices.push(v);
 			}
 		}		
+		SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
 		while (!minVertices.isEmpty()) {
 			Vertex pe = (Vertex) minVertices.pop();
-			STITreeCluster stCluster =GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTClusterForGeneCluster(
-			                pe.getCluster());
+			STITreeCluster stCluster = spm.
+					getSTClusterForGeneCluster(pe.getCluster());
 			//System.out.println(pe._min_rc);
 			//System.out.println(pe._min_lc);
 			minClusters.add(stCluster);
@@ -201,7 +202,7 @@ public abstract class AbstractInference<T> {
 			}
 			sol._st = tr;
 		} else {
-			sol._st = Utils.buildTreeFromClusters(minClusters);
+			sol._st = Utils.buildTreeFromClusters(minClusters, spm.getSTTaxonIdentifier());
 		}
 
 		/* HashMap<TNode,BitSet> map = new HashMap<TNode,BitSet>();
