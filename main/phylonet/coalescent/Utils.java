@@ -46,21 +46,21 @@ public class Utils {
 		return children;
 	}
 
-	public static Tree buildTreeFromClusters(Iterable<STITreeCluster> clusters) {
+	public static Tree buildTreeFromClusters(Iterable<STITreeCluster> clusters, TaxonIdentifier identifier ) {
         if ((clusters == null) || (!clusters.iterator().hasNext())) {
           throw new RuntimeException("Empty list of clusters. The function returns a null tree.");
         }
     
-        SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
+        //TaxonIdentifier spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier();
         MutableTree tree = new STITree<Double>();
     
         //String[] taxa = ((STITreeCluster)clusters.get(0)).getTaxa();
-        for (int i = 0; i < spm.getSpeciesCount(); i++) {
-          tree.getRoot().createChild(spm.getSpeciesName(i));
+        for (int i = 0; i < identifier.taxonCount(); i++) {
+          tree.getRoot().createChild(identifier.getTaxonName(i));
         }
     
         for (STITreeCluster tc : clusters) {
-          if ((tc.getClusterSize() <= 1) || (tc.getClusterSize() == spm.getSpeciesCount()))
+          if ((tc.getClusterSize() <= 1) || (tc.getClusterSize() == identifier.taxonCount()))
           {
             continue;
           }
@@ -78,9 +78,9 @@ public class Utils {
           LinkedList<TNode> movedChildren = new LinkedList<TNode>();
           int nodes = clusterLeaves.size();
           for (TNode child : lca.getChildren()) {
-            BitSet childCluster = new BitSet(spm.getSpeciesCount());
+            BitSet childCluster = new BitSet(identifier.taxonCount());
             for (TNode cl : child.getLeaves()) {
-              int i = spm.speciesId(cl.getName());
+              int i = identifier.taxonId(cl.getName());
               childCluster.set(i);
             }
             
@@ -150,8 +150,9 @@ public class Utils {
         return;
     }
 
-    public static final Tree greedyConsensus(Iterable<Tree> trees, boolean randomize) {
-    	return greedyConsensus(trees,new double[]{0d}, randomize, 1).iterator().next();
+    public static final Tree greedyConsensus(Iterable<Tree> trees, boolean randomize,
+    		TaxonIdentifier taxonIdentifier) {
+    	return greedyConsensus(trees,new double[]{0d}, randomize, 1, taxonIdentifier).iterator().next();
     }
     
 	
@@ -171,23 +172,27 @@ public class Utils {
 		return range;
 	}
     
-    public static final Collection<Tree> greedyConsensus(Iterable<Tree> trees, double[] thresholds, boolean randomzie, int repeat) {
+    public static final Collection<Tree> greedyConsensus(Iterable<Tree> trees, 
+    		double[] thresholds, boolean randomzie, int repeat, 
+    		TaxonIdentifier taxonIdentifier) {
     
     	List<Tree> outTrees = new ArrayList<Tree>();
-    	
+
         HashMap<STITreeCluster, Integer> count = new HashMap<STITreeCluster, Integer>();
         int size = -1;
         int treecount = 0;
         for (Tree tree : trees) {
         	size = tree.getLeafCount();
         	treecount++;
-            List<STITreeCluster> bipartitionClusters = Utils.getClusters(tree);
-            for (STITreeCluster cluster: bipartitionClusters) {
+            List<STITreeCluster> geneClusters = Utils.getGeneClusters(tree, taxonIdentifier);
+            for (STITreeCluster cluster: geneClusters) {
+            	STITreeCluster comp = cluster.complementaryCluster();
+
                 if (count.containsKey(cluster)) {
                     count.put(cluster, count.get(cluster) + 1);
                     continue;
                 }
-                STITreeCluster comp = cluster.complementaryCluster();
+                
                 if (count.containsKey(comp)) {
                     count.put(comp, count.get(comp) + 1);
                     continue;
@@ -207,7 +212,7 @@ public class Utils {
 	        List<STITreeCluster> clusters = new ArrayList<STITreeCluster>();   
 	        for (Entry<STITreeCluster, Integer> entry : countSorted) {
 	        	if (threshold > (entry.getValue()+.0d)/treecount) {	
-	        		outTrees.add(0,Utils.buildTreeFromClusters(clusters));
+	        		outTrees.add(0,Utils.buildTreeFromClusters(clusters, taxonIdentifier));
 	        		ti--;
 	        		if (ti < 0) {
 	        			break;
@@ -217,7 +222,7 @@ public class Utils {
 	    		clusters.add(entry.getKey());
 	        }
 	        while (ti >= 0) {
-	        	outTrees.add(0, Utils.buildTreeFromClusters(clusters));
+	        	outTrees.add(0, Utils.buildTreeFromClusters(clusters, taxonIdentifier));
 	    		ti--;
 	        }
         }
@@ -226,36 +231,37 @@ public class Utils {
     }
 
     
-    public static List<STITreeCluster> getClusters(Tree tree){
+    public static List<STITreeCluster> getGeneClusters(Tree tree, 
+    		TaxonIdentifier taxonIdentifier ){
         List<STITreeCluster> biClusters = new LinkedList<STITreeCluster>();
-        Map<TNode, BitSet> map = new HashMap<TNode, BitSet>();
-        String[] leaves = GlobalMaps.taxonIdentifier.getAllTaxonNames();
+        Stack<BitSet> stack = new Stack<BitSet>();
+        String[] leaves = taxonIdentifier.getAllTaxonNames();
         for (TNode node : tree.postTraverse()) {
             BitSet bs = new BitSet(leaves.length);
             if (node.isLeaf()) {
                 // Find the index of this leaf.
-                int i = GlobalMaps.taxonIdentifier.taxonId(node.getName());                
+                int i = taxonIdentifier.taxonId(node.getName());                
                 bs.set(i);              
-                map.put(node, bs);
+                stack.add(bs);
             }
             else {
                 int childCount = node.getChildCount();
                 BitSet[] childbslist = new BitSet[childCount];
                 int index = 0;
                 for (TNode child : node.getChildren()) {
-                    BitSet childCluster = map.get(child);
+                    BitSet childCluster = stack.pop();
                     bs.or(childCluster);
                     childbslist[index++] = childCluster;
                 }             
-                map.put(node, bs);
+                stack.add(bs);
             }
                           
             if(bs.cardinality()<leaves.length && bs.cardinality()>1){
                 STITreeCluster tb = new STITreeCluster();
                 tb.setCluster((BitSet)bs.clone());
-                if(!biClusters.contains(tb)){
-                    biClusters.add(tb);
-                }
+                //if(!biClusters.contains(tb)){
+                biClusters.add(tb);
+                //}
             }
             
         }
