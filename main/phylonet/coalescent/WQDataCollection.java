@@ -594,7 +594,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 	
 		System.err.println("Adding to X using resolutions of greedy consensus ...");
 		for (Tree tree:  this.completedGeeneTrees) {
-			tree.rerootTreeAtEdge(GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesName(0));
+			tree.rerootTreeAtEdge(GlobalMaps.taxonIdentifier.getTaxonName(0));
 			Trees.removeBinaryNodes((MutableTree) tree);
 		}
 
@@ -672,17 +672,11 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 
 	private boolean resolveByUPGMA(BitSet [] polytomyBSList) {
 		boolean added = false;
+		
 		for (BitSet bs: this.similarityMatrix.resolveByUPGMA(Arrays.asList(polytomyBSList),true)) {
-			added |= this.addCompleteSpeciesFixedBitSetToX(bs);
+			added |= this.addARawBitSetToX(bs);
 		}
 		return added;
-	}
-
-	private boolean addCompleteSpeciesFixedBitSetToX(BitSet bs) {
-		STITreeCluster g = new STITreeCluster();
-		g.setCluster(bs);
-
-		return this.addCompletedSpeciesFixedBipartionToX(g, g.complementaryCluster());
 	}
 
 
