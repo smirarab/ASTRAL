@@ -317,12 +317,6 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 	private boolean addARawBipartitionToX(STITreeCluster c1, STITreeCluster c2) {
 
 		boolean added = false;
-
-		// TODO: should this be treated differently? For multi-allelse I think yes.
-		if (c1.getClusterSize() == 1) {
-			added |= addToClusters(c1, c1.getClusterSize());
-		}
-
 		
 		STITreeCluster c1copy = new STITreeCluster (c1);
 		STITreeCluster c2copy = new STITreeCluster (c2);
