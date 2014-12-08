@@ -17,6 +17,8 @@ public abstract class AbstractDataCollection <T> {
 		return clusters.addCluster(nv, size);
 	}
 
+	// TODO: Figure out what to do with this in case of a mapper
+	// Should only add species-consistent bipartitions?
 	void addAllPossibleSubClusters(STITreeCluster cluster) {
 	    int size = GlobalMaps.taxonIdentifier.taxonCount();
 		BitSet bs = (BitSet) cluster.getBitSet().clone();
