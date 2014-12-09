@@ -327,21 +327,27 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		 * Find out for each species whether they are more frequent in left or right
 		 */
 		int [] countsC1c = new int [spm.getSpeciesCount()], countsC2c = new int [spm.getSpeciesCount()];
-		int s1 = 0, s2 = 0;
+		//int s1 = 0, s2 = 0;
 		for (int i = b1copy.nextSetBit(0); i >=0 ; i = b1copy.nextSetBit(i+1)) {
-			countsC1c[spm.getSpeciesIdForTaxon(i)]++;  
-			s1++;
+			int sID = spm.getSpeciesIdForTaxon(i);
+			countsC1c[sID]+=10;  
+			if (spm.getLowestIndexIndividual(sID) == i ) {
+				countsC1c[sID]++;
+			}
 		}
 		for (int i = b2copy.nextSetBit(0); i >=0 ; i = b2copy.nextSetBit(i+1)) {
-			countsC2c[spm.getSpeciesIdForTaxon(i)]++;   
-			s2++;
+			int sID = spm.getSpeciesIdForTaxon(i);
+			countsC2c[sID]+=10;   
+			if (spm.getLowestIndexIndividual(sID) == i ) {
+				countsC2c[sID]++;
+			}
 		}  		
 		/*
 		 * Add a bipartition where every individual is moved to the side where it is more common
 		 */
 		BitSet bs1Voted = new BitSet(spm.getSpeciesCount()); 
 		for (int i = 0; i < countsC2c.length; i++) {
-			if (countsC1c[i] > countsC2c[i] || ((countsC1c[i] == countsC2c[i]) && (s1 < s2))) {
+			if (countsC1c[i] > countsC2c[i]) {
 				bs1Voted.set(i);
 			} 
 		}
@@ -352,12 +358,12 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		/*
 		 * Add two more bipartitions by adding all individuals from each species to each side they appear at least once
 		 */
-		spm.addMissingIndividuals(c1copy.getBitSet());
-		spm.addMissingIndividuals(c2copy.getBitSet());
-		STITreeCluster c1cComp = c1copy.complementaryCluster();
-		STITreeCluster c2cComp = c2copy.complementaryCluster();
-		added |= this.addCompletedSpeciesFixedBipartionToX(c1copy, c1cComp);
-		added |= this.addCompletedSpeciesFixedBipartionToX(c2copy, c2cComp);
+//		spm.addMissingIndividuals(c1copy.getBitSet());
+//		spm.addMissingIndividuals(c2copy.getBitSet());
+//		STITreeCluster c1cComp = c1copy.complementaryCluster();
+//		STITreeCluster c2cComp = c2copy.complementaryCluster();
+//		added |= this.addCompletedSpeciesFixedBipartionToX(c1copy, c1cComp);
+//		added |= this.addCompletedSpeciesFixedBipartionToX(c2copy, c2cComp);
 
 		return added;
 
