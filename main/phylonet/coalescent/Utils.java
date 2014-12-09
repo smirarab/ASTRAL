@@ -179,20 +179,17 @@ public class Utils {
     	List<Tree> outTrees = new ArrayList<Tree>();
 
         HashMap<STITreeCluster, Integer> count = new HashMap<STITreeCluster, Integer>();
-        int size = -1;
         int treecount = 0;
         for (Tree tree : trees) {
-        	size = tree.getLeafCount();
         	treecount++;
             List<STITreeCluster> geneClusters = Utils.getGeneClusters(tree, taxonIdentifier);
             for (STITreeCluster cluster: geneClusters) {
-            	STITreeCluster comp = cluster.complementaryCluster();
 
                 if (count.containsKey(cluster)) {
                     count.put(cluster, count.get(cluster) + 1);
                     continue;
                 }
-                
+            	STITreeCluster comp = cluster.complementaryCluster();
                 if (count.containsKey(comp)) {
                     count.put(comp, count.get(comp) + 1);
                     continue;
@@ -203,7 +200,7 @@ public class Utils {
         
         for (int gi = 0; gi < repeat; gi++) {
         	TreeSet<Entry<STITreeCluster,Integer>> countSorted = new 
-        			TreeSet<Entry<STITreeCluster,Integer>>(new ClusterComparator(randomzie, size));
+        			TreeSet<Entry<STITreeCluster,Integer>>(new ClusterComparator(randomzie, taxonIdentifier.taxonCount()));
         
 	        countSorted.addAll(count.entrySet());
 	        
