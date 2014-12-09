@@ -16,13 +16,15 @@ import phylonet.util.BitSet;
 public class SpeciesMapper {
 
     private int [] taxonIdToSpeciesId;
-    private List<Set<Integer>> speciesIdtoTaxonId;
+    private ArrayList<Set<Integer>> speciesIdtoTaxonId;
+    private ArrayList<Integer> speciesIdtoLowestTaxonId;
     private TaxonIdentifier speciesNameIdMap;
 
     public SpeciesMapper(int taxonCount) {
         this.taxonIdToSpeciesId = new int[taxonCount];
         this.speciesNameIdMap = new TaxonIdentifier();
         this.speciesIdtoTaxonId = new ArrayList<Set<Integer>>();
+        this.speciesIdtoLowestTaxonId = new ArrayList<Integer>();
     }
 
     public TaxonIdentifier getSTTaxonIdentifier() {
@@ -33,12 +35,21 @@ public class SpeciesMapper {
         return this.taxonIdToSpeciesId[id];
     }
 
+    public int getLowestIndexIndividual(int stID){
+    	return this.speciesIdtoLowestTaxonId.get(stID);
+    }
+    
     private void setSpeciesIdForTaxon(int taxonId, int speciesId) {
         this.taxonIdToSpeciesId[taxonId] = speciesId;
         for (int i = this.speciesIdtoTaxonId.size(); i <= speciesId; i++) {
             this.speciesIdtoTaxonId.add(new TreeSet<Integer>());
+            this.speciesIdtoLowestTaxonId.add(null);
         }
         this.speciesIdtoTaxonId.get(speciesId).add(taxonId);
+        if (this.speciesIdtoLowestTaxonId.get(speciesId) == null ||
+        		this.speciesIdtoLowestTaxonId.get(speciesId) > taxonId) {
+        	this.speciesIdtoLowestTaxonId.set(speciesId,taxonId);
+        }
         //System.err.println("Mapped taxon "+taxonId +" to species "+speciesId);
     }
 
