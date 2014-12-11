@@ -1,5 +1,6 @@
 - version 4.7.6:
   - Made sure multi-allele works with new features added after 4.7.0 
+  - Output normalized score with -q option
 
 - Version 4.7.5:
   - Added an option to output the search space to standard output. (-k searchspace_norun) 	
