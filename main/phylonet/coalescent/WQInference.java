@@ -30,10 +30,13 @@ public class WQInference extends AbstractInference<Tripartition> {
 		IClusterCollection clusters = newClusterCollection();
 
 
-		dataCollection = newCounter(clusters);
+		this.dataCollection = newCounter(clusters);
 		weightCalculator = newWeightCalculator();
 
-		dataCollection.computeTreePartitions(this);
+		WQDataCollection wqDataCollection = (WQDataCollection) this.dataCollection;
+		wqDataCollection.preProcess(this);
+		wqDataCollection.initializeWeightCalculator(this);
+		
 		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
 		long sum = 0l;
 		for (TNode node: st.postTraverse()) {
@@ -83,7 +86,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 				}
 			}
 		}
-		System.out.println(sum/4l);
+		System.out.println("Quartet score is: " + sum/4l);
+		System.out.println("Normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
 	}
 
 
@@ -105,7 +109,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 		return new WQClusterCollection(GlobalMaps.taxonIdentifier.taxonCount());
 	}
 	
-	AbstractDataCollection<Tripartition> newCounter(IClusterCollection clusters) {
+	WQDataCollection newCounter(IClusterCollection clusters) {
 		return new WQDataCollection((WQClusterCollection)clusters, this.forceAlg, this);
 	}
 
