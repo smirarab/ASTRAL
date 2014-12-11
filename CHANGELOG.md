@@ -1,5 +1,9 @@
+- version 4.7.6:
+  - Made sure multi-allele works with new features added after 4.7.0 
+
 - Version 4.7.5:
-  - Added an option to output the search space () 	
+  - Added an option to output the search space to standard output. (-k searchspace_norun) 	
+
 - Version 4.7.4:
   - Adjust max polytomy size using sqrt of n
   - Misc refactoring and small bug fix (speed mostly)
@@ -15,14 +19,14 @@
   
 - Version 4.7.2:
   - Changed the way extra bipartitions are added for unresolved gene trees
-  - Made some changes to the default strategy for addition of extra bipartitions (don't add incompatible bipartitions - these can increase running time drastically with little benefit)
+  - Made some changes to the default strategy for addition of extra bipartitions (do not add incompatible bipartitions - these can increase running time drastically with little benefit)
   - Fixed a bug regarding addition of extra bipartitions using greedy (affects running time)
   - Change some logging statements. 
   - Some code refactoring
   
 - Version 4.7.1:
   - Fixed bootstrapping to consume much less memory.
-  - Don't cache weights. Consumes memory and there is barely any reuse.
+  - Do not cache weights. Consumes memory and there is barely any reuse.
   - New option to output completed gene trees
   - New option to just output bootstrap inputs and exit. 
 
@@ -46,12 +50,11 @@
   - Adding more stderr logs
   - Added `-p` option to prevent addition of extra taxa
  
-  
 - Version 4.6.2:
-  - Merge in 4.4.3 and 4.4.4 to mutli-allele branch
+  - Merge in 4.4.3 and 4.4.4 to multi-allele branch
   
 - Version 4.6.1:
-  - Merge in 4.4.2 changes to mutli-allele branch
+  - Merge in 4.4.2 changes to multi-allele branch
   
 - Version 4.6.0:
   - Incorporate bug fix from 4.4.1
@@ -77,10 +80,10 @@
   - Prompts changed slightly 
  
 - Version 4.4.1:
-  - Print a user-friendly error when extra trees have taxon not in main trees.
+  - Print a user-friendly error when extra trees have taxa not in main trees.
 
 - Version 4.4.0:
-  - **Bug fix:** when gene trees had extreme levels of missing taxa, and there existed two taxa that never appeared together in the same gene tree, an uncaught division by zero could leave to wrong placement of one or both taxa. 
+  - **Bug fix:** when gene trees had extreme levels of missing taxa, and there existed two taxa that never appeared together in the same gene tree, an uncaught division by zero could lead to wrong placement of one or both taxa. 
     
 - Version 4.3.1:
   - Output consensus bootstrap tree as well
