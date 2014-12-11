@@ -403,68 +403,12 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 
 	public void computeTreePartitions(AbstractInference<Tripartition> inference) {
 
-		int k = this.geneTrees.size();
-		System.err.println("Number of gene trees: " + k);
+		int haveMissing = preProcess(inference);
 		
-		n = GlobalMaps.taxonIdentifier.taxonCount();
-
-		int haveMissing = 0;
-		
-		for (Tree tree :  this.geneTrees) {
-			if (tree.getLeafCount() != n) {
-				haveMissing++;
-			}
-			String[] gtLeaves = tree.getLeaves();
-			STITreeCluster gtAll = new STITreeCluster();
-			long ni = gtLeaves.length;
-			for (int i = 0; i < ni ; i++) {
-				gtAll.addLeaf(GlobalMaps.taxonIdentifier.taxonId(gtLeaves[i]));
-			}
-			treeAllClusters.add(gtAll);
-			((WQInference)inference).maxpossible += ni * (ni -1) * (ni - 2) * (ni -3) / 24l;
-		}
-		
-		System.err.println( haveMissing + " trees have missing taxa");
-		
-		System.err.println("Calculating quartet distance matrix (for completion of X)");
-		
-		this.similarityMatrix = new SimilarityMatrix(n);
-		this.similarityMatrix.populateByQuartetDistance(treeAllClusters, this.geneTrees);
-		this.speciesSimilarityMatrix = this.similarityMatrix.convertToSpeciesDistance(spm);
-
+		calculateDistances();
 
 		if (haveMissing > 0 ) {
-			System.err.println("Will attempt to complete bipartitions from X before adding using a distance matrix.");
-			int t = 0;
-			BufferedWriter completedFile = null;
-			if (this.outputCompleted) {
-				String fn = GlobalMaps.outputfilename + ".completed_gene_trees";
-				System.err.println("Ouputting completed gene trees to " + fn);
-				try {
-					completedFile = new BufferedWriter(new FileWriter(fn));
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-			}
-			for (Tree tr : this.geneTrees) {
-				Tree trc = getCompleteTree(tr, this.treeAllClusters.get(t++).getBitSet());		
-				this.completedGeeneTrees.add(trc);
-				if (completedFile != null) {
-					try {
-						completedFile.write(trc.toStringWD()+ " \n");
-						completedFile.flush();
-					} catch (IOException e) {
-						throw new RuntimeException(e);
-					}
-				}
-			}
-			if (completedFile != null) {
-				try {
-					completedFile.close();
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
-			}
+			completeGeneTrees();
 		} else  {
 			this.completedGeeneTrees = this.geneTrees;
 		}
@@ -476,12 +420,19 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		all.getBitSet().set(0, n);
 		addToClusters(all, GlobalMaps.taxonIdentifier.taxonCount());	
 		System.err.println("Building set of clusters (X) from gene trees ");
-		
 		addTreeBipartitionsToX( this.completedGeeneTrees);
 		
+		initializeWeightCalculator(inference);
+
+	}
+
+
+	void initializeWeightCalculator(
+			AbstractInference<Tripartition> inference) {
 		/*
 		 * If needed calculate gene tree tripartitions
 		 */
+		int k = this.geneTrees.size();
 		Map<Tripartition, Integer> geneTreeTripartitonCount = new HashMap<Tripartition, Integer>(k * n);
 		if (this.algorithm == 2 || this.algorithm == -1) {
 			findGenetreeTripartitions(geneTreeTripartitonCount, treeAllClusters);
@@ -534,8 +485,73 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 
 		inference.weightCalculator.initializeWeightContainer(
 				geneTreeTripartitonCount.size() * 2);
-		// System.err.println("sigma n is "+sigmaN);
+	}
 
+
+	private void calculateDistances() {
+		System.err.println("Calculating quartet distance matrix (for completion of X)");
+		
+		this.similarityMatrix = new SimilarityMatrix(n);
+		this.similarityMatrix.populateByQuartetDistance(treeAllClusters, this.geneTrees);
+		this.speciesSimilarityMatrix = this.similarityMatrix.convertToSpeciesDistance(spm);
+	}
+
+
+	int preProcess(AbstractInference<Tripartition> inference) {
+		System.err.println("Number of gene trees: " + this.geneTrees.size());
+		n = GlobalMaps.taxonIdentifier.taxonCount();
+
+		int haveMissing = 0;		
+		for (Tree tree :  this.geneTrees) {
+			if (tree.getLeafCount() != n) {
+				haveMissing++;
+			}
+			String[] gtLeaves = tree.getLeaves();
+			STITreeCluster gtAll = new STITreeCluster();
+			long ni = gtLeaves.length;
+			for (int i = 0; i < ni ; i++) {
+				gtAll.addLeaf(GlobalMaps.taxonIdentifier.taxonId(gtLeaves[i]));
+			}
+			treeAllClusters.add(gtAll);
+			((WQInference)inference).maxpossible += ni * (ni -1) * (ni - 2) * (ni -3) / 24l;
+		}
+		System.err.println( haveMissing + " trees have missing taxa");
+		return haveMissing;
+	}
+
+
+	private void completeGeneTrees() {
+		System.err.println("Will attempt to complete bipartitions from X before adding using a distance matrix.");
+		int t = 0;
+		BufferedWriter completedFile = null;
+		if (this.outputCompleted) {
+			String fn = GlobalMaps.outputfilename + ".completed_gene_trees";
+			System.err.println("Ouputting completed gene trees to " + fn);
+			try {
+				completedFile = new BufferedWriter(new FileWriter(fn));
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		for (Tree tr : this.geneTrees) {
+			Tree trc = getCompleteTree(tr, this.treeAllClusters.get(t++).getBitSet());		
+			this.completedGeeneTrees.add(trc);
+			if (completedFile != null) {
+				try {
+					completedFile.write(trc.toStringWD()+ " \n");
+					completedFile.flush();
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}
+		if (completedFile != null) {
+			try {
+				completedFile.close();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
 	}
 	
 	private void printoutdistmatrix(double [][] distSTMatrix) {
