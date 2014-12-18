@@ -36,6 +36,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 		WQDataCollection wqDataCollection = (WQDataCollection) this.dataCollection;
 		wqDataCollection.preProcess(this);
 		wqDataCollection.initializeWeightCalculator(this);
+		this.maxpossible = wqDataCollection.calculateMaxPossible();
+		//System.err.println("Number of quartet trees in the gene trees: "+this.maxpossible);
+
+		System.err.println(this.maxpossible);
 		
 		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
 		long sum = 0l;
