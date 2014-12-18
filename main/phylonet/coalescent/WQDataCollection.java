@@ -3,9 +3,11 @@ package phylonet.coalescent;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -423,6 +425,10 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		addTreeBipartitionsToX( this.completedGeeneTrees);
 		
 		initializeWeightCalculator(inference);
+		
+		((WQInference)inference).maxpossible = this.calculateMaxPossible();
+		System.err.println("Number of quartet trees in the gene trees: "+((WQInference)inference).maxpossible);
+
 
 	}
 
@@ -487,6 +493,58 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 				geneTreeTripartitonCount.size() * 2);
 	}
 
+	long calculateMaxPossible() {
+		long weight = 0;
+		Integer  allsides = null;
+		Iterator<STITreeCluster> tit = this.treeAllClusters.iterator();
+		boolean newTree = true;
+		
+		Deque<Integer> stack = new ArrayDeque<Integer>();
+		for (Integer gtb: this.geneTreesAsInts){
+			if (newTree) {
+				allsides = tit.next().getBitSet().cardinality();
+				newTree = false;
+			}
+			if (gtb >= 0){
+				stack.push(1);
+			} else if (gtb == Integer.MIN_VALUE) {
+				stack.clear();
+				newTree = true;
+			}  else {
+			    ArrayList<Integer> children = new ArrayList<Integer>();
+			    Integer newSide = 0;
+			    for (int i = gtb; i < 0 ; i++) {
+			    	Integer pop = stack.pop();
+			        children.add(pop);
+			        newSide+=pop;
+			    }
+			    stack.push(newSide);
+                Integer sideRemaining = allsides - newSide;
+                if ( sideRemaining !=0) {
+                    children.add(sideRemaining);
+                }
+                for (int i = 0; i < children.size(); i++) {
+                	Integer a = children.get(i);
+                    
+                    for (int j = i+1; j < children.size(); j++) {
+                    	Integer b = children.get(j);
+                        /*if (children.size() > 5) {
+                        	if ((side1.s0+side2.s0 == 0? 1 :0) +
+                        			(side1.s1+side2.s1 == 0? 1 :0) + 
+                        			(side1.s2+side2.s2 == 0? 1:0) > 1)
+                        		continue;
+                        }
+                        */
+                        for (int k = j+1; k < children.size(); k++) {
+                        	Integer c = children.get(k);
+                            weight += (a+b+c-3) *a*b*c;
+                        }
+                    }
+                }
+			}
+		}
+		return weight/4;
+	}
 
 	private void calculateDistances() {
 		System.err.println("Calculating quartet distance matrix (for completion of X)");
@@ -513,9 +571,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 				gtAll.addLeaf(GlobalMaps.taxonIdentifier.taxonId(gtLeaves[i]));
 			}
 			treeAllClusters.add(gtAll);
-			((WQInference)inference).maxpossible += ni * (ni -1) * (ni - 2) * (ni -3) / 24l;
 		}
 		System.err.println( haveMissing + " trees have missing taxa");
+		
 		return haveMissing;
 	}
 
