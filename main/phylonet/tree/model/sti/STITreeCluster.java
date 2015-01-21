@@ -1,9 +1,9 @@
 package phylonet.tree.model.sti;
 
 import phylonet.coalescent.GlobalMaps;
+import phylonet.coalescent.TaxonIdentifier;
 import phylonet.util.BitSet;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -13,18 +13,27 @@ public class STITreeCluster implements Iterable<Integer>
   //protected String[] _taxa;
   protected BitSet _cluster;
   private int hashCode = 0;
+  private TaxonIdentifier taxonIdentifier;
+
 
   public STITreeCluster()
   {
-    this._cluster = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
+    this.taxonIdentifier = GlobalMaps.taxonIdentifier;
+    this._cluster = new BitSet(this.taxonIdentifier.taxonCount());
   }
   
   public STITreeCluster(STITreeCluster tc)
   {
-    this._cluster = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
+    this.taxonIdentifier = tc.taxonIdentifier;
+    this._cluster = new BitSet(this.taxonIdentifier.taxonCount());
     this._cluster.or(tc._cluster);    
   }
 
+  public STITreeCluster(TaxonIdentifier taxonId)
+  {
+    this.taxonIdentifier = taxonId;
+    this._cluster = new BitSet(this.taxonIdentifier.taxonCount());
+  }
 //  public String[] getTaxa() {
 //    return this._taxa;
 //  }
@@ -53,7 +62,7 @@ public class STITreeCluster implements Iterable<Integer>
     int c = 0;
     for (int i = 0; i < this._cluster.length(); i++) {
       if (this._cluster.get(i)) {
-        cl[(c++)] = GlobalMaps.taxonIdentifier.getTaxonName(i);
+        cl[(c++)] = this.taxonIdentifier.getTaxonName(i);
       }
     }
 
@@ -66,7 +75,7 @@ public class STITreeCluster implements Iterable<Integer>
 //  }
   
   public void addLeaf(int i){
-	  if (i < GlobalMaps.taxonIdentifier.taxonCount())
+	  if (i < this.taxonIdentifier.taxonCount())
 	      this._cluster.set(i);
 	    else
 	    	throw new RuntimeException(i +" above the length");
@@ -74,7 +83,7 @@ public class STITreeCluster implements Iterable<Integer>
   
   public void removeLeaf(String l)
   {
-      this._cluster.clear(GlobalMaps.taxonIdentifier.taxonId(l));
+      this._cluster.clear(this.taxonIdentifier.taxonId(l));
   }
 
   public boolean equals(Object o)
@@ -145,12 +154,12 @@ public class STITreeCluster implements Iterable<Integer>
     BitSet temp2 = (BitSet)this._cluster.clone();
     temp2.or(tc._cluster);
 
-    return (temp1.cardinality() == 0) && (temp2.cardinality() == GlobalMaps.taxonIdentifier.taxonCount());
+    return (temp1.cardinality() == 0) && (temp2.cardinality() == this.taxonIdentifier.taxonCount());
   }
 
   public boolean containsLeaf(String l)
   {
-    return this._cluster.get(GlobalMaps.taxonIdentifier.taxonId(l));
+    return this._cluster.get(this.taxonIdentifier.taxonId(l));
   }
 
   public boolean containsCluster(STITreeCluster tc)
@@ -189,7 +198,7 @@ public class STITreeCluster implements Iterable<Integer>
   public STITreeCluster complementaryCluster() {
     STITreeCluster cc = new STITreeCluster();
     BitSet bs = (BitSet)this._cluster.clone();
-    bs.flip(0,GlobalMaps.taxonIdentifier.taxonCount());
+    bs.flip(0,this.taxonIdentifier.taxonCount());
 /*    for (int i = 0; i < this._taxa.length; i++) {
       if (bs.get(i)) {
         bs.set(i, false);
@@ -216,9 +225,9 @@ public class STITreeCluster implements Iterable<Integer>
 	
     out.append(this._cluster);
     out.append(" ");
-    //out.append(GlobalMaps.taxonIdentifier.getTaxonList());
+    //out.append(this.taxonIdentifier.getTaxonList());
     out.append(" ");
-    out.append(GlobalMaps.taxonIdentifier.taxonCount());
+    out.append(this.taxonIdentifier.taxonCount());
     return out.toString();
   }
   public String toString()

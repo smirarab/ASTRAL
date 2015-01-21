@@ -1,6 +1,7 @@
 package phylonet.coalescent;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
@@ -8,17 +9,18 @@ import java.util.List;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 
-class WQWeightCalculator extends WeightCalculator<Tripartition> {
+class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 	WQInference inference;
 	private WQDataCollection dataCollection;
 
-	public WQWeightCalculator(Inference<Tripartition> inference) {
+	public WQWeightCalculator(AbstractInference<Tripartition> inference) {
+		super(false);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
 		this.inference = (WQInference) inference;
 	}
 	
-	class QuartetWeightTask implements CalculateWeightTask<Tripartition>{
+	class QuartetWeightTask implements ICalculateWeightTask<Tripartition>{
 
 		private Tripartition trip;
 
@@ -38,7 +40,12 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 		}
 
 		private long F(int a,int b,int c) {
-			return a*b*c*(a+b+c-3);
+			if (a<0 || b<0 || c<0) {
+				throw new RuntimeException("negative side not expected: "+a+" "+b+" "+c);
+			}
+			long ret = (a+b+c-3);
+			ret *= a*b*c;
+			return ret;
 		}	
 		
 		long sharedQuartetCount(Tripartition that, Tripartition other) {
@@ -65,8 +72,10 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 				return new Intersects(1,0,0);
 			} else if (trip.cluster2.getBitSet().get(i)) {
 				return new Intersects(0,1,0);
-			} else {
+			} else if (trip.cluster3.getBitSet().get(i)) {
 				return  new Intersects(0,0,1);
+			} else {
+				return  new Intersects(0,0,0);
 			}
 		}
 		
@@ -81,6 +90,26 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 				this.s2 = s2;
 			}
 			
+			public Intersects(Intersects other) {
+			    this.s0 = other.s0;
+			    this.s1 = other.s1;
+			    this.s2 = other.s2;
+			}
+
+            public void addin(Intersects pop) {
+                this.s0 += pop.s0;
+                this.s1 += pop.s1;
+                this.s2 += pop.s2;               
+            }
+            
+            public void subtract(Intersects pop) {
+                this.s0 -= pop.s0;
+                this.s1 -= pop.s1;
+                this.s2 -= pop.s2;               
+            }
+            
+            
+			
 		}
 		
 		long calculateMissingWeight2() {
@@ -89,7 +118,7 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 			Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
 			boolean newTree = true;
 			
-			Deque<Intersects> stack = new ArrayDeque<WQWeightCalculator.QuartetWeightTask.Intersects>();
+			Deque<Intersects> stack = new ArrayDeque<Intersects>();
 			for (Integer gtb: dataCollection.geneTreesAsInts){
 				if (newTree) {
 					STITreeCluster all = tit.next();
@@ -104,27 +133,60 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 				} else if (gtb == Integer.MIN_VALUE) {
 					stack.clear();
 					newTree = true;
-				} else {
-					for (int i = 0; i > gtb; i--) {
+				} else if (gtb == -2) {
 						Intersects side1 = stack.pop();
 						Intersects side2 = stack.pop();
-						Intersects side = new Intersects(
+						Intersects newSide = new Intersects(
 								side1.s0+side2.s0,
 								side1.s1+side2.s1,
 								side1.s2+side2.s2);
-						stack.push(side);
-						Intersects side3 = new Intersects  (
-								(allsides.s0 - side.s0 ),
-								(allsides.s1 - side.s1 ),
-								(allsides.s2 - side.s2 )
-						);
+						stack.push(newSide);
+						Intersects side3 = new Intersects (allsides);
+						side3.subtract(newSide);
 						weight += F(side1.s0,side2.s1,side3.s2)+
 								F(side1.s0,side2.s2,side3.s1)+
 								F(side1.s1,side2.s0,side3.s2)+
 								F(side1.s1,side2.s2,side3.s0)+
 								F(side1.s2,side2.s0,side3.s1)+
 								F(side1.s2,side2.s1,side3.s0);
-					}
+					
+				} else {
+				    ArrayList<Intersects> children = new ArrayList<Intersects>();
+				    Intersects newSide = new Intersects(0,0,0);
+				    for (int i = gtb; i < 0 ; i++) {
+				        Intersects pop = stack.pop();
+				        children.add(pop);
+				        newSide.addin(pop);
+				    }
+				    stack.push(newSide);
+                    Intersects sideRemaining = new Intersects (allsides);
+                    sideRemaining.subtract(newSide);
+                    if ( sideRemaining.s0 !=0 || sideRemaining.s1 !=0 || sideRemaining.s2 != 0) {
+                        children.add(sideRemaining);
+                    }
+                    for (int i = 0; i < children.size(); i++) {
+                        Intersects side1 = children.get(i);
+                        
+                        for (int j = i+1; j < children.size(); j++) {
+                            Intersects side2 = children.get(j);
+                            if (children.size() > 5) {
+                            	if ((side1.s0+side2.s0 == 0? 1 :0) +
+                            			(side1.s1+side2.s1 == 0? 1 :0) + 
+                            			(side1.s2+side2.s2 == 0? 1:0) > 1)
+                            		continue;
+                            }
+                            
+                            for (int k = j+1; k < children.size(); k++) {
+                                Intersects side3 = children.get(k);
+                                weight += F(side1.s0,side2.s1,side3.s2)+
+                                        F(side1.s0,side2.s2,side3.s1)+
+                                        F(side1.s1,side2.s0,side3.s2)+
+                                        F(side1.s1,side2.s2,side3.s0)+
+                                        F(side1.s2,side2.s0,side3.s1)+
+                                        F(side1.s2,side2.s1,side3.s0);
+                            }
+                        }
+                    }
 				}
 			}
 			return weight;
@@ -134,9 +196,6 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 			Long r = dataCollection.geneTreesAsInts != null? 
 					calculateMissingWeight2():
 						calculateMissingWeight();
-			weights.put(trip, r);
-			if (weights.size() % 100000 == 0)
-				System.err.println("Calculated "+weights.size()+" weights");
 			return r;
 		}
 	}
@@ -146,13 +205,13 @@ class WQWeightCalculator extends WeightCalculator<Tripartition> {
 
 
 	@Override
-	public CalculateWeightTask<Tripartition> getWeightCalculateTask(Tripartition t) {
+	public ICalculateWeightTask<Tripartition> getWeightCalculateTask(Tripartition t) {
 		return new QuartetWeightTask(t);
 	}
 	
 	
 	@Override
-	protected void prepareWeightTask(CalculateWeightTask<Tripartition> weigthWork, ComputeMinCostTask<Tripartition> task) {
+	protected void prepareWeightTask(ICalculateWeightTask<Tripartition> weigthWork, AbstractComputeMinCostTask<Tripartition> task) {
 	}
 
 }
