@@ -10,5 +10,8 @@ We have included simulations based on the Song et al. dataset with increases rat
 **primates:**
 We have also created a reduced version of the Song et al. dataset with 9 primates, tree shrews, and 4 other mammalian taxa. This dataset is provided for testing the exact version. 
 
+**14 taxon simulation:**
+Simulated used SimPhy with extreme levels of ILS
+
 **100-taxon simulations:**
 A simulated dataset with 100 taxa and 2500 bootstrap replicate gene trees is also provided for testing large datasets. 
