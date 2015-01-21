@@ -2,28 +2,29 @@ package phylonet.coalescent;
 
 import java.util.List;
 
-import phylonet.coalescent.ClusterCollection;
-import phylonet.coalescent.ComputeMinCostTask;
+import phylonet.coalescent.IClusterCollection;
+import phylonet.coalescent.AbstractComputeMinCostTask;
 import phylonet.coalescent.DLWeightCalculator.DPWeightTask;
+import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
-public class DLComputeMinCostTask extends ComputeMinCostTask<STBipartition>{
+public class DLComputeMinCostTask extends AbstractComputeMinCostTask<STBipartition>{
 
 	DLInference inference;
 	DLDataCollection dataCollection;
 	DLWeightCalculator weightCalculator;
 	
 	public DLComputeMinCostTask(DLInference inference, Vertex v,
-			ClusterCollection clusters) {
+			IClusterCollection clusters) {
 		super(inference, v, clusters);
 		this.inference = inference;
 		dataCollection = (DLDataCollection)inference.dataCollection;
 		weightCalculator = (DLWeightCalculator) inference.weightCalculator;
 	}
 	
-	protected double adjustWeight(int clusterLevelCost, Vertex smallV,
+	protected double adjustWeight(long clusterLevelCost, Vertex smallV,
 			Vertex bigv, Long Wdom) {
 		double c;
 		if (inference.getOptimizeDuploss() == 3) {
@@ -58,8 +59,8 @@ public class DLComputeMinCostTask extends ComputeMinCostTask<STBipartition>{
 	}
 	
 	@Override
-	protected int scoreBaseCase(boolean rooted, List<Tree> trees) {
-		int _el_num = -1;
+	protected long scoreBaseCase(boolean rooted, List<Tree> trees) {
+		long _el_num = -1;
 		if (inference.getOptimizeDuploss() == 3) {
 			if (GlobalMaps.taxonNameMap == null) {
 				_el_num = DeepCoalescencesCounter.getClusterCoalNum(trees,
@@ -76,13 +77,13 @@ public class DLComputeMinCostTask extends ComputeMinCostTask<STBipartition>{
 	}
 
 	@Override
-	protected ComputeMinCostTask<STBipartition> newMinCostTask(
-			 Vertex v, ClusterCollection clusters) {
+	protected AbstractComputeMinCostTask<STBipartition> newMinCostTask(
+			 Vertex v, IClusterCollection clusters) {
 		return new DLComputeMinCostTask(inference, v, clusters);
 	}
 	
 	@Override
-	protected int calculateClusterLevelCost() {
+	protected long calculateClusterLevelCost() {
 		if (inference.getOptimizeDuploss() == 3) {
 			return weightCalculator.calculateDLstdClusterCost(
 					this.v.getCluster(), inference.trees);
@@ -92,8 +93,8 @@ public class DLComputeMinCostTask extends ComputeMinCostTask<STBipartition>{
 
 
 	@Override
-	protected STBipartition STB2T(STBipartition stb) {
-		return stb;
+	protected STBipartition STB2T(VertexPair vp) {
+		return new STBipartition(vp.cluster1.getCluster(), vp.cluster2.getCluster(), vp.both.getCluster());
 	}
 	
 	int calculateDLbdAdjustment(Vertex smallV, Vertex bigv) {
