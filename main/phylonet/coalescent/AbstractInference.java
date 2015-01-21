@@ -43,10 +43,11 @@ public abstract class AbstractInference<T> {
 	private int addExtra;
 	public boolean outputCompleted;
 	boolean searchSpace;
+	private boolean run;
 	
 	public AbstractInference(boolean rooted, boolean extrarooted, List<Tree> trees,
 			List<Tree> extraTrees, boolean exactSolution, int addExtra, 
-			boolean outputCompletedGenes, boolean outSearch) {
+			boolean outputCompletedGenes, boolean outSearch, boolean run) {
 		super();
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
@@ -56,6 +57,7 @@ public abstract class AbstractInference<T> {
 		this.addExtra = addExtra;
 		this.outputCompleted = outputCompletedGenes;
 		this.searchSpace = outSearch;
+		this.run = run;
 	}
 
 	protected Collapse.CollapseDescriptor doCollapse(List<Tree> trees) {
@@ -282,7 +284,6 @@ public abstract class AbstractInference<T> {
 					System.out.println(v.getCluster());
 				}
 			}
-			System.exit(0);
 		}
 
 		//counter.addExtraBipartitionsByHeuristics(clusters);
@@ -290,6 +291,9 @@ public abstract class AbstractInference<T> {
 		System.err.println("partitions formed in "
 			+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 
+		if (! run ) {
+			System.exit(0);
+		}
 		weightCalculator.preCalculateWeights(trees, extraTrees);
 		
 
