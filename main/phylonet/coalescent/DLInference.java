@@ -12,13 +12,13 @@ import phylonet.tree.model.sti.STITree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
-public class DLInference extends Inference<STBipartition> {
+public class DLInference extends AbstractInference<STBipartition> {
 	private int optimizeDuploss = 1; //one means dup, 3 means duploss
 	//Map<STITreeCluster, Vertex> clusterToVertex;
 	
 	public DLInference(boolean rooted, boolean extrarooted, List<Tree> trees,
-			List<Tree> extraTrees, boolean exactSolution, boolean duploss) {
-		super(rooted, extrarooted, trees, extraTrees, exactSolution);
+			List<Tree> extraTrees, boolean exactSolution, boolean duploss, boolean outputCompletedGenes) {
+		super(rooted, extrarooted, trees, extraTrees, exactSolution, 0, outputCompletedGenes, false);
 		this.optimizeDuploss = duploss ? 3 : 1;
 	}
 
@@ -31,12 +31,12 @@ public class DLInference extends Inference<STBipartition> {
         Stack<TNode> stack = new Stack<TNode>();            
         for (TNode gtNode : gtTree.postTraverse()) {
             if (gtNode.isLeaf()) {
-                    TNode node = stTree.getNode(GlobalMaps.getSpeciesName(
+                    TNode node = stTree.getNode(GlobalMaps.taxonNameMap.getTaxonName(
                         gtNode.getName()));
                     if (node == null) {
                         throw new RuntimeException("Leaf " + gtNode.getName() +
                             " was not found in species tree; mapped as: "+
-                            GlobalMaps.getSpeciesName(gtNode.getName())); 
+                            GlobalMaps.taxonNameMap.getTaxonName(gtNode.getName())); 
                     }
                     stack.push(node);
                 //System.out.println("stack: " +this.taxonNameMap.getTaxonName(gtNode.getName()));
@@ -114,21 +114,21 @@ public class DLInference extends Inference<STBipartition> {
 
 
 	@Override
-	ComputeMinCostTask<STBipartition> newComputeMinCostTask(Inference<STBipartition> dlInference,
-			Vertex all, ClusterCollection clusters) {
+	AbstractComputeMinCostTask<STBipartition> newComputeMinCostTask(AbstractInference<STBipartition> dlInference,
+			Vertex all, IClusterCollection clusters) {
 		return new DLComputeMinCostTask( (DLInference) dlInference, all,  clusters);
 	}
 
 	DLClusterCollection newClusterCollection() {
-		return new DLClusterCollection(GlobalMaps.taxonIdentifier.taxonCount(),  new HashMap<STITreeCluster, STITreeCluster.Vertex>());
+		return new DLClusterCollection(GlobalMaps.taxonIdentifier.taxonCount());
 	}
 	
-	DLDataCollection newCounter(ClusterCollection clusters) {
+	DLDataCollection newCounter(IClusterCollection clusters) {
 		return new DLDataCollection(rooted, (DLClusterCollection)clusters);
 	}
 
 	@Override
-	WeightCalculator<STBipartition> newWeightCalculator() {
+	AbstractWeightCalculator<STBipartition> newWeightCalculator() {
 		return new DLWeightCalculator(this);
 	}
 
