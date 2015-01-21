@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -17,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.Stack;
 import java.util.TreeSet;
 
 import phylonet.bits.BitVector;
@@ -35,21 +38,29 @@ import phylonet.util.BitSet;
 
 public class Utils {
 
-    public static Tree buildTreeFromClusters(Iterable<STITreeCluster> clusters) {
+	public static ArrayList<TNode> getChildrenAsList(TNode node) {
+		ArrayList<TNode> children = new ArrayList<TNode>();
+		for (TNode child : node.getChildren()) {
+			children.add(child);
+		}
+		return children;
+	}
+
+	public static Tree buildTreeFromClusters(Iterable<STITreeCluster> clusters, TaxonIdentifier identifier ) {
         if ((clusters == null) || (!clusters.iterator().hasNext())) {
-          System.err.println("Empty list of clusters. The function returns a null tree.");
-          return null;
+          throw new RuntimeException("Empty list of clusters. The function returns a null tree.");
         }
     
+        //TaxonIdentifier spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier();
         MutableTree tree = new STITree<Double>();
     
         //String[] taxa = ((STITreeCluster)clusters.get(0)).getTaxa();
-        for (int i = 0; i < GlobalMaps.taxonIdentifier.taxonCount(); i++) {
-          tree.getRoot().createChild(GlobalMaps.taxonIdentifier.getTaxonName(i));
+        for (int i = 0; i < identifier.taxonCount(); i++) {
+          tree.getRoot().createChild(identifier.getTaxonName(i));
         }
     
         for (STITreeCluster tc : clusters) {
-          if ((tc.getClusterSize() <= 1) || (tc.getClusterSize() == GlobalMaps.taxonIdentifier.taxonCount()))
+          if ((tc.getClusterSize() <= 1) || (tc.getClusterSize() == identifier.taxonCount()))
           {
             continue;
           }
@@ -67,9 +78,9 @@ public class Utils {
           LinkedList<TNode> movedChildren = new LinkedList<TNode>();
           int nodes = clusterLeaves.size();
           for (TNode child : lca.getChildren()) {
-            BitSet childCluster = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
+            BitSet childCluster = new BitSet(identifier.taxonCount());
             for (TNode cl : child.getLeaves()) {
-              int i = GlobalMaps.taxonIdentifier.taxonId(cl.getName());
+              int i = identifier.taxonId(cl.getName());
               childCluster.set(i);
             }
             
@@ -139,17 +150,46 @@ public class Utils {
         return;
     }
 
-    public static final Tree greedyConsensus(Iterable<Tree> trees) {
+    public static final Tree greedyConsensus(Iterable<Tree> trees, boolean randomize,
+    		TaxonIdentifier taxonIdentifier) {
+    	return greedyConsensus(trees,new double[]{0d}, randomize, 1, taxonIdentifier).iterator().next();
+    }
     
+	
+    public static List<Integer> getRange(int n) {
+		List<Integer> range = new ArrayList<Integer>(n);
+		for (int j = 0; j < n; j++) {
+			range.add(j);
+		}
+		return range;
+	}
+	
+    public static List<Integer> getOnes(int n) {
+		List<Integer> range = new ArrayList<Integer>(n);
+		for (int j = 0; j < n; j++) {
+			range.add(1);
+		}
+		return range;
+	}
+    
+    public static final Collection<Tree> greedyConsensus(Iterable<Tree> trees, 
+    		double[] thresholds, boolean randomzie, int repeat, 
+    		TaxonIdentifier taxonIdentifier) {
+    
+    	List<Tree> outTrees = new ArrayList<Tree>();
+
         HashMap<STITreeCluster, Integer> count = new HashMap<STITreeCluster, Integer>();
+        int treecount = 0;
         for (Tree tree : trees) {
-            List<STITreeCluster> bipartitionClusters = Utils.getClusters(tree);
-            for (STITreeCluster cluster: bipartitionClusters) {
+        	treecount++;
+            List<STITreeCluster> geneClusters = Utils.getGeneClusters(tree, taxonIdentifier);
+            for (STITreeCluster cluster: geneClusters) {
+
                 if (count.containsKey(cluster)) {
                     count.put(cluster, count.get(cluster) + 1);
                     continue;
                 }
-                STITreeCluster comp = cluster.complementaryCluster();
+            	STITreeCluster comp = cluster.complementaryCluster();
                 if (count.containsKey(comp)) {
                     count.put(comp, count.get(comp) + 1);
                     continue;
@@ -157,75 +197,68 @@ public class Utils {
                 count.put(cluster, 1);
             }
         }
-        TreeSet<Entry<STITreeCluster,Integer>> countSorted = new 
-            TreeSet<Entry<STITreeCluster,Integer>>(
-                new Comparator<Entry<STITreeCluster,Integer>>() {
-    
-            @Override
-            public int compare(Entry<STITreeCluster, Integer> o1,
-                    Entry<STITreeCluster, Integer> o2) {
-               int a = o2.getValue().compareTo(o1.getValue());
-               if (a != 0) {
-                   return a;
-               }
-               if  (o2.getKey().equals(o1.getKey())) {
-                   return 0;
-               }
-               int i = 0;
-               while (i >= 0) {
-                   int j = o1.getKey().getBitSet().nextSetBit(i);
-                   int jj = o2.getKey().getBitSet().nextSetBit(i);
-                   if (j != jj) {
-                       return (j > jj) ? -1 : 1;
-                   } else {
-                       if (j == -1) {
-                           break;
-                       }
-                       i = j + 1;
-                   }
-               }
-               throw new RuntimeException("hmm! this should never be reached");
-            }
-        });
-        countSorted.addAll(count.entrySet());
-        List<STITreeCluster> clusters = new ArrayList<STITreeCluster>();       
-        for (Entry<STITreeCluster, Integer> entry : countSorted) {
-            clusters.add(entry.getKey());
+        
+        for (int gi = 0; gi < repeat; gi++) {
+        	TreeSet<Entry<STITreeCluster,Integer>> countSorted = new 
+        			TreeSet<Entry<STITreeCluster,Integer>>(new ClusterComparator(randomzie, taxonIdentifier.taxonCount()));
+        
+	        countSorted.addAll(count.entrySet());
+	        
+	        int ti = thresholds.length - 1;
+	        double threshold = thresholds[ti];
+	        List<STITreeCluster> clusters = new ArrayList<STITreeCluster>();   
+	        for (Entry<STITreeCluster, Integer> entry : countSorted) {
+	        	if (threshold > (entry.getValue()+.0d)/treecount) {	
+	        		outTrees.add(0,Utils.buildTreeFromClusters(clusters, taxonIdentifier));
+	        		ti--;
+	        		if (ti < 0) {
+	        			break;
+	        		}
+	        		threshold = thresholds[ti];
+	        	}
+	    		clusters.add(entry.getKey());
+	        }
+	        while (ti >= 0) {
+	        	outTrees.add(0, Utils.buildTreeFromClusters(clusters, taxonIdentifier));
+	    		ti--;
+	        }
         }
-        return Utils.buildTreeFromClusters(clusters);
+        
+        return outTrees;
     }
 
     
-    public static List<STITreeCluster> getClusters(Tree tree){
+    public static List<STITreeCluster> getGeneClusters(Tree tree, 
+    		TaxonIdentifier taxonIdentifier ){
         List<STITreeCluster> biClusters = new LinkedList<STITreeCluster>();
-        Map<TNode, BitSet> map = new HashMap<TNode, BitSet>();
-        String[] leaves = GlobalMaps.taxonIdentifier.getAllTaxonNames();
+        Stack<BitSet> stack = new Stack<BitSet>();
+        String[] leaves = taxonIdentifier.getAllTaxonNames();
         for (TNode node : tree.postTraverse()) {
             BitSet bs = new BitSet(leaves.length);
             if (node.isLeaf()) {
                 // Find the index of this leaf.
-                int i = GlobalMaps.taxonIdentifier.taxonId(node.getName());                
+                int i = taxonIdentifier.taxonId(node.getName());                
                 bs.set(i);              
-                map.put(node, bs);
+                stack.add(bs);
             }
             else {
                 int childCount = node.getChildCount();
                 BitSet[] childbslist = new BitSet[childCount];
                 int index = 0;
                 for (TNode child : node.getChildren()) {
-                    BitSet childCluster = map.get(child);
+                    BitSet childCluster = stack.pop();
                     bs.or(childCluster);
                     childbslist[index++] = childCluster;
                 }             
-                map.put(node, bs);
+                stack.add(bs);
             }
                           
             if(bs.cardinality()<leaves.length && bs.cardinality()>1){
                 STITreeCluster tb = new STITreeCluster();
                 tb.setCluster((BitSet)bs.clone());
-                if(!biClusters.contains(tb)){
-                    biClusters.add(tb);
-                }
+                //if(!biClusters.contains(tb)){
+                biClusters.add(tb);
+                //}
             }
             
         }
@@ -292,4 +325,136 @@ public class Utils {
             System.err.println("Command " + args[0]+ " not found.");
         }
     }
+    
+	public static String getLeftmostLeaf(TNode from){
+		for (TNode node : from.postTraverse()) {
+			if (node.isLeaf()) {
+				return node.getName();
+			}
+		}
+		throw new RuntimeException("not possible");	
+	}
+	
+	//TODO: change to an iterable
+	public static List<BitSet> getBitsets(HashMap<String,Integer> randomSample,
+			Tree restrictedTree) {
+		
+		ArrayList<BitSet> ret = new ArrayList<BitSet>();
+
+		Stack<BitSet> stack = new Stack<BitSet>();
+		for (TNode rgtn : restrictedTree.postTraverse()) {
+
+			if (rgtn.isRoot() && rgtn.getChildCount() == 2) {
+				continue;
+			}
+			BitSet bs = null;
+			int legitchildcount = 0;
+			if (rgtn.isLeaf()) {
+				// Find the index of this leaf.
+				if (randomSample.containsKey(rgtn.getName())) {
+					bs = new BitSet(randomSample.size());
+					int i =  randomSample.get(rgtn.getName());               
+					bs.set(i); 
+				}
+			}
+			else {
+				int childCount = rgtn.getChildCount();
+				for (int i = 0; i < childCount; i++) {
+					BitSet pop = stack.pop();
+					if (pop != null) {
+						if (bs == null) {
+							bs = new BitSet(randomSample.size());
+						}
+						bs.or(pop);
+						legitchildcount++;
+					}
+				}
+			}
+			stack.push(bs);
+			if (bs == null || legitchildcount < 2)
+				continue;
+			int bsc = bs.cardinality();
+			if (bsc < 2 || bsc >= randomSample.size() - 1) {
+				continue;
+			}       
+			ret.add(bs);
+		}
+		return ret;
+	}
+	
+	/*public static void randomlyResolve(MutableTree tree) {
+		for (TNode node : tree.postTraverse()) {
+			if (node.getChildCount() < 3) {
+				continue;
+			}
+			TNode first = node.getChildren().iterator().next();
+			List<TNode> children = first.getSiblings();
+			children.add(first);
+			while (children.size() > 2) {
+				TNode c1 = children.remove(GlobalMaps.random.nextInt(children.size()));
+				TNode c2 = children.remove(GlobalMaps.random.nextInt(children.size()));
+				TMutableNode mnode = (TMutableNode) node;
+				TMutableNode newChild = mnode.createChild();
+				newChild.adoptChild((TMutableNode) c1);
+				newChild.adoptChild((TMutableNode) c2);
+				children.add(newChild);
+			}
+		}
+	}*/
+
+	
+	
+	public static class ClusterComparator implements Comparator<Entry<STITreeCluster,Integer>> {
+		private BSComparator bsComparator;
+
+		public ClusterComparator (boolean randomize, int size) {
+			this.bsComparator = new BSComparator(randomize, size);
+		}
+
+		@Override
+		public int compare(Entry<STITreeCluster, Integer> o1,
+				Entry<STITreeCluster, Integer> o2) {
+			return this.bsComparator.compare(
+					o1.getKey().getBitSet(),o1.getValue(),
+					o2.getKey().getBitSet(),o2.getValue());
+					
+		}
+	}
+
+	public static class BSComparator implements Comparator<Entry<BitSet,Integer>> {
+
+		//private boolean random;
+		List<Integer> inds;
+		public BSComparator (boolean randomize, int size) {
+			inds = new ArrayList<Integer>(); 
+			for (int i = 0; i < size; i++) {
+				inds.add(i);
+			}
+			if (randomize) {
+				Collections.shuffle(inds, GlobalMaps.random);
+			}
+		}
+		@Override
+		public int compare(Entry<BitSet, Integer> o1,
+				Entry<BitSet, Integer> o2) {
+			return compare(o1.getKey(),o1.getValue(), o2.getKey(), o2.getValue());
+		}
+		private int compare(BitSet k1, Integer v1, BitSet k2, Integer v2) {
+			int a = v2.compareTo(v1);
+			if (a != 0) {
+				return a;
+			}
+			if  (k1.equals(k2)) {
+				return 0;
+			}
+			for (int ind : this.inds) {
+				boolean j = k1.get(ind);
+				boolean jj = k2.get(ind);
+				if (j != jj) {
+					return (j) ? 1 : -1;
+				} 
+			}
+			throw new RuntimeException("hmm! this should never be reached");
+		}
+	}
 }
