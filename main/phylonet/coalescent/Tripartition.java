@@ -9,8 +9,19 @@ public class Tripartition {
 	STITreeCluster cluster3;
 	private int _hash = 0;
 	
+	public Tripartition(STITreeCluster c1, STITreeCluster c2) {
+		STITreeCluster c3 = new STITreeCluster(c1);
+		c3.getBitSet().or(c2.getBitSet());
+		c3.getBitSet().flip(0,c1.getBitSet().size());
+		initialize(c1, c2, c3);
+	}
+	
 	public Tripartition(STITreeCluster c1, STITreeCluster c2, STITreeCluster c3) {
 		
+		initialize(c1, c2, c3);
+	}
+	private void initialize(STITreeCluster c1, STITreeCluster c2,
+			STITreeCluster c3) {
 		if (c1 == null || c2 == null || c3 == null) {
 			throw new RuntimeException("none cluster" +c1+" "+c2+" "+c3);
 		}
@@ -44,6 +55,7 @@ public class Tripartition {
 			throw new RuntimeException("taxa appear multiple times?\n"+c1+"\n"+c2+"\n"+c3);
 		}
 	}
+
 	@Override
 	public boolean equals(Object obj) {
 		Tripartition trip = (Tripartition) obj; 

@@ -1,16 +1,14 @@
 package phylonet.coalescent;
 
-import java.util.HashMap;
+public class WQClusterCollection extends AbstractClusterCollection{
 
-import phylonet.tree.model.sti.STITreeCluster;
-import phylonet.tree.model.sti.STITreeCluster.Vertex;
+	public WQClusterCollection(int len) {
+		initialize(len);
+	}
 
-
-public class WQClusterCollection extends BasicClusterCollection{
-
-	public WQClusterCollection(int len,  HashMap<STITreeCluster, Vertex> globalVertexCash) {
-		initialize(len, globalVertexCash);
-		//geneTreeSTBByCluster = new HashMap<STITreeCluster, HashSet<STBipartition>>();
+	@Override
+	public AbstractClusterCollection newInstance(int size) {
+		return new WQClusterCollection(size);
 	}
 		
 
