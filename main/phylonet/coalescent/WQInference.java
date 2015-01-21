@@ -18,8 +18,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 	
 	public WQInference(boolean rooted, boolean extrarooted, List<Tree> trees,
 			List<Tree> extraTrees, boolean exactSolution, boolean duploss, int alg, int addExtra,
-			boolean outputCompletedGenes, boolean outSearch) {
-		super(rooted, extrarooted, trees, extraTrees, exactSolution, addExtra, outputCompletedGenes, outSearch);
+			boolean outputCompletedGenes, boolean outSearch, boolean run) {
+		super(rooted, extrarooted, trees, extraTrees, exactSolution, 
+				addExtra, outputCompletedGenes, outSearch, run);
 		this.forceAlg = alg;
 	}
 
