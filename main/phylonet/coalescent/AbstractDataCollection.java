@@ -7,9 +7,9 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.util.BitSet;
 
-public abstract class DataCollection <T> {
+public abstract class AbstractDataCollection <T> {
 
-	protected ClusterCollection clusters;
+	protected IClusterCollection clusters;
 
 	protected boolean addToClusters(STITreeCluster c, int size) {
 		if (size == 0) return false;
@@ -17,6 +17,8 @@ public abstract class DataCollection <T> {
 		return clusters.addCluster(nv, size);
 	}
 
+	// TODO: Figure out what to do with this in case of a mapper
+	// Should only add species-consistent bipartitions?
 	void addAllPossibleSubClusters(STITreeCluster cluster) {
 	    int size = GlobalMaps.taxonIdentifier.taxonCount();
 		BitSet bs = (BitSet) cluster.getBitSet().clone();
@@ -37,8 +39,11 @@ public abstract class DataCollection <T> {
 						+ clusters.getClusterCount());
 	}
 
-	public abstract void addExtraBipartitionsByInput(ClusterCollection extraClusters,
+	public abstract void addExtraBipartitionsByInput(
 			List<Tree> trees, boolean extraTreeRooted);
 	
-	public abstract void computeTreePartitions(Inference<T> inference);
+	public abstract void computeTreePartitions(AbstractInference<T> inference);
+
+    public abstract void addExtraBipartitionByExtension(AbstractInference<T> inference);
+
 }

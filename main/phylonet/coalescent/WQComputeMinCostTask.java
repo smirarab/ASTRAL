@@ -2,43 +2,44 @@ package phylonet.coalescent;
 
 import java.util.List;
 
+import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
-public class WQComputeMinCostTask extends ComputeMinCostTask<Tripartition>{
+public class WQComputeMinCostTask extends AbstractComputeMinCostTask<Tripartition>{
 
 	WQDataCollection wqDataCollection;
 	
-	public WQComputeMinCostTask(Inference<Tripartition> inference, Vertex v,
-			ClusterCollection clusters) {
+	public WQComputeMinCostTask(AbstractInference<Tripartition> inference, Vertex v,
+			IClusterCollection clusters) {
 		super(inference, v, clusters);
 		this.wqDataCollection = (WQDataCollection)inference.dataCollection;
 	}
 	
-	protected double adjustWeight(int clusterLevelCost, Vertex smallV,
+	protected double adjustWeight(long clusterLevelCost, Vertex smallV,
 			Vertex bigv, Long Wdom) {	
 		return Wdom;
 	}
 	
 	@Override
-	protected int scoreBaseCase(boolean rooted, List<Tree> trees) {	
-		return 0;
+	protected long scoreBaseCase(boolean rooted, List<Tree> trees) {	
+		return 0l;
 	}
 
 	@Override
-	protected ComputeMinCostTask<Tripartition> newMinCostTask(
-			 Vertex v, ClusterCollection clusters) {
+	protected AbstractComputeMinCostTask<Tripartition> newMinCostTask(
+			 Vertex v, IClusterCollection clusters) {
 		return new WQComputeMinCostTask(inference, v, clusters);
 	}
 	
 	@Override
-	protected int calculateClusterLevelCost() {
-		return 0;
+	protected long calculateClusterLevelCost() {
+		return 0l;
 	}
 
 	@Override
-	protected Tripartition STB2T(STBipartition stb) {
-		return new Tripartition(stb.cluster1, stb.cluster2, stb.c.complementaryCluster());
+	protected Tripartition STB2T(VertexPair vp) {
+		return new Tripartition(vp.cluster1.getCluster(), vp.cluster2.getCluster(), vp.both.getCluster().complementaryCluster());
 	}
 
 	@Override
