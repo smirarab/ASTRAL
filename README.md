@@ -1,40 +1,24 @@
 DESCRIPTION:
 -----------
-ASTRAL is a Java program for estimating a species tree given a set of unrooted gene trees. ASTRAL is statistically consistent under multi-species coalescent model (and thus is useful for handling ILS). It finds the tree that maximizes the number of induced quartet trees in the set of gene trees that are shared by the species tree. The algorithm has an exact version that can run for small datasets (less than 18 taxa) and a more useful version that can handle large datasets (103 taxa an 800 genes were analyzed in few minutes).
-
-
-Warnings:
------------
-
-ASTRAL is under active development (see the [development branch](https://github.com/smirarab/ASTRAL/tree/development)). There are many features that we are adding to ASTRAL (multi-alleles, unresolved gene trees, etc.). However, the most important one that needs mention is the definition of set X (see our paper), which restricts the search space. 
-
-The significance of set X is that all bipartitions in our species tree are restricted to those that are in X. By default, X is the set of bipartitions in the input gene set. We can build scenarios in simulations where our default strategy for setting X fails to produce good results. We need to enlarge this set in such situations (lots of taxa, too few genes, lots of ILS, too much missing data). There are two ways to do this: automatically using heuristic algorithms, and by using additional trees that might include reasonable hypotheses of the species tree. We are actively working on the first approach and our development branch has new methods that greatly alleviate this potential issue. As a user, you can try finding other trees, anything that might have a chance of containing bipartitions from the species tree, and add those to the set X (using `-e` option). However, if your dataset has one of the following criteria, we **strongly recommend that you test the latest version from the development branch** on your dataset:
-
-* Very high levels of ILS
-* Few genes. What is few depends on the number of taxa. 100 genes is quite a lot for 10 taxa, but not much at all for 100 taxa. 
-* Lots of missing data. 
-
-For more about this, see [Step 10 of our tutorial on the development branch](https://github.com/smirarab/ASTRAL/blob/development/astral-tutorial.md#step-10-automatic-addition-of-bipartitions-to-x).
-
-Reference and contact
-----------
+ASTRAL is a Java program for estimating a species tree given a set of unrooted gene trees. ASTRAL is statistically consistent under multi-species coalescent model (and thus is useful for handling ILS). It finds the tree that maximizes the number of induced quartet trees in the set of gene trees that are shared by the species tree. The algorithm has an exact version that can run for small datasets (less than 18 taxa) and a more useful version (its default) that can handle large datasets (tested for up to 1000 taxa and 1000 genes).
 
 The algorithm used is described in:
 
 S. Mirarab, R. Reaz, Md. S. Bayzid, T. Zimmermann, M.S. Swenson, and T. Warnow1
 "ASTRAL: Genome-Scale Coalescent-Based Species Tree Estimation", accepted in ECCB 2014 and to appear in Bioinformatics.
 
+
+The code given here corresponds to ASTRAL-II (under reivew). 
+
 See our [tutorial](astral-tutorial.md) in addition to the rest of this README file. 
 
 Email: `astral-users@googlegroups.com` for questions.
-
-
 
 INSTALLATION:
 -----------
 There is no installation required to run ASTRAL. 
 You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/Astral.4.7.6.zip) 
-and extract the contents to a folder of your choice. Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/). You can run make.sh to build the project or simply use the jar file that is included with the repository. 
+and extract the contents to a folder of your choice. Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/). You can run `make.sh` to build the project or simply use the jar file that is included with the repository. 
 
 ASTRAL is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. Java 1.5 or later is required. We have tested ASTRAL only on Linux and MAC.
 
@@ -66,7 +50,7 @@ To find the species tree given a set of gene trees in a file called `in.tree`, u
 java -jar astral.4.7.6.jar -i in.tree
 ```
 
-The results will be outputted to the standard output. To save the results in a file use the `-o` option:
+The results will be outputted to the standard output. To save the results in a file use the `-o` option (**Strongly recommended, unless you are using a pipeline**):
 
 ```
 java -jar astral.4.7.6.jar -i in.tree -o out.tre
@@ -79,6 +63,8 @@ species_name [number of individuals] individual_1 individual_2 ...
 
 species_name:individual_1,individual_2,...
 ```
+
+The code for handling multiple individuals is in its infancy and might not work well yet. Keep posted for improvements to this feature.  
 
 ### Bootstrapping:
 
@@ -93,15 +79,13 @@ In this command, `bs_paths` is a file that gives the location of gene tree boots
 ASTRAL outputs 100 bootstrapped replicates, then outputs a greedy consensus of the 100 bootstrap replicates, and then outputs one main tree (estimated based on the `best_ml` input) and 
 draws support on this main tree using the 100 bootstrap replicates.
 
-Also related to bootstrapping are `-r` (to set the number of replicates), `-g` (to enable gene/site resampling), `-s` (to set the seed number).
+Also related to bootstrapping are `-r` (to set the number of replicates), `-g` (to enable gene/site resampling), `-s` (to set the seed number). 
 
-### Taxon names:
-Leaves of a gene trees need to have distinct labels; these labels will appear as the leaf names in the species tree by default. If the gene trees contain multiple copies of the gene for the same taxa, the current version of ASTRAL is not able to handle the input (something we plant to fix in future), but you can always give different individuals different
-names and it should run.  
+**Note** that by default ASTRAL only performs 100 replicates regardless of the number of replicates in your bootstrapped gene trees. If you want to do a different number of replicates, use `-r`. 
 
 
 ### Memory:
-For big datasets (say more than 100 taxon) increasing the memory available to Java can result in speed up. Note that you should give Java only as much as free memory you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke ASTRAL using the following command to make all the 3GB available to Java:
+For big datasets (say more than 100 taxon) increasing the memory available to Java can result in speed ups. Note that you should give Java only as much free memory as you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke ASTRAL using the following command to make all the 3GB available to Java:
 
 ```
 java -Xmx3000M -jar astral.4.7.6.jar -i in.tree
