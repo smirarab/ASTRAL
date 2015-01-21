@@ -11,7 +11,18 @@ public class STBipartition {
 	STITreeCluster c;
 	private int _hash = 0;
 	
+	public STBipartition(STITreeCluster c1, STITreeCluster c2) {
+		this.initizlize(c1,c2);
+		c = new STITreeCluster(c1);
+		c.getBitSet().or(c2.getBitSet());
+	}
+	
 	public STBipartition(STITreeCluster c1, STITreeCluster c2, STITreeCluster cluster) {
+		c = cluster;	
+		initizlize(c1, c2);
+	}
+	
+	private void initizlize(STITreeCluster c1, STITreeCluster c2){
 		if (c1.getBitSet().nextSetBit(0) > c2.getBitSet().nextSetBit(0)) {
 			cluster1 = c1;
 			cluster2 = c2;
@@ -19,8 +30,8 @@ public class STBipartition {
 			cluster1 = c2;
 			cluster2 = c1;				
 		}
-		c = cluster;				
 	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		STBipartition stb2 = (STBipartition) obj; 
@@ -48,7 +59,7 @@ public class STBipartition {
 				(dominant.cluster2.containsCluster(this.cluster1) && dominant.cluster1.containsCluster(this.cluster2));
 	}
 	
-	public boolean isDominatedBy(ClusterCollection left_contained,ClusterCollection rigth_contained, Vertex lv, Vertex rv) {
+	public boolean isDominatedBy(IClusterCollection left_contained,IClusterCollection rigth_contained, Vertex lv, Vertex rv) {
 		/*Vertex thisc = contained.getVertexForCluster(this.c);
 		if (! contained.contains(thisc)) {
 			return false;
