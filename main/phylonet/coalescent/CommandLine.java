@@ -117,7 +117,7 @@ public class CommandLine {
                               " -k completed: outputs completed gene trees (i.e. after adding missing taxa) to a file called [output file name].completed_gene_trees.\n"
                             + " -k bootstraps: outputs individual bootstrap replciates to a file called [output file name].[i].bs\n"
                             + " -k bootstraps_norun: just like -k bootstraps, but exits after outputting bootstraps.\n"
-                            + " -k searchspace_norun: outputs the search space and exits"
+                            + " -k searchspace_norun: outputs the search space and exits; use searchspace to continue the run after outputting the search space."
                             + "When -k option is used, -o option needs to be given. "
                             + "The file name specified using -o is used as the prefix for the name of the extra output files.").setAllowMultipleDeclarations(true),
 
@@ -334,7 +334,8 @@ public class CommandLine {
         		if ("completed".equals(koption) ||
         			"bootstraps".equals(koption) ||
         			"bootstraps_norun".equals(koption)||
-        			"searchspace_norun".equals(koption)) {
+        			"searchspace_norun".equals(koption)||
+        			"searchspace".equals(koption)) {
         			keepOptions.add(koption);
         		} else {
         			throw new JSAPException("-k "+koption+" not recognized.");
@@ -501,7 +502,8 @@ public class CommandLine {
 			inference = new WQInference(rooted, extrarooted, 
 					trees, extraTrees, exact,criterion > 0, 1, addExtra, 
 					keepOptions.contains("completed"),
-					keepOptions.contains("searchspace_norun"));
+					keepOptions.contains("searchspace_norun") || keepOptions.contains("searchspace"),
+					!keepOptions.contains("searchspace_norun") );
 		} else {
 			throw new RuntimeException("criterion not set?");
 		}		
