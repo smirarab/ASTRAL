@@ -22,7 +22,7 @@ import phylonet.tree.util.Collapse;
 import phylonet.tree.util.Trees;
 import phylonet.util.BitSet;
 
-public abstract class Inference<T> {
+public abstract class AbstractInference<T> {
 
 	protected boolean rooted = true;
 	protected boolean extrarooted = true;
@@ -38,17 +38,24 @@ public abstract class Inference<T> {
 	private double CS;
 	private double CD;
 	
-	DataCollection<T> dataCollection;
-	WeightCalculator<T> weightCalculator;
-
-	public Inference(boolean rooted, boolean extrarooted, List<Tree> trees,
-			List<Tree> extraTrees, boolean exactSolution) {
+	AbstractDataCollection<T> dataCollection;
+	AbstractWeightCalculator<T> weightCalculator;
+	private int addExtra;
+	public boolean outputCompleted;
+	boolean searchSpace;
+	
+	public AbstractInference(boolean rooted, boolean extrarooted, List<Tree> trees,
+			List<Tree> extraTrees, boolean exactSolution, int addExtra, 
+			boolean outputCompletedGenes, boolean outSearch) {
 		super();
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
 		this.trees = trees;
 		this.extraTrees = extraTrees;
 		this.exactSolution = exactSolution;
+		this.addExtra = addExtra;
+		this.outputCompleted = outputCompletedGenes;
+		this.searchSpace = outSearch;
 	}
 
 	protected Collapse.CollapseDescriptor doCollapse(List<Tree> trees) {
@@ -84,35 +91,18 @@ public abstract class Inference<T> {
                 GlobalMaps.taxonIdentifier.taxonId(leaves[i]);
             }
         }
-		if (GlobalMaps.taxonNameMap != null && GlobalMaps.taxonNameMap.taxonMap != null) {
-			Map<String,String> taxonMap = GlobalMaps.taxonNameMap.taxonMap;
-			String error = Trees.checkMapping(trees, taxonMap);
-			if (error != null) {
-				throw new RuntimeException("Gene trees have a leaf named "
-						+ error
-						+ " that hasn't been defined in the mapping file");
-			}
-		} else if (GlobalMaps.taxonNameMap != null && GlobalMaps.taxonNameMap.taxonMap == null) {
-			
-			Set<String> taxalist = new HashSet<String>();
-			Set<String> genelist = new HashSet<String>();
-			for (Tree tr : trees) {
-				String[] leaves = tr.getLeaves();
-				for (int i = 0; i < leaves.length; i++) {
-					String leaf = leaves[i];				
-					genelist.add(leaf);
-					taxalist.add(GlobalMaps.getSpeciesName(leaf));
-				}
-			}			
-		} 
+        
+        GlobalMaps.taxonNameMap.checkMapping(trees);
 
-		System.err.println("Number of taxa: " + GlobalMaps.taxonIdentifier.taxonCount());
-		System.err.println("Taxa: " + Arrays.toString(GlobalMaps.taxonIdentifier.getAllTaxonNames()));
+		System.err.println("Number of taxa: " + GlobalMaps.taxonIdentifier.taxonCount()+
+		        " (" + GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount() +" species)"
+		);
+		System.err.println("Taxa: " + GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesNames());
 	}
 	
 	public abstract void scoreGeneTree(Tree scorest) ;
 
-	List<Solution> findTreesByDP(ClusterCollection clusters) {
+	List<Solution> findTreesByDP(IClusterCollection clusters) {
 		List<Solution> solutions = new ArrayList<Solution>();
 
 		/*
@@ -139,7 +129,7 @@ public abstract class Inference<T> {
 
 		try {
 			//vertexStack.push(all);
-			ComputeMinCostTask<T> allTask = newComputeMinCostTask(this,all,clusters);
+			AbstractComputeMinCostTask<T> allTask = newComputeMinCostTask(this,all,clusters);
 			//ForkJoinPool pool = new ForkJoinPool(1);
 			allTask.compute();
 			double v = all._max_score;
@@ -158,6 +148,8 @@ public abstract class Inference<T> {
 				//	+ counter.weights);
 		//}
 		//System.out.println("domination calcs:" + counter.cnt);
+		
+		System.err.println("Total Number of elements weighted: "+ weightCalculator.getCalculatedWeightCount());
 
 		List<STITreeCluster> minClusters = new LinkedList<STITreeCluster>();
 		List<Double> coals = new LinkedList<Double>();
@@ -173,11 +165,14 @@ public abstract class Inference<T> {
 				minVertices.push(v);
 			}
 		}		
+		SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
 		while (!minVertices.isEmpty()) {
 			Vertex pe = (Vertex) minVertices.pop();
+			STITreeCluster stCluster = spm.
+					getSTClusterForGeneCluster(pe.getCluster());
 			//System.out.println(pe._min_rc);
 			//System.out.println(pe._min_lc);
-			minClusters.add(pe.getCluster());
+			minClusters.add(stCluster);
 			//System.out.println(pe.getCluster().getClusterSize()+"\t"+pe._max_score);
 			// int k = sigmaNs/(stTaxa.length-1);
 
@@ -207,7 +202,7 @@ public abstract class Inference<T> {
 			}
 			sol._st = tr;
 		} else {
-			sol._st = Utils.buildTreeFromClusters(minClusters);
+			sol._st = Utils.buildTreeFromClusters(minClusters, spm.getSTTaxonIdentifier());
 		}
 
 		/* HashMap<TNode,BitSet> map = new HashMap<TNode,BitSet>();
@@ -239,7 +234,6 @@ public abstract class Inference<T> {
 
 		Long cost = getTotalCost(all);
 		sol._totalCoals = cost;
-		System.err.println("Total Number of elements weighted: "+ weightCalculator.getCalculatedWeightCount());
 		solutions.add(sol);
         System.err.println("Final optimization score: " + cost);
 
@@ -251,7 +245,7 @@ public abstract class Inference<T> {
 
 		mapNames();
 
-		ClusterCollection clusters = newClusterCollection();
+		IClusterCollection clusters = newClusterCollection();
 
 		List<Solution> solutions;
 
@@ -260,12 +254,35 @@ public abstract class Inference<T> {
 
 		dataCollection.computeTreePartitions(this);
 
-		if (extraTrees != null) {		
-			dataCollection.addExtraBipartitionsByInput(clusters, extraTrees,extrarooted);					
+		if (this.getAddExtra() != 0) {
+		    System.err.println("calculating extra bipartitions to be added at level " + this.getAddExtra() +" ...");
+		    dataCollection.addExtraBipartitionByExtension(this);
 		}
 		
 		if (exactSolution) {
-			dataCollection.addAllPossibleSubClusters(clusters.getTopVertex().getCluster());
+	          System.err.println("calculating all possible bipartitions ...");
+		    dataCollection.addAllPossibleSubClusters(clusters.getTopVertex().getCluster());
+		}
+
+	      
+		if (extraTrees != null && extraTrees.size() > 0) {		
+	        System.err.println("calculating extra bipartitions from extra input trees ...");
+			dataCollection.addExtraBipartitionsByInput(extraTrees,extrarooted);
+			int s = clusters.getClusterCount();
+			/*
+			 * for (Integer c: clusters2.keySet()){ s += clusters2.get(c).size(); }
+			 */
+			System.err.println("Number of Clusters after additions from extra trees: "
+					+ s);
+		}
+		
+		if (this.searchSpace) {
+			for (Set<Vertex> s: dataCollection.clusters.getSubClusters()) {
+				for (Vertex v : s) {
+					System.out.println(v.getCluster());
+				}
+			}
+			System.exit(0);
 		}
 
 		//counter.addExtraBipartitionsByHeuristics(clusters);
@@ -277,8 +294,7 @@ public abstract class Inference<T> {
 		
 
 		System.err.println("Dynamic Programming starting after "
-				+ (System.currentTimeMillis() - startTime) / 1000.0D
-				+ " secs");
+				+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 
 		solutions = findTreesByDP(clusters);
 
@@ -289,14 +305,14 @@ public abstract class Inference<T> {
 		return (List<Solution>) solutions;
 	}
 
-	abstract ClusterCollection newClusterCollection();
+	abstract IClusterCollection newClusterCollection();
 	
-	abstract DataCollection<T> newCounter(ClusterCollection clusters);
+	abstract AbstractDataCollection<T> newCounter(IClusterCollection clusters);
 	
-	abstract WeightCalculator<T> newWeightCalculator();
+	abstract AbstractWeightCalculator<T> newWeightCalculator();
 
-	abstract ComputeMinCostTask<T> newComputeMinCostTask(Inference<T> dlInference,
-			Vertex all, ClusterCollection clusters);
+	abstract AbstractComputeMinCostTask<T> newComputeMinCostTask(AbstractInference<T> dlInference,
+			Vertex all, IClusterCollection clusters);
 	
 	abstract Long getTotalCost(Vertex all);
 	
@@ -324,5 +340,8 @@ public abstract class Inference<T> {
 		CD = cD;
 	}
 
-	
+    public int getAddExtra() {
+        return addExtra;
+    }
+
 }
