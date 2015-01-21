@@ -20,7 +20,7 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.util.BitSet;
 
-public class DLDataCollection extends DataCollection<STBipartition>{
+public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 
 	double sigmaNs;
 
@@ -41,7 +41,7 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 		this.clusters = clusters;
 	}
 
-	public void computeTreePartitions(Inference<STBipartition> inference) {
+	public void computeTreePartitions(AbstractInference<STBipartition> inference) {
 
 		double unweigthedConstant = 0;
 		double weightedConstant = 0;
@@ -69,7 +69,7 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 			String[] gtLeaves = tr.getLeaves();
 			for (int i = 0; i < gtLeaves.length; i++) {
 				allInducedByGT.addLeaf(
-						GlobalMaps.taxonIdentifier.taxonId(GlobalMaps.getSpeciesName(gtLeaves[i])));
+						GlobalMaps.taxonIdentifier.taxonId(GlobalMaps.taxonNameMap.getTaxonName(gtLeaves[i])));
 			}
 			treeAlls.add(allInducedByGT);
 			int allInducedByGTSize = allInducedByGT.getClusterSize();
@@ -85,7 +85,7 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 			for (TNode node : tr.postTraverse()) {				
 				// System.err.println("Node is:" + node);
 				if (node.isLeaf()) {
-					String nodeName = GlobalMaps.getSpeciesName(node.getName());
+					String nodeName = GlobalMaps.taxonNameMap.getTaxonName(node.getName());
 					
 					STITreeCluster cluster = new STITreeCluster();
 					cluster.addLeaf(GlobalMaps.taxonIdentifier.taxonId(nodeName));
@@ -209,7 +209,7 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 	}
 
 
-	public void addExtraBipartitionsByInput(ClusterCollection extraClusters,
+	public void addExtraBipartitionsByInput(
 			List<Tree> trees, boolean extraTreeRooted) {
 
 		int n = GlobalMaps.taxonIdentifier.taxonCount();
@@ -232,7 +232,7 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 				TNode node = nodeIt.next();
 				if (node.isLeaf()) {
 					String treeName = node.getName();
-					String nodeName = GlobalMaps.getSpeciesName(treeName);
+					String nodeName = GlobalMaps.taxonNameMap.getTaxonName(treeName);
 
 					STITreeCluster tb = new STITreeCluster();
 					tb.addLeaf(GlobalMaps.taxonIdentifier.taxonId(nodeName));
@@ -315,13 +315,6 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 			}
 
 		}
-		int s = extraClusters.getClusterCount();
-		/*
-		 * for (Integer c: clusters2.keySet()){ s += clusters2.get(c).size(); }
-		 */
-		System.err
-				.println("Number of Clusters After additions from extra Trees: "
-						+ s);
 	}
 
 	private void tryAddingSTB(STITreeCluster l_cluster,
@@ -387,6 +380,11 @@ public class DLDataCollection extends DataCollection<STBipartition>{
 			}
 		}
 	}
+
+    @Override
+    public void addExtraBipartitionByExtension(AbstractInference<STBipartition> inference) {
+        
+    }
 
 
 	/*
