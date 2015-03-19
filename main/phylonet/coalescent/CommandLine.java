@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.Stack;
 
 import phylonet.tree.io.NewickReader;
 import phylonet.tree.io.ParseException;
@@ -37,7 +38,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.7.6";
+    protected static String _versinon = "4.7.7";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -137,7 +138,12 @@ public class CommandLine {
                             + "The mapping file has one line per species, with one of two formats:\n"
                             + " species: gene1,gene2,gene3,gene4\n"
                             + " species 4 gene1 gene2 gene3 gene4\n"),
- 
+
+                    new FlaggedOption("minleaves", 
+                            JSAP.INTEGER_PARSER, null, JSAP.NOT_REQUIRED, 
+                            'm', "minleaves",
+                            "Remove genes with less than specificed number of leaves "),
+
                     new Switch( "duplication",
                             'd', "dup",
                             "Solves MGD problem. Minimizes the number duplications required to explain "
@@ -187,6 +193,7 @@ public class CommandLine {
 		boolean exact = false;
 		int addExtra;
 		int k = 0;
+		Integer minleaves = null;
         BufferedWriter outbuffer;
         Set<String> keepOptions = new HashSet<String>();
 		
@@ -277,13 +284,15 @@ public class CommandLine {
             br.close();
         }
         
+        minleaves = config.contains("minleaves")? config.getInt("minleaves"):null;
+        
         try {
         	
         	//GlobalMaps.taxonIdentifier.taxonId("0");
 
         	mainTrees = readInputTrees(
         			readTreeFileAsString(config.getFile("input file")),
-        					rooted, true, false);			
+        					rooted, true, false, minleaves);			
             k = mainTrees.size();
             System.err.println(k+" trees read from " + config.getFile("input file"));
             
@@ -312,7 +321,7 @@ public class CommandLine {
         if (config.getFile("score species trees") != null) {
         	List<Tree> toScore = readInputTrees(
         			readTreeFileAsString(config.getFile("score species trees")),
-                     rooted, true, true);
+                     rooted, true, true, null);
         	
             AbstractInference inference =
                     initializeInference(criterion, rooted, extrarooted, mainTrees,
@@ -348,7 +357,7 @@ public class CommandLine {
             if (config.getFile("extra trees") != null) {
             	extraTrees = readInputTrees(
                 	readTreeFileAsString(config.getFile("extra trees")), 
-                        extrarooted, true, false);
+                        extrarooted, true, false, null);
                 System.err.println(extraTrees.size() + " extra trees read from "
                         + config.getFile("extra trees"));
             }
@@ -356,7 +365,7 @@ public class CommandLine {
             if (config.getFile("extra species trees") != null) {
             	extraTrees = readInputTrees(
                 	readTreeFileAsString(config.getFile("extra species trees")), 
-                        extrarooted, true, true);
+                        extrarooted, true, true, null);
                 System.err.println(extraTrees.size() + " extra trees read from "
                         + config.getFile("extra trees"));
             }
@@ -438,7 +447,7 @@ public class CommandLine {
 	        bootstraps.add(runOnOneInput(criterion, 
 	                rooted, extrarooted, extraTrees, cs, cd,
                     wh, exact, outbuffer, 
-                    readInputTrees(input, rooted, false, false),
+                    readInputTrees(input, rooted, false, false, minleaves),
                     null, outgroup, addExtra, keepOptions));
 		}
 	    
@@ -530,9 +539,11 @@ public class CommandLine {
     }
 
     private static List<Tree> readInputTrees(List<String> lines, 
-    		boolean rooted, boolean checkCompleteness, boolean stLablel)
+    		boolean rooted, boolean checkCompleteness, boolean stLablel,
+    		Integer minleaves)
     				throws FileNotFoundException, IOException {
     	List<Tree> trees = new ArrayList<Tree>();
+    	List<Integer> skipped = new Stack<Integer>();
     	int l = 0;			
     	try {
     		for (String line : lines) {
@@ -559,10 +570,18 @@ public class CommandLine {
     						}
     					}
     				}
-    				trees.add(gt);
+    				if (minleaves == null || gt.getLeafCount() >= minleaves) {
+    					trees.add(gt);
+    				} else {
+    					skipped.add(l);
+    				}
     			} else {						
     				Tree tr = nr.readTree();
-    				trees.add(tr);
+    				if (minleaves == null || tr.getLeafCount() >= minleaves) {
+    					trees.add(tr);
+    				} else {
+    					skipped.add(l);
+    				}
     				if (stLablel) {
     					GlobalMaps.taxonNameMap.getSpeciesIdMapper().stToGt((MutableTree) tr);
     				}
@@ -579,6 +598,9 @@ public class CommandLine {
     		}
     	} catch (ParseException e) {
     		throw new RuntimeException("Failed to Parse Tree number: " + l ,e);
+    	}
+    	if (skipped.size() > 0) {
+    		System.err.println("Skipping the following tree(s): \n" + skipped);
     	}
     	return trees;
     }
