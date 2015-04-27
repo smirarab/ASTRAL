@@ -71,17 +71,24 @@ The code for handling multiple individuals is in its infancy and might not work 
 To perform 100 replicates of multi-locus bootstrapping ([Seo 2008](http://www.ncbi.nlm.nih.gov/pubmed/18281270)), use:
 
 ```
-java -jar __astral.jar__ -i best_ml -b bs_paths 
+java -jar __astral.jar__ -i best_ml -b bs_paths -r 100
 ```
 
 In this command, `bs_paths` is a file that gives the location of gene tree bootstrap files, one line per gene. 
 `best_ml` has all the "main" trees (e.g. best ML trees) in one file. 
-ASTRAL outputs 100 bootstrapped replicates, then outputs a greedy consensus of the 100 bootstrap replicates, and then outputs one main tree (estimated based on the `best_ml` input) and 
-draws support on this main tree using the 100 bootstrap replicates.
 
-Also related to bootstrapping are `-r` (to set the number of replicates), `-g` (to enable gene/site resampling), `-s` (to set the seed number). 
+##### Bootstrap Output: 
 
-**Note** that by default ASTRAL only performs 100 replicates regardless of the number of replicates in your bootstrapped gene trees. If you want to do a different number of replicates, use `-r`. 
+The output file generated with the bootstarpping feature with 100 replictes( `-r 100`) contains the following trees, in this order:
+
+* 100 bootstrapped replicate trees; each of these trees is the result of running ASTRAL on a set of bootstrap replicate trees (one per gene).  
+* A greedy consensus of the bootstrapped replicate trees; this tree has support values drawn on branches based on the bootstrap replicate trees.
+* The “main” tree; this is the results of running ASTRAL on the `best_ml` input trees; this tree also includes support values, which are drawn based on the bootstrap replicate trees.
+
+If `-r` option has anything other than 100, the number of replicates would be accordingly adjusted.
+**Note** that by default (i.e., if no `-r` is given), ASTRAL only performs 100 replicates regardless of the number of replicates in your bootstrapped gene trees. If you want to do a different number of replicates, use `-r`. 
+
+Also related to bootstrapping are `-g` (to enable gene/site resampling) and `-s` (to set the seed number) options. 
 
 
 ### Memory:
