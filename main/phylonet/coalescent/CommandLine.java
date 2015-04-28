@@ -600,7 +600,7 @@ public class CommandLine {
     		throw new RuntimeException("Failed to Parse Tree number: " + l ,e);
     	}
     	if (skipped.size() > 0) {
-    		System.err.println("Skipping the following tree(s): \n" + skipped);
+    		System.err.println("Skipping the following tree(s) because they had less than " + minleaves+" leaves: \n" + skipped);
     	}
     	return trees;
     }
