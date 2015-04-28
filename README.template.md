@@ -4,11 +4,10 @@ ASTRAL is a Java program for estimating a species tree given a set of unrooted g
 
 The algorithm used is described in:
 
-S. Mirarab, R. Reaz, Md. S. Bayzid, T. Zimmermann, M.S. Swenson, and T. Warnow1
-"ASTRAL: Genome-Scale Coalescent-Based Species Tree Estimation", accepted in ECCB 2014 and to appear in Bioinformatics.
+Mirarab, Siavash, Rezwana Reaz, Md. Shamsuzzoha Bayzid, Theo Zimmermann, M Shel Swenson, and Tandy Warnow. “ASTRAL: Genome-Scale Coalescent-Based Species Tree.” Bioinformatics (ECCB special issue) 30, no. 17 (2014): i541–i548. [doi:10.1093/bioinformatics/btu462](doi.org/10.1093/bioinformatics/btu462).
 
 
-The code given here corresponds to ASTRAL-II (under reivew). 
+The code given here corresponds to ASTRAL-II. The ASTRAL-II paper is accepted and is going to appear soon. 
 
 See our [tutorial](astral-tutorial.md) in addition to the rest of this README file. 
 
@@ -79,7 +78,7 @@ In this command, `bs_paths` is a file that gives the location of gene tree boots
 
 ##### Bootstrap Output: 
 
-The output file generated with the bootstarpping feature with 100 replictes( `-r 100`) contains the following trees, in this order:
+The output file generated with the bootstrapping feature with 100 replicates (`-r 100`) contains the following trees, in this order:
 
 * 100 bootstrapped replicate trees; each of these trees is the result of running ASTRAL on a set of bootstrap replicate trees (one per gene).  
 * A greedy consensus of the bootstrapped replicate trees; this tree has support values drawn on branches based on the bootstrap replicate trees.
