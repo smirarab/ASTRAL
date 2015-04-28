@@ -543,7 +543,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
                 }
 			}
 		}
-		return weight/4;
+		return weight/4l;
 	}
 
 	private void calculateDistances() {
