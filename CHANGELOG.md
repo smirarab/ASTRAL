@@ -1,3 +1,10 @@
+- version 4.7.8:
+  - Fixed a bug in normalization of quartet scores. For very large datasets, the normalization of the quartet scores was incorrect. This only affected the outputted normalized score. 
+    The tree topology, and the non-normalized scores were not affected. 
+
+- version 4.7.7:
+  - added a new option to filter genes by taxon occupancy
+
 - version 4.7.6:
   - Made sure multi-allele works with new features added after 4.7.0 
   - Output normalized score with -q option
