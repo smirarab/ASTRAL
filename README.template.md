@@ -4,11 +4,10 @@ ASTRAL is a Java program for estimating a species tree given a set of unrooted g
 
 The algorithm used is described in:
 
-S. Mirarab, R. Reaz, Md. S. Bayzid, T. Zimmermann, M.S. Swenson, and T. Warnow1
-"ASTRAL: Genome-Scale Coalescent-Based Species Tree Estimation", accepted in ECCB 2014 and to appear in Bioinformatics.
+Mirarab, Siavash, Rezwana Reaz, Md. Shamsuzzoha Bayzid, Theo Zimmermann, M Shel Swenson, and Tandy Warnow. “ASTRAL: Genome-Scale Coalescent-Based Species Tree.” Bioinformatics (ECCB special issue) 30, no. 17 (2014): i541–i548. [doi:10.1093/bioinformatics/btu462](doi.org/10.1093/bioinformatics/btu462).
 
 
-The code given here corresponds to ASTRAL-II (under reivew). 
+The code given here corresponds to ASTRAL-II. The ASTRAL-II paper is accepted and is going to appear soon. 
 
 See our [tutorial](astral-tutorial.md) in addition to the rest of this README file. 
 
@@ -79,14 +78,15 @@ In this command, `bs_paths` is a file that gives the location of gene tree boots
 
 ##### Bootstrap Output: 
 
-The output file generated with the bootstarpping feature with 100 replictes( `-r 100`) contains the following trees, in this order:
+The output file generated when using the bootstrapping feature with 100 replicates (`-r 100`) contains the following trees, in this order:
 
-* 100 bootstrapped replicate trees; each of these trees is the result of running ASTRAL on a set of bootstrap replicate trees (one per gene).  
-* A greedy consensus of the bootstrapped replicate trees; this tree has support values drawn on branches based on the bootstrap replicate trees.
-* The “main” tree; this is the results of running ASTRAL on the `best_ml` input trees; this tree also includes support values, which are drawn based on the bootstrap replicate trees.
+* 100 bootstrapped replicate trees; each tree is the result of running ASTRAL on a set of bootstrap gene trees (one per gene).
+* A greedy consensus of the 100 bootstrapped replicate trees; this tree has support values drawn on branches based on the bootstrap replicate trees. Support values show the percentage of bootstrap replicates that contain a branch. 
+* The “main” ASTRAL tree; this is the results of running ASTRAL on the `best_ml` input gene trees. This main tree also includes support values, which are again drawn based on the 100 bootstrap replicate trees.
 
-If `-r` option has anything other than 100, the number of replicates would be accordingly adjusted.
-**Note** that by default (i.e., if no `-r` is given), ASTRAL only performs 100 replicates regardless of the number of replicates in your bootstrapped gene trees. If you want to do a different number of replicates, use `-r`. 
+If `-r` option is set to anything other than 100, the number of replicates would be accordingly adjusted.    
+**Note** that by default (i.e., when no `-r` is given), ASTRAL only performs 100 replicates regardless of the number of replicates in your bootstrapped gene trees.
+If you want to bootstrap with a different number of replicates, you must use `-r`. 
 
 Also related to bootstrapping are `-g` (to enable gene/site resampling) and `-s` (to set the seed number) options. 
 
