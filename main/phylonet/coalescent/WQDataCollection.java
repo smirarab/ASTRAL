@@ -524,10 +524,10 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
                     children.add(sideRemaining);
                 }
                 for (int i = 0; i < children.size(); i++) {
-                	Integer a = children.get(i);
+                	Long a = children.get(i) + 0l;
                     
                     for (int j = i+1; j < children.size(); j++) {
-                    	Integer b = children.get(j);
+                    	Long b = children.get(j) + 0l;
                         /*if (children.size() > 5) {
                         	if ((side1.s0+side2.s0 == 0? 1 :0) +
                         			(side1.s1+side2.s1 == 0? 1 :0) + 
@@ -536,7 +536,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
                         }
                         */
                         for (int k = j+1; k < children.size(); k++) {
-                        	Integer c = children.get(k);
+                        	Long c = children.get(k) + 0l;
                             weight += (a+b+c-3) *a*b*c;
                         }
                     }
