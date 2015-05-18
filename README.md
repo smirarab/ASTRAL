@@ -24,7 +24,7 @@ ASTRAL is a java-based application, and should run in any environment (Windows, 
 To test your installation, go to the place where you uncompressed ASTRAL, and run:
 
 ```
-java -jar astral.4.7.8.jar -in test_data/song_primates.50.gene.tre
+java -jar astral.4.7.8.jar -i test_data/song_primates.424.gene.tre
 ```
 
 This should quickly finish. There are also other sample input files under `test_data/` that can be used.
