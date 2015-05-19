@@ -22,7 +22,7 @@ There is no installation required to run ASTRAL. You simply need to download the
 
 ASTRAL is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. Java 1.5 or later is required. We have tested ASTRAL only on Linux and MAC, but it should work on Windows too.
 
-In the remaining of the tutorial, we will assume you have extracted the ATRAL zip file into a directory called `~/astral-home/`. In the commands given below, substitute `~/astral-home/` with the directory you have chosen for ASTRAL. 
+In the remaining of the tutorial, we will assume you have extracted the ATRAL zip file into a directory with the path `~/astral-home/`. In the commands given below, substitute `~/astral-home/` with the directory you have chosen for ASTRAL. 
 
 
 ### Step 2: Running ASTRAL from command-line to see the help:
@@ -76,7 +76,7 @@ S2:s2i1,s2i2
 
 ### Step 4: Viewing results of ASTRAL:
 
-The output of ASTRAL is a tree in newick format. These trees can be viewed in many many existing tools. Here are few that are used by many people:
+The output of ASTRAL is a tree in newick format. These trees can be viewed in many existing tools. Here are few that are used by many people:
 
 1. [FigTree](http://tree.bio.ed.ac.uk/software/figtree/) is probably the most widely used tool. It produces nice looking figures and works under Linux, Windows and MAC. 
 2. [Archaeopteryx](https://sites.google.com/site/cmzmasek/home/software/archaeopteryx) is very good for viewing large trees and also works under all three operating systems. 
@@ -133,7 +133,7 @@ The main point of our ASTRAL-II work is to make sure the heuristic and exact ver
 
 
 ### Step 7: Providing ASTRAL with extra trees:
-**Note:** Since ASTRAL-II (version 4.7.2), we do not see any particular need for adding extra trees, unless the number of input trees is extremely small. We provide the following information, but note that ASTRAL-II should be able to define a reasonable search space without a need for extra trees. Nevertheless, if extra trees are available, adding them never hurts.  
+**Note:** Since ASTRAL-II (version 4.7.2), we do not see any particular need for adding extra trees, unless the number of input trees is extremely small. We provide the following information, but note that ASTRAL-II should be able to define a thorough search space without a need for extra trees. Nevertheless, if extra trees are available, adding them never hurts.  
 
 What if we had few very discordant gene trees, but the number of taxa was sufficiently large that we couldn't run the exact version?
 We always have a second option. Imagine that you are able to create a set of hypothetical trees using various methods. For example, maybe you have prior hypothesis of what the species tee should be. Or, maybe you have run concatenation and have potential species trees. Most realistically, maybe you have a collection of bootstrapped gene tress that can be used. ASTRAL allows you to provide these sets of alternative trees to expand the space of that ASTRAL considers. Thus, ASTRAL will solve the optimization problem subject to the constraint that each bipartition should come either from one of the input gene trees, or the ones it infers automatically, or these "extra" gene trees. The extra gene trees, however, do not contribute to the score. They just control the space bing searched. 
@@ -146,7 +146,7 @@ java -jar astral.4.7.8.jar -i test_data/simulated_primates_5X.10.gene.tre -o tes
 Here, the `-e` option is used to input a set of extra trees that ASTRAL uses to expand its search space. The file provided simply has 200 bootstrap replicates for each of the these 10 simulated genes. 
 
 ### Step 8: Running on large datasets:
-We have now finished looking at all the important options of ASTRAL (you can ignore the rest). To finish, we will run ASTRAL on a relatively large dataset. Run:
+We will now run ASTRAL on a relatively large dataset. Run:
 
 ```
 java -jar astral.4.7.8.jar -i test_data/100-simulated-boot
@@ -187,7 +187,29 @@ Finally, since bootstrapping involves a random process, a seed number can be pro
 ASTRAL first performs the bootstrapping, and for each replicate, it outputs the bootstrapped ASTRAL tree. So, if number of replicates is set to 100, it outputs 100 trees. Then, it outputs a greedy consensus of all the 100 bootstrapped trees (with support drawn on branches). Finally, it performs the main analysis (i.e. on trees provided using `-i` option) and draws branch support on this main tree using the bootstrap replicates. The tree outputted at the end therefore is the ASTRAL tree on main input trees, with support values drawn based on bootstrap replicates. Support values are shown as branch length (i.e. after a colon sign) and
 are percentages. 
 
-### Step 10: Automatic addition of bipartitions to X.
+Scoring a species tree
+--------------
+You can use the `-q` option in ASTRAL to score an existing species tree. The ASTRAL score is the fraction of the induced qartet trees in the input set that are in the species tree. So, a score of `0.9` would mean that 90% of the quartet trees induced by your gene trees are in your species tree. 
+
+To score a tree using ASTRAL, run:
+
+```
+java -jar astral.4.7.8.jar -q test_data/simulated_14taxon.default.tre -i test_data/simulated_14taxon.gene.tre
+```
+
+This will score the species tree given in `test_data/simulated_14taxon.default.tre` compared to the gene trees given in `test_data/simulated_14taxon.gene.tre`. It will output:
+
+```
+Quartet score is: 4803
+Normalized quartet score is: 0.4798201798201798
+```
+
+This means 4803 induced quartet trees from the gene trees are in the species tree, and these 4803 quartets are 47.98% of all the quartet trees that could be found in the species tree. As mentioned before, this dataset is one with a *very high* ILS level. 
+
+Miscellaneous :
+---------------
+
+### Automatic addition of bipartitions to X.
 The search space explored by ASTRAL is limited to bipartitions in a given set X. This means
 that the accuracy of ASTRAL can be impacted by what is in the set X. 
 ASTRAL-I (the algorithm described in our Bioinformatics paper) sets the set X to all bipartitions from the gene trees. This is a very good start and sufficient in many cases. However, in ASTRAL-II, we have added few extra mechanisms to add extra bipartitions to set X. In our upcoming paper on ASTRAL-II, we show that for the most challenging datasets, these additions dramatically increase the accuracy of ASTRAL, to the point that the search space seems sufficiently large in all the analyses we ran.
@@ -200,7 +222,7 @@ Some of the mechanisms used in ASTRAL-II are the following:
 
 - **Similarity-based addition**: By default, we also use our similarity matrix (also used for completing trees) to add some more bipartioins using a UPGMA tree. 
  
-- ** Resolving unresolved gene trees**: When input gene trees are unresolved, we use a strategy similar to our Greedy-based addition strategy for inferring and adding extra bipartitions that effectively resolve the polytomies. Once again, the score calculation is based on the unresolved tree, and these additions only affect the set X. 
+- **Resolving unresolved gene trees**: When input gene trees are unresolved, we use a strategy similar to our Greedy-based addition strategy for inferring and adding extra bipartitions that effectively resolve the polytomies. Once again, the score calculation is based on the unresolved tree, and these additions only affect the set X. 
 
 - **Auto-expansion**: If a cluster of taxa in the dynamic programming phase cannot be further decomposed into two parts, we add all possible resolutions of it, if it is small enough (less than 6 taxa), or some new resolutions for it if it is larger.  
 
@@ -211,8 +233,6 @@ Mechanisms 1, 4, and 5 are always in place. Mechanisms 2 and 3 are by default ac
 
 We do not recommend `-p 0` option, because greedy-based additions could be quite important, and they typically have a relatively small impact on the running time. 
 
-Miscellaneous :
----------------
 
 ### Memory:
 For big datasets (say more than 100 taxon) increasing the memory available to Java might be necessary. Note that you should never give Java more memory than what you have available on your machine. So, for example, if you have 4GB of free memory, you can invoke ASTRAL using the following command to make 3GB available to Java:
