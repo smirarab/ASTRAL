@@ -187,7 +187,7 @@ Finally, since bootstrapping involves a random process, a seed number can be pro
 ASTRAL first performs the bootstrapping, and for each replicate, it outputs the bootstrapped ASTRAL tree. So, if number of replicates is set to 100, it outputs 100 trees. Then, it outputs a greedy consensus of all the 100 bootstrapped trees (with support drawn on branches). Finally, it performs the main analysis (i.e. on trees provided using `-i` option) and draws branch support on this main tree using the bootstrap replicates. The tree outputted at the end therefore is the ASTRAL tree on main input trees, with support values drawn based on bootstrap replicates. Support values are shown as branch length (i.e. after a colon sign) and
 are percentages. 
 
-Scoring a species tree
+Step 10: Scoring a species tree
 --------------
 You can use the `-q` option in ASTRAL to score an existing species tree. The ASTRAL score is the fraction of the induced qartet trees in the input set that are in the species tree. So, a score of `0.9` would mean that 90% of the quartet trees induced by your gene trees are in your species tree. 
 
@@ -240,6 +240,13 @@ For big datasets (say more than 100 taxon) increasing the memory available to Ja
 ```
 java -Xmx3000M -jar astral.4.7.8.jar -i in.tree
 ```
+
+### Other options:
+
+* `-m [a number]`: removes genes with less that the specified number of leaves in them. Thus, this is useful for requiring a certain level of taxon occupancy. 
+* `-k completed`: To build the set X (and *not* to score the spcies tree), ASTRAL internally completes the gene trees. To see these completed gene trees, run this option. This option is usable only when you also have `-o`.
+* `-k bootstraps` and `-k bootstraps_norun`: these output the bootstrap replicate inputs to ASTRAL. These are useful if you want to run ASTRAL seprately on each bootstrap replicate on a cluster. 
+* `-k searchspace_norun`: outputs the search space (constraint set X) and exits. 
 
 ### Acknowledgment
 
