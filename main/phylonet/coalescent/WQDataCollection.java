@@ -239,6 +239,10 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 
 
 	Tree getCompleteTree(Tree tr, BitSet gtAllBS) {
+		
+		if (gtAllBS.cardinality() < 3) {
+			throw new RuntimeException("Tree "+tr.toNewick() +" has less than 3 taxa; it cannot be completed");
+		}
 		STITree trc = new STITree(tr);		
 		
 		for (int missingId = gtAllBS.nextClearBit(0); missingId < n ; missingId = gtAllBS.nextClearBit(missingId+1)) {
@@ -266,6 +270,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 				c1 = (STINode) cit.next();
 				c2 = (STINode) cit.next();
 				
+				// TODO: what if c1 or c2 never appears in the same tree as missing and closestId .
 				if (c1random == -1) {
 					c1random = GlobalMaps.taxonIdentifier.taxonId(Utils.getLeftmostLeaf(c1));
 				}
