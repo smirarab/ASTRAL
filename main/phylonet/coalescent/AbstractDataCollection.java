@@ -30,7 +30,7 @@ public abstract class AbstractDataCollection <T> {
 			}
 			bs.set(tsb);
 			bs.clear(0, tsb);
-			STITreeCluster c = new STITreeCluster();
+			STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
 			c.setCluster((BitSet) bs.clone());
 			addToClusters(c, c.getClusterSize());
 		}
