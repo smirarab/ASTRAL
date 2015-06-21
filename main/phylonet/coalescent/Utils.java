@@ -254,7 +254,7 @@ public class Utils {
             }
                           
             if(bs.cardinality()<leaves.length && bs.cardinality()>1){
-                STITreeCluster tb = new STITreeCluster();
+                STITreeCluster tb = new STITreeCluster(taxonIdentifier);
                 tb.setCluster((BitSet)bs.clone());
                 //if(!biClusters.contains(tb)){
                 biClusters.add(tb);
