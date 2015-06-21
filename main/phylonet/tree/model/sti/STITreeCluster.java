@@ -16,11 +16,11 @@ public class STITreeCluster implements Iterable<Integer>
   private TaxonIdentifier taxonIdentifier;
 
 
-  public STITreeCluster()
+/*  public STITreeCluster()
   {
     this.taxonIdentifier = GlobalMaps.taxonIdentifier;
     this._cluster = new BitSet(this.taxonIdentifier.taxonCount());
-  }
+  }*/
   
   public STITreeCluster(STITreeCluster tc)
   {
@@ -196,7 +196,7 @@ public class STITreeCluster implements Iterable<Integer>
   }
 
   public STITreeCluster complementaryCluster() {
-    STITreeCluster cc = new STITreeCluster();
+    STITreeCluster cc = new STITreeCluster(this.taxonIdentifier);
     BitSet bs = (BitSet)this._cluster.clone();
     bs.flip(0,this.taxonIdentifier.taxonCount());
 /*    for (int i = 0; i < this._taxa.length; i++) {
