@@ -48,7 +48,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 			if (node.isLeaf()) {
 				String nodeName = node.getName(); //GlobalMaps.TaxonNameMap.getSpeciesName(node.getName());
 
-				STITreeCluster cluster = new STITreeCluster();
+				STITreeCluster cluster = GlobalMaps.taxonIdentifier.newCluster();
 				Integer taxonID = GlobalMaps.taxonIdentifier.taxonId(nodeName);
 				cluster.addLeaf(taxonID);
 
@@ -63,7 +63,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 					bs.or(pop.getBitSet());
 				}
 				
-				STITreeCluster cluster = new STITreeCluster();
+				STITreeCluster cluster = GlobalMaps.taxonIdentifier.newCluster();
 				cluster.setCluster((BitSet) bs.clone());
 
 				//((STINode)node).setData(new GeneTreeBitset(node.isRoot()? -2: -1));
