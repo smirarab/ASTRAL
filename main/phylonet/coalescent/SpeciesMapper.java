@@ -2,6 +2,7 @@ package phylonet.coalescent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -16,14 +17,14 @@ import phylonet.util.BitSet;
 public class SpeciesMapper {
 
     private int [] taxonIdToSpeciesId;
-    private ArrayList<Set<Integer>> speciesIdtoTaxonId;
+    private ArrayList<List<Integer>> speciesIdtoTaxonId;
     private ArrayList<Integer> speciesIdtoLowestTaxonId;
     private TaxonIdentifier speciesNameIdMap;
 
     public SpeciesMapper(int taxonCount) {
         this.taxonIdToSpeciesId = new int[taxonCount];
         this.speciesNameIdMap = new TaxonIdentifier();
-        this.speciesIdtoTaxonId = new ArrayList<Set<Integer>>();
+        this.speciesIdtoTaxonId = new ArrayList<List<Integer>>();
         this.speciesIdtoLowestTaxonId = new ArrayList<Integer>();
     }
 
@@ -42,7 +43,7 @@ public class SpeciesMapper {
     private void setSpeciesIdForTaxon(int taxonId, int speciesId) {
         this.taxonIdToSpeciesId[taxonId] = speciesId;
         for (int i = this.speciesIdtoTaxonId.size(); i <= speciesId; i++) {
-            this.speciesIdtoTaxonId.add(new TreeSet<Integer>());
+            this.speciesIdtoTaxonId.add(new ArrayList<Integer>());
             this.speciesIdtoLowestTaxonId.add(null);
         }
         this.speciesIdtoTaxonId.get(speciesId).add(taxonId);
@@ -62,7 +63,7 @@ public class SpeciesMapper {
                 this.speciesNameIdMap.taxonId(speciesName));
     }
 
-    public Set<Integer> getTaxaForSpecies(Integer species){
+    private List<Integer> getTaxaForSpecies(Integer species){
         return this.speciesIdtoTaxonId.get(species);
     }
 
@@ -76,7 +77,7 @@ public class SpeciesMapper {
         } else {
             HashMap<String, String> stToGtNameMap = new HashMap<String, String>();
             int i = 0;
-            for (Set<Integer> set : this.speciesIdtoTaxonId) {
+            for (List<Integer> set : this.speciesIdtoTaxonId) {
                 ArrayList<String> gtNames = new ArrayList<String>();
                 for (Integer gi : set) {
                     gtNames.add(GlobalMaps.taxonIdentifier.getTaxonName(gi));
@@ -114,13 +115,17 @@ public class SpeciesMapper {
     }
     
     public STITreeCluster getSTClusterForGeneCluster(STITreeCluster geneCluster) {
+        return this.getSTClusterForGeneBitSet(geneCluster.getBitSet());
+    }
+    
+    public STITreeCluster getSTClusterForGeneBitSet(BitSet geneBitSet) {
         STITreeCluster stCluster = new STITreeCluster(this.speciesNameIdMap);
-        stCluster.setCluster(this.getSTBisetForGeneBitset(geneCluster.getBitSet()));
+        stCluster.setCluster(this.getSTBisetForGeneBitset(geneBitSet));
         return stCluster;
     }
 
     public STITreeCluster getGeneClusterForSTCluster(BitSet stBitset) {
-        STITreeCluster geneCluster = new STITreeCluster();
+        STITreeCluster geneCluster = new STITreeCluster(GlobalMaps.taxonIdentifier);
         geneCluster.setCluster(this.getGeneBisetForSTBitset(stBitset));
         return geneCluster;
     }
@@ -131,7 +136,7 @@ public class SpeciesMapper {
     public void addMissingIndividuals(BitSet geneBS) {
         BitSet stBS = this.getSTBisetForGeneBitset(geneBS);
         for (int i = stBS.nextSetBit(0); i >=0 ; i = stBS.nextSetBit(i+1)) {
-            Set<Integer> taxonsForSpecies = this.getTaxaForSpecies(i);
+            List<Integer> taxonsForSpecies = this.getTaxaForSpecies(i);
             for (Iterator<Integer> it = taxonsForSpecies.iterator(); it.hasNext();) {
                 Integer gi = it.next();
                 geneBS.set(gi);               
@@ -139,6 +144,9 @@ public class SpeciesMapper {
         }
     }
 
+    /*
+     * return whether bs has only taxa from one species.
+     */
     public boolean isSingleSP(BitSet bs) {
         int i = bs.nextSetBit(0);
         int prevId =  this.getSpeciesIdForTaxon(i);
@@ -150,6 +158,10 @@ public class SpeciesMapper {
             prevId = stID;
         }
         return true;
+    }
+    
+    public double meanSampling() {
+    	return (this.taxonIdToSpeciesId.length+0.0)/this.getSpeciesCount();
     }
     
     public List<String> getGeneNamesForSpeciesName(String species) {
@@ -175,5 +187,19 @@ public class SpeciesMapper {
             }
         }
     }
+    
+    public Collection<Integer> randomIndividualSamples(){
+		ArrayList<Integer> sample = new ArrayList<Integer>();
+    	for (List<Integer> stTaxa: speciesIdtoTaxonId){
+			sample.add(stTaxa.get(GlobalMaps.random.nextInt(stTaxa.size())));
+    	}
+    	return sample;
+    }
 
+    public boolean isPerfectGTBitSet(BitSet gtBS) {
+    	BitSet bs = this.getSTBisetForGeneBitset(gtBS);
+    	BitSet cbs = (BitSet) bs.clone();
+    	cbs.flip(0,this.getSpeciesCount());
+    	return ! cbs.intersects(bs);
+    }
 }
