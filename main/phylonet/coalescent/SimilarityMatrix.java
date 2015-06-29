@@ -27,6 +27,19 @@ public class SimilarityMatrix {
 		this.n = n;
 	}
 	
+	public SimilarityMatrix(float[][] from) {
+		this.n = from.length;
+		this.similarityMatrix = from;
+	}
+	
+	public int getSize() {
+		return n;
+	}
+	
+	public float get(int i, int j) {
+		return this.similarityMatrix[i][j];
+	}
+	
 	int getBetterSideByFourPoint(int x, int a, int b, int c) {
 		double xa = this.similarityMatrix[x][a];
 		double xb = this.similarityMatrix[x][b];
@@ -175,45 +188,17 @@ public class SimilarityMatrix {
 		}
 	}
 	
-	SimilarityMatrix convertToSpeciesDistance(SpeciesMapper spm) {
-		float [][] STsimMatrix = new float[spm.getSpeciesCount()][spm.getSpeciesCount()];
-		float[][] denum = new float[spm.getSpeciesCount()][spm.getSpeciesCount()];
-		for (int i = 0; i < n; i++) {
-			for (int j = i; j < n; j++) {
-				int stI =  spm.getSpeciesIdForTaxon(i);
-				int stJ =  spm.getSpeciesIdForTaxon(j);
-				STsimMatrix[stI][stJ] += this.similarityMatrix[i][j]; 
-				STsimMatrix[stJ][stI] = STsimMatrix[stI][stJ];
-				denum[stI][stJ] ++;
-				denum[stJ][stI] ++;
-			}
-		}
-		for (int i = 0; i < spm.getSpeciesCount(); i++) {
-			for (int j = 0; j < spm.getSpeciesCount(); j++) {
-				STsimMatrix[i][j] = denum[i][j] == 0 ? 0 : 
-					STsimMatrix[i][j] / denum[i][j];
-			}
-			STsimMatrix[i][i] = 1;
-			//System.err.println(Arrays.toString(this.distSTMatrix[i]));
-		}
-		System.err.println("Species tree distances calculated ...");
-		
-		SimilarityMatrix ret = new SimilarityMatrix(STsimMatrix.length);
-		ret.similarityMatrix = STsimMatrix;
-		
-		return ret;
-	}
 	
-	SimilarityMatrix getInducedMatrix(HashMap<String, Integer> randomSample) {
+	SimilarityMatrix getInducedMatrix(HashMap<String, Integer> randomSample, TaxonIdentifier id) {
 		
 		int sampleSize = randomSample.size();
 		float[][] sampleSimMatrix = new float [sampleSize][sampleSize];
 		
 		for (Entry<String, Integer> row : randomSample.entrySet()) {
-			int rowI = GlobalMaps.taxonIdentifier.taxonId(row.getKey());
+			int rowI = id.taxonId(row.getKey());
 			int i = row.getValue();
 			for (Entry<String, Integer> col : randomSample.entrySet()) {
-				int colJ = GlobalMaps.taxonIdentifier.taxonId(col.getKey());
+				int colJ = id.taxonId(col.getKey());
 				sampleSimMatrix[i][col.getValue()] = this.similarityMatrix[rowI][colJ];
 			}
 		}
@@ -222,6 +207,24 @@ public class SimilarityMatrix {
 		return ret;
 	}
 
+	SimilarityMatrix getInducedMatrix(List<Integer> sampleOrigIDs) {
+		
+		int sampleSize = sampleOrigIDs.size();
+		SimilarityMatrix ret = new SimilarityMatrix(sampleSize);
+		ret.similarityMatrix = new float [sampleSize][sampleSize];
+		
+		int i = 0;
+		for (Integer rowI : sampleOrigIDs) {
+			int j = 0;
+			for (Integer colJ : sampleOrigIDs) {
+				ret.similarityMatrix[i][j] = this.similarityMatrix[rowI][colJ];
+				j++;
+			}
+			i++;
+		}
+		return ret;
+	}
+	
 	//TODO: generate iterable, not list
 	Iterable<BitSet> getQuadraticBitsets() {
 		List<BitSet> newBitSets = new ArrayList<BitSet>();

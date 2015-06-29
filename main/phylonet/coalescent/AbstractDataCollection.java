@@ -44,6 +44,4 @@ public abstract class AbstractDataCollection <T> {
 	
 	public abstract void computeTreePartitions(AbstractInference<T> inference);
 
-    public abstract void addExtraBipartitionByExtension(AbstractInference<T> inference);
-
 }
