@@ -63,7 +63,7 @@ public class SpeciesMapper {
                 this.speciesNameIdMap.taxonId(speciesName));
     }
 
-    private List<Integer> getTaxaForSpecies(Integer species){
+    protected List<Integer> getTaxaForSpecies(Integer species){
         return this.speciesIdtoTaxonId.get(species);
     }
 
@@ -125,7 +125,7 @@ public class SpeciesMapper {
     }
 
     public STITreeCluster getGeneClusterForSTCluster(BitSet stBitset) {
-        STITreeCluster geneCluster = new STITreeCluster(GlobalMaps.taxonIdentifier);
+        STITreeCluster geneCluster = GlobalMaps.taxonIdentifier.newCluster();
         geneCluster.setCluster(this.getGeneBisetForSTBitset(stBitset));
         return geneCluster;
     }
@@ -188,18 +188,32 @@ public class SpeciesMapper {
         }
     }
     
-    public Collection<Integer> randomIndividualSamples(){
-		ArrayList<Integer> sample = new ArrayList<Integer>();
-    	for (List<Integer> stTaxa: speciesIdtoTaxonId){
-			sample.add(stTaxa.get(GlobalMaps.random.nextInt(stTaxa.size())));
-    	}
-    	return sample;
-    }
-
-    public boolean isPerfectGTBitSet(BitSet gtBS) {
-    	BitSet bs = this.getSTBisetForGeneBitset(gtBS);
-    	BitSet cbs = (BitSet) bs.clone();
-    	cbs.flip(0,this.getSpeciesCount());
-    	return ! cbs.intersects(bs);
-    }
+    SimilarityMatrix convertToSpeciesDistance(SimilarityMatrix matrix) {
+		float [][] STsimMatrix = new float[this.getSpeciesCount()][this.getSpeciesCount()];
+		float[][] denum = new float[this.getSpeciesCount()][this.getSpeciesCount()];
+		int n = matrix.getSize();
+		for (int i = 0; i < n; i++) {
+			for (int j = i; j < n; j++) {
+				int stI =  this.getSpeciesIdForTaxon(i);
+				int stJ =  this.getSpeciesIdForTaxon(j);
+				STsimMatrix[stI][stJ] += matrix.get(i,j); 
+				STsimMatrix[stJ][stI] = STsimMatrix[stI][stJ];
+				denum[stI][stJ] ++;
+				denum[stJ][stI] ++;
+			}
+		}
+		for (int i = 0; i < this.getSpeciesCount(); i++) {
+			for (int j = 0; j < this.getSpeciesCount(); j++) {
+				STsimMatrix[i][j] = denum[i][j] == 0 ? 0 : 
+					STsimMatrix[i][j] / denum[i][j];
+			}
+			STsimMatrix[i][i] = 1;
+			//System.err.println(Arrays.toString(this.distSTMatrix[i]));
+		}
+		System.err.println("Species tree distances calculated ...");
+		
+		SimilarityMatrix ret = new SimilarityMatrix(STsimMatrix);
+		
+		return ret;
+	}
 }

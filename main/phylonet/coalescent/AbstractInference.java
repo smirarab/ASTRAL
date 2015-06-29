@@ -256,10 +256,6 @@ public abstract class AbstractInference<T> {
 
 		dataCollection.computeTreePartitions(this);
 
-		if (this.getAddExtra() != 0) {
-		    System.err.println("calculating extra bipartitions to be added at level " + this.getAddExtra() +" ...");
-		    dataCollection.addExtraBipartitionByExtension(this);
-		}
 		
 		if (exactSolution) {
 	          System.err.println("calculating all possible bipartitions ...");
