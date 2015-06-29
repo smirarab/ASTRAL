@@ -1,3 +1,7 @@
+- version 4.7.9:
+  - First pass at multi-individuals with sampling strategy for forming X
+  - Check for gene trees with <4 taxa
+
 - version 4.7.8:
   - Fixed a bug in normalization of quartet scores. For very large datasets, the normalization of the quartet scores was incorrect. This only affected the outputted normalized score. 
     The tree topology, and the non-normalized scores were not affected. 
