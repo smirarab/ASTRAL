@@ -381,10 +381,6 @@ public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 		}
 	}
 
-    @Override
-    public void addExtraBipartitionByExtension(AbstractInference<STBipartition> inference) {
-        
-    }
 
 
 	/*
