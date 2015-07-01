@@ -4,10 +4,10 @@ ASTRAL is a Java program for estimating a species tree given a set of unrooted g
 
 The algorithm used is described in:
 
-Mirarab, Siavash, Rezwana Reaz, Md. Shamsuzzoha Bayzid, Theo Zimmermann, M Shel Swenson, and Tandy Warnow. “ASTRAL: Genome-Scale Coalescent-Based Species Tree.” Bioinformatics (ECCB special issue) 30, no. 17 (2014): i541–i548. [doi:10.1093/bioinformatics/btu462](doi.org/10.1093/bioinformatics/btu462).
+* Mirarab, Siavash, Rezwana Reaz, Md. Shamsuzzoha Bayzid, Theo Zimmermann, M Shel Swenson, and Tandy Warnow. “ASTRAL: Genome-Scale Coalescent-Based Species Tree.” Bioinformatics (ECCB special issue) 30, no. 17 (2014): i541–i548. [doi:10.1093/bioinformatics/btu462](doi.org/10.1093/bioinformatics/btu462).
+* Mirarab, Siavash, Tandy Warnow. “ASTRAL-II: Coalescent-Based Species Tree Estimation with Many Hundreds of Taxa and Thousands of Genes.”. Bioinformatics (ISMB special issue) 31, no. 12 (2015): i44–i52. [doi:10.1093/bioinformatics/btv234](http://bioinformatics.oxfordjournals.org/content/31/12/i44)
 
-
-The code given here corresponds to ASTRAL-II. The ASTRAL-II paper is accepted and is going to appear soon. 
+The code given here corresponds to ASTRAL-II.
 
 See our [tutorial](astral-tutorial.md) in addition to the rest of this README file. 
 
@@ -64,7 +64,7 @@ species_name:individual_1,individual_2,...
 ```
 
 The code for handling multiple individuals is in its infancy and might not work well yet. Keep posted for improvements to this feature. As of July, 2015, we *strongly* recommend
-that you test [multiind](https://github.com/smirarab/ASTRAL/tree/multiind) branch for multi individuals. 
+that you use the evolving code in the [multiind](https://github.com/smirarab/ASTRAL/tree/multiind) branch for multi individuals.
 
 ### Bootstrapping:
 
