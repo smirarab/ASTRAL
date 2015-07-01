@@ -256,6 +256,9 @@ public class CommandLine {
             String s;
             while ((s = br.readLine()) != null) {
                 s = s.trim();
+                if ("".equals(s)) {
+                	continue;
+                }
                 String species;
                 String[] alleles;
                 if (s.indexOf(":") != -1) {
