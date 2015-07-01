@@ -63,7 +63,8 @@ species_name [number of individuals] individual_1 individual_2 ...
 species_name:individual_1,individual_2,...
 ```
 
-The code for handling multiple individuals is in its infancy and might not work well yet. Keep posted for improvements to this feature.  
+The code for handling multiple individuals is in its infancy and might not work well yet. Keep posted for improvements to this feature. As of July, 2015, we *strongly* recommend
+that you use the evolving code in the [multiind](https://github.com/smirarab/ASTRAL/tree/multiind) branch for multi individuals.
 
 ### Bootstrapping:
 
