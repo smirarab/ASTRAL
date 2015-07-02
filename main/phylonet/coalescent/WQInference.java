@@ -15,13 +15,15 @@ public class WQInference extends AbstractInference<Tripartition> {
 	
 	int forceAlg = -1;
 	long maxpossible;
+	int samplinground = -1;
 	
 	public WQInference(boolean rooted, boolean extrarooted, List<Tree> trees,
 			List<Tree> extraTrees, boolean exactSolution, boolean duploss, int alg, int addExtra,
-			boolean outputCompletedGenes, boolean outSearch, boolean run) {
+			boolean outputCompletedGenes, boolean outSearch, boolean run, Integer samplinground) {
 		super(rooted, extrarooted, trees, extraTrees, exactSolution, 
 				addExtra, outputCompletedGenes, outSearch, run);
 		this.forceAlg = alg;
+		this.samplinground = samplinground == null? -1 : samplinground;
 	}
 
 	public void scoreGeneTree(Tree st) {
