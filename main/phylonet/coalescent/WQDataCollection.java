@@ -273,10 +273,15 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 	}
 
 
-	private int getSamplingRepeationFactor() {
-		double sampling = spm.meanSampling();
-		int repeat = (int) (Math.ceil(sampling-1)*2+1);
-		return repeat; 
+	private int getSamplingRepeationFactor(int userProvidedRounds) {
+    	if (userProvidedRounds < 1) {
+    		double sampling = spm.meanSampling();
+    		int repeat = (int) (Math.ceil(sampling-1)*2+1);
+    		return repeat;
+    	} else {
+    		return userProvidedRounds;
+    	}
+    	
 	}
 
 
@@ -451,7 +456,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 	}
 
 
-	public void computeTreePartitions(AbstractInference<Tripartition> inference) {
+	public void computeTreePartitions(AbstractInference<Tripartition> inf) {
+		
+		WQInference inference = (WQInference) inf;
 
 		int haveMissing = preProcess(inference);
 		
@@ -472,11 +479,11 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		
 		System.err.println("Building set of clusters (X) from gene trees ");
 		
-		int repeat = getSamplingRepeationFactor();
+		int repeat = getSamplingRepeationFactor(inference.samplinground);
 		
 		if (repeat > 1)
 			System.err.println("Average sampling is "+ spm.meanSampling() +
-					". Will do "+repeat+" rounds of sampling ");
+					".\nWill do "+repeat+" rounds of sampling ");
 
 		for (int r = 0; r < repeat; r++) {
 
