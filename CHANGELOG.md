@@ -1,6 +1,7 @@
 - version 4.7.9:
   - First pass at handling multi-individuals with a sampling strategy for forming X
   - Check for gene trees with <4 taxa
+  - add an option --samplingrounds to enable more rounds of individual sampling
 
 - version 4.7.8:
   - Fixed a bug in normalization of quartet scores. For very large datasets, the normalization of the quartet scores was incorrect. 

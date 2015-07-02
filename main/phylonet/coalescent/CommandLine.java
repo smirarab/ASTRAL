@@ -144,6 +144,13 @@ public class CommandLine {
                             'm', "minleaves",
                             "Remove genes with less than specificed number of leaves "),
 
+                    new FlaggedOption("samplingrounds", 
+                            JSAP.INTEGER_PARSER, null, JSAP.NOT_REQUIRED, 
+                            JSAP.NO_SHORTFLAG, "samplingrounds",
+                            "For mult-individual datasets, perform these many rounds of individual sampling for"
+                            + " building the set X. Leave empty or give a < 1 number and the program"
+                            + " automatically picks this parameter."),
+                                    
                     new Switch( "duplication",
                             'd', "dup",
                             "Solves MGD problem. Minimizes the number duplications required to explain "
@@ -194,6 +201,7 @@ public class CommandLine {
 		int addExtra;
 		int k = 0;
 		Integer minleaves = null;
+		Integer samplingrounds = null;
         BufferedWriter outbuffer;
         Set<String> keepOptions = new HashSet<String>();
 		
@@ -289,6 +297,8 @@ public class CommandLine {
         
         minleaves = config.contains("minleaves")? config.getInt("minleaves"):null;
         
+        samplingrounds = config.contains("samplingrounds")? config.getInt("samplingrounds"):null;
+        
         try {
         	
         	//GlobalMaps.taxonIdentifier.taxonId("0");
@@ -321,14 +331,16 @@ public class CommandLine {
             GlobalMaps.taxonNameMap = new TaxonNameMap();
         }
         
+    	Options options = new Options(rooted, extrarooted, extraTrees, cs, cd, wh,
+				exact, outbuffer, addExtra, keepOptions, samplingrounds);
+    	
         if (config.getFile("score species trees") != null) {
         	List<Tree> toScore = readInputTrees(
         			readTreeFileAsString(config.getFile("score species trees")),
                      rooted, true, true, null);
         	
-            AbstractInference inference =
-                    initializeInference(criterion, rooted, extrarooted, mainTrees,
-                            extraTrees, cs, cd, wh, exact, addExtra, keepOptions);
+            AbstractInference inference =	
+                    initializeInference(criterion, options, mainTrees);
         	for (Tree tr : toScore) {
         		inference.scoreGeneTree(tr);
         	}
@@ -447,11 +459,8 @@ public class CommandLine {
         List<Tree> bootstraps = new ArrayList<Tree>();
 		for ( List<String> input : inputSets) {  
 	        System.err.println("\n======== Running bootstrap replicate " + j++);
-	        bootstraps.add(runOnOneInput(criterion, 
-	                rooted, extrarooted, extraTrees, cs, cd,
-                    wh, exact, outbuffer, 
-                    readInputTrees(input, rooted, false, false, minleaves),
-                    null, outgroup, addExtra, keepOptions));
+	        bootstraps.add(runOnOneInput(criterion, options,
+	        		readInputTrees(input, rooted, false, false, minleaves), null, outgroup));
 		}
 	    
 		if (bootstraps != null && bootstraps.size() != 0) {
@@ -463,8 +472,7 @@ public class CommandLine {
 		}
 		
         System.err.println("\n======== Running the main analysis");
-        runOnOneInput(criterion, rooted, extrarooted, extraTrees, cs, cd,
-                wh, exact, outbuffer, mainTrees, bootstraps, outgroup, addExtra, keepOptions);
+        runOnOneInput(criterion, options, mainTrees, bootstraps, outgroup);
            
 		outbuffer.close();
 		
@@ -473,16 +481,13 @@ public class CommandLine {
 	}
 
 
-    private static Tree runOnOneInput(int criterion, boolean rooted,
-            boolean extrarooted, List<Tree> extraTrees, double cs, double cd,
-            double wh, boolean exact, BufferedWriter outbuffer, List<Tree> input, 
-            Iterable<Tree> bootstraps, String outgroup, int addExtra, Set<String> keepOptions) {
+
+	private static Tree runOnOneInput(int criterion, Options options, 
+			List<Tree> trees, List<Tree> bootstraps, String outgroup) {
         long startTime;
         startTime = System.currentTimeMillis();
         
-        AbstractInference inference =
-            initializeInference(criterion, rooted, extrarooted, input,
-                    extraTrees, cs, cd, wh, exact, addExtra, keepOptions);
+        AbstractInference inference =  initializeInference(criterion, options, trees);
         
         List<Solution> solutions = inference.inferSpeciesTree();
    
@@ -498,30 +503,29 @@ public class CommandLine {
                 Utils.computeEdgeSupports((STITree<Double>) solution._st, bootstraps);
             }
         }
-        writeTreeToFile(outbuffer, solutions.get(0)._st);
+        writeTreeToFile(options.outbuffer, solutions.get(0)._st);
         
         return st;
     }
 
-    private static AbstractInference initializeInference(int criterion, boolean rooted,
-            boolean extrarooted, List<Tree> trees, List<Tree> extraTrees,
-            double cs, double cd, double wh, boolean exact, int addExtra, Set<String> keepOptions) {
+    private static AbstractInference initializeInference(int criterion, Options options, List<Tree> trees) {
         AbstractInference inference;		
 		if (criterion == 1 || criterion == 0) {
-			inference = new DLInference(rooted, extrarooted, 
-					trees, extraTrees,exact ,criterion > 0, keepOptions.contains("completed"));			
+			inference = new DLInference(options.rooted, options.extrarooted, 
+					trees, options.extraTrees, options.exact ,criterion > 0, options.keepOptions.contains("completed"));			
 		} else if (criterion == 2) {
-			inference = new WQInference(rooted, extrarooted, 
-					trees, extraTrees, exact,criterion > 0, 1, addExtra, 
-					keepOptions.contains("completed"),
-					keepOptions.contains("searchspace_norun") || keepOptions.contains("searchspace"),
-					!keepOptions.contains("searchspace_norun") );
+			inference = new WQInference(options.rooted, options.extrarooted, 
+					trees, options.extraTrees, options.exact,criterion > 0, 1, options.addExtra, 
+					options.keepOptions.contains("completed"),
+					options.keepOptions.contains("searchspace_norun") || options.keepOptions.contains("searchspace"),
+					!options.keepOptions.contains("searchspace_norun"),
+					options.samplingrounds);
 		} else {
 			throw new RuntimeException("criterion not set?");
 		}		
-		inference.setDLbdWeigth(wh); 
-		inference.setCS(cs);
-		inference.setCD(cd);
+		inference.setDLbdWeigth(options.wh); 
+		inference.setCS(options.cs);
+		inference.setCD(options.cd);
         return inference;
     }
 
@@ -700,4 +704,37 @@ if (option[0].equals("-st")) {
 
 */
 
+    static class Options{
+
+		public List<Tree> extraTrees;
+		public double cd;
+		public double cs;
+		public double wh;
+		public int addExtra;
+		public Set<String> keepOptions;
+		public boolean exact;
+		public boolean extrarooted;
+		public boolean rooted;
+		public BufferedWriter outbuffer;
+		public Integer samplingrounds;
+
+		public Options(boolean rooted, boolean extrarooted,
+				List<Tree> extraTrees, double cs, double cd, double wh,
+				boolean exact, BufferedWriter outbuffer,
+				int addExtra, Set<String> keepOptions, Integer samplingrounds) {
+			this.rooted = rooted;
+			this.extrarooted = extrarooted;
+			this.extraTrees = extraTrees;
+			this.cs = cs;
+			this.cd = cd;
+			this.wh = wh;
+			this.exact = exact;
+			this.outbuffer = outbuffer;
+			this.addExtra = addExtra;
+			this.keepOptions = keepOptions;
+			this.samplingrounds = samplingrounds;
+		}
+    	
+    }
+    
 }
