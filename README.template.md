@@ -9,7 +9,7 @@ The algorithm used is described in:
 
 The code given here corresponds to ASTRAL-II.
 
-See our [tutorial](astral-tutorial.md) in addition to the rest of this README file. 
+See our [tutorial](astral-tutorial.md) in addition to the rest of this README file. Also, the chapter of my dissertation that describes ASTRAL in detail is provided [here](thesis-astral.pdf).
 
 Email: `astral-users@googlegroups.com` for questions.
 
