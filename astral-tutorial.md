@@ -5,9 +5,16 @@ ASTRAL is a java program for estimating a species tree given a set of unrooted g
 
 The original ASTRAL algorithm is described in:
 
-Mirarab, Siavash, Rezwana Reaz, Md. Shamsuzzoha Bayzid, Theo Zimmermann, M Shel Swenson, and Tandy Warnow. “ASTRAL: Genome-Scale Coalescent-Based Species Tree.” Bioinformatics 30, no. 17 (2014): i541–i548. [doi:10.1093/bioinformatics/btu462](http://bioinformatics.oxfordjournals.org/cgi/content/full/btu462?ijkey=U8qRWnpC7BM4Syn&keytype=ref).
+The algorithm used is described in:
 
-The current ASTRAL code is what we call ASTRAL-II and is described in detail in an upcoming publication. 
+* Mirarab, Siavash, Rezwana Reaz, Md. Shamsuzzoha Bayzid, Theo Zimmermann, M Shel Swenson, and Tandy Warnow. “ASTRAL: Genome-Scale Coalescent-Based Species Tree.” Bioinformatics (ECCB special issue) 30, no. 17 (2014): i541–i548. [doi:10.1093/bioinformatics/btu462](doi.org/10.1093/bioinformatics/btu462).
+
+* Mirarab, Siavash, Tandy Warnow. “ASTRAL-II: Coalescent-Based Species Tree Estimation with Many Hundreds of Taxa and Thousands of Genes.”. Bioinformatics (ISMB special issue) 31, no. 12 (2015): i44–i52. [doi:10.1093/bioinformatics/btv234](http://bioinformatics.oxfordjournals.org/content/31/12/i44)
+
+The code given here corresponds to ASTRAL-II. 
+
+For more details, refer to the chapter of my dissertation that describes ASTRAL (a version is provided [here](thesis-astral.pdf)).
+
 
 Email: `astral-users@googlegroups.com` for questions
 
@@ -71,7 +78,6 @@ S2:s2i1,s2i2
 ```
 
 **However,** it should be emphasized that the current handling of multiple taxa is not well tested and needs more work. Please stay tuned for upcoming improvements that fix/improve this feature. 
-
 
 
 ### Step 4: Viewing results of ASTRAL:
@@ -209,28 +215,28 @@ This means 4803 induced quartet trees from the gene trees are in the species tre
 Miscellaneous :
 ---------------
 
-### Automatic addition of bipartitions to X.
-The search space explored by ASTRAL is limited to bipartitions in a given set X. This means
-that the accuracy of ASTRAL can be impacted by what is in the set X. 
-ASTRAL-I (the algorithm described in our 2014 paper) sets the set X to all bipartitions from the gene trees. This is a very good start and sufficient in many cases. However, in ASTRAL-II, we have added few extra mechanisms to add extra bipartitions to set X. In our upcoming paper on ASTRAL-II, we show that for the most challenging datasets, these additions dramatically increase the accuracy of ASTRAL, to the point that the search space seems sufficiently large in all the analyses we ran.
+### Automatic addition of bipartitions to the set `X`
 
-Some of the mechanisms used in ASTRAL-II are the following:
+The search space explored by ASTRAL is limited to bipartitions in a given set, which we call `X`. 
+This means that the accuracy of ASTRAL can be impacted by what is in the set `X`. 
+ASTRAL-I (the algorithm described in our 2014 paper) sets the set `X` to all bipartitions from the gene trees. 
+This is a good start and sufficient in many cases. 
+However, in ASTRAL-II, we have added several mechanisms to add extra bipartitions to the set `X`. 
+In our ASTRAL-II paper, we show that for the most challenging datasets, these additions dramatically increase the accuracy of ASTRAL.
+We also show that these additions seem sufficient, in the sense that adding bipartitions from the true species tree to the set does not further improve the accuracy. 
 
-1. **Completing gene trees:** If the input tree has missing taxa, we use a built-in mechanisms to first complete those gene trees and then add bipartitions to X from the completed gene trees (note that we use the original incomplete gene tree for score calculations). Our current implemented heuristic for doing this is based on calculating the similarity between all pairs of taxa (measured as how often they appear together on the same side of a quartet tree in induced gene trees) and using the four point condition to figure out where the taxon belongs in the gene tree. 
+Some of the heuristics used in ASTRAL-II for addition of extra bipartitions are the following (see [my thesis chapter on ASTRAL](thesis-astral.pdf) for more details).
 
-- **Greedy-based addition**: By default, we use an approach based on greedy consensus to find out additional bipartitions and add them to the set X, regardless of whether input gene trees are complete or not. In short, we first find the greedy consensus of the input gene trees at various thresholds. For each polytomy in these consensus trees, we find resolutions by randomly sampling taxa from its pending branches and calculating greedy consensus for gene trees restricted to these random samples. We do this many times for each polytomy and add all the induced new bipartitions. We also calculate a UPGMA resolution of the polytomy using our similarity matrix and add the resulting bipartitions to set X. We also use the similarity matrix to add all possible caterpillar resolutions of the polytomies according to the similarity matrix. 
+1. **Completing gene trees:** If the input tree has missing taxa, we use a built-in mechanisms to first complete those gene trees and then add bipartitions to `X` from the completed gene trees (note that we use the original incomplete gene tree for score calculations). Our current implemented heuristic for doing this is based on calculating the similarity between all pairs of taxa (measured as how often they appear together on the same side of a quartet tree in induced gene trees) and using the four point condition to figure out where the taxon belongs in the gene tree. The algorithm is described in detail in [my thesis chapter on ASTRAL](thesis-astral.pdf).
 
-- **Similarity-based addition**: By default, we also use our similarity matrix (also used for completing trees) to add some more bipartitions using a UPGMA tree. 
+- **Greedy-based addition**: By default, we use an approach based on greedy consensus to find out additional bipartitions and add them to the set `X`, regardless of whether input gene trees are complete or not. In short, we first find the greedy consensus of the input gene trees at various thresholds. For each polytomy in these consensus trees, we resolve the polytomy by randomly sampling leaves from its pending branches and calculating greedy consensus for gene trees restricted to these random subsamples. We do this many times for each polytomy and add all the induced new bipartitions. We also calculate a UPGMA resolution of the polytomy using our similarity matrix and add the resulting bipartitions to set `X`. We also use the similarity matrix to add all possible caterpillar resolutions of the polytomies according to the similarity matrix for some of the polytomies. 
+
+- **Similarity-based addition**: By default, we also use our similarity matrix (also used for completing trees) to add  more bipartitions using a UPGMA tree. 
  
-- **Resolving unresolved gene trees**: When input gene trees are unresolved, we use a strategy similar to our Greedy-based addition strategy for inferring and adding extra bipartitions that effectively resolve the polytomies. Once again, the score calculation is based on the unresolved tree, and these additions only affect the set X. 
+- **Resolving unresolved gene trees**: When input gene trees are unresolved, we use a strategy similar to our Greedy-based addition strategy for inferring and adding extra bipartitions that effectively resolve the polytomies. Once again, the score calculation is based on the unresolved tree, and these additions only affect the set `X`. 
 
-- **Auto-expansion**: If a cluster of taxa in the dynamic programming phase cannot be further decomposed into two parts, we add all possible resolutions of it, if it is small enough (less than 6 taxa), or some new resolutions for it if it is larger.  
-
-
-- **Similarity-based extensive addition**: this feature is by default off, because it did not help in our extensive simulations and results in a very large number of additions. You can turn it on if you want. 
-
-Mechanisms 1, 4, and 5 are always in place. Mechanisms 2 and 3 are by default activated, but you can turn them off to increase speed (not recommended). To turn off these two features, use `-p 0`. To enable mechanism 6, use `-p 2`. 
-
+Mechanisms 1 and 4 are always in place. Mechanisms 2 and 3 are by default activated, but you can turn them off to increase speed (not recommended). 
+To turn off these two features, use `-p 0`.
 We do not recommend `-p 0` option, because greedy-based additions could be quite important, and they typically have a relatively small impact on the running time. 
 
 
