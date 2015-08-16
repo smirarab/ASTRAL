@@ -9,7 +9,7 @@ The algorithm used is described in:
 
 The code given here corresponds to ASTRAL-II.
 
-See our [tutorial](astral-tutorial.md) in addition to the rest of this README file. 
+See our [tutorial](astral-tutorial.md) in addition to the rest of this README file. Also, the chapter of my dissertation that describes ASTRAL in detail is provided [here](thesis-astral.pdf).
 
 Email: `astral-users@googlegroups.com` for questions.
 
@@ -64,7 +64,7 @@ species_name:individual_1,individual_2,...
 ```
 
 The code for handling multiple individuals is in its infancy and might not work well yet. Keep posted for improvements to this feature. As of July, 2015, we *strongly* recommend
-that you use the evolving code in the [multiind](https://github.com/smirarab/ASTRAL/tree/multiind) branch for multi individuals.
+that you test [multiind](https://github.com/smirarab/ASTRAL/tree/multiind) branch for multi individuals. 
 
 ### Bootstrapping:
 
