@@ -1,3 +1,6 @@
+-version 4.8.0:
+  - BugFix: greedy consensus with bootstrapping was failing
+  
 - version 4.7.9:
   - First pass at handling multi-individuals with a sampling strategy for forming X
   - Check for gene trees with <4 taxa
