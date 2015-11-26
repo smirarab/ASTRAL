@@ -44,6 +44,7 @@ public abstract class AbstractInference<T> {
 	public boolean outputCompleted;
 	boolean searchSpace;
 	private boolean run;
+	private int branchannotation;
 	
 	public AbstractInference(boolean rooted, boolean extrarooted, List<Tree> trees,
 			List<Tree> extraTrees, boolean exactSolution, int addExtra, 
@@ -347,5 +348,13 @@ public abstract class AbstractInference<T> {
     public int getAddExtra() {
         return addExtra;
     }
+
+	public void setBranchAnnotation(int branchannotations) {
+		this.branchannotation = branchannotations;
+		
+	}
+	public int getBranchAnnotation() {
+		return this.branchannotation;
+	}
 
 }
