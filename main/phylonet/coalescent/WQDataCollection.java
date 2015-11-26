@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
 
+import phylonet.coalescent.WQWeightCalculator.QuartetWeightTask.Intersects;
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TMutableNode;
@@ -582,6 +583,22 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		return haveMissing;
 	}
 
+	
+	long maxPossibleScore(Tripartition trip) {
+		
+		long weight = 0;
+
+		for (STITreeCluster all : this.treeAllClusters){
+				long 
+					a = trip.cluster1.getBitSet().intersectionSize(all.getBitSet()),
+					b = trip.cluster2.getBitSet().intersectionSize(all.getBitSet()),
+					c = trip.cluster3.getBitSet().intersectionSize(all.getBitSet());
+
+				weight += (a+b+c-3)*a*b*c;
+		}
+		return weight;
+	}
+	
 
 	private void completeGeneTrees() {
 		System.err.println("Will attempt to complete bipartitions from X before adding using a distance matrix.");
@@ -1034,4 +1051,5 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 			stack.push(bitset);
 		}
 	}
+
 }
