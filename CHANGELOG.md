@@ -1,3 +1,6 @@
+- version 4.8.2:
+  - add options to control the amount of branch annotation
+   
 - version 4.8.1:
   - Major improvement: ASTRAL now computes branch lengths in coalescent units and also computes a quartet support for each branch 
 
