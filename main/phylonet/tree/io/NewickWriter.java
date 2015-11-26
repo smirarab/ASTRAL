@@ -151,6 +151,10 @@ public class NewickWriter {
 		if(((STINode)node).getData() != null) {
 			_writer.print(((STINode)node).getData().toString());
 		}
+		if(node.getParentDistance() != TMutableNode.NO_DISTANCE) {
+			_writer.print(":" + node.getParentDistance());
+			
+		}
 		
 	}
 }
