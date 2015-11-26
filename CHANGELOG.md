@@ -1,3 +1,6 @@
+- version 4.8.1:
+  - Major improvement: ASTRAL now computes branch lengths in coalescent units and also computes a quartet support for each branch 
+
 - version 4.7.8:
   - Fixed a bug in normalization of quartet scores. For very large datasets, the normalization of the quartet scores was incorrect. This only affected the outputted normalized score. 
     The tree topology, and the non-normalized scores were not affected. 
