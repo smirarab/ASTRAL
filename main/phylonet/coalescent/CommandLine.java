@@ -38,7 +38,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.8.1";
+    protected static String _versinon = "4.8.2";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -99,7 +99,15 @@ public class CommandLine {
                             FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 
                             'q', "score-tree",
                             "score the provided species tree and exit"),
-
+                    
+                    new FlaggedOption("branch annotation level", 
+                    		JSAP.INTEGER_PARSER, "1", JSAP.NOT_REQUIRED,
+                            't', "branch-annotate",
+                            "How much annotations should be added to each branch: 0, 1, or 2. "
+                            + "0: no annotations. "
+                            + "1 (default): only quartet support for main resolution. "
+                            + "2: full annotation (quartet support for three alternatives as well as the quartet frequency for each."),	
+                            
                     new FlaggedOption("bootstraps", 
                             FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED,
                             'b', "bootstraps",
@@ -193,6 +201,7 @@ public class CommandLine {
 		boolean exact = false;
 		int addExtra;
 		int k = 0;
+		int annotate = 1;
 		Integer minleaves = null;
         BufferedWriter outbuffer;
         Set<String> keepOptions = new HashSet<String>();
@@ -246,6 +255,8 @@ public class CommandLine {
         System.err.println("Gene trees are treated as " + (rooted ? "rooted" : "unrooted"));
 
         GlobalMaps.random = new Random(config.getLong("seed"));
+        
+        annotate = config.getInt("branch annotation level");
         
         if (config.getFile("mapping file") != null) {
 
@@ -325,10 +336,12 @@ public class CommandLine {
         	
             AbstractInference inference =
                     initializeInference(criterion, rooted, extrarooted, mainTrees,
-                            extraTrees, cs, cd, wh, exact, addExtra, keepOptions);
+                            extraTrees, cs, cd, wh, exact, addExtra, keepOptions, annotate);
         	for (Tree tr : toScore) {
         		inference.scoreGeneTree(tr);
+            	System.out.println(tr.toNewickWD());
         	}
+        	
         	System.exit(0);
         }
         
@@ -448,7 +461,7 @@ public class CommandLine {
 	                rooted, extrarooted, extraTrees, cs, cd,
                     wh, exact, outbuffer, 
                     readInputTrees(input, rooted, false, false, minleaves),
-                    null, outgroup, addExtra, keepOptions));
+                    null, outgroup, addExtra, keepOptions, annotate));
 		}
 	    
 		if (bootstraps != null && bootstraps.size() != 0) {
@@ -461,7 +474,8 @@ public class CommandLine {
 		
         System.err.println("\n======== Running the main analysis");
         runOnOneInput(criterion, rooted, extrarooted, extraTrees, cs, cd,
-                wh, exact, outbuffer, mainTrees, bootstraps, outgroup, addExtra, keepOptions);
+                wh, exact, outbuffer, mainTrees, bootstraps, 
+                outgroup, addExtra, keepOptions, annotate);
            
 		outbuffer.close();
 		
@@ -473,13 +487,14 @@ public class CommandLine {
     private static Tree runOnOneInput(int criterion, boolean rooted,
             boolean extrarooted, List<Tree> extraTrees, double cs, double cd,
             double wh, boolean exact, BufferedWriter outbuffer, List<Tree> input, 
-            Iterable<Tree> bootstraps, String outgroup, int addExtra, Set<String> keepOptions) {
+            Iterable<Tree> bootstraps, String outgroup, int addExtra, 
+            Set<String> keepOptions, int annotate) {
         long startTime;
         startTime = System.currentTimeMillis();
         
         AbstractInference inference =
             initializeInference(criterion, rooted, extrarooted, input,
-                    extraTrees, cs, cd, wh, exact, addExtra, keepOptions);
+                    extraTrees, cs, cd, wh, exact, addExtra, keepOptions, annotate);
         
         List<Solution> solutions = inference.inferSpeciesTree();
    
@@ -490,6 +505,8 @@ public class CommandLine {
         st.rerootTreeAtNode(st.getNode(outgroup));
 		Trees.removeBinaryNodes((MutableTree) st);
    
+		inference.scoreGeneTree(st);
+		
         if ((bootstraps != null) && (bootstraps.iterator().hasNext())) {
             for (Solution solution : solutions) {
                 Utils.computeEdgeSupports((STITree<Double>) solution._st, bootstraps);
@@ -502,7 +519,8 @@ public class CommandLine {
 
     private static AbstractInference initializeInference(int criterion, boolean rooted,
             boolean extrarooted, List<Tree> trees, List<Tree> extraTrees,
-            double cs, double cd, double wh, boolean exact, int addExtra, Set<String> keepOptions) {
+            double cs, double cd, double wh, boolean exact, int addExtra, 
+            Set<String> keepOptions, int branchannotations) {
         AbstractInference inference;		
 		if (criterion == 1 || criterion == 0) {
 			inference = new DLInference(rooted, extrarooted, 
@@ -519,6 +537,7 @@ public class CommandLine {
 		inference.setDLbdWeigth(wh); 
 		inference.setCS(cs);
 		inference.setCD(cd);
+		inference.setBranchAnnotation(branchannotations);
         return inference;
     }
 

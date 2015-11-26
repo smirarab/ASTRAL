@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Stack;
 
 import phylonet.coalescent.BipartitionWeightCalculator.Quadrapartition;
+import phylonet.coalescent.BipartitionWeightCalculator.Results;
 import phylonet.coalescent.WQWeightCalculator.QuartetWeightTask.Intersects;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
@@ -105,10 +106,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 /*		if (4l*this.maxpossible != maxsum) {
 			throw new RuntimeException("Hmm... "+maxsum+" "+4l*this.maxpossible);
 		}*/
-		System.out.println("Quartet score is: " + sum/4l);
-		System.out.println("Normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
+		System.err.println("Quartet score is: " + sum/4l);
+		System.err.println("Normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
+		//System.out.println(st.toNewickWD());
 		this.scoreGeneTree2(st);
-		System.out.println(st.toNewickWD());
 	}
 
 	
@@ -150,7 +151,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 			}
 		}
 		stack = new Stack<STITreeCluster>();
-		List<Double> map = new ArrayList<Double>();
+		List<Results> mainfreqs = new ArrayList<Results>();
+		List<Results> alt1freqs = new ArrayList<Results>();
+		List<Results> alt2freqs = new ArrayList<Results>();
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
 			if (node.isLeaf()) {
@@ -183,18 +186,35 @@ public class WQInference extends AbstractInference<Tripartition> {
 				}
 				Quadrapartition quad = weightCalculator2.new Quadrapartition
 						(c1,  c2, sister, remaining);
-				double s = weightCalculator2.getWeight(quad);
-				map.add(s);							
+				Results s = weightCalculator2.getWeight(quad);
+				mainfreqs.add(s);	
+				
+				quad = weightCalculator2.new Quadrapartition
+						(c1, sister, c2, remaining);
+				s = weightCalculator2.getWeight(quad);
+				alt1freqs.add(s);
+				
+				quad = weightCalculator2.new Quadrapartition
+						(c1, remaining, c2, sister);
+				s = weightCalculator2.getWeight(quad);
+				alt2freqs.add(s);
 			}
 		}
 		int i = 0;
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
 			if (!node.isLeaf() && !node.isRoot()) {
-				Double p = map.get(i);
-				node.setData(p);
+				Results p = mainfreqs.get(i);
+				Results a1 = alt1freqs.get(i);
+				Results a2 = alt2freqs.get(i);
+				if (this.getBranchAnnotation() == 2) {
+					node.setData("[Q1="+p.freq+",Q2="+a1.freq+",Q3="+a2.freq+
+							",f1="+p.succ+",f2="+a1.succ+",f3="+a2.succ+"]");
+				} else if (this.getBranchAnnotation() == 1){
+					node.setData(p.freq);
+				}
 				i++;
-				Double bl = -Math.log(1.5*(1.0-p/100.0));
+				Double bl = -Math.log(1.5*(1.0-p.freq/100.0));
 				if (bl.isInfinite()) {
 					bl = 10.;
 				}
