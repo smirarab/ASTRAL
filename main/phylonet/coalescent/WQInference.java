@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Stack;
 
 import phylonet.coalescent.BipartitionWeightCalculator.Quadrapartition;
-import phylonet.coalescent.BipartitionWeightCalculator.Results;
 import phylonet.coalescent.WQWeightCalculator.QuartetWeightTask.Intersects;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
@@ -109,11 +108,11 @@ public class WQInference extends AbstractInference<Tripartition> {
 		System.err.println("Quartet score is: " + sum/4l);
 		System.err.println("Normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
 		//System.out.println(st.toNewickWD());
-		this.scoreGeneTree2(st);
+		this.scoreBranches(st);
 	}
 
 	
-	public void scoreGeneTree2(Tree st) {
+	public void scoreBranches(Tree st) {
 
 		weightCalculator = new BipartitionWeightCalculator(this);
 		BipartitionWeightCalculator weightCalculator2 = (BipartitionWeightCalculator) weightCalculator;
@@ -151,9 +150,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 			}
 		}
 		stack = new Stack<STITreeCluster>();
-		List<Results> mainfreqs = new ArrayList<Results>();
-		List<Results> alt1freqs = new ArrayList<Results>();
-		List<Results> alt2freqs = new ArrayList<Results>();
+		List<Long> mainfreqs = new ArrayList<Long>();
+		List<Long> alt1freqs = new ArrayList<Long>();
+		List<Long> alt2freqs = new ArrayList<Long>();
 		List<Long> quartcount = new ArrayList<Long>();
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
@@ -187,7 +186,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 				}
 				Quadrapartition quad = weightCalculator2.new Quadrapartition
 						(c1,  c2, sister, remaining);
-				Results s = weightCalculator2.getWeight(quad);
+				Long s = weightCalculator2.getWeight(quad);
 				mainfreqs.add(s);	
 				
 				quad = weightCalculator2.new Quadrapartition
@@ -213,19 +212,22 @@ public class WQInference extends AbstractInference<Tripartition> {
 					(node.getParent().isRoot() && node.getParent().getChildCount() ==2)) {
 				node.setData(null);
 			} else{
-				Results p = mainfreqs.get(i);
-				Results a1 = alt1freqs.get(i);
-				Results a2 = alt2freqs.get(i);
+				Long p = mainfreqs.get(i);
+				Long a1 = alt1freqs.get(i);
+				Long a2 = alt2freqs.get(i);
 				Long quarc = quartcount.get(i);
+				Long sum = p+a1+a2;
 				if (this.getBranchAnnotation() == 2) {
-					node.setData("[q1="+p.freq+";q2="+a1.freq+";q3="+a2.freq+
-							";f1="+p.succ+";f2="+a1.succ+";f3="+a2.succ+
+					node.setData("[q1="+(p+.0)/sum+";q2="+(a1+.0)/sum+";q3="+(a2+.0)/sum+
+							";f1="+p+";f2="+a1+";f3="+a2+
 							";QC="+quarc+"]");
 				} else if (this.getBranchAnnotation() == 1){
-					node.setData(p.freq);
+					node.setData((p+.0)/sum*100);
+				} else if (this.getBranchAnnotation() == 0){
+					node.setData(null);
 				}
 				i++;
-				Double bl = -Math.log(1.5*(1.0-p.freq/100.0));
+				Double bl = -Math.log(1.5*(1.0-((p+.0)/sum)));
 				if (bl.isInfinite()) {
 					bl = 10.;
 				}
