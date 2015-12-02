@@ -154,6 +154,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 		List<Results> mainfreqs = new ArrayList<Results>();
 		List<Results> alt1freqs = new ArrayList<Results>();
 		List<Results> alt2freqs = new ArrayList<Results>();
+		List<Long> quartcount = new ArrayList<Long>();
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
 			if (node.isLeaf()) {
@@ -198,18 +199,28 @@ public class WQInference extends AbstractInference<Tripartition> {
 						(c1, remaining, c2, sister);
 				s = weightCalculator2.getWeight(quad);
 				alt2freqs.add(s);
+				
+				quartcount.add( (c1.getClusterSize()+0l)
+						* (c2.getClusterSize()+0l)
+						* (sister.getClusterSize()+0l)
+						* (remaining.getClusterSize()+0l));
 			}
 		}
 		int i = 0;
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
-			if (!node.isLeaf() && !node.isRoot()) {
+			if (node.isLeaf() || node.isRoot() ||
+					(node.getParent().isRoot() && node.getParent().getChildCount() ==2)) {
+				node.setData(null);
+			} else{
 				Results p = mainfreqs.get(i);
 				Results a1 = alt1freqs.get(i);
 				Results a2 = alt2freqs.get(i);
+				Long quarc = quartcount.get(i);
 				if (this.getBranchAnnotation() == 2) {
-					node.setData("[Q1="+p.freq+",Q2="+a1.freq+",Q3="+a2.freq+
-							",f1="+p.succ+",f2="+a1.succ+",f3="+a2.succ+"]");
+					node.setData("[q1="+p.freq+";q2="+a1.freq+";q3="+a2.freq+
+							";f1="+p.succ+";f2="+a1.succ+";f3="+a2.succ+
+							";QC="+quarc+"]");
 				} else if (this.getBranchAnnotation() == 1){
 					node.setData(p.freq);
 				}
@@ -219,9 +230,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 					bl = 10.;
 				}
 				node.setParentDistance(bl);
-			} else {
-				node.setData(null);
-			}
+			} 
 		}
 		
 	}
