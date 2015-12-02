@@ -1,6 +1,7 @@
 package phylonet.coalescent;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
@@ -19,21 +20,6 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 		this.inference = (WQInference) inference;
 	}
 
-
-	class Results {
-		public Results(double f, long weight, long sum) {
-			freq = f;
-			succ = weight;
-			total = sum;
-		}
-		double freq;
-		long succ;
-		long total;
-		
-		public String toString() {
-			return "("+freq+","+succ+","+total+")";
-		}
-	}
 	
 	class Intersects {
 		long s0;
@@ -48,6 +34,13 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 			this.s2 = s2;
 			this.s3 = s3;
 		}
+		
+        public Intersects(Intersects side1, Intersects side2) {
+            this(side1.s0+side2.s0,
+					side1.s1+side2.s1,
+					side1.s2+side2.s2,
+					side1.s3+side2.s3);               
+        }	
 
 		public Intersects(Intersects other) {
 			this.s0 = other.s0;
@@ -73,6 +66,10 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 		public String toString() {
 			return this.s0+","+this.s1+"|"+this.s2+","+this.s3;
 		}
+		
+        public boolean isNotEmpty() {
+        	return (this.s0 + this.s1 + this.s2 + this.s3) != 0;
+        }
 	}
 
 	private long allcases(Intersects side1, Intersects side2, Intersects side3) {
@@ -105,9 +102,8 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 		}
 	}
 
-	public Results getWeight(Quadrapartition quad) {
+	public long getWeight(Quadrapartition quad) {
 		long weight = 0l;
-		long sum = 0l;
 		Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
 
 		Deque<Intersects> stack = new ArrayDeque<Intersects>();
@@ -126,23 +122,17 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 						quad.cluster4.getBitSet().intersectionSize(all.getBitSet())
 						);
 				newTree = false;
-				sum +=  F(allsides.s0, allsides.s1, allsides.s2, allsides.s3);
+				//sum +=  F(allsides.s0, allsides.s1, allsides.s2, allsides.s3);
 			}
 			if (gtb >= 0){
-				Intersects side = getSide(gtb, quad);
-				stack.push(side);
-				//geneTreesAsIntersects[n] = side;
+				stack.push(getSide(gtb, quad));
 			} else if (gtb == Integer.MIN_VALUE) {
 				stack.clear();
 				newTree = true;
 			} else if (gtb == -2) {
 				Intersects side1 = stack.pop();
 				Intersects side2 = stack.pop();
-				Intersects newSide = new Intersects(
-						side1.s0+side2.s0,
-						side1.s1+side2.s1,
-						side1.s2+side2.s2,
-						side1.s3+side2.s3);
+				Intersects newSide = new Intersects(side1, side2);
 				stack.push(newSide);
 				Intersects side3 = new Intersects(allsides);
 				side3.subtract(newSide);
@@ -150,8 +140,8 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 				weight+= allcases(side1, side2, side3);
 
 				//geneTreesAsIntersects[n] = newSide;
-			} else if (gtb == -3) {
-				Intersects side1 = stack.pop();
+			} else {
+				/*Intersects side1 = stack.pop();
 				Intersects side2 = stack.pop();
 				Intersects side3 = stack.pop();
 				Intersects newSide = new Intersects(
@@ -166,15 +156,46 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 				if (rem.s0+rem.s1+rem.s2+rem.s3 >0) {
 					throw new RuntimeException("polytomies are too complicated :( Ask us later");						
 				}
-				weight+= allcases(side1, side2, side3);
-			}
-			else {
-				throw new RuntimeException("polytomies are too complicated :( Ask us later");
+				weight+= allcases(side1, side2, side3);*/
+				ArrayList<Intersects> children = new ArrayList<Intersects>();
+			    Intersects newSide = new Intersects(0,0,0,0);
+			    for (int i = gtb; i < 0 ; i++) {
+			        Intersects pop = stack.pop();
+			        children.add(pop);
+			        newSide.addin(pop);
+			    }
+			    stack.push(newSide);
+                Intersects sideRemaining = new Intersects (allsides);
+                sideRemaining.subtract(newSide);
+                if ( sideRemaining.isNotEmpty()) {
+                    children.add(sideRemaining);
+                }
+                for (int i = 0; i < children.size(); i++) {
+                    Intersects side1 = children.get(i);
+                    
+                    for (int j = i+1; j < children.size(); j++) {
+                        Intersects side2 = children.get(j);
+                        //if (children.size() > 5 && checkFutileCalcs(side1,side2))
+                        //	continue;
+                        
+                        for (int k = j+1; k < children.size(); k++) {
+                            Intersects side3 = children.get(k);
+                            weight += allcases(side1,side2,side3);
+                        }
+                    }
+                }
 			}
 		}
 
-		return new Results(((weight/2.0*100.0)/sum), weight/2, sum);
+		return  weight/2;
 	}
+	
+/*	private boolean checkFutileCalcs(Intersects side1, Intersects side2) {
+		return ((side1.s0+side2.s0 == 0? 1 :0) +
+    			(side1.s1+side2.s1 == 0? 1 :0) + 
+    			(side1.s2+side2.s2 == 0? 1:0) > 1);
+	}*/
+	
 
 	private long F(long a,long b,long c, long d) {
 		if (a<0 || b<0 || c<0|| d<0) {
