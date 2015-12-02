@@ -1,3 +1,6 @@
+- version 4.8.4:
+	- multifurcating input gene trees are accepted now. 
+	 
 - version 4.8.3:
 	- use semicolon instead of , in branch length labels. Also output the total number of quartets around each branch in the species tree
 	 
