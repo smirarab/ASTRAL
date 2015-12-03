@@ -1,3 +1,6 @@
+- version 4.7.12:
+  - Added an option (-c) so that ties are broken randomly
+
 - version 4.7.8:
   - Fixed a bug in normalization of quartet scores. For very large datasets, the normalization of the quartet scores was incorrect. This only affected the outputted normalized score. 
     The tree topology, and the non-normalized scores were not affected. 
