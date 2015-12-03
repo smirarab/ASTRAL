@@ -1,6 +1,5 @@
 package phylonet.coalescent;
-
-
+import phylonet.coalescent.Posterior;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -18,12 +17,14 @@ public class WQInference extends AbstractInference<Tripartition> {
 	
 	int forceAlg = -1;
 	long maxpossible;
-	
+	int numTrees;
 	public WQInference(boolean rooted, boolean extrarooted, List<Tree> trees,
 			List<Tree> extraTrees, boolean exactSolution, boolean duploss, int alg, int addExtra,
 			boolean outputCompletedGenes, boolean outSearch, boolean run) {
 		super(rooted, extrarooted, trees, extraTrees, exactSolution, 
 				addExtra, outputCompletedGenes, outSearch, run);
+		
+		this.numTrees = trees.size();
 		this.forceAlg = alg;
 	}
 
@@ -112,6 +113,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 	public void scoreBranches(Tree st) {
 
 		weightCalculator = new BipartitionWeightCalculator(this);
+		
 		BipartitionWeightCalculator weightCalculator2 = (BipartitionWeightCalculator) weightCalculator;
 		WQDataCollection wqDataCollection = (WQDataCollection) this.dataCollection;
 		//wqDataCollection.initializeWeightCalculator(this);
@@ -221,10 +223,22 @@ public class WQInference extends AbstractInference<Tripartition> {
 				Long a2 = alt2freqs.get(i);
 				Long quarc = quartcount.get(i);
 				Long sum = p+a1+a2;
+				
+				Posterior pst_tmp = new Posterior((double)p,(double)a1,(double)a2,(double)numTrees);
+				double post_m = pst_tmp.getPost();
+				pst_tmp = new Posterior((double)a1,(double)p,(double)a2,(double)numTrees);
+				double post_a1 = pst_tmp.getPost();
+				//pst_tmp =  new Posterior((double)a2,(double)p,(double)a1,(double)numTrees);
+				double post_a2 = 1.0 - post_a1 - post_m;
+						
 				if (this.getBranchAnnotation() == 2) {
 					node.setData("[q1="+(p+.0)/sum+";q2="+(a1+.0)/sum+";q3="+(a2+.0)/sum+
-							";f1="+p+";f2="+a1+";f3="+a2+
-							";QC="+quarc+"]");
+								 ";f1="+p+";f2="+a1+";f3="+a2+
+								 ";pp1="+post_m+";pp2="+post_a1+";pp3="+post_a2+
+								 ";QC="+quarc+"]");
+				}
+				if (this.getBranchAnnotation() == 3) {
+					node.setData(post_m);
 				} else if (this.getBranchAnnotation() == 1){
 					node.setData((p+.0)/sum*100);
 				} else if (this.getBranchAnnotation() == 0){
