@@ -44,10 +44,11 @@ public abstract class AbstractInference<T> {
 	public boolean outputCompleted;
 	boolean searchSpace;
 	private boolean run;
+	private boolean randtie;
 	
 	public AbstractInference(boolean rooted, boolean extrarooted, List<Tree> trees,
 			List<Tree> extraTrees, boolean exactSolution, int addExtra, 
-			boolean outputCompletedGenes, boolean outSearch, boolean run) {
+			boolean outputCompletedGenes, boolean outSearch, boolean run, boolean randomtiebreaker) {
 		super();
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
@@ -58,6 +59,7 @@ public abstract class AbstractInference<T> {
 		this.outputCompleted = outputCompletedGenes;
 		this.searchSpace = outSearch;
 		this.run = run;
+		this.randtie = randomtiebreaker;
 	}
 
 	protected Collapse.CollapseDescriptor doCollapse(List<Tree> trees) {
