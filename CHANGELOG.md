@@ -1,4 +1,7 @@
-- version 4.8.4:
+- version 4.9.0:
+	- Now compute posterior probabilities as will (calculations to be published)
+	
+- version 4.8.5:
 	- Ignore species tree polytomies when scoring
 	 
 - version 4.8.4:
