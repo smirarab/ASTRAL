@@ -180,6 +180,9 @@ public abstract class AbstractComputeMinCostTask<T> {
 							&& (lscore + rscore + c < v._max_score)) {
 						continue;
 					}
+					if (lscore + rscore + c == v._max_score && GlobalMaps.random.nextBoolean()) {
+						continue;
+					}
 					v._max_score = (lscore + rscore + c);
 					v._min_lc = smallV;
 					v._min_rc = bigv;
