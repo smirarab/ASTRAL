@@ -1,4 +1,7 @@
 - version 4.8.4:
+	- Ignore species tree polytomies when scoring
+	 
+- version 4.8.4:
 	- multifurcating input gene trees are accepted now. 
 	 
 - version 4.8.3:
