@@ -38,7 +38,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.7.8";
+    protected static String _versinon = "4.7.12";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -143,6 +143,10 @@ public class CommandLine {
                             JSAP.INTEGER_PARSER, null, JSAP.NOT_REQUIRED, 
                             'm', "minleaves",
                             "Remove genes with less than specificed number of leaves "),
+                            
+                    new Switch("random tie breaker",
+                            'c', "random-tie-break",
+                            "beeaks ties randomly (the random seed given with -s controls the random choices)."),
 
                     new Switch( "duplication",
                             'd', "dup",
@@ -196,6 +200,7 @@ public class CommandLine {
 		Integer minleaves = null;
         BufferedWriter outbuffer;
         Set<String> keepOptions = new HashSet<String>();
+        boolean randtie;
 		
         jsap = getJSAP();     
         config = jsap.parse(args);  
@@ -239,6 +244,8 @@ public class CommandLine {
             }
             System.err.println("Using DynaDup application, minimizing MGDL (not ASTRAL).");
         }
+        
+        randtie = config.getBoolean("random tie breaker");
         
         System.err.println("\n================== ASTRAL ===================== \n" );
         System.err.println("This is ASTRAL version " + _versinon);
@@ -325,7 +332,7 @@ public class CommandLine {
         	
             AbstractInference inference =
                     initializeInference(criterion, rooted, extrarooted, mainTrees,
-                            extraTrees, cs, cd, wh, exact, addExtra, keepOptions);
+                            extraTrees, cs, cd, wh, exact, addExtra, keepOptions, randtie);
         	for (Tree tr : toScore) {
         		inference.scoreGeneTree(tr);
         	}
@@ -448,7 +455,7 @@ public class CommandLine {
 	                rooted, extrarooted, extraTrees, cs, cd,
                     wh, exact, outbuffer, 
                     readInputTrees(input, rooted, false, false, minleaves),
-                    null, outgroup, addExtra, keepOptions));
+                    null, outgroup, addExtra, keepOptions, randtie));
 		}
 	    
 		if (bootstraps != null && bootstraps.size() != 0) {
@@ -461,7 +468,8 @@ public class CommandLine {
 		
         System.err.println("\n======== Running the main analysis");
         runOnOneInput(criterion, rooted, extrarooted, extraTrees, cs, cd,
-                wh, exact, outbuffer, mainTrees, bootstraps, outgroup, addExtra, keepOptions);
+                wh, exact, outbuffer, mainTrees, bootstraps, outgroup, addExtra, 
+                keepOptions, randtie);
            
 		outbuffer.close();
 		
@@ -473,13 +481,13 @@ public class CommandLine {
     private static Tree runOnOneInput(int criterion, boolean rooted,
             boolean extrarooted, List<Tree> extraTrees, double cs, double cd,
             double wh, boolean exact, BufferedWriter outbuffer, List<Tree> input, 
-            Iterable<Tree> bootstraps, String outgroup, int addExtra, Set<String> keepOptions) {
+            Iterable<Tree> bootstraps, String outgroup, int addExtra, Set<String> keepOptions, boolean randtie) {
         long startTime;
         startTime = System.currentTimeMillis();
         
         AbstractInference inference =
             initializeInference(criterion, rooted, extrarooted, input,
-                    extraTrees, cs, cd, wh, exact, addExtra, keepOptions);
+                    extraTrees, cs, cd, wh, exact, addExtra, keepOptions, randtie);
         
         List<Solution> solutions = inference.inferSpeciesTree();
    
@@ -502,17 +510,19 @@ public class CommandLine {
 
     private static AbstractInference initializeInference(int criterion, boolean rooted,
             boolean extrarooted, List<Tree> trees, List<Tree> extraTrees,
-            double cs, double cd, double wh, boolean exact, int addExtra, Set<String> keepOptions) {
+            double cs, double cd, double wh, boolean exact, int addExtra, Set<String> keepOptions,
+            boolean randtie) {
         AbstractInference inference;		
 		if (criterion == 1 || criterion == 0) {
 			inference = new DLInference(rooted, extrarooted, 
-					trees, extraTrees,exact ,criterion > 0, keepOptions.contains("completed"));			
+					trees, extraTrees,exact ,criterion > 0, keepOptions.contains("completed"),
+					randtie);			
 		} else if (criterion == 2) {
 			inference = new WQInference(rooted, extrarooted, 
 					trees, extraTrees, exact,criterion > 0, 1, addExtra, 
 					keepOptions.contains("completed"),
 					keepOptions.contains("searchspace_norun") || keepOptions.contains("searchspace"),
-					!keepOptions.contains("searchspace_norun") );
+					!keepOptions.contains("searchspace_norun"), randtie );
 		} else {
 			throw new RuntimeException("criterion not set?");
 		}		
