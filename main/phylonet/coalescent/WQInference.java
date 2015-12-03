@@ -2,17 +2,14 @@ package phylonet.coalescent;
 
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 
 import phylonet.coalescent.BipartitionWeightCalculator.Quadrapartition;
-import phylonet.coalescent.WQWeightCalculator.QuartetWeightTask.Intersects;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STINode;
-import phylonet.tree.model.sti.STITree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.util.BitSet;
@@ -159,18 +156,20 @@ public class WQInference extends AbstractInference<Tripartition> {
 			if (node.isLeaf()) {
 				stack.push((STITreeCluster) node.getData());
 			} else {
-				STITreeCluster cluster = (STITreeCluster) node.getData();
+				STITreeCluster cluster = (STITreeCluster) node.getData();				
+				if (node.isRoot() || node.getChildCount() > 2 || (node.getParent().getChildCount() >3) ||
+						(node.getParent().getChildCount() >2 && !node.getParent().isRoot()) ) {
+					for (int i =0; i< node.getChildCount(); i++) {
+						stack.pop();
+					}
+					stack.push(cluster);
+					continue;
+				}
+				
 				STITreeCluster c1 = stack.pop();
 				STITreeCluster c2 = stack.pop();
 				stack.push(cluster);
 				
-				if (node.isRoot() ) {
-					continue;
-				}
-				
-				if (node.getChildCount() > 2) {
-					throw new RuntimeException("Polytomies not implemented yet. ");
-				}
 				STITreeCluster sister;
 				STITreeCluster remaining;
 				Iterator<STINode> pcit = node.getParent().getChildren().iterator();
@@ -212,6 +211,11 @@ public class WQInference extends AbstractInference<Tripartition> {
 					(node.getParent().isRoot() && node.getParent().getChildCount() ==2)) {
 				node.setData(null);
 			} else{
+				if (node.isRoot() || node.getChildCount() > 2 || (node.getParent().getChildCount() >3) ||
+						(node.getParent().getChildCount() >2 && !node.getParent().isRoot()) ) {
+					node.setData(null);
+					continue;
+				}
 				Long p = mainfreqs.get(i);
 				Long a1 = alt1freqs.get(i);
 				Long a2 = alt2freqs.get(i);
