@@ -38,7 +38,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.8.5";
+    protected static String _versinon = "4.9.0";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -101,12 +101,13 @@ public class CommandLine {
                             "score the provided species tree and exit"),
                     
                     new FlaggedOption("branch annotation level", 
-                    		JSAP.INTEGER_PARSER, "1", JSAP.NOT_REQUIRED,
+                    		JSAP.INTEGER_PARSER, "3", JSAP.NOT_REQUIRED,
                             't', "branch-annotate",
                             "How much annotations should be added to each branch: 0, 1, or 2. "
                             + "0: no annotations. "
-                            + "1 (default): only quartet support for main resolution. "
-                            + "2: full annotation (quartet support for three alternatives as well as the quartet frequency for each."),	
+                            + "1: only quartet support for main resolution. "
+                            + "2: full annotation (quartet support, quartet frequency, and posterior probability for all three alternatives, plus total number of quartets around the branch)."
+                            + "3 (default): only posterior probability"),	
                             
                     new FlaggedOption("bootstraps", 
                             FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED,
