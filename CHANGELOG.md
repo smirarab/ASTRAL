@@ -1,3 +1,6 @@
+- version 4.9.1:
+	- Improve handling of missing data for posterior calculation. Use effective n
+	
 - version 4.9.0:
 	- Now compute posterior probabilities as will (calculations to be published)
 	
