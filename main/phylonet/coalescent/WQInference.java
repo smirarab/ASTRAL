@@ -1,5 +1,7 @@
 package phylonet.coalescent;
+import phylonet.coalescent.BipartitionWeightCalculator.Results;
 import phylonet.coalescent.Posterior;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -17,14 +19,12 @@ public class WQInference extends AbstractInference<Tripartition> {
 	
 	int forceAlg = -1;
 	long maxpossible;
-	int numTrees;
 	public WQInference(boolean rooted, boolean extrarooted, List<Tree> trees,
 			List<Tree> extraTrees, boolean exactSolution, boolean duploss, int alg, int addExtra,
 			boolean outputCompletedGenes, boolean outSearch, boolean run) {
 		super(rooted, extrarooted, trees, extraTrees, exactSolution, 
 				addExtra, outputCompletedGenes, outSearch, run);
 		
-		this.numTrees = trees.size();
 		this.forceAlg = alg;
 	}
 
@@ -153,6 +153,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 		List<Long> alt1freqs = new ArrayList<Long>();
 		List<Long> alt2freqs = new ArrayList<Long>();
 		List<Long> quartcount = new ArrayList<Long>();
+		List<Integer> effn = new ArrayList<Integer>();
+		
+		
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
 			if (node.isLeaf()) {
@@ -187,18 +190,20 @@ public class WQInference extends AbstractInference<Tripartition> {
 				}
 				Quadrapartition quad = weightCalculator2.new Quadrapartition
 						(c1,  c2, sister, remaining);
-				Long s = weightCalculator2.getWeight(quad);
-				mainfreqs.add(s);	
+				Results s = weightCalculator2.getWeight(quad);
+				mainfreqs.add(s.qs);
+				effn.add(s.effn);
+				//System.err.println(s.effn + " " + quad);
 				
 				quad = weightCalculator2.new Quadrapartition
 						(c1, sister, c2, remaining);
 				s = weightCalculator2.getWeight(quad);
-				alt1freqs.add(s);
+				alt1freqs.add(s.qs);
 				
 				quad = weightCalculator2.new Quadrapartition
 						(c1, remaining, c2, sister);
 				s = weightCalculator2.getWeight(quad);
-				alt2freqs.add(s);
+				alt2freqs.add(s.qs);
 				
 				quartcount.add( (c1.getClusterSize()+0l)
 						* (c2.getClusterSize()+0l)
@@ -222,34 +227,37 @@ public class WQInference extends AbstractInference<Tripartition> {
 				Long a1 = alt1freqs.get(i);
 				Long a2 = alt2freqs.get(i);
 				Long quarc = quartcount.get(i);
+				Integer effni = effn.get(i);
 				Long sum = p+a1+a2;
 				
-				Posterior pst_tmp = new Posterior((double)p,(double)a1,(double)a2,(double)numTrees);
-				double post_m = pst_tmp.getPost();
-				pst_tmp = new Posterior((double)a1,(double)p,(double)a2,(double)numTrees);
-				double post_a1 = pst_tmp.getPost();
-				//pst_tmp =  new Posterior((double)a2,(double)p,(double)a1,(double)numTrees);
-				double post_a2 = 1.0 - post_a1 - post_m;
-						
-				if (this.getBranchAnnotation() == 2) {
-					node.setData("[q1="+(p+.0)/sum+";q2="+(a1+.0)/sum+";q3="+(a2+.0)/sum+
-								 ";f1="+p+";f2="+a1+";f3="+a2+
-								 ";pp1="+post_m+";pp2="+post_a1+";pp3="+post_a2+
-								 ";QC="+quarc+"]");
-				}
-				if (this.getBranchAnnotation() == 3) {
-					node.setData(post_m);
-				} else if (this.getBranchAnnotation() == 1){
-					node.setData((p+.0)/sum*100);
-				} else if (this.getBranchAnnotation() == 0){
-					node.setData(null);
-				}
-				i++;
 				Double bl = -Math.log(1.5*(1.0-((p+.0)/sum)));
 				if (bl.isInfinite()) {
 					bl = 10.;
 				}
 				node.setParentDistance(bl);
+				if (this.getBranchAnnotation() == 0){
+					node.setData(null);
+				} else if (this.getBranchAnnotation() == 1){
+					node.setData((p+.0)/sum*100);
+				} else {
+					Posterior pst_tmp = new Posterior((double)p,(double)a1,(double)a2,(double)effni);
+					double post_m = pst_tmp.getPost();
+					
+					if (this.getBranchAnnotation() == 3) {
+						node.setData(post_m);
+					} else if (this.getBranchAnnotation() == 2) {
+						pst_tmp = new Posterior((double)a1,(double)p,(double)a2,(double)effni);
+						double post_a1 = pst_tmp.getPost();
+						//pst_tmp =  new Posterior((double)a2,(double)p,(double)a1,(double)numTrees);
+						double post_a2 = 1.0 - post_a1 - post_m;
+						
+						node.setData("[q1="+(p+.0)/sum+";q2="+(a1+.0)/sum+";q3="+(a2+.0)/sum+
+									 ";f1="+p+";f2="+a1+";f3="+a2+
+									 ";pp1="+post_m+";pp2="+post_a1+";pp3="+post_a2+
+									 ";QC="+quarc+"]");
+					} 
+				}
+				i++;
 			} 
 		}
 		
