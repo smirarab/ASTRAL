@@ -70,6 +70,10 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
         public boolean isNotEmpty() {
         	return (this.s0 + this.s1 + this.s2 + this.s3) != 0;
         }
+        
+        public boolean hasEmpty() {
+        	return (this.s0 * this.s1 * this.s2 * this.s3) == 0;
+        }
 	}
 
 	private long allcases(Intersects side1, Intersects side2, Intersects side3) {
@@ -101,15 +105,28 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 			return  new Intersects(0,0,0,0);
 		}
 	}
+	
+	class Results {
+		long qs;
+		int effn;
+		
+		Results (long q, int n){
+			qs = q;
+			effn = n;
+		}
+	}
 
-	public long getWeight(Quadrapartition quad) {
+	public Results getWeight(Quadrapartition quad) {
 		long weight = 0l;
 		Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
+		
+		int effectiven = 0;
 
 		Deque<Intersects> stack = new ArrayDeque<Intersects>();
 
 		Intersects  allsides = null;
 		boolean newTree = true;
+		boolean cruise = false;
 
 		for (Integer gtb: dataCollection.geneTreesAsInts){
 			//n++;
@@ -122,72 +139,81 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 						quad.cluster4.getBitSet().intersectionSize(all.getBitSet())
 						);
 				newTree = false;
+				if (! allsides.hasEmpty()) {
+					effectiven++;
+				} else {
+					cruise = true;
+				}
 				//sum +=  F(allsides.s0, allsides.s1, allsides.s2, allsides.s3);
 			}
-			if (gtb >= 0){
-				stack.push(getSide(gtb, quad));
-			} else if (gtb == Integer.MIN_VALUE) {
+			if (gtb == Integer.MIN_VALUE) {
 				stack.clear();
 				newTree = true;
-			} else if (gtb == -2) {
-				Intersects side1 = stack.pop();
-				Intersects side2 = stack.pop();
-				Intersects newSide = new Intersects(side1, side2);
-				stack.push(newSide);
-				Intersects side3 = new Intersects(allsides);
-				side3.subtract(newSide);
-
-				weight+= allcases(side1, side2, side3);
-
-				//geneTreesAsIntersects[n] = newSide;
+				cruise = false;
 			} else {
-				/*Intersects side1 = stack.pop();
-				Intersects side2 = stack.pop();
-				Intersects side3 = stack.pop();
-				Intersects newSide = new Intersects(
-						side1.s0+side2.s0+side3.s0,
-						side1.s1+side2.s1+side3.s1,
-						side1.s2+side2.s2+side3.s2,
-						side1.s3+side2.s3+side3.s3);
-				stack.push(newSide);
-				Intersects rem = new Intersects(allsides);
-				rem.subtract(newSide);
-
-				if (rem.s0+rem.s1+rem.s2+rem.s3 >0) {
-					throw new RuntimeException("polytomies are too complicated :( Ask us later");						
+				if (cruise) continue;
+				if (gtb >= 0){
+					stack.push(getSide(gtb, quad));
+				} else  if (gtb == -2) {
+					Intersects side1 = stack.pop();
+					Intersects side2 = stack.pop();
+					Intersects newSide = new Intersects(side1, side2);
+					stack.push(newSide);
+					Intersects side3 = new Intersects(allsides);
+					side3.subtract(newSide);
+	
+					weight+= allcases(side1, side2, side3);
+	
+					//geneTreesAsIntersects[n] = newSide;
+				} else {
+					/*Intersects side1 = stack.pop();
+					Intersects side2 = stack.pop();
+					Intersects side3 = stack.pop();
+					Intersects newSide = new Intersects(
+							side1.s0+side2.s0+side3.s0,
+							side1.s1+side2.s1+side3.s1,
+							side1.s2+side2.s2+side3.s2,
+							side1.s3+side2.s3+side3.s3);
+					stack.push(newSide);
+					Intersects rem = new Intersects(allsides);
+					rem.subtract(newSide);
+	
+					if (rem.s0+rem.s1+rem.s2+rem.s3 >0) {
+						throw new RuntimeException("polytomies are too complicated :( Ask us later");						
+					}
+					weight+= allcases(side1, side2, side3);*/
+					ArrayList<Intersects> children = new ArrayList<Intersects>();
+				    Intersects newSide = new Intersects(0,0,0,0);
+				    for (int i = gtb; i < 0 ; i++) {
+				        Intersects pop = stack.pop();
+				        children.add(pop);
+				        newSide.addin(pop);
+				    }
+				    stack.push(newSide);
+	                Intersects sideRemaining = new Intersects (allsides);
+	                sideRemaining.subtract(newSide);
+	                if ( sideRemaining.isNotEmpty()) {
+	                    children.add(sideRemaining);
+	                }
+	                for (int i = 0; i < children.size(); i++) {
+	                    Intersects side1 = children.get(i);
+	                    
+	                    for (int j = i+1; j < children.size(); j++) {
+	                        Intersects side2 = children.get(j);
+	                        //if (children.size() > 5 && checkFutileCalcs(side1,side2))
+	                        //	continue;
+	                        
+	                        for (int k = j+1; k < children.size(); k++) {
+	                            Intersects side3 = children.get(k);
+	                            weight += allcases(side1,side2,side3);
+	                        }
+	                    }
+	                }
 				}
-				weight+= allcases(side1, side2, side3);*/
-				ArrayList<Intersects> children = new ArrayList<Intersects>();
-			    Intersects newSide = new Intersects(0,0,0,0);
-			    for (int i = gtb; i < 0 ; i++) {
-			        Intersects pop = stack.pop();
-			        children.add(pop);
-			        newSide.addin(pop);
-			    }
-			    stack.push(newSide);
-                Intersects sideRemaining = new Intersects (allsides);
-                sideRemaining.subtract(newSide);
-                if ( sideRemaining.isNotEmpty()) {
-                    children.add(sideRemaining);
-                }
-                for (int i = 0; i < children.size(); i++) {
-                    Intersects side1 = children.get(i);
-                    
-                    for (int j = i+1; j < children.size(); j++) {
-                        Intersects side2 = children.get(j);
-                        //if (children.size() > 5 && checkFutileCalcs(side1,side2))
-                        //	continue;
-                        
-                        for (int k = j+1; k < children.size(); k++) {
-                            Intersects side3 = children.get(k);
-                            weight += allcases(side1,side2,side3);
-                        }
-                    }
-                }
 			}
 		}
 
-		return  weight/2;
+		return  new Results(weight/2,effectiven);
 	}
 	
 /*	private boolean checkFutileCalcs(Intersects side1, Intersects side2) {
@@ -217,16 +243,54 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 
 			initialize(c1, c2, c3, c4);
 		}
+		
 		private void initialize(STITreeCluster c1, STITreeCluster c2,
-				STITreeCluster c3, STITreeCluster c4) {
-			if (c1 == null || c2 == null || c3 == null) {
-				throw new RuntimeException("none cluster" +c1+" "+c2+" "+c3);
-			}
-			cluster1 = c1;
-			cluster2 = c2;	
-			cluster3 = c3;
-			cluster4 = c4;
-		}
+                STITreeCluster c3, STITreeCluster c4) {
+            if (c1 == null || c2 == null || c3 == null) {
+                throw new RuntimeException("none cluster" +c1+" "+c2+" "+c3);
+            }
+            int n1 = c1.getBitSet().nextSetBit(0), n2 = c2.getBitSet().nextSetBit(0), 
+                    n3 = c3.getBitSet().nextSetBit(0), n4=c4.getBitSet().nextSetBit(0);
+            int ntg1;
+            int ntg2;
+            STITreeCluster cluster_tmp1;
+            STITreeCluster cluster_tmp2;    
+            STITreeCluster cluster_tmp3;
+            STITreeCluster cluster_tmp4;
+            if (n1 < n2 ) {
+                ntg1 = n1;
+                cluster_tmp1 = c1;
+                cluster_tmp2 = c2;
+            }
+            else {
+                ntg1 = n2;
+                cluster_tmp1 = c2;
+                cluster_tmp2 = c1;
+            }
+            if (n3<n4) {
+                ntg2 = n3;
+                cluster_tmp3 = c3;
+                cluster_tmp4 = c4;
+            }
+            else {
+                ntg2 = n4;
+                cluster_tmp3 = c4;
+                cluster_tmp4 = c3;
+            }
+            
+            if(ntg1<ntg2){
+                cluster1 = cluster_tmp1;
+                cluster2 = cluster_tmp2;
+                cluster3 = cluster_tmp3;
+                cluster4 = cluster_tmp4;
+            }
+            else{
+                cluster1 = cluster_tmp3;
+                cluster2 = cluster_tmp4;
+                cluster3 = cluster_tmp1;
+                cluster4 = cluster_tmp2;
+            }
+        }
 
 		@Override
 		public boolean equals(Object obj) {
