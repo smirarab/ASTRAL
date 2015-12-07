@@ -1,3 +1,6 @@
+- version 4.9.2:
+	- first attempt at fixing numerical bugs for corner cases (not necessarily fixed)
+	 
 - version 4.9.1:
 	- Improve handling of missing data for posterior calculation. Use effective n
 	
