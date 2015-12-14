@@ -1,3 +1,9 @@
+- version 4.9.4: 
+	- BUG Fix: branch length for short branches should be using -ln(3p)
+	 
+- version 4.9.3:
+	- Add -t 4
+	 
 - version 4.9.2:
 	- first attempt at fixing numerical bugs for corner cases (not necessarily fixed)
 	 
