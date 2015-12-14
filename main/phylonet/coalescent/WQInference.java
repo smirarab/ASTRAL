@@ -2,6 +2,7 @@ package phylonet.coalescent;
 import phylonet.coalescent.BipartitionWeightCalculator.Results;
 import phylonet.coalescent.Posterior;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -80,6 +81,16 @@ public class WQInference extends AbstractInference<Tripartition> {
 				if (remaining.getClusterSize() != 0) {
 					childbslist.add(remaining);
 				}
+				if (childbslist.size() > 3) {
+					for (STITreeCluster chid :childbslist) {
+						System.err.print(chid.getClusterSize()+" ");
+					}
+					System.err.println(" (polytomy)");
+					if (this.getBranchAnnotation() == 4) {
+						continue;
+					}
+				}
+				
 				for (int i = 0; i < childbslist.size(); i++) {
 					for (int j = i+1; j < childbslist.size(); j++) {
 						for (int k = j+1; k < childbslist.size(); k++) {
@@ -91,12 +102,6 @@ public class WQInference extends AbstractInference<Tripartition> {
 							//maxsum += m;
 						}
 					}					       
-				}
-				if (childbslist.size() > 3) {
-					for (STITreeCluster chid :childbslist) {
-						System.err.print(chid.getClusterSize()+" ");
-					}
-					System.err.println(" (polytomy)");
 				}
 			}
 		}
@@ -212,6 +217,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 			}
 		}
 		int i = 0;
+		
+		DecimalFormat df = new DecimalFormat();
+		df.setMaximumFractionDigits(2);
+		
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
 			if (node.isLeaf() || node.isRoot() ||
@@ -230,31 +239,40 @@ public class WQInference extends AbstractInference<Tripartition> {
 				Integer effni = effn.get(i);
 				Long sum = p+a1+a2;
 				
-				Double bl = -Math.log(1.5*(1.0-((p+.0)/sum)));
+				Double bl = 0.;
+				if (p>0.3) {
+					bl = -Math.log(1.5*(1.0-((p+.0)/sum)));
+				} else {
+					bl = -Math.log(3.0*p);
+				}
 				if (bl.isInfinite()) {
 					bl = 10.;
 				}
+				
 				node.setParentDistance(bl);
 				if (this.getBranchAnnotation() == 0){
 					node.setData(null);
 				} else if (this.getBranchAnnotation() == 1){
-					node.setData((p+.0)/sum*100);
+					node.setData(df.format((p+.0)/sum*100));
 				} else {
 					Posterior pst_tmp = new Posterior((double)p,(double)a1,(double)a2,(double)effni);
 					double post_m = pst_tmp.getPost();
 					
 					if (this.getBranchAnnotation() == 3) {
-						node.setData(post_m);
-					} else if (this.getBranchAnnotation() == 2) {
+						node.setData(df.format(post_m));
+					} else if (this.getBranchAnnotation() % 2 == 0) {
 						pst_tmp = new Posterior((double)a1,(double)p,(double)a2,(double)effni);
 						double post_a1 = pst_tmp.getPost();
 						//pst_tmp =  new Posterior((double)a2,(double)p,(double)a1,(double)numTrees);
 						double post_a2 = 1.0 - post_a1 - post_m;
 						
-						node.setData("[q1="+(p+.0)/sum+";q2="+(a1+.0)/sum+";q3="+(a2+.0)/sum+
+						if (this.getBranchAnnotation() == 2)
+							node.setData("[q1="+(p+.0)/sum+";q2="+(a1+.0)/sum+";q3="+(a2+.0)/sum+
 									 ";f1="+p+";f2="+a1+";f3="+a2+
 									 ";pp1="+post_m+";pp2="+post_a1+";pp3="+post_a2+
-									 ";QC="+quarc+"]");
+									 ";QC="+quarc+";EN="+effni+"]");
+						else
+							node.setData("'[pp1="+df.format(post_m)+";pp2="+df.format(post_a1)+";pp3="+df.format(post_a2)+"]'");
 					} 
 				}
 				i++;
