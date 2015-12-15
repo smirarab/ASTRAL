@@ -1,3 +1,6 @@
+- version 4.9.5
+	- BUG Fix: fix branch length again. For q<1/3, return 0. Also, return MAP instead of ML. 
+	 
 - version 4.9.4: 
 	- BUG Fix: branch length for short branches should be using -ln(3p)
 	 
