@@ -1,3 +1,6 @@
+- version 4.9.6
+	- BUG Fix: 0.3 instead of 1/3 was used for bl 
+	
 - version 4.9.5
 	- BUG Fix: fix branch length again. For q<1/3, return 0. Also, return MAP instead of ML. 
 	 
