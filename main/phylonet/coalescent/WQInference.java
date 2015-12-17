@@ -240,7 +240,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 				Long sum = p+a1+a2;
 				
 				Double bl = 0.;
-				if (p>0.3) {
+				if (p>1/3) {
 					bl = -Math.log(1.5*(1.0-((p+.0)/(sum+1.))));
 				} else {
 					bl = 0.0;
