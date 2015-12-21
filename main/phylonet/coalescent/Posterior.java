@@ -1,13 +1,14 @@
 package phylonet.coalescent;
 
 import cern.jet.stat.*;
-import cern.jet.math.*;
+
 public class Posterior extends cern.jet.math.Constants{
 	private double m1;
 	private double m2;
 	private double m3;
 	private double n;
 	private double posterior;
+	private static double LOG2 = Math.log(2.);
 	public Posterior(double ft1, double ft2, double ft3, double nt){
 	 	m1 = ft1*nt/(ft1+ft2+ft3);
 		m2 = ft2*nt/(ft1+ft2+ft3);
@@ -35,14 +36,14 @@ public class Posterior extends cern.jet.math.Constants{
 		return g;
 	}
 	public double post(){
-		double g2 = Math.log(2.)*(m2-m1)+betaRatio(m2+1,n-m2+1,m1+1,n-m1+1);
-		double g3 = Math.log(2.)*(m3-m1)+betaRatio(m3+1,n-m3+1,m1+1,n-m1+1);
+		double g2 = LOG2*(m2-m1)+betaRatio(m2+1,n-m2+1,m1+1,n-m1+1);
+		double g3 = LOG2*(m3-m1)+betaRatio(m3+1,n-m3+1,m1+1,n-m1+1);
 		g2 = Math.exp(g2)*G(m2,n);
 		g3 = Math.exp(g3)*G(m3,n);
 
 		double g = G(m1,n)/(G(m1,n)+g2+g3);
 		if (Double.isNaN(g) || Double.isInfinite(g)){
-			if (m1/n>1./3.) g=1.;
+			if (3*m1>n) g=1.;
 			else g=0;
 		}
 		/*if (g == 0){
