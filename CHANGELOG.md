@@ -1,3 +1,6 @@
+-version 4.9.7:
+	- BUG FIX: for very large n (>30000), posterior probability could under or overflow. Fixed the issue. 
+	
 - version 4.9.6
 	- BUG Fix: 0.3 instead of 1/3 was used for bl 
 	
