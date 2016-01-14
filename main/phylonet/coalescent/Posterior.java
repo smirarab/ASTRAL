@@ -30,7 +30,8 @@ public class Posterior extends cern.jet.math.Constants{
 		return  out.toString();
 	}	
 	public double betaRatio(double alpha1, double beta1, double alpha2, double beta2){
-		return Gamma.logGamma(alpha1)+Gamma.logGamma(beta1)-Gamma.logGamma(alpha2)-Gamma.logGamma(beta2);
+		double a = Gamma.logGamma(alpha1)+Gamma.logGamma(beta1)-Gamma.logGamma(alpha2)-Gamma.logGamma(beta2);
+		return a;
 	}
 	public double G(double x, double nt){
 		double g = 1- Gamma.incompleteBeta(x+1,nt-x+1,1./3.);
@@ -40,7 +41,8 @@ public class Posterior extends cern.jet.math.Constants{
 		return g;
 	}
 	public double r(double mi){
-		return Math.exp(LOG2*(mi-m1)+betaRatio(mi+1,n-mi+1,m1+1,n-m1+1));
+		double b = Math.exp(LOG2*(mi-m1)+betaRatio(mi+1,n-mi+1,m1+1,n-m1+1));
+		return b;
 	}
 	
 	public double rG(double mi) {
@@ -48,9 +50,11 @@ public class Posterior extends cern.jet.math.Constants{
 		if (Double.isNaN(x) || Double.isInfinite(x)) {
 			if (mi*3<n) {
 				return 0;
-			} else if (mi*3==n) {
+			} else if (mi*3>=n) {
 				if (m1 > mi) {
 					return 0;
+				} else if (m1<mi){
+					return Double.POSITIVE_INFINITY;
 				} else {
 					throw new RuntimeException(MESSAGE + "\n" + m1 +" "+ m2 +" "+ m3 +" ");
 				}
@@ -64,9 +68,9 @@ public class Posterior extends cern.jet.math.Constants{
 		
 		if (this.DEBUG) {
 		 System.out.println(m1 +" "+ m2 +" "+ m3);
-		 System.out.println(G(m1,n));
-		 System.out.println(G(m2,n));
-		 System.out.println(G(m3,n));
+		 System.out.println("G1: " + G(m1,n));
+		 System.out.println("G2: " + G(m2,n));
+		 System.out.println("G3: " + G(m3,n));
 		 System.out.println("r2: " + r(m2));
 		 System.out.println("r3: " + r(m3));
 		}
@@ -105,9 +109,9 @@ public class Posterior extends cern.jet.math.Constants{
 		double n  = Double.parseDouble(args[3]);
 		Posterior a = new Posterior(m1,m2,m3,n);
 		System.out.println(a.toString());*/
-		 double m1 = 100000-30000;
-		 double m2 = 100000+5000;
-		 double n =  300000;
+		 double m1 = 1000000-30000;
+		 double m2 = 1000000-6000;
+		 double n =  3000000;
 		 double m3 = n-m1-m2;
 		 Posterior p = new Posterior(10, 10, 10, n);
 		 p.m1 = m1;p.m2 = m2;p.m3 = m3;
