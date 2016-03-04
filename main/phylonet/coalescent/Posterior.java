@@ -9,7 +9,7 @@ public class Posterior extends cern.jet.math.Constants{
 	private double posterior = -1;
 	private static double LOG2 = Math.log(2.);
 	final private static String MESSAGE = "This shouldn't haved happened. Please report error with the following numbers: ";
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 	
 	public Posterior(double ft1, double ft2, double ft3, double nt){
 	 	m1 = ft1*nt/(ft1+ft2+ft3);
@@ -63,6 +63,15 @@ public class Posterior extends cern.jet.math.Constants{
 			}
 		}
 		return x;
+	}
+	public double BrL(){
+		Double bl = 0.;
+		if (m1/n >1./3) {
+			bl = -Math.log(1.5*(1.0-(m1/(n+1.))));
+		} else {
+			bl = 0.0;
+		}
+		return bl;
 	}
 	private double post(){
 		

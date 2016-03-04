@@ -239,15 +239,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 				Integer effni = effn.get(i);
 				Long sum = p+a1+a2;
 				
-				Double bl = 0.;
-				if (p>1/3) {
-					bl = -Math.log(1.5*(1.0-((p+.0)/(sum+1.))));
-				} else {
-					bl = 0.0;
-				}
-				if (bl.isInfinite()) {
-					bl = 10.;
-				}
+				Posterior bl_tmp =new Posterior((double)p,(double)a1,(double) a2,(double)effni);
+				double bl = bl_tmp.BrL();
 				
 				node.setParentDistance(bl);
 				if (this.getBranchAnnotation() == 0){
