@@ -64,7 +64,7 @@ public class Posterior extends cern.jet.math.Constants{
 		}
 		return x;
 	}
-	public double BrL(){
+	public double branchLength(){
 		Double bl = 0.;
 		if (m1/n >1./3) {
 			bl = -Math.log(1.5*(1.0-(m1/(n+1.))));
