@@ -1,4 +1,7 @@
--version 4.9.7:
+- version 4.9.8:
+	- BUG FIX: There was a small bug in branch length computation (akin to using wrong priors). This affected mostly long branches, where prior became important. Fixed the bug. 
+
+- version 4.9.7:
 	- BUG FIX: for very large n (>30000), posterior probability could under or overflow. Fixed the issue. 
 	
 - version 4.9.6
