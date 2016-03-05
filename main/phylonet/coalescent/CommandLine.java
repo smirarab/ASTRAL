@@ -38,7 +38,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.9.8";
+    protected static String _versinon = "4.9.9";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -72,7 +72,82 @@ public class CommandLine {
                             FileStringParser.getParser(), null, JSAP.NOT_REQUIRED,
                             'o', "output",
                             "a filename for storing the output species tree. Defaults to outputting to stdout."),
+
+                    new FlaggedOption("score species trees", 
+                            FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 
+                            'q', "score-tree",
+                            "score the provided species tree and exit"),
+                    
+                    new FlaggedOption("branch annotation level", 
+                    		JSAP.INTEGER_PARSER, "3", JSAP.NOT_REQUIRED,
+                            't', "branch-annotate",
+                            "How much annotations should be added to each branch: 0, 1, or 2. \n"
+                            + "0: no annotations. \n"
+                            + "1: only quartet support for main resolution. \n"
+                            + "2: full annotation (quartet support, quartet frequency, and posterior probability for all three alternatives, "
+                               + "plus total number of quartets around the branch and effective number of genes).\n"
+                            + "3 (default): only the posterior probability for the main resolution.\n"
+                            + "4: only three alternative posterior probabilities."),
                             
+	                new FlaggedOption("bootstraps", 
+	                        FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED,
+	                        'b', "bootstraps",
+	                        "perform multi-locus bootstrapping using input bootstrap replicate files (use --rep to change the number of replications). "
+	                        + "The file given with this option should have a list of the gene tree bootstrap files, one per line, and each line corresponding to one gene. "
+	                        + "By default performs site-only resampling, but gene/site resampling can also be used. "),
+	
+	                new FlaggedOption("replicates", 
+	                        JSAP.INTEGER_PARSER, "100", JSAP.NOT_REQUIRED, 
+	                        'r', "reps",
+	                        "Set the number of bootstrap replicates done in multi-locus bootstrapping. "),
+	
+	                new FlaggedOption("seed", 
+	                        JSAP.LONG_PARSER, "692", JSAP.NOT_REQUIRED,
+	                        's', "seed",
+	                        "Set the seed number used in multi-locus bootstrapping. "),
+	                        
+	                new Switch("gene-sampling",
+	                        'g', "gene-resampling",
+	                        "perform gene tree resampling in addition to site resampling. Useful only with the -b option."),
+
+	                new FlaggedOption("keep", 
+	                        JSAP.STRING_PARSER, null, JSAP.NOT_REQUIRED, 
+	                        'k', "keep",
+	                          " -k completed: outputs completed gene trees (i.e. after adding missing taxa) to a file called [output file name].completed_gene_trees.\n"
+	                        + " -k bootstraps: outputs individual bootstrap replciates to a file called [output file name].[i].bs\n"
+	                        + " -k bootstraps_norun: just like -k bootstraps, but exits after outputting bootstraps.\n"
+	                        + " -k searchspace_norun: outputs the search space and exits; use searchspace to continue the run after outputting the search space."
+	                        + "When -k option is used, -o option needs to be given. "
+	                        + "The file name specified using -o is used as the prefix for the name of the extra output files.").setAllowMultipleDeclarations(true),
+
+	                new FlaggedOption("lambda", 
+	                        JSAP.DOUBLE_PARSER, "0.5", JSAP.NOT_REQUIRED,
+	                        'c', "lambda",
+	                        "Set the lambda parameter for the Yule prior used in the calculaitons"
+	                        + " of branch lengths and posterior probabilities. Set to zero to get ML branch "
+	                        + "lengths instead of MAP."
+	                        + " Higher values tend to shorten estimated branch lengths and very"
+	                        + " high values can give inaccurate results (or even result in underflow)."),
+
+	                new FlaggedOption("mapping file", 
+	                        FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 
+	                        'a', "namemapfile",
+	                        "a file containing the mapping between names in gene tree and names in the species tree. "
+	                        + "The mapping file has one line per species, with one of two formats:\n"
+	                        + " species: gene1,gene2,gene3,gene4\n"
+	                        + " species 4 gene1 gene2 gene3 gene4\n"),
+	
+	                new FlaggedOption("minleaves", 
+	                        JSAP.INTEGER_PARSER, null, JSAP.NOT_REQUIRED, 
+	                        'm', "minleaves",
+	                        "Remove genes with less than specificed number of leaves "),
+	
+	                new Switch( "duplication",
+	                        'd', "dup",
+	                        "Solves MGD problem. Minimizes the number duplications required to explain "
+	                        + "gene trees using DynaDup algorithm (Bayzid, 2011). Note that with this option, "
+	                        + "DynaDyp would be used *instead of* ASTRAL."),
+	                                            
                     new Switch("exact",
                             'x', "exact",
                             "find the exact solution by looking at all clusters - recommended only for small (<18) numer of taxa."),
@@ -95,70 +170,6 @@ public class CommandLine {
                             'f', "extra-species",
                             "provide extra trees (with species lables) used to enrich the set of clusters searched"),
 
-                    new FlaggedOption("score species trees", 
-                            FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 
-                            'q', "score-tree",
-                            "score the provided species tree and exit"),
-                    
-                    new FlaggedOption("branch annotation level", 
-                    		JSAP.INTEGER_PARSER, "3", JSAP.NOT_REQUIRED,
-                            't', "branch-annotate",
-                            "How much annotations should be added to each branch: 0, 1, or 2. "
-                            + "0: no annotations. "
-                            + "1: only quartet support for main resolution. "
-                            + "2: full annotation (quartet support, quartet frequency, and posterior probability for all three alternatives, plus total number of quartets around the branch)."
-                            + "3 (default): only posterior probability"),	
-                            
-                    new FlaggedOption("bootstraps", 
-                            FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED,
-                            'b', "bootstraps",
-                            "perform multi-locus bootstrapping using input bootstrap replicate files (use --rep to change the number of replications). "
-                            + "The file given with this option should have a list of the gene tree bootstrap files, one per line, and each line corresponding to one gene. "
-                            + "By default performs site-only resampling, but gene/site resampling can also be used. "),
-
-                    new FlaggedOption("replicates", 
-                            JSAP.INTEGER_PARSER, "100", JSAP.NOT_REQUIRED, 
-                            'r', "reps",
-                            "Set the number of bootstrap replicates done in multi-locus bootstrapping. "),
-
-                    new FlaggedOption("keep", 
-                            JSAP.STRING_PARSER, null, JSAP.NOT_REQUIRED, 
-                            'k', "keep",
-                              " -k completed: outputs completed gene trees (i.e. after adding missing taxa) to a file called [output file name].completed_gene_trees.\n"
-                            + " -k bootstraps: outputs individual bootstrap replciates to a file called [output file name].[i].bs\n"
-                            + " -k bootstraps_norun: just like -k bootstraps, but exits after outputting bootstraps.\n"
-                            + " -k searchspace_norun: outputs the search space and exits; use searchspace to continue the run after outputting the search space."
-                            + "When -k option is used, -o option needs to be given. "
-                            + "The file name specified using -o is used as the prefix for the name of the extra output files.").setAllowMultipleDeclarations(true),
-
-                    new FlaggedOption("seed", 
-                            JSAP.LONG_PARSER, "692", JSAP.NOT_REQUIRED,
-                            's', "seed",
-                            "Set the seed number used in multi-locus bootstrapping. "),
-
-                    new Switch("gene-sampling",
-                            'g', "gene-resampling",
-                            "perform gene tree resampling in addition to site resampling. Useful only with the -b option."),
-
-                    new FlaggedOption("mapping file", 
-                            FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 
-                            'a', "namemapfile",
-                            "a file containing the mapping between names in gene tree and names in the species tree. "
-                            + "The mapping file has one line per species, with one of two formats:\n"
-                            + " species: gene1,gene2,gene3,gene4\n"
-                            + " species 4 gene1 gene2 gene3 gene4\n"),
-
-                    new FlaggedOption("minleaves", 
-                            JSAP.INTEGER_PARSER, null, JSAP.NOT_REQUIRED, 
-                            'm', "minleaves",
-                            "Remove genes with less than specificed number of leaves "),
-
-                    new Switch( "duplication",
-                            'd', "dup",
-                            "Solves MGD problem. Minimizes the number duplications required to explain "
-                            + "gene trees using DynaDup algorithm (Bayzid, 2011). Note that with this option, "
-                            + "DynaDyp would be used *instead of* ASTRAL."),
-                            
                     new FlaggedOption( "duploss weight",
                             JSAP.STRING_PARSER, null, JSAP.NOT_REQUIRED,
                             'l', "duploss",
@@ -188,21 +199,10 @@ public class CommandLine {
 		List<List<String>> bstrees = new ArrayList<List<String>>();
 		List<List<String>> inputSets = new ArrayList<List<String>>();
 		List<Tree> extraTrees = new ArrayList<Tree>();
-		// STITree scorest = null;
-		// boolean explore = false;
-		// double proportion = 0.0D;
-		// boolean exhaust = false;
-		// double bootstrap = 1.0D;
-	    // boolean unresolved = false;   
-        // double time = -1.0D;
-		// double wd = 1.0D;
-		double cs = 1.0D;
-		double cd = 1.0D;
 		double wh = 1.0D;
-		boolean exact = false;
-		int addExtra;
+		//int addExtra;
 		int k = 0;
-		int annotate = 1;
+		//int annotate = 1;
 		Integer minleaves = null;
         BufferedWriter outbuffer;
         Set<String> keepOptions = new HashSet<String>();
@@ -221,9 +221,7 @@ public class CommandLine {
             GlobalMaps.outputfilename = config.getFile("output file").getCanonicalPath();
         }
         
-        exact = config.getBoolean("exact");
         
-        addExtra = config.getInt("extraLevel");
         
         if (config.getBoolean("duplication") && config.contains("duploss weight")) {
             exitWithErr("dup and duploss options cannot be used together. Choose only one. ",jsap);
@@ -257,7 +255,6 @@ public class CommandLine {
 
         GlobalMaps.random = new Random(config.getLong("seed"));
         
-        annotate = config.getInt("branch annotation level");
         
         if (config.getFile("mapping file") != null) {
 
@@ -330,14 +327,16 @@ public class CommandLine {
             GlobalMaps.taxonNameMap = new TaxonNameMap();
         }
         
+        Options options = newOptions(criterion, rooted, extrarooted, 
+        		1.0D, 1.0D, wh, keepOptions, config);
+       
         if (config.getFile("score species trees") != null) {
         	List<Tree> toScore = readInputTrees(
         			readTreeFileAsString(config.getFile("score species trees")),
                      rooted, true, true, null);
         	
             AbstractInference inference =
-                    initializeInference(criterion, rooted, extrarooted, mainTrees,
-                            extraTrees, cs, cd, wh, exact, addExtra, keepOptions, annotate);
+                    initializeInference(criterion, mainTrees, extraTrees, options);
         	for (Tree tr : toScore) {
         		inference.scoreGeneTree(tr);
             	System.out.println(tr.toNewickWD());
@@ -459,10 +458,9 @@ public class CommandLine {
 		for ( List<String> input : inputSets) {  
 	        System.err.println("\n======== Running bootstrap replicate " + j++);
 	        bootstraps.add(runOnOneInput(criterion, 
-	                rooted, extrarooted, extraTrees, cs, cd,
-                    wh, exact, outbuffer, 
+	                 extraTrees, outbuffer, 
                     readInputTrees(input, rooted, false, false, minleaves),
-                    null, outgroup, addExtra, keepOptions, annotate));
+                    null, outgroup, options));
 		}
 	    
 		if (bootstraps != null && bootstraps.size() != 0) {
@@ -474,9 +472,8 @@ public class CommandLine {
 		}
 		
         System.err.println("\n======== Running the main analysis");
-        runOnOneInput(criterion, rooted, extrarooted, extraTrees, cs, cd,
-                wh, exact, outbuffer, mainTrees, bootstraps, 
-                outgroup, addExtra, keepOptions, annotate);
+        runOnOneInput(criterion, extraTrees, outbuffer, mainTrees, bootstraps, 
+                outgroup, options);
            
 		outbuffer.close();
 		
@@ -485,17 +482,14 @@ public class CommandLine {
 	}
 
 
-    private static Tree runOnOneInput(int criterion, boolean rooted,
-            boolean extrarooted, List<Tree> extraTrees, double cs, double cd,
-            double wh, boolean exact, BufferedWriter outbuffer, List<Tree> input, 
-            Iterable<Tree> bootstraps, String outgroup, int addExtra, 
-            Set<String> keepOptions, int annotate) {
+    private static Tree runOnOneInput(int criterion, List<Tree> extraTrees,
+    		BufferedWriter outbuffer, List<Tree> input, 
+            Iterable<Tree> bootstraps, String outgroup, Options options) {
         long startTime;
         startTime = System.currentTimeMillis();
         
         AbstractInference inference =
-            initializeInference(criterion, rooted, extrarooted, input,
-                    extraTrees, cs, cd, wh, exact, addExtra, keepOptions, annotate);
+            initializeInference(criterion, input, extraTrees, options);
         
         List<Solution> solutions = inference.inferSpeciesTree();
    
@@ -517,28 +511,41 @@ public class CommandLine {
         
         return st;
     }
+    
+    static private Options newOptions(int criterion, boolean rooted,
+            boolean extrarooted, 
+            double cs, double cd, double wh, 
+            Set<String> keepOptions, JSAPResult config) {
+    	Options options = new Options(
+    			rooted, extrarooted, 
+    			config.getBoolean("exact"), 
+    			criterion > 0, 1, 
+    			config.getInt("extraLevel"),
+    			keepOptions.contains("completed"), 
+    			keepOptions.contains("searchspace_norun") || keepOptions.contains("searchspace"), 
+    			!keepOptions.contains("searchspace_norun"),
+    			config.getInt("branch annotation level"), 
+    			config.getDouble("lambda"));
+    	options.setDLbdWeigth(wh); 
+    	options.setCS(cs);
+    	options.setCD(cd);
+    	
+    	return options;
+    }
 
-    private static AbstractInference initializeInference(int criterion, boolean rooted,
-            boolean extrarooted, List<Tree> trees, List<Tree> extraTrees,
-            double cs, double cd, double wh, boolean exact, int addExtra, 
-            Set<String> keepOptions, int branchannotations) {
+    private static AbstractInference initializeInference(int criterion, 
+            List<Tree> trees, List<Tree> extraTrees,
+            Options options) {
         AbstractInference inference;		
 		if (criterion == 1 || criterion == 0) {
-			inference = new DLInference(rooted, extrarooted, 
-					trees, extraTrees,exact ,criterion > 0, keepOptions.contains("completed"));			
+			inference = new DLInference(options, 
+					trees, extraTrees);			
 		} else if (criterion == 2) {
-			inference = new WQInference(rooted, extrarooted, 
-					trees, extraTrees, exact,criterion > 0, 1, addExtra, 
-					keepOptions.contains("completed"),
-					keepOptions.contains("searchspace_norun") || keepOptions.contains("searchspace"),
-					!keepOptions.contains("searchspace_norun") );
+			inference = new WQInference(options, trees, 
+					extraTrees );
 		} else {
 			throw new RuntimeException("criterion not set?");
 		}		
-		inference.setDLbdWeigth(wh); 
-		inference.setCS(cs);
-		inference.setCD(cd);
-		inference.setBranchAnnotation(branchannotations);
         return inference;
     }
 
