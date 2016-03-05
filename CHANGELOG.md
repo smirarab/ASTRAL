@@ -1,11 +1,15 @@
+- version 4.9.9:
+	- New Feature: ability to set lambda (the prior parameter) using `-c`
+	- Some internal code refactoring
+	 
 - version 4.9.8:
-	- BUG FIX: There was a small bug in branch length computation (akin to using wrong priors). This affected mostly long branches, where prior became important. Fixed the bug. 
+	- BUG Fix: There was a small bug in branch length computation (akin to using wrong priors). This affected mostly long branches, where prior became important. Fixed the bug. 
 
 - version 4.9.7:
-	- BUG FIX: for very large n (>30000), posterior probability could under or overflow. Fixed the issue. 
+	- BUG Fix: for very large n (>30000), posterior probability could under or overflow. Fixed the issue. 
 	
 - version 4.9.6
-	- BUG Fix: 0.3 instead of 1/3 was used for bl 
+	- BUG Fix: 0.3 instead of 1/3 was used for branch length 
 	
 - version 4.9.5
 	- BUG Fix: fix branch length again. For q<1/3, return 0. Also, return MAP instead of ML. 
@@ -14,7 +18,7 @@
 	- BUG Fix: branch length for short branches should be using -ln(3p)
 	 
 - version 4.9.3:
-	- Add -t 4
+	- Add `-t 4`
 	 
 - version 4.9.2:
 	- first attempt at fixing numerical bugs for corner cases (not necessarily fixed)
@@ -32,7 +36,7 @@
 	- multifurcating input gene trees are accepted now. 
 	 
 - version 4.8.3:
-	- use semicolon instead of , in branch length labels. Also output the total number of quartets around each branch in the species tree
+	- use semicolon instead of `,` in branch length labels. Also output the total number of quartets around each branch in the species tree
 	 
 - version 4.8.2:
   - add options to control the amount of branch annotation
