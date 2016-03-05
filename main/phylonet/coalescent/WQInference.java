@@ -240,7 +240,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 				Long sum = p+a1+a2;
 				
 				Posterior bl_tmp =new Posterior((double)p,(double)a1,(double) a2,(double)effni);
-				double bl = bl_tmp.BrL();
+				double bl = bl_tmp.branchLength();
 				
 				node.setParentDistance(bl);
 				if (this.getBranchAnnotation() == 0){
