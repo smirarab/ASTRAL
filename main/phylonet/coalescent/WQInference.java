@@ -20,13 +20,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 	
 	int forceAlg = -1;
 	long maxpossible;
-	public WQInference(boolean rooted, boolean extrarooted, List<Tree> trees,
-			List<Tree> extraTrees, boolean exactSolution, boolean duploss, int alg, int addExtra,
-			boolean outputCompletedGenes, boolean outSearch, boolean run) {
-		super(rooted, extrarooted, trees, extraTrees, exactSolution, 
-				addExtra, outputCompletedGenes, outSearch, run);
+	public WQInference(Options inOptions, List<Tree> trees, List<Tree> extraTrees) {
+		super(inOptions, trees, extraTrees);
 		
-		this.forceAlg = alg;
+		this.forceAlg = inOptions.getAlg();
 	}
 
 	
@@ -239,8 +236,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 				Integer effni = effn.get(i);
 				Long sum = p+a1+a2;
 				
-				Posterior bl_tmp =new Posterior((double)p,(double)a1,(double) a2,(double)effni);
-				double bl = bl_tmp.branchLength();
+				Posterior post = new Posterior(
+						(double)p,(double)a1,(double) a2,(double)effni, options.getLambda());
+				double bl = post.branchLength();
 				
 				node.setParentDistance(bl);
 				if (this.getBranchAnnotation() == 0){
@@ -248,24 +246,24 @@ public class WQInference extends AbstractInference<Tripartition> {
 				} else if (this.getBranchAnnotation() == 1){
 					node.setData(df.format((p+.0)/sum*100));
 				} else {
-					Posterior pst_tmp = new Posterior((double)p,(double)a1,(double)a2,(double)effni);
-					double post_m = pst_tmp.getPost();
+					double postQ1 = post.getPost();
 					
 					if (this.getBranchAnnotation() == 3) {
-						node.setData(df.format(post_m));
+						node.setData(df.format(postQ1));
 					} else if (this.getBranchAnnotation() % 2 == 0) {
-						pst_tmp = new Posterior((double)a1,(double)p,(double)a2,(double)effni);
-						double post_a1 = pst_tmp.getPost();
+						post = new Posterior((double)a1,(double)p,(double)a2,(double)effni, options.getLambda());
+						double postQ2 = post.getPost();
 						//pst_tmp =  new Posterior((double)a2,(double)p,(double)a1,(double)numTrees);
-						double post_a2 = 1.0 - post_a1 - post_m;
+						double postQ3 = 1.0 - postQ2 - postQ1;
 						
 						if (this.getBranchAnnotation() == 2)
-							node.setData("[q1="+(p+.0)/sum+";q2="+(a1+.0)/sum+";q3="+(a2+.0)/sum+
+							node.setData(
+									"'[q1="+(p+.0)/sum+";q2="+(a1+.0)/sum+";q3="+(a2+.0)/sum+
 									 ";f1="+p+";f2="+a1+";f3="+a2+
-									 ";pp1="+post_m+";pp2="+post_a1+";pp3="+post_a2+
-									 ";QC="+quarc+";EN="+effni+"]");
-						else
-							node.setData("'[pp1="+df.format(post_m)+";pp2="+df.format(post_a1)+";pp3="+df.format(post_a2)+"]'");
+									 ";pp1="+postQ1+";pp2="+postQ2+";pp3="+postQ3+
+									 ";QC="+quarc+";EN="+effni+"]'");
+						else if (this.getBranchAnnotation() == 4)
+							node.setData("'[pp1="+df.format(postQ1)+";pp2="+df.format(postQ2)+";pp3="+df.format(postQ3)+"]'");
 					} 
 				}
 				i++;
