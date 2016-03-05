@@ -75,7 +75,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		this.SLOW = inference.getAddExtra() >= 2;
 		this.geneTrees = inference.trees;
 		this.completedGeeneTrees = new ArrayList<Tree>();
-		this.outputCompleted = inference.outputCompleted;
+		this.outputCompleted = inference.shouldOutputCompleted();
 	}
 
 
