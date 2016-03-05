@@ -16,10 +16,10 @@ public class DLInference extends AbstractInference<STBipartition> {
 	private int optimizeDuploss = 1; //one means dup, 3 means duploss
 	//Map<STITreeCluster, Vertex> clusterToVertex;
 	
-	public DLInference(boolean rooted, boolean extrarooted, List<Tree> trees,
-			List<Tree> extraTrees, boolean exactSolution, boolean duploss, boolean outputCompletedGenes) {
-		super(rooted, extrarooted, trees, extraTrees, exactSolution, 0, outputCompletedGenes, false, true);
-		this.optimizeDuploss = duploss ? 3 : 1;
+	public DLInference(Options options, List<Tree> trees,
+			List<Tree> extraTrees) {
+		super(options, trees, extraTrees);
+		this.optimizeDuploss = options.isDuploss() ? 3 : 1;
 	}
 
 	public int getOptimizeDuploss() {
@@ -124,7 +124,7 @@ public class DLInference extends AbstractInference<STBipartition> {
 	}
 	
 	DLDataCollection newCounter(IClusterCollection clusters) {
-		return new DLDataCollection(rooted, (DLClusterCollection)clusters);
+		return new DLDataCollection(options.isRooted(), (DLClusterCollection)clusters);
 	}
 
 	@Override

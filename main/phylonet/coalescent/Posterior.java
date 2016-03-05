@@ -8,14 +8,18 @@ public class Posterior extends cern.jet.math.Constants{
 	private double n;
 	private double posterior = -1;
 	private static double LOG2 = Math.log(2.);
-	final private static String MESSAGE = "This shouldn't haved happened. Please report error with the following numbers: ";
+	final private static String MESSAGE = "This shouldn't haved happened."
+			+ " Maybe you set lambda too high or too low? "
+			+ "Please report the error with the following numbers: ";
 	private static final boolean DEBUG = false;
+	private double lambda;
 	
-	public Posterior(double ft1, double ft2, double ft3, double nt){
-	 	m1 = ft1*nt/(ft1+ft2+ft3);
-		m2 = ft2*nt/(ft1+ft2+ft3);
-		m3 = nt - m1 - m2;
-		n  = nt;
+	public Posterior(double ft1, double ft2, double ft3, double nt, double lambda){
+		this.m1 = ft1*nt/(ft1+ft2+ft3);
+	 	this.m2 = ft2*nt/(ft1+ft2+ft3);
+		this.m3 = nt - m1 - m2;
+		this.n  = nt;
+		this.lambda = lambda;
 		//posterior=post();
 	}
 	public double getPost(){
@@ -34,14 +38,14 @@ public class Posterior extends cern.jet.math.Constants{
 		return a;
 	}
 	public double G(double x, double nt){
-		double g = 1- Gamma.incompleteBeta(x+1,nt-x+1,1./3.);
+		double g = 1- Gamma.incompleteBeta(x+1,nt-x+2*lambda,1./3.);
 		if (g<=MACHEP){
 			g = 0.;
 		}
 		return g;
 	}
 	public double r(double mi){
-		double b = Math.exp(LOG2*(mi-m1)+betaRatio(mi+1,n-mi+1,m1+1,n-m1+1));
+		double b = Math.exp(LOG2*(mi-m1)+betaRatio(mi+1,n-mi+2*lambda,m1+1,n-m1+2*lambda));
 		return b;
 	}
 	
@@ -56,7 +60,7 @@ public class Posterior extends cern.jet.math.Constants{
 				} else if (m1<mi){
 					return Double.POSITIVE_INFINITY;
 				} else {
-					throw new RuntimeException(MESSAGE + "\n" + m1 +" "+ m2 +" "+ m3 +" ");
+					throw new RuntimeException(MESSAGE + "\n" + m1 +" "+ m2 +" "+ m3 +" "+lambda + " " + n);
 				}
 			} else {
 				return Double.POSITIVE_INFINITY;
@@ -64,10 +68,11 @@ public class Posterior extends cern.jet.math.Constants{
 		}
 		return x;
 	}
+	
 	public double branchLength(){
 		Double bl = 0.;
 		if (m1/n >1./3) {
-			bl = -Math.log(1.5*(1.0-(m1/(n+1.))));
+			bl = -Math.log(1.5*(1.0-(m1/(n+2*lambda))));
 		} else {
 			bl = 0.0;
 		}
@@ -90,23 +95,17 @@ public class Posterior extends cern.jet.math.Constants{
 		double g = G(m1,n)/(G(m1,n)+g2+g3);
 		
 		if (Double.isInfinite(g)) {
-			throw new RuntimeException(MESSAGE + "\n" + m1 +" "+ m2 +" "+ m3 +" ");
+			throw new RuntimeException(MESSAGE + "\n" + m1 +" "+ m2 +" "+ m3 +" "+lambda + " " + n);
 		}
 		if (Double.isNaN(g)) {
 			if (m1*3 < n) return g = 0;
-			else throw new RuntimeException(MESSAGE + "\n" + m1 +" "+ m2 +" "+ m3 +" ");
+			else throw new RuntimeException(MESSAGE + "\n" + m1 +" "+ m2 +" "+ m3 +" "+lambda + " " + n);
 		}
 		/*	if (Double.isNaN(g) || Double.isInfinite(g)){
 			if (m1>m2 & m1>m3) g=1.;
 			else g=0;
 		}*/
-		//if (g == 0){
-		//	double v1 = G(m1,n)/(G(m1,n)+G(m2,n)*Functions.pow.apply(2.,m2-m1)*Gamma.beta(m2+1,n-m2+1)/Gamma.beta(m1+1,n-m1+1)+G(m3,n)*Functions.pow.apply(2.,m3-m1)*Gamma.beta(m3+1,n-m3+1)/Gamma.beta(m1+1,n-m1+1));
-		//	if (Double.isNaN(v1)){
-		//		if (m1/n>1./3.) g=1.;
-		//		else g=0;
-		//	}
-		//}
+		
 		posterior = g;
 		return posterior;
 	}    
@@ -122,7 +121,7 @@ public class Posterior extends cern.jet.math.Constants{
 		 double m2 = 1000000-6000;
 		 double n =  3000000;
 		 double m3 = n-m1-m2;
-		 Posterior p = new Posterior(10, 10, 10, n);
+		 Posterior p = new Posterior(10, 10, 10, n, 0.5);
 		 p.m1 = m1;p.m2 = m2;p.m3 = m3;
 		 System.out.println(p.getPost());
 
