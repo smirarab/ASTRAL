@@ -74,7 +74,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 		// SIA: base case for singelton clusters.
 		if (clusterSize <= 1 || spm.isSingleSP(v.getCluster().getBitSet())) {
 			
-			v._max_score = scoreBaseCase(inference.rooted, inference.trees);
+			v._max_score = scoreBaseCase(inference.isRooted(), inference.trees);
 			
 			v._min_lc = (v._min_rc = null);
 			v._done = 1;

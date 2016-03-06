@@ -34,6 +34,7 @@ public abstract class AbstractWeightCalculator<T> {
 		return weights.get(t);
 	}
 	
+		
 	public Long getWeight(T t, AbstractComputeMinCostTask<T> minCostTask) {
 		this.callcounter ++;
 		Long weight = getCalculatedWeight(t);

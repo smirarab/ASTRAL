@@ -1,12 +1,17 @@
 package phylonet.coalescent;
+import phylonet.coalescent.BipartitionWeightCalculator.Results;
+import phylonet.coalescent.Posterior;
 
-
+import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 
+import phylonet.coalescent.BipartitionWeightCalculator.Quadrapartition;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
+import phylonet.tree.model.sti.STINode;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.util.BitSet;
@@ -15,15 +20,13 @@ public class WQInference extends AbstractInference<Tripartition> {
 	
 	int forceAlg = -1;
 	long maxpossible;
-	
-	public WQInference(boolean rooted, boolean extrarooted, List<Tree> trees,
-			List<Tree> extraTrees, boolean exactSolution, boolean duploss, int alg, int addExtra,
-			boolean outputCompletedGenes, boolean outSearch, boolean run, boolean randomtiebreaker) {
-		super(rooted, extrarooted, trees, extraTrees, exactSolution, 
-				addExtra, outputCompletedGenes, outSearch, run, randomtiebreaker);
-		this.forceAlg = alg;
+	public WQInference(Options inOptions, List<Tree> trees, List<Tree> extraTrees) {
+		super(inOptions, trees, extraTrees);
+		
+		this.forceAlg = inOptions.getAlg();
 	}
 
+	
 	public void scoreGeneTree(Tree st) {
 
 		mapNames();
@@ -44,6 +47,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 		
 		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
 		long sum = 0l;
+		long maxsum = 0l;
 		for (TNode node: st.postTraverse()) {
 			if (node.isLeaf()) {
 				String nodeName = node.getName(); //GlobalMaps.TaxonNameMap.getSpeciesName(node.getName());
@@ -74,25 +78,198 @@ public class WQInference extends AbstractInference<Tripartition> {
 				if (remaining.getClusterSize() != 0) {
 					childbslist.add(remaining);
 				}
-				for (int i = 0; i < childbslist.size(); i++) {
-					for (int j = i+1; j < childbslist.size(); j++) {
-						for (int k = j+1; k < childbslist.size(); k++) {
-							sum += weightCalculator.getWeight(
-									new Tripartition(childbslist.get(i),  childbslist.get(j), childbslist.get(k))
-									, null);
-						}
-					}					       
-				}
 				if (childbslist.size() > 3) {
 					for (STITreeCluster chid :childbslist) {
 						System.err.print(chid.getClusterSize()+" ");
 					}
 					System.err.println(" (polytomy)");
+					if (this.getBranchAnnotation() == 4) {
+						continue;
+					}
+				}
+				
+				for (int i = 0; i < childbslist.size(); i++) {
+					for (int j = i+1; j < childbslist.size(); j++) {
+						for (int k = j+1; k < childbslist.size(); k++) {
+							Tripartition trip = new Tripartition(childbslist.get(i),  childbslist.get(j), childbslist.get(k));
+							Long s = weightCalculator.getWeight(trip, null);
+							sum += s;
+							//Long m = this.dataCollection.maxPossibleScore(trip);
+							//((STINode)node).setData(s*100l/m);
+							//maxsum += m;
+						}
+					}					       
 				}
 			}
 		}
-		System.out.println("Quartet score is: " + sum/4l);
-		System.out.println("Normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
+/*		if (4l*this.maxpossible != maxsum) {
+			throw new RuntimeException("Hmm... "+maxsum+" "+4l*this.maxpossible);
+		}*/
+		System.err.println("Quartet score is: " + sum/4l);
+		System.err.println("Normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
+		//System.out.println(st.toNewickWD());
+		this.scoreBranches(st);
+	}
+
+	
+	public void scoreBranches(Tree st) {
+
+		weightCalculator = new BipartitionWeightCalculator(this);
+		
+		BipartitionWeightCalculator weightCalculator2 = (BipartitionWeightCalculator) weightCalculator;
+		WQDataCollection wqDataCollection = (WQDataCollection) this.dataCollection;
+		//wqDataCollection.initializeWeightCalculator(this);
+		
+		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
+		for (TNode n: st.postTraverse()) {
+			STINode node = (STINode) n;
+			if (node.isLeaf()) {
+				String nodeName = node.getName(); //GlobalMaps.TaxonNameMap.getSpeciesName(node.getName());
+
+				STITreeCluster cluster = new STITreeCluster();
+				Integer taxonID = GlobalMaps.taxonIdentifier.taxonId(nodeName);
+				cluster.addLeaf(taxonID);
+
+				stack.add(cluster);
+				node.setData(cluster);
+
+			} else {
+				ArrayList<STITreeCluster> childbslist = new ArrayList<STITreeCluster>();
+				BitSet bs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
+				for (TNode child: n.getChildren()) {
+					STITreeCluster pop = stack.pop();
+					childbslist.add(pop);
+					bs.or(pop.getBitSet());
+				}
+				
+				STITreeCluster cluster = new STITreeCluster();
+				cluster.setCluster((BitSet) bs.clone());
+
+				//((STINode)node).setData(new GeneTreeBitset(node.isRoot()? -2: -1));
+				stack.add(cluster);
+				node.setData(cluster);
+			}
+		}
+		stack = new Stack<STITreeCluster>();
+		List<Long> mainfreqs = new ArrayList<Long>();
+		List<Long> alt1freqs = new ArrayList<Long>();
+		List<Long> alt2freqs = new ArrayList<Long>();
+		List<Long> quartcount = new ArrayList<Long>();
+		List<Integer> effn = new ArrayList<Integer>();
+		
+		
+		for (TNode n: st.postTraverse()) {
+			STINode node = (STINode) n;
+			if (node.isLeaf()) {
+				stack.push((STITreeCluster) node.getData());
+			} else {
+				STITreeCluster cluster = (STITreeCluster) node.getData();				
+				if (node.isRoot() || node.getChildCount() > 2 || (node.getParent().getChildCount() >3) ||
+						(node.getParent().getChildCount() >2 && !node.getParent().isRoot()) ) {
+					for (int i =0; i< node.getChildCount(); i++) {
+						stack.pop();
+					}
+					stack.push(cluster);
+					continue;
+				}
+				
+				STITreeCluster c1 = stack.pop();
+				STITreeCluster c2 = stack.pop();
+				stack.push(cluster);
+				
+				STITreeCluster sister;
+				STITreeCluster remaining;
+				Iterator<STINode> pcit = node.getParent().getChildren().iterator();
+				STINode pc = pcit.next();
+				if ( pc == n ) pc = pcit.next(); 
+				sister = (STITreeCluster)pc.getData();
+				if (node.getParent().isRoot() && node.getParent().getChildCount() == 3) {
+					pc = pcit.next();
+					if (pc == n) pc = pcit.next(); 
+					remaining = (STITreeCluster)pc.getData();;					
+				} else {
+					remaining = ((STITreeCluster)node.getParent().getData()).complementaryCluster();
+				}
+				Quadrapartition quad = weightCalculator2.new Quadrapartition
+						(c1,  c2, sister, remaining);
+				Results s = weightCalculator2.getWeight(quad);
+				mainfreqs.add(s.qs);
+				effn.add(s.effn);
+				//System.err.println(s.effn + " " + quad);
+				
+				quad = weightCalculator2.new Quadrapartition
+						(c1, sister, c2, remaining);
+				s = weightCalculator2.getWeight(quad);
+				alt1freqs.add(s.qs);
+				
+				quad = weightCalculator2.new Quadrapartition
+						(c1, remaining, c2, sister);
+				s = weightCalculator2.getWeight(quad);
+				alt2freqs.add(s.qs);
+				
+				quartcount.add( (c1.getClusterSize()+0l)
+						* (c2.getClusterSize()+0l)
+						* (sister.getClusterSize()+0l)
+						* (remaining.getClusterSize()+0l));
+			}
+		}
+		int i = 0;
+		
+		DecimalFormat df = new DecimalFormat();
+		df.setMaximumFractionDigits(2);
+		
+		for (TNode n: st.postTraverse()) {
+			STINode node = (STINode) n;
+			if (node.isLeaf() || node.isRoot() ||
+					(node.getParent().isRoot() && node.getParent().getChildCount() ==2)) {
+				node.setData(null);
+			} else{
+				if (node.isRoot() || node.getChildCount() > 2 || (node.getParent().getChildCount() >3) ||
+						(node.getParent().getChildCount() >2 && !node.getParent().isRoot()) ) {
+					node.setData(null);
+					continue;
+				}
+				Long p = mainfreqs.get(i);
+				Long a1 = alt1freqs.get(i);
+				Long a2 = alt2freqs.get(i);
+				Long quarc = quartcount.get(i);
+				Integer effni = effn.get(i);
+				Long sum = p+a1+a2;
+				
+				Posterior post = new Posterior(
+						(double)p,(double)a1,(double) a2,(double)effni, options.getLambda());
+				double bl = post.branchLength();
+				
+				node.setParentDistance(bl);
+				if (this.getBranchAnnotation() == 0){
+					node.setData(null);
+				} else if (this.getBranchAnnotation() == 1){
+					node.setData(df.format((p+.0)/sum*100));
+				} else {
+					double postQ1 = post.getPost();
+					
+					if (this.getBranchAnnotation() == 3) {
+						node.setData(df.format(postQ1));
+					} else if (this.getBranchAnnotation() % 2 == 0) {
+						post = new Posterior((double)a1,(double)p,(double)a2,(double)effni, options.getLambda());
+						double postQ2 = post.getPost();
+						//pst_tmp =  new Posterior((double)a2,(double)p,(double)a1,(double)numTrees);
+						double postQ3 = 1.0 - postQ2 - postQ1;
+						
+						if (this.getBranchAnnotation() == 2)
+							node.setData(
+									"'[q1="+(p+.0)/sum+";q2="+(a1+.0)/sum+";q3="+(a2+.0)/sum+
+									 ";f1="+p+";f2="+a1+";f3="+a2+
+									 ";pp1="+postQ1+";pp2="+postQ2+";pp3="+postQ3+
+									 ";QC="+quarc+";EN="+effni+"]'");
+						else if (this.getBranchAnnotation() == 4)
+							node.setData("'[pp1="+df.format(postQ1)+";pp2="+df.format(postQ2)+";pp3="+df.format(postQ3)+"]'");
+					} 
+				}
+				i++;
+			} 
+		}
+		
 	}
 
 
