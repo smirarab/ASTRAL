@@ -24,44 +24,38 @@ import phylonet.util.BitSet;
 
 public abstract class AbstractInference<T> {
 
-	protected boolean rooted = true;
-	protected boolean extrarooted = true;
+	//protected boolean rooted = true;
+	//protected boolean extrarooted = true;
 	protected List<Tree> trees;
 	protected List<Tree> extraTrees = null;
-	protected boolean exactSolution;
+	//protected boolean exactSolution;
 	
 	//protected String[] gtTaxa;
 	//protected String[] stTaxa;
 
 	Collapse.CollapseDescriptor cd = null;
-	private double DLbdWeigth;
-	private double CS;
-	private double CD;
 	
 	AbstractDataCollection<T> dataCollection;
 	AbstractWeightCalculator<T> weightCalculator;
-	private int addExtra;
-	public boolean outputCompleted;
-	boolean searchSpace;
-	private boolean run;
-	private boolean randtie;
+//	private int addExtra;
+//	public boolean outputCompleted;
+//	boolean searchSpace;
+//	private boolean run;
+	protected Options options;
 	
-	public AbstractInference(boolean rooted, boolean extrarooted, List<Tree> trees,
-			List<Tree> extraTrees, boolean exactSolution, int addExtra, 
-			boolean outputCompletedGenes, boolean outSearch, boolean run, boolean randomtiebreaker) {
+	public AbstractInference(Options options, List<Tree> trees,
+			List<Tree> extraTrees) {
 		super();
-		this.rooted = rooted;
-		this.extrarooted = extrarooted;
+		this.options = options;
 		this.trees = trees;
 		this.extraTrees = extraTrees;
-		this.exactSolution = exactSolution;
-		this.addExtra = addExtra;
-		this.outputCompleted = outputCompletedGenes;
-		this.searchSpace = outSearch;
-		this.run = run;
-		this.randtie = randomtiebreaker;
+
 	}
 
+	public boolean isRooted() {
+		return options.isRooted();
+	}
+	
 	protected Collapse.CollapseDescriptor doCollapse(List<Tree> trees) {
 		Collapse.CollapseDescriptor cd = Collapse.collapse(trees);
 		return cd;
@@ -263,7 +257,7 @@ public abstract class AbstractInference<T> {
 		    dataCollection.addExtraBipartitionByExtension(this);
 		}
 		
-		if (exactSolution) {
+		if (options.isExactSolution()) {
 	          System.err.println("calculating all possible bipartitions ...");
 		    dataCollection.addAllPossibleSubClusters(clusters.getTopVertex().getCluster());
 		}
@@ -271,7 +265,7 @@ public abstract class AbstractInference<T> {
 	      
 		if (extraTrees != null && extraTrees.size() > 0) {		
 	        System.err.println("calculating extra bipartitions from extra input trees ...");
-			dataCollection.addExtraBipartitionsByInput(extraTrees,extrarooted);
+			dataCollection.addExtraBipartitionsByInput(extraTrees,options.isExtrarooted());
 			int s = clusters.getClusterCount();
 			/*
 			 * for (Integer c: clusters2.keySet()){ s += clusters2.get(c).size(); }
@@ -280,7 +274,7 @@ public abstract class AbstractInference<T> {
 					+ s);
 		}
 		
-		if (this.searchSpace) {
+		if (this.options.isOutputSearchSpace()) {
 			for (Set<Vertex> s: dataCollection.clusters.getSubClusters()) {
 				for (Vertex v : s) {
 					System.out.println(v.getCluster());
@@ -293,7 +287,7 @@ public abstract class AbstractInference<T> {
 		System.err.println("partitions formed in "
 			+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 
-		if (! run ) {
+		if (! this.options.isRunSearch() ) {
 			System.exit(0);
 		}
 		weightCalculator.preCalculateWeights(trees, extraTrees);
@@ -323,31 +317,36 @@ public abstract class AbstractInference<T> {
 	abstract Long getTotalCost(Vertex all);
 	
 	public double getDLbdWeigth() {
-		return DLbdWeigth;
+		return options.getDLbdWeigth();
 	}
 
-	public void setDLbdWeigth(double dLbdWeigth) {
-		DLbdWeigth = dLbdWeigth;
-	}
-
+	
 	public double getCS() {
-		return CS;
+		return options.getCS();
 	}
 
-	public void setCS(double cS) {
-		CS = cS;
-	}
+	
 
 	public double getCD() {
-		return CD;
+		return options.getCD();
 	}
 
-	public void setCD(double cD) {
-		CD = cD;
-	}
-
+	
     public int getAddExtra() {
-        return addExtra;
+        return options.getAddExtra();
     }
+
+	public int getBranchAnnotation() {
+		return this.options.getBranchannotation();
+	}
+
+	public boolean shouldOutputCompleted() {
+		
+		return options.isOutputCompletedGenes();
+	}
+
+	public void setDLbdWeigth(double d) {
+		options.setDLbdWeigth(d);
+	}
 
 }
