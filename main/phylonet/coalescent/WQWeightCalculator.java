@@ -112,7 +112,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			
 		}
 		
-		long calculateMissingWeight2() {
+		long calculateWeightByTraversal() {
 			long weight = 0;
 			Intersects  allsides = null;
 			Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
@@ -194,7 +194,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 		public Long calculateWeight() {
 			Long r = dataCollection.geneTreesAsInts != null? 
-					calculateMissingWeight2():
+					calculateWeightByTraversal():
 						calculateMissingWeight();
 			return r;
 		}
