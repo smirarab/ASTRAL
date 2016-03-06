@@ -1,3 +1,7 @@
+- version 4.10.0:
+	- Merge branch length and support calculation with the main branch
+	- Update documentation.
+	 
 - version 4.9.9:
 	- New Feature: ability to set lambda (the prior parameter) using `-c`
 	- Some internal code refactoring
