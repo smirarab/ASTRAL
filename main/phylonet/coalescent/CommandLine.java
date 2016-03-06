@@ -38,7 +38,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.9.9";
+    protected static String _versinon = "4.10.0";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -83,7 +83,7 @@ public class CommandLine {
                             't', "branch-annotate",
                             "How much annotations should be added to each branch: 0, 1, or 2. \n"
                             + "0: no annotations. \n"
-                            + "1: only quartet support for main resolution. \n"
+                            + "1: only the quartet support for the main resolution. \n"
                             + "2: full annotation (quartet support, quartet frequency, and posterior probability for all three alternatives, "
                                + "plus total number of quartets around the branch and effective number of genes).\n"
                             + "3 (default): only the posterior probability for the main resolution.\n"
