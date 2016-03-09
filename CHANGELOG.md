@@ -1,3 +1,8 @@
+- version 4.10.1:
+	- BUG FIX: Branch lengths could be negative in rare situations (few genes). This was because checks were for ML instead of MAP. 
+	- Some extra stuff were outputted to the log. Removed. 
+	- BUG FIX: For scoring a tree, the output was written to stdout instead of `-o`
+
 - version 4.10.0:
 	- Merge branch length and support calculation with the main branch
 	- Update documentation.
