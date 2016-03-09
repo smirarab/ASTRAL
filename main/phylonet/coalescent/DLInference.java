@@ -79,7 +79,7 @@ public class DLInference extends AbstractInference<STBipartition> {
 	    return Math.max(ret-1,0);
 	}
 	
-	public void scoreGeneTree(Tree st) {
+	public void scoreGeneTree(Tree st, boolean init) {
 		// first calculated duplication cost by looking at gene trees. 
 		
 		SchieberVishkinLCA lcaLookup = new SchieberVishkinLCA(st);
