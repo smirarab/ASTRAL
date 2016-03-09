@@ -38,7 +38,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.10.0";
+    protected static String _versinon = "4.10.1";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -329,6 +329,10 @@ public class CommandLine {
         
         Options options = newOptions(criterion, rooted, extrarooted, 
         		1.0D, 1.0D, wh, keepOptions, config);
+        
+        /*Options bsoptions = newOptions(criterion, rooted, extrarooted, 
+        		1.0D, 1.0D, wh, keepOptions, config);
+        bsoptions.setBranchannotation(0);*/
        
         if (config.getFile("score species trees") != null) {
         	List<Tree> toScore = readInputTrees(
@@ -338,10 +342,11 @@ public class CommandLine {
             AbstractInference inference =
                     initializeInference(criterion, mainTrees, extraTrees, options);
         	for (Tree tr : toScore) {
-        		inference.scoreGeneTree(tr);
-            	System.out.println(tr.toNewickWD());
+        		inference.scoreGeneTree(tr, true);
+                writeTreeToFile(outbuffer, tr);
         	}
         	
+        	outbuffer.close();
         	System.exit(0);
         }
         
@@ -500,7 +505,7 @@ public class CommandLine {
         st.rerootTreeAtNode(st.getNode(outgroup));
 		Trees.removeBinaryNodes((MutableTree) st);
    
-		inference.scoreGeneTree(st);
+		inference.scoreGeneTree(st, false);
 		
         if ((bootstraps != null) && (bootstraps.iterator().hasNext())) {
             for (Solution solution : solutions) {
@@ -644,84 +649,5 @@ public class CommandLine {
 		}
     }
 
-
-    /*      System.out.println("\t-st species tree file: The file containing a species tree to be scored.\n" +
-    "\t                       If this option is provided the software only scores the species tree.");
-System.out.println("\t-a mapping file: The file containing the mapping from alleles to speceis if multiple alleles sampled.\n" +
-    "\t                 Alternatively, two reqular expressions for automatic name conversion (optional)");
-*/
-//System.out.println("\t-u treat input gene trees as unrooted (Not implemented!)");
-//System.out.println("\t-xu treat extra trees input gene trees as unrooted (Not implemented!)");
-/*System.out.println("\t-cs and -cd: these two EXPERIMENTAL options set two parameters (cs and cd) to a value between 0 and 1. \n" +
-   "\t    For any cluster C if |C| >= cs*|taxa|, we add complementary clusters (with respect to C) of all subclusters of C\n" +
-   "\t    if size of the subcluster is >= cd*|C|.\n" +
-   "\t    By default cs = cd = 1; so no extra clusters are added. Lower cs and cd values could result in better scores\n" +
-   "\t    (especially when gene trees have missing data) but can also increase the running time quite substantially.");
-*/
-//System.out.println("\t-f perform fast and less-accurate subtree-bipartition based search (Not implemented!).");
-
-/*      
-if (option[0].equals("-st")) {
-    if (option.length != 2) {
-        printUsage();
-        return;
-    }                   
-    BufferedReader tmp = new BufferedReader(new FileReader(
-            option[1]));
-    line = tmp.readLine();
-    NewickReader nr = new NewickReader(new StringReader(line));
-    scorest = new STITree(true);
-    nr.readTree(scorest);               
-} else if (option[0].equals("-a")) {
-    if ( (option.length != 2) && (option.length != 3)) {
-        printUsage();
-        return;
-    }
-    if (option.length == 2) {
-        else {
-        pattern = option[1];
-        rep = option [2];
-        if (rep.equals("/delete/")) {
-            rep = "";
-        }
-    }
-} else if (option[0].equals("-cs")) {
-    if (option.length != 2) {
-        printUsage();
-        return;
-    }
-    try {
-        cs = Double.parseDouble(option[1]);
-        if ((cs <= 1.0D) && (cs >= 0.0D))
-            continue;
-        printUsage();
-        return;
-    } catch (NumberFormatException e) {
-        System.err.println("Error in reading parameter");
-        printUsage();
-        return;
-    }
-
-} else if (option[0].equals("-cd")) {
-    if (option.length != 2) {
-        printUsage();
-        return;
-    }
-    try {
-        cd = Double.parseDouble(option[1]);
-        if ((cd <= 1.0D) && (cd >= 0.0D))
-            continue;
-        printUsage();
-        return;
-    } catch (NumberFormatException e) {
-        System.err.println("Error in reading parameter");
-        printUsage();
-        return;
-    }
-
-} 
-}
-
-*/
 
 }
