@@ -71,7 +71,7 @@ public class Posterior extends cern.jet.math.Constants{
 	
 	public double branchLength(){
 		Double bl = 0.;
-		if (m1/n >1./3) {
+		if ((m1/(n+2*lambda)) >1./3) {
 			bl = -Math.log(1.5*(1.0-(m1/(n+2*lambda))));
 		} else {
 			bl = 0.0;
