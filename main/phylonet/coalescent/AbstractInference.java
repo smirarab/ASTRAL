@@ -1,5 +1,7 @@
 package phylonet.coalescent;
 
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -42,6 +44,7 @@ public abstract class AbstractInference<T> {
 //	boolean searchSpace;
 //	private boolean run;
 	protected Options options;
+	DecimalFormat df;
 	
 	public AbstractInference(Options options, List<Tree> trees,
 			List<Tree> extraTrees) {
@@ -49,6 +52,12 @@ public abstract class AbstractInference<T> {
 		this.options = options;
 		this.trees = trees;
 		this.extraTrees = extraTrees;
+		
+		df = new DecimalFormat();
+		df.setMaximumFractionDigits(2);
+		DecimalFormatSymbols dfs = DecimalFormatSymbols.getInstance();
+		dfs.setDecimalSeparator('.');
+		df.setDecimalFormatSymbols(dfs);
 
 	}
 
