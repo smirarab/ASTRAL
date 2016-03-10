@@ -1,3 +1,7 @@
+- version 4.10.2:
+	- Bug fix: when in rome do as the americans do. For people using European machines, the support values were printed with a comma, wreaking havoc in the newick format. Has to use US format for those to fix this.
+
+
 - version 4.10.1:
 	- BUG FIX: Branch lengths could be negative in rare situations (few genes). This was because checks were for ML instead of MAP. 
 	- Some extra stuff were outputted to the log. Removed. 

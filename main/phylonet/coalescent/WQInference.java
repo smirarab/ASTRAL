@@ -1,14 +1,11 @@
 package phylonet.coalescent;
-import phylonet.coalescent.BipartitionWeightCalculator.Results;
-import phylonet.coalescent.Posterior;
-
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Stack;
 
 import phylonet.coalescent.BipartitionWeightCalculator.Quadrapartition;
+import phylonet.coalescent.BipartitionWeightCalculator.Results;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STINode;
@@ -49,7 +46,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 		
 		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
 		long sum = 0l;
-		long maxsum = 0l;
+		//long maxsum = 0l;
 		for (TNode node: st.postTraverse()) {
 			if (node.isLeaf()) {
 				String nodeName = node.getName(); //GlobalMaps.TaxonNameMap.getSpeciesName(node.getName());
@@ -216,9 +213,6 @@ public class WQInference extends AbstractInference<Tripartition> {
 			}
 		}
 		int i = 0;
-		
-		DecimalFormat df = new DecimalFormat();
-		df.setMaximumFractionDigits(2);
 		
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;

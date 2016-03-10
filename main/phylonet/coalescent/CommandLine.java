@@ -38,7 +38,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.10.1";
+    protected static String _versinon = "4.10.2";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -185,8 +185,8 @@ public class CommandLine {
 
     public static void main(String[] args) throws Exception{
 		
-	long startTime = System.currentTimeMillis();
-	
+    	long startTime = System.currentTimeMillis();
+
         SimpleJSAP jsap;		
         JSAPResult config;
         int criterion = 2; // 2 for ASTRAL, 0 for dup, 1 for duploss
