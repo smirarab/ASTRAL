@@ -72,7 +72,11 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
         }
         
         public boolean hasEmpty() {
-        	return (this.s0 * this.s1 * this.s2 * this.s3) == 0;
+        	return this.maxPossible() == 0;
+        }
+        
+        public long maxPossible() {
+        	return (this.s0 * this.s1 * this.s2 * this.s3);
         }
 	}
 
@@ -107,26 +111,27 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 	}
 	
 	class Results {
-		long qs;
+		double qs;
 		int effn;
 		
-		Results (long q, int n){
+		Results (double q, int n){
 			qs = q;
 			effn = n;
 		}
 	}
 
 	public Results getWeight(Quadrapartition quad) {
-		long weight = 0l;
-		Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
-		
+		long fi = 0l;
+		long mi = 0l;
+		double weight = 0l;
 		int effectiven = 0;
-
-		Deque<Intersects> stack = new ArrayDeque<Intersects>();
-
 		Intersects  allsides = null;
 		boolean newTree = true;
 		boolean cruise = false;
+		
+		Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
+		Deque<Intersects> stack = new ArrayDeque<Intersects>();
+
 
 		for (Integer gtb: dataCollection.geneTreesAsInts){
 			//n++;
@@ -139,7 +144,9 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 						quad.cluster4.getBitSet().intersectionSize(all.getBitSet())
 						);
 				newTree = false;
-				if (! allsides.hasEmpty()) {
+				mi = allsides.maxPossible();
+				
+				if ( mi != 0) {
 					effectiven++;
 				} else {
 					cruise = true;
@@ -147,9 +154,17 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 				//sum +=  F(allsides.s0, allsides.s1, allsides.s2, allsides.s3);
 			}
 			if (gtb == Integer.MIN_VALUE) {
+				if (!cruise) {
+					double efffreq = (fi+0.0)/(2.0*mi);
+					/*if (efffreq != 1 && efffreq != 0)
+						System.err.println(efffreq);*/
+					weight += efffreq;
+				}
 				stack.clear();
 				newTree = true;
 				cruise = false;
+				fi = 0;
+				mi = 0;
 			} else {
 				if (cruise) continue;
 				if (gtb >= 0){
@@ -162,7 +177,7 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 					Intersects side3 = new Intersects(allsides);
 					side3.subtract(newSide);
 	
-					weight+= allcases(side1, side2, side3);
+					fi+= allcases(side1, side2, side3);
 	
 					//geneTreesAsIntersects[n] = newSide;
 				} else {
@@ -205,7 +220,7 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 	                        
 	                        for (int k = j+1; k < children.size(); k++) {
 	                            Intersects side3 = children.get(k);
-	                            weight += allcases(side1,side2,side3);
+	                            fi += allcases(side1,side2,side3);
 	                        }
 	                    }
 	                }
@@ -213,7 +228,7 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 			}
 		}
 
-		return  new Results(weight/2,effectiven);
+		return  new Results(weight,effectiven);
 	}
 	
 /*	private boolean checkFutileCalcs(Intersects side1, Intersects side2) {
