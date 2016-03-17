@@ -150,9 +150,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 			}
 		}
 		stack = new Stack<STITreeCluster>();
-		List<Long> mainfreqs = new ArrayList<Long>();
-		List<Long> alt1freqs = new ArrayList<Long>();
-		List<Long> alt2freqs = new ArrayList<Long>();
+		List<Double> mainfreqs = new ArrayList<Double>();
+		List<Double> alt1freqs = new ArrayList<Double>();
+		List<Double> alt2freqs = new ArrayList<Double>();
 		List<Long> quartcount = new ArrayList<Long>();
 		List<Integer> effn = new ArrayList<Integer>();
 		
@@ -225,37 +225,37 @@ public class WQInference extends AbstractInference<Tripartition> {
 					node.setData(null);
 					continue;
 				}
-				Long p = mainfreqs.get(i);
-				Long a1 = alt1freqs.get(i);
-				Long a2 = alt2freqs.get(i);
+				Double f1 = mainfreqs.get(i);
+				Double f2 = alt1freqs.get(i);
+				Double f3 = alt2freqs.get(i);
 				Long quarc = quartcount.get(i);
 				Integer effni = effn.get(i);
-				Long sum = p+a1+a2;
+				//Long sum = p+a1+a2;
 				
 				Posterior post = new Posterior(
-						(double)p,(double)a1,(double) a2,(double)effni, options.getLambda());
+						f1,f2,f3,(double)effni, options.getLambda());
 				double bl = post.branchLength();
 				
 				node.setParentDistance(bl);
 				if (this.getBranchAnnotation() == 0){
 					node.setData(null);
 				} else if (this.getBranchAnnotation() == 1){
-					node.setData(df.format((p+.0)/sum*100));
+					node.setData(df.format((f1+.0)/effni*100));
 				} else {
 					double postQ1 = post.getPost();
 					
 					if (this.getBranchAnnotation() == 3) {
 						node.setData(df.format(postQ1));
 					} else if (this.getBranchAnnotation() % 2 == 0) {
-						post = new Posterior((double)a1,(double)p,(double)a2,(double)effni, options.getLambda());
+						post = new Posterior(f2,f1,f3,(double)effni, options.getLambda());
 						double postQ2 = post.getPost();
-						//pst_tmp =  new Posterior((double)a2,(double)p,(double)a1,(double)numTrees);
-						double postQ3 = 1.0 - postQ2 - postQ1;
+						post =  new Posterior(f3,f1,f2,(double)effni, options.getLambda());
+						double postQ3 = post.getPost();
 						
 						if (this.getBranchAnnotation() == 2)
 							node.setData(
-									"'[q1="+(p+.0)/sum+";q2="+(a1+.0)/sum+";q3="+(a2+.0)/sum+
-									 ";f1="+p+";f2="+a1+";f3="+a2+
+									"'[q1="+(f1)/effni+";q2="+(f2)/effni+";q3="+(f3)/effni+
+									 ";f1="+f1+";f2="+f2+";f3="+f3+
 									 ";pp1="+postQ1+";pp2="+postQ2+";pp3="+postQ3+
 									 ";QC="+quarc+";EN="+effni+"]'");
 						else if (this.getBranchAnnotation() == 4)
