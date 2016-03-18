@@ -155,7 +155,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 		List<Double> alt2freqs = new ArrayList<Double>();
 		List<Long> quartcount = new ArrayList<Long>();
 		List<Integer> effn = new ArrayList<Integer>();
-		
+		List< Quadrapartition []> quads = new ArrayList<Quadrapartition[]>();
+		List<STBipartition[]> bipartitions = new ArrayList<STBipartition[]>();
 		
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
@@ -201,15 +202,37 @@ public class WQInference extends AbstractInference<Tripartition> {
 				s = weightCalculator2.getWeight(quad);
 				alt1freqs.add(s.qs);
 				
+				Quadrapartition[] threequads = new Quadrapartition [] {quad, null,null};
+				
 				quad = weightCalculator2.new Quadrapartition
 						(c1, remaining, c2, sister);
 				s = weightCalculator2.getWeight(quad);
 				alt2freqs.add(s.qs);
+				threequads[1] = quad;
 				
-				quartcount.add( (c1.getClusterSize()+0l)
-						* (c2.getClusterSize()+0l)
-						* (sister.getClusterSize()+0l)
-						* (remaining.getClusterSize()+0l));
+				if (this.getBranchAnnotation() == 6) {
+					quartcount.add( (c1.getClusterSize()+0l)
+							* (c2.getClusterSize()+0l)
+							* (sister.getClusterSize()+0l)
+							* (remaining.getClusterSize()+0l));
+					threequads[2] = quad;
+					
+					STITreeCluster c1plussis = new STITreeCluster();
+					c1plussis.setCluster((BitSet) c1.getBitSet().clone());
+					c1plussis.getBitSet().or(sister.getBitSet());
+					STITreeCluster c1plusrem = new STITreeCluster();
+					c1plusrem.setCluster((BitSet) c1.getBitSet().clone());
+					c1plusrem.getBitSet().or(remaining.getBitSet());
+					
+					STBipartition bmain = new STBipartition(cluster, cluster.complementaryCluster());
+					STBipartition b2 = new STBipartition(c1plussis, c1plussis.complementaryCluster());
+					STBipartition b3 = new STBipartition(c1plusrem, c1plusrem.complementaryCluster());
+	
+					STBipartition[] biparts = new STBipartition[] {bmain, b2, b3};
+					quads.add(threequads);
+					bipartitions.add(biparts);
+				}
+				
 			}
 		}
 		int i = 0;
@@ -258,9 +281,22 @@ public class WQInference extends AbstractInference<Tripartition> {
 									 ";f1="+f1+";f2="+f2+";f3="+f3+
 									 ";pp1="+postQ1+";pp2="+postQ2+";pp3="+postQ3+
 									 ";QC="+quarc+";EN="+effni+"]'");
-						else if (this.getBranchAnnotation() == 4)
+						else if (this.getBranchAnnotation() == 4) {
 							node.setData("'[pp1="+df.format(postQ1)+";pp2="+df.format(postQ2)+";pp3="+df.format(postQ3)+"]'");
-					} 
+						} else if (this.getBranchAnnotation() == 6){
+							Quadrapartition[] threequads = quads.get(i);
+							STBipartition[] biparts = bipartitions.get(i);
+							System.err.println(threequads[0] +
+									" [" + biparts[0].toString2() +"] : "+postQ1 +" ** f1 = "+f1+
+									" f2 = "+f2+" f3 = "+f3+" EN = "+ effni+" **");
+							System.err.println(threequads[1] +
+									" ["+biparts[1].toString2()+"] : "+postQ2+ " ** f1 = "+f2+
+									" f2 = "+f1+" f3 = "+f3+" EN = "+ effni+" **");
+							System.err.println(threequads[2] +
+									" ["+biparts[2].toString2()+"] : "+postQ3+ " ** f1 = "+f3+
+									" f2 = "+f1+" f3 = "+f2+" EN = "+ effni+" **");
+						}
+					}
 				}
 				i++;
 			} 
