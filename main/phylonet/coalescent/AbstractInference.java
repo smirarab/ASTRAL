@@ -54,7 +54,7 @@ public abstract class AbstractInference<T> {
 		this.extraTrees = extraTrees;
 		
 		df = new DecimalFormat();
-		df.setMaximumFractionDigits(3);
+		df.setMaximumFractionDigits(2);
 		DecimalFormatSymbols dfs = DecimalFormatSymbols.getInstance();
 		dfs.setDecimalSeparator('.');
 		df.setDecimalFormatSymbols(dfs);
