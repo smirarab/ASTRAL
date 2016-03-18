@@ -19,6 +19,11 @@ public class Posterior extends cern.jet.math.Constants{
 	 	this.f2 = ft2;
 		this.f3 = ft3;
 		this.n  = nt;
+		if (this.f1+this.f2+this.f3 != this.n) {
+			if (DEBUG)
+				System.err.println("Is there a polytomy in a gene tree? "+ (this.f1+this.f2+this.f3)/ this.n);
+			this.n = (this.f1+this.f2+this.f3);
+		}
 		this.lambda = lambda;
 		//posterior=post();
 	}
