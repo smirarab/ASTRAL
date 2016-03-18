@@ -13,7 +13,7 @@ public class Tripartition {
 		STITreeCluster c3 = new STITreeCluster(c1);
 		c3.getBitSet().or(c2.getBitSet());
 		c3.getBitSet().flip(0,c1.getBitSet().size());
-		initialize(c1, c2, c3);
+		initialize(c1, c2, c3); 
 	}
 	
 	public Tripartition(STITreeCluster c1, STITreeCluster c2, STITreeCluster c3) {
