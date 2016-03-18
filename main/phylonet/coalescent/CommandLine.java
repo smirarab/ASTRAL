@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
+import java.util.TreeSet;
 
 import phylonet.tree.io.NewickReader;
 import phylonet.tree.io.ParseException;
@@ -301,7 +302,8 @@ public class CommandLine {
 
         	mainTrees = readInputTrees(
         			readTreeFileAsString(config.getFile("input file")),
-        					rooted, true, false, minleaves);			
+        					rooted, true, false, minleaves, 
+        					config.getInt("branch annotation level"));			
             k = mainTrees.size();
             System.err.println(k+" trees read from " + config.getFile("input file"));
             
@@ -337,7 +339,7 @@ public class CommandLine {
         if (config.getFile("score species trees") != null) {
         	List<Tree> toScore = readInputTrees(
         			readTreeFileAsString(config.getFile("score species trees")),
-                     rooted, true, true, null);
+                     rooted, true, true, null, 1);
         	
             AbstractInference inference =
                     initializeInference(criterion, mainTrees, extraTrees, options);
@@ -375,7 +377,7 @@ public class CommandLine {
             if (config.getFile("extra trees") != null) {
             	extraTrees = readInputTrees(
                 	readTreeFileAsString(config.getFile("extra trees")), 
-                        extrarooted, true, false, null);
+                        extrarooted, true, false, null, 1);
                 System.err.println(extraTrees.size() + " extra trees read from "
                         + config.getFile("extra trees"));
             }
@@ -383,7 +385,7 @@ public class CommandLine {
             if (config.getFile("extra species trees") != null) {
             	extraTrees = readInputTrees(
                 	readTreeFileAsString(config.getFile("extra species trees")), 
-                        extrarooted, true, true, null);
+                        extrarooted, true, true, null, 1);
                 System.err.println(extraTrees.size() + " extra trees read from "
                         + config.getFile("extra trees"));
             }
@@ -464,7 +466,7 @@ public class CommandLine {
 	        System.err.println("\n======== Running bootstrap replicate " + j++);
 	        bootstraps.add(runOnOneInput(criterion, 
 	                 extraTrees, outbuffer, 
-                    readInputTrees(input, rooted, false, false, minleaves),
+                    readInputTrees(input, rooted, false, false, minleaves, config.getInt("branch annotation level")),
                     null, outgroup, options));
 		}
 	    
@@ -572,12 +574,13 @@ public class CommandLine {
 
     private static List<Tree> readInputTrees(List<String> lines, 
     		boolean rooted, boolean checkCompleteness, boolean stLablel,
-    		Integer minleaves)
+    		Integer minleaves, int annotation)
     				throws FileNotFoundException, IOException {
     	List<Tree> trees = new ArrayList<Tree>();
     	List<Integer> skipped = new Stack<Integer>();
     	int l = 0;			
     	try {
+    		TreeSet<String> allleaves = new TreeSet<String>();
     		for (String line : lines) {
     			l++;
     			Set<String> previousTreeTaxa = new HashSet<String>();
@@ -617,16 +620,24 @@ public class CommandLine {
     				if (stLablel) {
     					GlobalMaps.taxonNameMap.getSpeciesIdMapper().stToGt((MutableTree) tr);
     				}
-    				String[] leaves = tr.getLeaves();
-    				for (int i = 0; i < leaves.length; i++) {
-    					//if (!stLablel) {
-    						GlobalMaps.taxonIdentifier.taxonId(leaves[i]);
-    						//} else {
-    						//   GlobalMaps.taxonNameMap.getSpeciesIdMapper().speciesId(leaves[i]);
-    						//}
+    				String[] leaves = tr.getLeaves().clone();
+    				if (annotation != 6) {
+	    				for (int i = 0; i < leaves.length; i++) {
+	    					//if (!stLablel) {
+	    						GlobalMaps.taxonIdentifier.taxonId(leaves[i]);
+	    						//} else {
+	    						//   GlobalMaps.taxonNameMap.getSpeciesIdMapper().speciesId(leaves[i]);
+	    						//}
+	    				}
+    				} else{
+    					allleaves.addAll(Arrays.asList(leaves));
     				}
     			}
-
+    			if (annotation == 6) {
+	    			for (String leaf: allleaves) {
+						GlobalMaps.taxonIdentifier.taxonId(leaf);
+	    			}
+    			}
     		}
     	} catch (ParseException e) {
     		throw new RuntimeException("Failed to Parse Tree number: " + l ,e);
