@@ -132,7 +132,6 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 		Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
 		Deque<Intersects> stack = new ArrayDeque<Intersects>();
 
-
 		for (Integer gtb: dataCollection.geneTreesAsInts){
 			//n++;
 			if (newTree) {
