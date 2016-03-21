@@ -109,7 +109,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 		//System.out.println(st.toNewickWD());
 		this.scoreBranches(st);
 	}
-
+	
+	
 	
 	public void scoreBranches(Tree st) {
 
@@ -187,7 +188,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 					pc = pcit.next();
 					if (pc == n) pc = pcit.next(); 
 					remaining = (STITreeCluster)pc.getData();;					
-				} else {
+				} /* else if (node.getParent().isRoot() && node.getParent().getChildCount() == 2) {
+					continue;
+				} */ 
+				else {
 					remaining = ((STITreeCluster)node.getParent().getData()).complementaryCluster();
 				}
 				Quadrapartition quad = weightCalculator2.new Quadrapartition
@@ -197,26 +201,27 @@ public class WQInference extends AbstractInference<Tripartition> {
 				effn.add(s.effn);
 				//System.err.println(s.effn + " " + quad);
 				
+				Quadrapartition[] threequads = new Quadrapartition [] {quad, null,null};
+				
 				quad = weightCalculator2.new Quadrapartition
 						(c1, sister, c2, remaining);
 				s = weightCalculator2.getWeight(quad);
 				alt1freqs.add(s.qs);
-				
-				Quadrapartition[] threequads = new Quadrapartition [] {quad, null,null};
+				threequads[1] = quad;
 				
 				quad = weightCalculator2.new Quadrapartition
 						(c1, remaining, c2, sister);
 				s = weightCalculator2.getWeight(quad);
 				alt2freqs.add(s.qs);
-				threequads[1] = quad;
-				
-				if (this.getBranchAnnotation() == 6) {
-					quartcount.add( (c1.getClusterSize()+0l)
-							* (c2.getClusterSize()+0l)
-							* (sister.getClusterSize()+0l)
-							* (remaining.getClusterSize()+0l));
-					threequads[2] = quad;
+				threequads[2] = quad;
+			
+				quartcount.add( (c1.getClusterSize()+0l)
+						* (c2.getClusterSize()+0l)
+						* (sister.getClusterSize()+0l)
+						* (remaining.getClusterSize()+0l));
+
 					
+				if (this.getBranchAnnotation() == 6) {
 					STITreeCluster c1plussis = new STITreeCluster();
 					c1plussis.setCluster((BitSet) c1.getBitSet().clone());
 					c1plussis.getBitSet().or(sister.getBitSet());
