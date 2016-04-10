@@ -82,7 +82,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 						System.err.print(chid.getClusterSize()+" ");
 					}
 					System.err.println(" (polytomy)");
-					if (this.getBranchAnnotation() == 4) {
+					if (this.getBranchAnnotation() % 2 == 0) {
 						continue;
 					}
 				}
@@ -107,7 +107,12 @@ public class WQInference extends AbstractInference<Tripartition> {
 		System.err.println("Quartet score is: " + sum/4l);
 		System.err.println("Normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
 		//System.out.println(st.toNewickWD());
+		
 		this.scoreBranches(st);
+		
+		if (this.getBranchAnnotation() == 12) {
+			
+		}
 	}
 	
 	
@@ -269,6 +274,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 					node.setData(null);
 				} else if (this.getBranchAnnotation() == 1){
 					node.setData(df.format((f1+.0)/effni*100));
+				} else if (this.getBranchAnnotation() == 10) {
+					df.setMaximumFractionDigits(5);
+					node.setData(df.format(post.getPvalue()));
 				} else {
 					double postQ1 = post.getPost();
 					
@@ -301,6 +309,11 @@ public class WQInference extends AbstractInference<Tripartition> {
 							System.err.println(threequads[2] +
 									" ["+biparts[2].toString2()+"] : "+postQ3+ " ** f1 = "+f3+
 									" f2 = "+f1+" f3 = "+f2+" EN = "+ effni+" **");
+						}  else if (this.getBranchAnnotation() == 8){
+							node.setData(
+									"'[q1="+df.format((f1)/effni)+
+									 ";q2="+df.format((f2)/effni)+
+									 ";q3="+df.format((f3)/effni)+"]'");
 						}
 					}
 				}
