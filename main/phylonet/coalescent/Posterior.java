@@ -166,7 +166,7 @@ public class Posterior extends cern.jet.math.Constants{
 		 Posterior p = new Posterior(m1, m2, m3, n, 0.5);
 		 p.f1 = m1;p.f2 = m2;p.f3 = m3;
 		 System.out.println(p.getPost());
-		 System.out.println(p.getPvalue());
+		 System.out.println(p.getPvalue()); 
 
 	 }
 }
