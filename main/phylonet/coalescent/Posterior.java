@@ -104,19 +104,38 @@ public class Posterior extends cern.jet.math.Constants{
 		double f3n = this.f3;
 		x=Math.pow((f1-fThird),2)/fThird+Math.pow((f2-fThird),2)/fThird+Math.pow((f3-fThird),2)/fThird;
 		if (f1 < 5) {
-			f1n = f1 + 5;
+			f1n = 5;
 		}
 		if (f2 < 5) {
-			f2n = f2 + 5;
+			f2n = 5;
 		}
 		if (f3 < 5) {
-			f3n = f3 + 5;
+			f3n = 5;
 		}
-		double x2 = Math.pow((f1n-fThird),2)/fThird+Math.pow((f2n-fThird),2)/fThird+Math.pow((f3n-fThird),2)/fThird;
+		double k = Math.max(f1,f2);
+		k = Math.max(k, f3);
+		
+		double nn_tmp = n - f1n - f2n - f3n;
+		k += nn_tmp;
+		
+		double nn = f1n + f2n + f3n;
+		double fThird2 = nn/3.;
+		double x2 = Math.pow((f1n-fThird2),2)/fThird2+Math.pow((f2n-fThird2),2)/fThird2+Math.pow((f3n-fThird2),2)/fThird2;
+		double x3;
+		if (k>f2n && k>f3n) {
+			x3 = Math.pow((k-fThird),2)/fThird+Math.pow((f2n-fThird),2)/fThird+Math.pow((f3n-fThird),2)/fThird;
+		}
+		else if (k>f1n && k > f3n) {
+			x3 = Math.pow((f1n-fThird),2)/fThird+Math.pow((k-fThird),2)/fThird+Math.pow((f3n-fThird),2)/fThird;
+		}
+		else {
+			x3 = Math.pow((f1n-fThird),2)/fThird+Math.pow((f2n-fThird),2)/fThird+Math.pow((k-fThird),2)/fThird;
+		}
+		double p3 = Probability.chiSquareComplemented(2,x3);
 		p = Probability.chiSquareComplemented(2,x);
 		double p2 = Probability.chiSquareComplemented(2,x2);
-		if (Math.abs(p-p2)>0.001) {
-			throw new RuntimeException(MESSAGE + "\n" + f1 + " " + f2 + " " + f3 + " " + n + " " + p + " " + p2);
+		if (Math.abs(p-p2)>0.001 || Math.abs(p-p3)>0.001) {
+			throw new RuntimeException(MESSAGE + "\n" + f1 + " " + f2 + " " + f3 + " " + n + " " + p + " " + p2 + " "+p3);
 		}
 		return p;
 	}
@@ -159,9 +178,9 @@ public class Posterior extends cern.jet.math.Constants{
 		double n  = Double.parseDouble(args[3]);
 		Posterior a = new Posterior(m1,m2,m3,n);
 		System.out.println(a.toString());*/
-		 double m1 = 100;
-		 double m2 = 100;
-		 double n =  340;
+		 double m1 = 0;
+		 double m2 = 0;
+		 double n =  30;
 		 double m3 = n-m1-m2;
 		 Posterior p = new Posterior(m1, m2, m3, n, 0.5);
 		 p.f1 = m1;p.f2 = m2;p.f3 = m3;
