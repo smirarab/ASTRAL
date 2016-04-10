@@ -112,7 +112,9 @@ public class Posterior extends cern.jet.math.Constants{
 		if (f3 < 5) {
 			f3n = f3 + 5;
 		}
-		double x2 = Math.pow((f1n-fThird),2)/fThird+Math.pow((f2n-fThird),2)/fThird+Math.pow((f3n-fThird),2)/fThird;
+		double nn = f1n+f2n+f3n;
+		double fThird2 = nn/3.;
+		double x2 = Math.pow((f1n-fThird2),2)/fThird2+Math.pow((f2n-fThird2),2)/fThird2+Math.pow((f3n-fThird2),2)/fThird2;
 		p = Probability.chiSquareComplemented(2,x);
 		double p2 = Probability.chiSquareComplemented(2,x2);
 		if (Math.abs(p-p2)>0.001) {
@@ -159,9 +161,9 @@ public class Posterior extends cern.jet.math.Constants{
 		double n  = Double.parseDouble(args[3]);
 		Posterior a = new Posterior(m1,m2,m3,n);
 		System.out.println(a.toString());*/
-		 double m1 = 0;
-		 double m2 = 0;
-		 double n =  400;
+		 double m1 = 100;
+		 double m2 = 100;
+		 double n =  320;
 		 double m3 = n-m1-m2;
 		 Posterior p = new Posterior(m1, m2, m3, n, 0.5);
 		 p.f1 = m1;p.f2 = m2;p.f3 = m3;
