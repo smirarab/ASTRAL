@@ -8,6 +8,7 @@ public class Posterior extends cern.jet.math.Constants{
 	private double n;
 	private double posterior = -1;
 	private static double LOG2 = Math.log(2.);
+	private double pValue = -1;
 	final private static String MESSAGE = "This shouldn't haved happened."
 			+ " Maybe you set lambda too high or too low? "
 			+ "Please report the error with the following numbers: ";
@@ -27,6 +28,12 @@ public class Posterior extends cern.jet.math.Constants{
 		this.lambda = lambda;
 		//posterior=post();
 	}
+	public double getPvalue(){
+		if (pValue == -1) {
+			this.pValue = pvalue();
+		}
+		return pValue;
+	}
 	public double getPost(){
 		if (this.posterior == -1) {
 			this.posterior = post();
@@ -37,7 +44,12 @@ public class Posterior extends cern.jet.math.Constants{
 		StringBuffer out = new StringBuffer();
 		out.append(this.getPost());	
 		return  out.toString();
-	}	
+	}
+	public String toString2(){
+		StringBuffer out = new StringBuffer();
+		out.append(this.getPvalue());
+		return out.toString();
+	}
 	public double betaRatio(double alpha1, double beta1, double alpha2, double beta2){
 		double a = Gamma.logGamma(alpha1)+Gamma.logGamma(beta1)-Gamma.logGamma(alpha2)-Gamma.logGamma(beta2);
 		return a;
@@ -83,6 +95,31 @@ public class Posterior extends cern.jet.math.Constants{
 		}
 		return bl;
 	}
+	private double pvalue(){
+		double fThird = n/3.;
+		double p;
+		double x; 
+		double f1n = this.f1;
+		double f2n = this.f2;
+		double f3n = this.f3;
+		x=Math.pow((f1-fThird),2)/fThird+Math.pow((f2-fThird),2)/fThird+Math.pow((f3-fThird),2)/fThird;
+		if (f1 < 5) {
+			f1n = f1 + 5;
+		}
+		if (f2 < 5) {
+			f2n = f2 + 5;
+		}
+		if (f3 < 5) {
+			f3n = f3 + 5;
+		}
+		double x2 = Math.pow((f1n-fThird),2)/fThird+Math.pow((f2n-fThird),2)/fThird+Math.pow((f3n-fThird),2)/fThird;
+		p = Probability.chiSquareComplemented(2,x);
+		double p2 = Probability.chiSquareComplemented(2,x2);
+		if (Math.abs(p-p2)>0.001) {
+			throw new RuntimeException(MESSAGE + "\n" + f1 + " " + f2 + " " + f3 + " " + n + " " + p + " " + p2);
+		}
+		return p;
+	}
 	private double post(){
 		
 		if (this.DEBUG) {
@@ -122,13 +159,14 @@ public class Posterior extends cern.jet.math.Constants{
 		double n  = Double.parseDouble(args[3]);
 		Posterior a = new Posterior(m1,m2,m3,n);
 		System.out.println(a.toString());*/
-		 double m1 = 1000000-30000;
-		 double m2 = 1000000-6000;
-		 double n =  3000000;
+		 double m1 = 0;
+		 double m2 = 0;
+		 double n =  400;
 		 double m3 = n-m1-m2;
-		 Posterior p = new Posterior(10, 10, 10, n, 0.5);
+		 Posterior p = new Posterior(m1, m2, m3, n, 0.5);
 		 p.f1 = m1;p.f2 = m2;p.f3 = m3;
 		 System.out.println(p.getPost());
+		 System.out.println(p.getPvalue());
 
 	 }
 }
