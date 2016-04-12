@@ -113,6 +113,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 		double logscore = this.scoreBranches(st);
 		
 		if (this.getBranchAnnotation() % 12 == 0) {
+			System.err.println("log local posterior: "+logscore);
 			return logscore;
 		} else {
 			return (sum/4l+0.)/this.maxpossible;
@@ -138,6 +139,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 	
 	public double scoreBranches(Tree st) {
 
+		double ret = 0;
+		
 		weightCalculator = new BipartitionWeightCalculator(this);
 		
 		BipartitionWeightCalculator weightCalculator2 = (BipartitionWeightCalculator) weightCalculator;
@@ -271,7 +274,6 @@ public class WQInference extends AbstractInference<Tripartition> {
 		}
 		//int i = 0;
 		NodeData nd = null;
-		double ret = -1;
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
 			
@@ -304,7 +306,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 				node.setData(df.format(post.getPvalue()));
 			} else {
 				double postQ1 = post.getPost();
-				ret = Math.log(postQ1);
+				ret += Math.log(postQ1);
 				
 				if (this.getBranchAnnotation() == 3 || this.getBranchAnnotation() == 12) {
 					node.setData(df.format(postQ1));
