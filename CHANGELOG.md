@@ -1,3 +1,10 @@
+- version 4.10.4:
+	- New option `-y` to score all possible trees; when used with `-t 12` outputs only the tree(s) with the best sum log local posterior
+	 
+- version 4.10.3:
+	- change calculation of local PP for trees with missing data. Avoid up-weighting genes with fewer missing leaves. 
+	- New feature: `-t 10` tests for polytomies. 
+	
 - version 4.10.2:
 	- Bug fix: when in rome do as the americans do. For people using European machines, the support values were printed with a comma, wreaking havoc in the newick format. Has to use US format for those to fix this.
 

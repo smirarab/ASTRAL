@@ -1,7 +1,9 @@
 package phylonet.coalescent;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Stack;
 
 import phylonet.coalescent.BipartitionWeightCalculator.Quadrapartition;
@@ -24,7 +26,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 	}
 
 	
-	public void scoreGeneTree(Tree st, boolean initialize) {
+	public double scoreGeneTree(Tree st, boolean initialize) {
 
 		if (initialize) {
 			mapNames();
@@ -108,16 +110,33 @@ public class WQInference extends AbstractInference<Tripartition> {
 		System.err.println("Normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
 		//System.out.println(st.toNewickWD());
 		
-		this.scoreBranches(st);
+		double logscore = this.scoreBranches(st);
 		
-		if (this.getBranchAnnotation() == 12) {
-			
+		if (this.getBranchAnnotation() % 12 == 0) {
+			return logscore;
+		} else {
+			return (sum/4l+0.)/this.maxpossible;
 		}
 	}
 	
 	
+	boolean skipNode (TNode node) {
+		return 	node.isLeaf() || node.isRoot() || node.getChildCount() > 2 || 
+				(node.getParent().getChildCount() >3) ||
+				(node.getParent().getChildCount() >2 && !node.getParent().isRoot())||
+				((node.getParent().isRoot() && node.getParent().getChildCount() == 2));
+	}
 	
-	public void scoreBranches(Tree st) {
+	class NodeData {
+		Double mainfreq, alt1freqs, alt2freqs;
+		Long quartcount;
+		Integer effn ;
+		Quadrapartition [] quads;
+		STBipartition[] bipartitions;
+		
+	}
+	
+	public double scoreBranches(Tree st) {
 
 		weightCalculator = new BipartitionWeightCalculator(this);
 		
@@ -156,22 +175,27 @@ public class WQInference extends AbstractInference<Tripartition> {
 			}
 		}
 		stack = new Stack<STITreeCluster>();
-		List<Double> mainfreqs = new ArrayList<Double>();
-		List<Double> alt1freqs = new ArrayList<Double>();
-		List<Double> alt2freqs = new ArrayList<Double>();
-		List<Long> quartcount = new ArrayList<Long>();
-		List<Integer> effn = new ArrayList<Integer>();
-		List< Quadrapartition []> quads = new ArrayList<Quadrapartition[]>();
-		List<STBipartition[]> bipartitions = new ArrayList<STBipartition[]>();
 		
+		
+		//List<Double> mainfreqs = new ArrayList<Double>();
+		//List<Double> alt1freqs = new ArrayList<Double>();
+		//List<Double> alt2freqs = new ArrayList<Double>();
+		//List<Long> quartcount = new ArrayList<Long>();
+		//List<Integer> effn = new ArrayList<Integer>();
+		//List< Quadrapartition []> quads = new ArrayList<Quadrapartition[]>();
+		//List<STBipartition[]> bipartitions = new ArrayList<STBipartition[]>();
+		
+		Queue<NodeData> nodeDataList = new LinkedList<NodeData>();
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
 			if (node.isLeaf()) {
 				stack.push((STITreeCluster) node.getData());
 			} else {
+				NodeData nd = new NodeData();
+				nodeDataList.add(nd);
+				
 				STITreeCluster cluster = (STITreeCluster) node.getData();				
-				if (node.isRoot() || node.getChildCount() > 2 || (node.getParent().getChildCount() >3) ||
-						(node.getParent().getChildCount() >2 && !node.getParent().isRoot()) ) {
+				if (skipNode(node) ) {
 					for (int i =0; i< node.getChildCount(); i++) {
 						stack.pop();
 					}
@@ -202,8 +226,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 				Quadrapartition quad = weightCalculator2.new Quadrapartition
 						(c1,  c2, sister, remaining);
 				Results s = weightCalculator2.getWeight(quad);
-				mainfreqs.add(s.qs);
-				effn.add(s.effn);
+				nd.mainfreq = s.qs;
+				nd.effn = s.effn;
 				//System.err.println(s.effn + " " + quad);
 				
 				Quadrapartition[] threequads = new Quadrapartition [] {quad, null,null};
@@ -211,19 +235,19 @@ public class WQInference extends AbstractInference<Tripartition> {
 				quad = weightCalculator2.new Quadrapartition
 						(c1, sister, c2, remaining);
 				s = weightCalculator2.getWeight(quad);
-				alt1freqs.add(s.qs);
+				nd.alt1freqs=s.qs;
 				threequads[1] = quad;
 				
 				quad = weightCalculator2.new Quadrapartition
 						(c1, remaining, c2, sister);
 				s = weightCalculator2.getWeight(quad);
-				alt2freqs.add(s.qs);
+				nd.alt2freqs=s.qs;
 				threequads[2] = quad;
 			
-				quartcount.add( (c1.getClusterSize()+0l)
+				nd.quartcount= (c1.getClusterSize()+0l)
 						* (c2.getClusterSize()+0l)
 						* (sister.getClusterSize()+0l)
-						* (remaining.getClusterSize()+0l));
+						* (remaining.getClusterSize()+0l);
 
 					
 				if (this.getBranchAnnotation() == 6) {
@@ -239,88 +263,92 @@ public class WQInference extends AbstractInference<Tripartition> {
 					STBipartition b3 = new STBipartition(c1plusrem, c1plusrem.complementaryCluster());
 	
 					STBipartition[] biparts = new STBipartition[] {bmain, b2, b3};
-					quads.add(threequads);
-					bipartitions.add(biparts);
+					nd.quads = threequads;
+					nd.bipartitions = biparts;
 				}
 				
 			}
 		}
-		int i = 0;
-		
+		//int i = 0;
+		NodeData nd = null;
+		double ret = -1;
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
-			if (node.isLeaf() || node.isRoot() ||
-					(node.getParent().isRoot() && node.getParent().getChildCount() ==2)) {
+			
+			if (!node.isLeaf()) {
+				nd = nodeDataList.poll();
+			}
+			if (skipNode(node)) {
 				node.setData(null);
-			} else{
-				if (node.isRoot() || node.getChildCount() > 2 || (node.getParent().getChildCount() >3) ||
-						(node.getParent().getChildCount() >2 && !node.getParent().isRoot()) ) {
-					node.setData(null);
-					continue;
-				}
-				Double f1 = mainfreqs.get(i);
-				Double f2 = alt1freqs.get(i);
-				Double f3 = alt2freqs.get(i);
-				Long quarc = quartcount.get(i);
-				Integer effni = effn.get(i);
-				//Long sum = p+a1+a2;
+				continue;
+			} 
 				
-				Posterior post = new Posterior(
-						f1,f2,f3,(double)effni, options.getLambda());
-				double bl = post.branchLength();
+			Double f1 = nd.mainfreq;
+			Double f2 = nd.alt1freqs;
+			Double f3 = nd.alt2freqs;
+			Long quarc = nd.quartcount;
+			Integer effni = nd.effn;
+			//Long sum = p+a1+a2;
+			
+			Posterior post = new Posterior(
+					f1,f2,f3,(double)effni, options.getLambda());
+			double bl = post.branchLength();
+			
+			node.setParentDistance(bl);
+			if (this.getBranchAnnotation() == 0){
+				node.setData(null);
+			} else if (this.getBranchAnnotation() == 1){
+				node.setData(df.format((f1+.0)/effni*100));
+			} else if (this.getBranchAnnotation() == 10) {
+				df.setMaximumFractionDigits(5);
+				node.setData(df.format(post.getPvalue()));
+			} else {
+				double postQ1 = post.getPost();
+				ret = Math.log(postQ1);
 				
-				node.setParentDistance(bl);
-				if (this.getBranchAnnotation() == 0){
-					node.setData(null);
-				} else if (this.getBranchAnnotation() == 1){
-					node.setData(df.format((f1+.0)/effni*100));
-				} else if (this.getBranchAnnotation() == 10) {
-					df.setMaximumFractionDigits(5);
-					node.setData(df.format(post.getPvalue()));
-				} else {
-					double postQ1 = post.getPost();
+				if (this.getBranchAnnotation() == 3 || this.getBranchAnnotation() == 12) {
+					node.setData(df.format(postQ1));
+				} else if (this.getBranchAnnotation() % 2 == 0) {
+					post = new Posterior(f2,f1,f3,(double)effni, options.getLambda());
+					double postQ2 = post.getPost();
+					post =  new Posterior(f3,f1,f2,(double)effni, options.getLambda());
+					double postQ3 = post.getPost();
 					
-					if (this.getBranchAnnotation() == 3) {
+					if (this.getBranchAnnotation() == 2)
+						node.setData(
+								"'[q1="+(f1)/effni+";q2="+(f2)/effni+";q3="+(f3)/effni+
+								 ";f1="+f1+";f2="+f2+";f3="+f3+
+								 ";pp1="+postQ1+";pp2="+postQ2+";pp3="+postQ3+
+								 ";QC="+quarc+";EN="+effni+"]'");
+					else if (this.getBranchAnnotation() == 4) {
+						node.setData("'[pp1="+df.format(postQ1)+";pp2="+df.format(postQ2)+";pp3="+df.format(postQ3)+"]'");
+					} else if (this.getBranchAnnotation() == 6){
 						node.setData(df.format(postQ1));
-					} else if (this.getBranchAnnotation() % 2 == 0) {
-						post = new Posterior(f2,f1,f3,(double)effni, options.getLambda());
-						double postQ2 = post.getPost();
-						post =  new Posterior(f3,f1,f2,(double)effni, options.getLambda());
-						double postQ3 = post.getPost();
-						
-						if (this.getBranchAnnotation() == 2)
-							node.setData(
-									"'[q1="+(f1)/effni+";q2="+(f2)/effni+";q3="+(f3)/effni+
-									 ";f1="+f1+";f2="+f2+";f3="+f3+
-									 ";pp1="+postQ1+";pp2="+postQ2+";pp3="+postQ3+
-									 ";QC="+quarc+";EN="+effni+"]'");
-						else if (this.getBranchAnnotation() == 4) {
-							node.setData("'[pp1="+df.format(postQ1)+";pp2="+df.format(postQ2)+";pp3="+df.format(postQ3)+"]'");
-						} else if (this.getBranchAnnotation() == 6){
-							node.setData(df.format(postQ1));
-							Quadrapartition[] threequads = quads.get(i);
-							STBipartition[] biparts = bipartitions.get(i);
-							System.err.println(threequads[0] +
-									" [" + biparts[0].toString2() +"] : "+postQ1 +" ** f1 = "+f1+
-									" f2 = "+f2+" f3 = "+f3+" EN = "+ effni+" **");
-							System.err.println(threequads[1] +
-									" ["+biparts[1].toString2()+"] : "+postQ2+ " ** f1 = "+f2+
-									" f2 = "+f1+" f3 = "+f3+" EN = "+ effni+" **");
-							System.err.println(threequads[2] +
-									" ["+biparts[2].toString2()+"] : "+postQ3+ " ** f1 = "+f3+
-									" f2 = "+f1+" f3 = "+f2+" EN = "+ effni+" **");
-						}  else if (this.getBranchAnnotation() == 8){
-							node.setData(
-									"'[q1="+df.format((f1)/effni)+
-									 ";q2="+df.format((f2)/effni)+
-									 ";q3="+df.format((f3)/effni)+"]'");
-						}
+						Quadrapartition[] threequads = nd.quads;
+						STBipartition[] biparts = nd.bipartitions;
+						System.err.println(threequads[0] +
+								" [" + biparts[0].toString2() +"] : "+postQ1 +" ** f1 = "+f1+
+								" f2 = "+f2+" f3 = "+f3+" EN = "+ effni+" **");
+						System.err.println(threequads[1] +
+								" ["+biparts[1].toString2()+"] : "+postQ2+ " ** f1 = "+f2+
+								" f2 = "+f1+" f3 = "+f3+" EN = "+ effni+" **");
+						System.err.println(threequads[2] +
+								" ["+biparts[2].toString2()+"] : "+postQ3+ " ** f1 = "+f3+
+								" f2 = "+f1+" f3 = "+f2+" EN = "+ effni+" **");
+					}  else if (this.getBranchAnnotation() == 8){
+						node.setData(
+								"'[q1="+df.format((f1)/effni)+
+								 ";q2="+df.format((f2)/effni)+
+								 ";q3="+df.format((f3)/effni)+"]'");
 					}
 				}
-				i++;
+				//i++;
 			} 
 		}
+		if (!nodeDataList.isEmpty())
+			throw new RuntimeException("Hmm, this shouldn't happen; "+nodeDataList);
 		
+		return ret;
 	}
 
 
