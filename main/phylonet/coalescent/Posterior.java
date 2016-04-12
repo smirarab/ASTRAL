@@ -146,10 +146,10 @@ public class Posterior extends cern.jet.math.Constants{
 		double n  = Double.parseDouble(args[3]);
 		Posterior a = new Posterior(m1,m2,m3,n);
 		System.out.println(a.toString());*/
-		 double m1 = 5;
-		 double m2 = 0;
-		 double n = 20;
-		 double m3 = n-m1-m2;
+		 double m1 = 107.63266358303451;
+		 double m2 = 93.45834395339342;
+		 double m3 = 100.90899246357216;
+		 double n =  309.0000000000001;
 		 Posterior p = new Posterior(m1, m2, m3, n, 0.5);
 		 p.f1 = m1;p.f2 = m2;p.f3 = m3;
 		 System.out.println(p.getPost());
