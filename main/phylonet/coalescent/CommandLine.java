@@ -39,7 +39,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.10.3";
+    protected static String _versinon = "4.10.4";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -152,7 +152,11 @@ public class CommandLine {
                     new Switch("exact",
                             'x', "exact",
                             "find the exact solution by looking at all clusters - recommended only for small (<18) numer of taxa."),
-   
+
+                    new Switch("scoreall",
+                            'y', "scoreall",
+                            "score all possible species trees."),
+
                     new FlaggedOption("extraLevel",
                     		JSAP.INTEGER_PARSER, "1", JSAP.NOT_REQUIRED,
                             'p', "extraLevel",
@@ -303,7 +307,7 @@ public class CommandLine {
         	mainTrees = readInputTrees(
         			readTreeFileAsString(config.getFile("input file")),
         					rooted, true, false, minleaves, 
-        					config.getInt("branch annotation level"));			
+        					config.getInt("branch annotation level"), null);			
             k = mainTrees.size();
             System.err.println(k+" trees read from " + config.getFile("input file"));
             
@@ -336,23 +340,57 @@ public class CommandLine {
         		1.0D, 1.0D, wh, keepOptions, config);
         bsoptions.setBranchannotation(0);*/
        
+        String outgroup = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesName(0);
+        
+        List<String> toScore = null;
+        //List<StringBuffer> toScoreStrings = null;
         if (config.getFile("score species trees") != null) {
-        	List<Tree> toScore = readInputTrees(
-        			readTreeFileAsString(config.getFile("score species trees")),
-                     rooted, true, true, null, 1);
-        	
+        	toScore = readTreeFileAsString(config.getFile("score species trees"));
+        } else if (config.getBoolean("scoreall")) {
+            toScore = Utils.generateAllBinaryTreeStrings(
+            		GlobalMaps.taxonNameMap.getSpeciesIdMapper().getAllSpeciesNames());
+            /*for (String trs : toScore) {
+                System.out.println(trs);
+                System.out.flush();
+            }*/
+        }
+        
+        if (toScore != null ) {	
+            System.err.println("Scoring: " + toScore.size() +" trees");
+            
             AbstractInference inference =
-                    initializeInference(criterion, mainTrees, extraTrees, options);
-        	for (Tree tr : toScore) {
-        		inference.scoreGeneTree(tr, true);
-                writeTreeToFile(outbuffer, tr);
+                    initializeInference(criterion, mainTrees, extraTrees, options);           
+       		double score = Double.NEGATIVE_INFINITY;
+       		List<Tree> bestTree = new ArrayList<Tree>(); 
+            for (String trs : toScore) {     
+            	Tree tr = readInputTrees(Arrays.asList(new String[]{trs}),
+                         rooted, true, true, null, 1, config.getBoolean("scoreall")? 
+                        		 outgroup: null).get(0);
+
+				double nscore = inference.scoreGeneTree(tr, true);
+				if (nscore > score) {
+					score = nscore;
+					bestTree.clear();
+					bestTree.add(tr);
+				} else if (nscore == score) {
+					bestTree.add(tr);
+				}
+				
+				GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) tr);
+				
+				if (options.getBranchannotation() != 12) {
+                	writeTreeToFile(outbuffer, tr);
+				} 
         	}
+			if (options.getBranchannotation() == 12) {
+				for (Tree bt: bestTree)
+					writeTreeToFile(outbuffer, bt);
+			}
         	
         	outbuffer.close();
         	System.exit(0);
         }
         
-        String outgroup = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesName(0);
         System.err.println("All outputted trees will be *arbitrarily* rooted at "+outgroup);
         
         if (config.getStringArray("keep") != null && config.getStringArray("keep").length != 0) {
@@ -377,7 +415,7 @@ public class CommandLine {
             if (config.getFile("extra trees") != null) {
             	extraTrees = readInputTrees(
                 	readTreeFileAsString(config.getFile("extra trees")), 
-                        extrarooted, true, false, null, 1);
+                        extrarooted, true, false, null, 1, null);
                 System.err.println(extraTrees.size() + " extra trees read from "
                         + config.getFile("extra trees"));
             }
@@ -385,7 +423,7 @@ public class CommandLine {
             if (config.getFile("extra species trees") != null) {
             	extraTrees = readInputTrees(
                 	readTreeFileAsString(config.getFile("extra species trees")), 
-                        extrarooted, true, true, null, 1);
+                        extrarooted, true, true, null, 1, null);
                 System.err.println(extraTrees.size() + " extra trees read from "
                         + config.getFile("extra trees"));
             }
@@ -466,7 +504,8 @@ public class CommandLine {
 	        System.err.println("\n======== Running bootstrap replicate " + j++);
 	        bootstraps.add(runOnOneInput(criterion, 
 	                 extraTrees, outbuffer, 
-                    readInputTrees(input, rooted, false, false, minleaves, config.getInt("branch annotation level")),
+                    readInputTrees(input, rooted, false, false, minleaves,
+                    		config.getInt("branch annotation level"), null),
                     null, outgroup, options));
 		}
 	    
@@ -574,7 +613,7 @@ public class CommandLine {
 
     private static List<Tree> readInputTrees(List<String> lines, 
     		boolean rooted, boolean checkCompleteness, boolean stLablel,
-    		Integer minleaves, int annotation)
+    		Integer minleaves, int annotation, String outgroup)
     				throws FileNotFoundException, IOException {
     	List<Tree> trees = new ArrayList<Tree>();
     	List<Integer> skipped = new Stack<Integer>();
@@ -611,14 +650,18 @@ public class CommandLine {
     					skipped.add(l);
     				}
     			} else {						
-    				Tree tr = nr.readTree();
+    				MutableTree tr = nr.readTree();
     				if (minleaves == null || tr.getLeafCount() >= minleaves) {
     					trees.add(tr);
     				} else {
     					skipped.add(l);
     				}
+                	if (outgroup != null) {
+                		tr.rerootTreeAtNode(tr.getNode(outgroup));
+    	        		Trees.removeBinaryNodes(tr);
+                	}
     				if (stLablel) {
-    					GlobalMaps.taxonNameMap.getSpeciesIdMapper().stToGt((MutableTree) tr);
+    					GlobalMaps.taxonNameMap.getSpeciesIdMapper().stToGt(tr);
     				}
     				String[] leaves = tr.getLeaves().clone();
     				if (annotation != 6) {
