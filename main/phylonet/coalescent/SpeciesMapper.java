@@ -2,15 +2,21 @@ package phylonet.coalescent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.Stack;
 import java.util.TreeSet;
 
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TMutableNode;
+import phylonet.tree.model.TNode;
+import phylonet.tree.model.sti.STINode;
 import phylonet.tree.model.sti.STITreeCluster;
+import phylonet.tree.util.Trees;
 import phylonet.util.BitSet;
 
 public class SpeciesMapper {
@@ -87,8 +93,15 @@ public class SpeciesMapper {
         }
     }
 
+    public String[] getAllSpeciesNames(){
+    	return this.speciesNameIdMap.getAllTaxonNames();
+    }
     public String getSpeciesName(int stId) {
-        return this.speciesNameIdMap.getTaxonName(stId);
+    	try {
+    		return this.speciesNameIdMap.getTaxonName(stId);
+    	} catch (ArrayIndexOutOfBoundsException e) {
+    		throw new RuntimeException(stId +" was not found as a species",e);
+    	}
     }
 
     public Integer speciesId(String name) {
@@ -154,8 +167,13 @@ public class SpeciesMapper {
     
     public List<String> getGeneNamesForSpeciesName(String species) {
         ArrayList<String> ret = new ArrayList<String>();
-        for (Integer id: this.speciesIdtoTaxonId.get(this.speciesId(species))) {
-            ret.add(GlobalMaps.taxonIdentifier.getTaxonName(id));
+        try {
+	        for (Integer id: this.speciesIdtoTaxonId.get(this.speciesId(species))) {
+	            ret.add(GlobalMaps.taxonIdentifier.getTaxonName(id));
+	        }
+        } catch (IndexOutOfBoundsException e) {
+        	throw new RuntimeException("Mapping between gene and species taxon names"
+        			+ "doesn't seem right. We couldn't find "+ species + " in gene trees.");
         }
         return ret;
     }
@@ -174,6 +192,46 @@ public class SpeciesMapper {
                 node.setName(""); 
             }
         }
+    }
+    
+    public void gtToSt(MutableTree st) {
+    	Stack<Integer> stack = new Stack<Integer>();
+    	HashSet<Integer> children;
+		List<List<TMutableNode>> spNodes = new ArrayList<List<TMutableNode>>();
+    	for (TNode node: st.postTraverse()) {
+    		if (node.isLeaf()) {
+    			int spID = this.getSpeciesIdForTaxon(
+						GlobalMaps.taxonIdentifier.taxonId(node.getName()));
+    			stack.push(spID);
+    			if (this.speciesIdtoTaxonId.get(spID).size() == 1) {
+    				((TMutableNode)node).setName(this.getSpeciesName(spID));
+    			}
+    		} else {
+    			children = new HashSet<Integer>();
+    			List<TMutableNode> childnodes = new ArrayList<TMutableNode>();
+    			for (TNode c : node.getChildren()) {
+    				children.add(stack.pop());
+    				childnodes.add((TMutableNode) c);
+    			}
+    			if (children.size() == 1) {
+    				Integer spnode = children.iterator().next();
+    				if (spnode != -1) {
+	    				((TMutableNode) node).setName(this.getSpeciesName(spnode));
+	    				((STINode) node).setData(null);
+	    				spNodes.add(childnodes);
+    				}
+    				stack.push(spnode);
+    			} else {
+    				stack.push(-1);
+    			}
+    		}
+    	}
+     
+    	for (List<TMutableNode> nodes : spNodes) {
+    		for (TNode c : nodes) {
+    			((TMutableNode) c).removeNode();
+    		}
+    	}
     }
 
 }
