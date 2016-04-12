@@ -79,7 +79,7 @@ public class DLInference extends AbstractInference<STBipartition> {
 	    return Math.max(ret-1,0);
 	}
 	
-	public void scoreGeneTree(Tree st, boolean init) {
+	public double scoreGeneTree(Tree st, boolean init) {
 		// first calculated duplication cost by looking at gene trees. 
 		
 		SchieberVishkinLCA lcaLookup = new SchieberVishkinLCA(st);
@@ -105,6 +105,7 @@ public class DLInference extends AbstractInference<STBipartition> {
 		System.out.println("Total number of duploss (bd) is: " + (losses+duplications));
 		System.out.println("Total number of duploss (st) is: " + (lossesstd+duplications));
 		System.out.println("Total weighted (wd = "+this.getDLbdWeigth()+") loss is: " + (lossesstd + this.getDLbdWeigth()*(losses-lossesstd)));
+		return (lossesstd+duplications);
 	}
 
 
