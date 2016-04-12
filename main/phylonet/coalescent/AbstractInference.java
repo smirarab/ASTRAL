@@ -100,7 +100,7 @@ public abstract class AbstractInference<T> {
 		System.err.println("Taxa: " + GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesNames());
 	}
 	
-	public abstract void scoreGeneTree(Tree scorest, boolean initialize) ;
+	public abstract double scoreGeneTree(Tree scorest, boolean initialize) ;
 
 	List<Solution> findTreesByDP(IClusterCollection clusters) {
 		List<Solution> solutions = new ArrayList<Solution>();
