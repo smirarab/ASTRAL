@@ -204,7 +204,8 @@ public class SpeciesMapper {
 						GlobalMaps.taxonIdentifier.taxonId(node.getName()));
     			stack.push(spID);
     			if (this.speciesIdtoTaxonId.get(spID).size() == 1) {
-    				((TMutableNode)node).setName(this.getSpeciesName(spID));
+    				if (!node.getName().equals(this.getSpeciesName(spID)))
+    					((TMutableNode)node).setName(this.getSpeciesName(spID));
     			}
     		} else {
     			children = new HashSet<Integer>();
