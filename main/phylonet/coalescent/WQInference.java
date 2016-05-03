@@ -306,7 +306,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 				node.setData(df.format(post.getPvalue()));
 			} else {
 				double postQ1 = post.getPost();
-				ret += postQ1;
+				ret += Math.log(postQ1);
 				
 				if (this.getBranchAnnotation() == 3 || this.getBranchAnnotation() == 12) {
 					node.setData(df.format(postQ1));
