@@ -228,6 +228,11 @@ public class WQInference extends AbstractInference<Tripartition> {
 				}
 				Quadrapartition quad = weightCalculator2.new Quadrapartition
 						(c1,  c2, sister, remaining);
+				if (this.getBranchAnnotation() == 7){
+					if (remaining.getClusterSize() != 0 && sister.getClusterSize() != 0 && c2.getClusterSize() != 0 && c1.getClusterSize() != 0 ){
+						System.err.print(c1.toString()+c2.toString()+"|"+sister.toString()+remaining.toString()+"\n");
+					}
+				}
 				Results s = weightCalculator2.getWeight(quad);
 				nd.mainfreq = s.qs;
 				nd.effn = s.effn;
