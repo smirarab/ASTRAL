@@ -1,4 +1,6 @@
 package phylonet.coalescent;
+import java.util.HashMap;
+
 import cern.jet.stat.*;
 
 public class Posterior extends cern.jet.math.Constants{
@@ -9,7 +11,7 @@ public class Posterior extends cern.jet.math.Constants{
 	private double posterior = -1;
 	private static double LOG2 = Math.log(2.);
 	private double pValue = -1;
-	final private static String MESSAGE = "This shouldn't haved happened."
+	final private static String MESSAGE = "This shouldn't have happened."
 			+ " Maybe you set lambda too high or too low? "
 			+ "Please report the error with the following numbers: ";
 	private static final boolean DEBUG = false;
@@ -146,10 +148,10 @@ public class Posterior extends cern.jet.math.Constants{
 		double n  = Double.parseDouble(args[3]);
 		Posterior a = new Posterior(m1,m2,m3,n);
 		System.out.println(a.toString());*/
-		 double m1 = 107.63266358303451;
-		 double m2 = 93.45834395339342;
-		 double m3 = 100.90899246357216;
-		 double n =  309.0000000000001;
+		 double m1 = 5;
+		 double m2 = 0;
+		 double m3 = 0;
+		 double n =  5;
 		 Posterior p = new Posterior(m1, m2, m3, n, 0.5);
 		 p.f1 = m1;p.f2 = m2;p.f3 = m3;
 		 System.out.println(p.getPost());
