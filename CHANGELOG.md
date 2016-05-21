@@ -1,8 +1,13 @@
+- version 4.10.5:
+	- Hide `-y` option for now. Not ready for prime time yet. 
+	
 - version 4.10.4:
 	- New option `-y` to score all possible trees; when used with `-t 12` outputs only the tree(s) with the best sum log local posterior
+	- Change handling the scoring of root nodes
+	- Add a bunch of for-test-only `-t` options
 	 
 - version 4.10.3:
-	- change calculation of local PP for trees with missing data. Avoid up-weighting genes with fewer missing leaves. 
+	- *Important change:* change calculation of local PP for trees with missing data. Avoid up-weighting genes with fewer missing leaves. 
 	- New feature: `-t 10` tests for polytomies. 
 	
 - version 4.10.2:
