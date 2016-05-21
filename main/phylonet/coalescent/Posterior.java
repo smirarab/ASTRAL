@@ -1,5 +1,4 @@
 package phylonet.coalescent;
-import java.util.HashMap;
 
 import cern.jet.stat.*;
 
