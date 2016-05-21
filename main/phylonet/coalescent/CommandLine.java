@@ -346,7 +346,7 @@ public class CommandLine {
         //List<StringBuffer> toScoreStrings = null;
         if (config.getFile("score species trees") != null) {
         	toScore = readTreeFileAsString(config.getFile("score species trees"));
-        } else if (config.getBoolean("scoreall")) {
+        } else if (false) { //config.getBoolean("scoreall")) {
             toScore = Utils.generateAllBinaryTreeStrings(
             		GlobalMaps.taxonNameMap.getSpeciesIdMapper().getAllSpeciesNames());
             /*for (String trs : toScore) {
@@ -364,7 +364,7 @@ public class CommandLine {
        		List<Tree> bestTree = new ArrayList<Tree>(); 
             for (String trs : toScore) {     
             	Tree tr = readInputTrees(Arrays.asList(new String[]{trs}),
-                         rooted, true, true, null, 1, config.getBoolean("scoreall")? 
+                         rooted, true, true, null, 1, false? //config.getBoolean("scoreall")? 
                         		 outgroup: null).get(0);
 
 				double nscore = inference.scoreGeneTree(tr, true);
