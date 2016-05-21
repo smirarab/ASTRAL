@@ -39,7 +39,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.10.4";
+    protected static String _versinon = "4.10.5";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -153,9 +153,9 @@ public class CommandLine {
                             'x', "exact",
                             "find the exact solution by looking at all clusters - recommended only for small (<18) numer of taxa."),
 
-                    new Switch("scoreall",
+/*                    new Switch("scoreall",
                             'y', "scoreall",
-                            "score all possible species trees."),
+                            "score all possible species trees."),*/
 
                     new FlaggedOption("extraLevel",
                     		JSAP.INTEGER_PARSER, "1", JSAP.NOT_REQUIRED,
