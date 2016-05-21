@@ -11,7 +11,7 @@ Starting from version **4.7.4**, the code given here corresponds to ASTRAL-II de
 
 Since version 4.10.0, ASTRAL can also compute branch length (in coalescent units) and a measure of support called “local posterior probability”, described here:
 
-* Sayyari Erfan, Mirarab Siavash. Fast coalescent-based computation of local branch support from quartet frequencies. arXiv. 2016; 1601.07019 (under revision at MBE).
+* Sayyari Erfan, Mirarab Siavash. Fast coalescent-based computation of local branch support from quartet frequencies.  Molecular Biology and Evolution (2016). [doi:10.1093/molbev/msw079](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1)
 
 
 The ASTRAL algorithm has an exact version that can run for small datasets (less than 18 taxa) and a more useful version (its default) that can handle large datasets (ASTRAL-II is tested for up to 1000 taxa and 1000 genes).
