@@ -39,7 +39,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.10.5";
+    protected static String _versinon = "4.10.6";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -263,6 +263,12 @@ public class CommandLine {
         
         if (config.getFile("mapping file") != null) {
 
+        	System.err.println("****** WARNNING ******\n"
+        			+ "		For multi-individual datasets please use the code\n"
+        			+ "		available at the multiind branch of the ASTRAL github.\n"
+        			+ "		This brnahc does not yet inlcude our improvements for the\n"
+        			+ "		multi-individual inputs."
+        			+ "****** END OF WARNNING ******\n");
             BufferedReader br = new BufferedReader(new FileReader(
                     config.getFile("mapping file")));
 
@@ -540,9 +546,12 @@ public class CommandLine {
         List<Solution> solutions = inference.inferSpeciesTree();
    
         System.err.println("Optimal tree inferred in "
-        		+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
+        		+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs.");
         
         Tree st = solutions.get(0)._st;
+        
+        System.err.println(st.toNewick());
+        
         st.rerootTreeAtNode(st.getNode(outgroup));
 		Trees.removeBinaryNodes((MutableTree) st);
    
