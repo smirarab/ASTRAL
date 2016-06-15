@@ -1,3 +1,9 @@
+- version 4.10.6:
+    - Small bug fix: with `-a` scoring didn't work
+    - Print tree topology to stderr before scoring it. 
+    - Warn for multi-individual datasets that this is not the right branch
+    - Update tutorial
+
 - version 4.10.5:
 	- Hide `-y` option for now. Not ready for prime time yet. 
 	
