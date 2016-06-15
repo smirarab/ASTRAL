@@ -112,7 +112,11 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			
 		}
 		
-		long calculateWeightByTraversal() {
+		/*
+		* The main function used for scoring a tripartition
+		*
+		*/
+		long calculateWeightByTraversal() { 
 			long weight = 0;
 			Intersects  allsides = null;
 			Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
@@ -150,7 +154,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 								F(side1.s2,side2.s0,side3.s1)+
 								F(side1.s2,side2.s1,side3.s0);
 					
-				} else {
+				} else {  // The following case is relevant only for polytomies. 
 				    ArrayList<Intersects> children = new ArrayList<Intersects>();
 				    Intersects newSide = new Intersects(0,0,0);
 				    for (int i = gtb; i < 0 ; i++) {
@@ -187,7 +191,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
                             }
                         }
                     }
-				}
+				} // End of polytomy section
 			}
 			return weight;
 		}
