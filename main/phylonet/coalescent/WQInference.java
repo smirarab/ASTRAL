@@ -8,6 +8,7 @@ import java.util.Stack;
 
 import phylonet.coalescent.BipartitionWeightCalculator.Quadrapartition;
 import phylonet.coalescent.BipartitionWeightCalculator.Results;
+import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STINode;
@@ -45,6 +46,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 	
 			//System.err.println(this.maxpossible);
 		}
+		
+		GlobalMaps.taxonNameMap.getSpeciesIdMapper().stToGt((MutableTree) st);
 		
 		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
 		long sum = 0l;
@@ -103,6 +106,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 				}
 			}
 		}
+		
 /*		if (4l*this.maxpossible != maxsum) {
 			throw new RuntimeException("Hmm... "+maxsum+" "+4l*this.maxpossible);
 		}*/
@@ -111,6 +115,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 		//System.out.println(st.toNewickWD());
 		
 		double logscore = this.scoreBranches(st);
+		
+		GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) st);
 		
 		if (this.getBranchAnnotation() % 12 == 0) {
 			System.err.println("log local posterior: "+logscore);
