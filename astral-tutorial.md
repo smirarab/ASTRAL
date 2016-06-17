@@ -186,7 +186,7 @@ java -jar astral.4.10.6.jar -q test_data/1kp.tre -i test_data/1KP-genetrees.tre 
 read all the values given for a couple of branches and try to make sense of them. 
 
 
-#### Priori hyper-parameter
+#### Prior hyper-parameter
 
 Our calculations of the local posterior probabilities and branch lengths use a Yule prior model for the branch lengths of the species tree. The speciation rate (in coalescent units) of the Yule process (lambda) is by default set to 0.5, which results in a flat prior for the quartet frequencies in the `[1/3,1]` range. Using `-c` option one can adjust the hyper-parameter for the prior. For example, you might want to estimate lambda from the data after one run and plug the estimate prior in a subsequent run. We have not yet fully explored the impact of lambda on the posterior. For branch lengths, lambda acts as a pseudocount and can have a substantial impact on the estimated branch length for very long branches. More specifically, if there is no, or very little discordance around a branch, the MAP lengths of the branch (which is what we report) is almost fully determined by the prior. 
 
