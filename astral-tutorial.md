@@ -199,11 +199,11 @@ Our calculations of the local posterior probabilities and branch lengths use a Y
 Run the following two commands and compare the lengths of the longest branches:
 
 ```
-java -jar astral.4.10.6.jar -q test_data/simulated_14taxon.default.tre -i test_data/simulated_14taxon.gene.tre -c 0.001
+java -jar astral.4.10.6.jar -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -c 2 -o test_data/1kp-scored-c2.tre
 ```
 
 ```
-java -jar astral.4.10.6.jar -q test_data/simulated_14taxon.default.tre -i test_data/simulated_14taxon.gene.tre -c 2
+java -jar astral.4.10.6.jar -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -c 0.001 -o test_data/1kp-scored-cs.tre
 ``` 
 
 Note that setting lambda to 0 results in reporting ML estimates of the branch lengths instead of MAP. However, for branches with no discordance, we cannot compute a branch lengths. For these, we currently arbitrarily set ML to 10 coalescent units (we might change this in future versions).
