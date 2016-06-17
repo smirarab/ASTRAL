@@ -122,7 +122,7 @@ A larger real dataset from the [1kp](http://www.pnas.org/content/early/2014/10/2
 424 genes from 103 species. Run:
 
 ```
-java -jar astral.4.10.6.jar -i test_data/1KP-genetrees.tre -o test_data/1kp-tre
+java -jar astral.4.10.6.jar -i test_data/1KP-genetrees.tre -o test_data/1kp.tre
 ```
 
 This takes about a minute to run on a powerful laptop. On this dataset, notice in the ASTRAL log information that it originally starts with 11043 clusters in its search space, and using heuristics implemented in ASTRAL-II, it increases the search space slightly to 11085 clusters. For more challenging datasets (i.e., more discordance or fewer genes) this number might increase a lot. 
@@ -181,7 +181,7 @@ Here is a description of various information that can be turned on by using `-t`
 Run:
 
 ```
-java -jar astral.4.10.6.jar -q test_data/simulated_14taxon.default.tre -i test_data/simulated_14taxon.gene.tre -t 2
+java -jar astral.4.10.6.jar -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 2 -o test_data/1kp-scored.tre
 ```
 read all the values given for a couple of branches and try to make sense of them. 
 
