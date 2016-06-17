@@ -176,12 +176,18 @@ Here is a description of various information that can be turned on by using `-t`
    * `pp1`, `pp2`, `pp3`: these three show the local posterior probabilities (as defined in the description of `-t 4`) for the main topology, the first alternative, and the second alternative, respectively.
    * `QC`: this shows the total number of quartets defined around each branch (this is what our paper calls `m`).
    * `EN`: this is the effective number of genes for the branch. If you don't have any missing data, this would be the number of branches in your tree. When there is missing data, some gene trees might have nothing to say about a branch. Thus, the effective number of genes might be smaller than the total number of genes. 
-
+* *Alternative quartet topologies* (`-t 8`): Outputs `q1`,`q2`,`q3`; these three values show quartet support (as defined in the description of `-t 1`) for the main topology, the first alternative, and the second alternative, respectively. 
 
 Run:
 
 ```
-java -jar astral.4.10.6.jar -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 2 -o test_data/1kp-scored.tre
+java -jar astral.4.10.6.jar -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 2 -o test_data/1kp-scored-t2.tre
+```
+```
+java -jar astral.4.10.6.jar -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 4 -o test_data/1kp-scored-t4.tre
+```
+```
+java -jar astral.4.10.6.jar -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 8 -o test_data/1kp-scored-t8.tre
 ```
 read all the values given for a couple of branches and try to make sense of them. 
 
