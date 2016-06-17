@@ -210,7 +210,7 @@ Note that setting lambda to 0 results in reporting ML estimates of the branch le
 
 
 ### Multi-locus Bootstrapping:
-Recent versions of ASTRAL output a branch support value even without bootstrapping. Our [analuses]](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1) have revealed that this form of support is more reliable than bootstrapping under conditions we have compared the two methods. Nevertheless, you may want to run bootstrapping as well. 
+Recent versions of ASTRAL output a branch support value even without bootstrapping. Our [analyses](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1) have revealed that this form of support is more reliable than bootstrapping under conditions we have compared the two methods. Nevertheless, you may want to run bootstrapping as well. 
 
 Astral can perform multi-locus bootstrapping ([Seo, 2008](http://www.ncbi.nlm.nih.gov/pubmed/18281270)). To be able to perform multi-locus bootstrapping, ASTRAL needs to have access to bootstrap replicates for each gene. To start multi-locus bootstrapping using ASTRAL, you need to provide the location of all gene tree bootstrap replicates. To run bootstrapping on our test input files, 
 
