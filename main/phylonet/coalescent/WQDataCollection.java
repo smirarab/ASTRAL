@@ -3,6 +3,7 @@ package phylonet.coalescent;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.CharBuffer;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,7 +20,6 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
 
-import phylonet.coalescent.WQWeightCalculator.QuartetWeightTask.Intersects;
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TMutableNode;
@@ -481,6 +481,27 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 				}
 			}
 			geneTreesAsInts = temp.toArray(new Integer[]{});
+			FileWriter writer = null;
+			try {
+				writer = new FileWriter("geneTreesAsInts");
+				
+				for(int i = 0; i < geneTreesAsInts.length; i++) {
+					writer.write(geneTreesAsInts[i].toString()+" ");
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			finally {
+				if(writer != null) {
+					try {
+						writer.close();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
 		}
 
 
