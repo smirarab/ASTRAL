@@ -1,0 +1,11 @@
+﻿  main.c
+c:\users\johng23\documents\visual studio 2015\projects\astral project\astral project\main.c(27): warning C4013: 'atoi' undefined; assuming extern returning int
+c:\users\johng23\documents\visual studio 2015\projects\astral project\astral project\main.c(92): warning C4048: different array subscripts: 'int (*)[50]' and 'int (*)[512][50]'
+c:\users\johng23\documents\visual studio 2015\projects\astral project\astral project\main.c(6): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(205): note: see declaration of 'fopen'
+c:\users\johng23\documents\visual studio 2015\projects\astral project\astral project\main.c(7): error C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(205): note: see declaration of 'fopen'
+  calculateWeightByTraversal.c
+c:\users\johng23\documents\visual studio 2015\projects\astral project\astral project\calculateweightbytraversal.c(87): warning C4028: formal parameter 1 different from declaration
+c:\users\johng23\documents\visual studio 2015\projects\astral project\astral project\calculateweightbytraversal.c(87): warning C4028: formal parameter 2 different from declaration
+  Generating Code...
