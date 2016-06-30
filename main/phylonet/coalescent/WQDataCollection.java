@@ -481,24 +481,26 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 				}
 			}
 			geneTreesAsInts = temp.toArray(new Integer[]{});
-			FileWriter writer = null;
-			try {
-				writer = new FileWriter("geneTreesAsInts");
-				
-				for(int i = 0; i < geneTreesAsInts.length; i++) {
-					writer.write(geneTreesAsInts[i].toString()+" ");
+			if(WQWeightCalculator.WRITE_OR_DEBUG) {
+				FileWriter writer = null;
+				try {
+					writer = new FileWriter("geneTreesAsInts.txt");
+					
+					for(int i = 0; i < geneTreesAsInts.length; i++) {
+						writer.write(geneTreesAsInts[i].toString()+" ");
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			finally {
-				if(writer != null) {
-					try {
-						writer.close();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+				finally {
+					if(writer != null) {
+						try {
+							writer.close();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
 				}
 			}
