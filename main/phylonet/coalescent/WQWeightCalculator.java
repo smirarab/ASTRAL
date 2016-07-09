@@ -16,7 +16,7 @@ import phylonet.tree.model.sti.STITreeCluster;
 
 class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	public static boolean HAS_NOT = true;
-	public static boolean WRITE_OR_DEBUG = false;
+	public static boolean WRITE_OR_DEBUG = true;
 	WQInference inference;
 	private WQDataCollection dataCollection;
 
@@ -186,7 +186,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 						}
 						
 
-					} /*else { // The following case is relevant only for
+					} else { // The following case is relevant only for
 								// polytomies.
 						ArrayList<Intersects> children = new ArrayList<Intersects>();
 						Intersects newSide = new Intersects(0, 0, 0);
@@ -222,13 +222,16 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 											+ F(side1.s1, side2.s2, side3.s0)
 											+ F(side1.s2, side2.s0, side3.s1)
 											+ F(side1.s2, side2.s1, side3.s0);
+									if(WRITE_OR_DEBUG && HAS_NOT) {
+										System.out.println(weight + " " + side1.s0 + " " + side1.s1 + " " + side1.s2+ " "+ side2.s0 + " " + side2.s1 + " " + side2.s2+ " "+ side3.s0 + " " + side3.s1 + " " + side3.s2+ " ");
+									}
 								}
 							}
 						}
 					} // End of polytomy section*/
 				}
 				if(WRITE_OR_DEBUG) {
-					if(weight == 1968782) {
+					if(weight == 1968782 && false) {
 						System.out.println("helloooo");
 						int treeCounter = 0;
 						for (Integer gtb : dataCollection.geneTreesAsInts) {
