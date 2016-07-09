@@ -1,10 +1,9 @@
 #include "calculateWeightByTraversal.h"
 #include <limits.h>
 #include <stdio.h>
-
 //testing purposes only. getside will probably use a read only memory
 
-struct Intersects * getSide(int in, struct Intersects * side, struct Tripartition * trip) {
+inline struct Intersects * getSide(int in, struct Intersects * side, struct Tripartition * trip) {
 	/*int index = 0;
 	while (index < CLUSTER_SIZE && in != trip->cluster1[index])
 		index++;
@@ -42,12 +41,12 @@ struct Intersects * getSide(int in, struct Intersects * side, struct Tripartitio
 }
 
 //for intersections
-addIntersects(struct Intersects * augend, struct Intersects * addend, struct Intersects * result) {
+inline addIntersects(struct Intersects * augend, struct Intersects * addend, struct Intersects * result) {
 	result->s0 = augend->s0 + addend->s0;
 	result->s1 = augend->s1 + addend->s1;
 	result->s2 = augend->s2 + addend->s2;
 }
-subtractIntersects(struct Intersects * minuend, struct Intersects * subtrahend, struct Intersects * result) {
+inline subtractIntersects(struct Intersects * minuend, struct Intersects * subtrahend, struct Intersects * result) {
 	result->s0 = minuend->s0 - subtrahend->s0;
 	result->s1 = minuend->s1 - subtrahend->s1;
 	result->s2 = minuend->s2 - subtrahend->s2;
@@ -61,18 +60,36 @@ inline push(struct IntersectsStack * stack, struct Intersects * item) {
 }
 
 inline pop(struct IntersectsStack * stack, struct Intersects * item) {
+	if (stack->currentIndex <= -1) {
+		fprintf(stderr, "wtf1");
+		getchar();
+	}
 	item->s0 = stack->array[stack->currentIndex].s0;
 	item->s1 = stack->array[stack->currentIndex].s1;
 	item->s2 = stack->array[stack->currentIndex--].s2;
 }
 
-poll(struct IntersectsStack * stack, struct Intersects * item) {
+inline poll(struct IntersectsStack * stack, struct Intersects * item) {
+	if (stack->currentIndex <= -1) {
+		fprintf(stderr, "wtf2");
+		getchar();
+
+	}
 	item->s0 = stack->array[stack->currentIndex].s0;
 	item->s1 = stack->array[stack->currentIndex].s1;
 	item->s2 = stack->array[stack->currentIndex].s2;
 }
+inline get(struct IntersectsStack * stack, struct Intersects * item, int index) {
+	if (index <= -1 || index > stack->currentIndex) {
+		fprintf(stderr, "wtf %d %d", index, stack->currentIndex);
+		getchar();
 
-clear(struct IntersectsStack * stack) {
+	}
+	item->s0 = stack->array[index].s0;
+	item->s1 = stack->array[index].s1;
+	item->s2 = stack->array[index].s2;
+}
+inline clear(struct IntersectsStack * stack) {
 	stack->currentIndex = -1;
 }
 
@@ -82,7 +99,7 @@ inline long F(int a, int b, int c) {
 }
 
 //there is a popcount method in opencl. refer to opencl reference guide. will do it with naive method here. Assumed sorted.
-int bitIntersectionSize(long input1[CLUSTER_SIZE], long input2[CLUSTER_SIZE]) {
+inline int bitIntersectionSize(int input1[CLUSTER_SIZE], int input2[CLUSTER_SIZE]) {
 	int out = 0;
 	/*int input2Counter = 0;
 	int i = 0;
@@ -106,7 +123,7 @@ int bitIntersectionSize(long input1[CLUSTER_SIZE], long input2[CLUSTER_SIZE]) {
 	return out;
 }
 
-long calculateWeightByTraversal(struct Tripartition * trip, int all[][CLUSTER_SIZE], int allLength, int geneTreesAsInts[], int geneTreeAsIntsLength) {
+long calculateWeightByTraversal(struct Tripartition * trip, int (*all)[][CLUSTER_SIZE], int geneTreesAsInts[], int geneTreeAsIntsLength) {
 
 	//actual program
 	long weight = 0;
@@ -124,14 +141,14 @@ long calculateWeightByTraversal(struct Tripartition * trip, int all[][CLUSTER_SI
 	int newTree = 1;
 	int counter = 0;
 	int treeCounter = 0;
-	for (; counter < geneTreeAsIntsLength; counter++) {
 
+	for (; counter < geneTreeAsIntsLength; counter++) {
 		if (newTree) {
 			newTree = 0;
 
-			allsides.s0 = bitIntersectionSize(all[treeCounter], trip->cluster1);
-			allsides.s1 = bitIntersectionSize(all[treeCounter], trip->cluster2);
-			allsides.s2 = bitIntersectionSize(all[treeCounter], trip->cluster3);
+			allsides.s0 = bitIntersectionSize((*all)[treeCounter], trip->cluster1);
+			allsides.s1 = bitIntersectionSize((*all)[treeCounter], trip->cluster2);
+			allsides.s2 = bitIntersectionSize((*all)[treeCounter], trip->cluster3);
 
 			treeCounter++;
 
@@ -175,7 +192,58 @@ long calculateWeightByTraversal(struct Tripartition * trip, int all[][CLUSTER_SI
 				((long)(side1.s2 + side2.s0 + side3.s1 - 3))*side1.s2*side2.s0*side3.s1 +
 				((long)(side1.s2 + side2.s1 + side3.s0 - 3))*side1.s2*side2.s1*side3.s0;
 				*/
-			F(1, 2, 3);
+		}
+		else { //for polytomies
+			struct IntersectsStack children;
+			children.currentIndex = -1;
+			struct Intersects newSide;
+			newSide.s0 = 0;
+			newSide.s1 = 0;
+			newSide.s2 = 0;
+
+			for (int i = geneTreesAsInts[counter]; i < 0; i++) {
+				addIntersects(&newSide, &(stack.array[stack.currentIndex]), &newSide);
+				pop(&stack, &(children.array[++children.currentIndex]));
+			}
+
+			push(&stack, &newSide);
+
+			struct Intersects sideRemaining;
+			subtractIntersects(&allsides, &newSide, &sideRemaining);
+
+			if (sideRemaining.s0 != 0 || sideRemaining.s1 != 0 || sideRemaining.s2 != 0) {
+				push(&children, &sideRemaining);
+			}
+			struct Intersects side1;
+			struct Intersects side2;
+			struct Intersects side3;
+
+			for (int i = 0; i <= children.currentIndex; i++) {
+				get(&children, &side1, i);
+
+				for (int j = i + 1; j <= children.currentIndex; j++) {
+					get(&children, &side2, j);
+
+					if (children.currentIndex > 4) {
+						if ((side1.s0 + side2.s0 == 0 ? 1 : 0) +
+							(side1.s1 + side2.s1 == 0 ? 1 : 0) +
+							(side1.s2 + side2.s2 == 0 ? 1 : 0) > 1)
+							continue;
+					}
+
+					for (int k = j + 1; k <= children.currentIndex; k++) {
+						get(&children, &side3, k);
+
+						weight +=
+							F(side1.s0, side2.s1, side3.s2) +
+							F(side1.s0, side2.s2, side3.s1) +
+							F(side1.s1, side2.s0, side3.s2) +
+							F(side1.s1, side2.s2, side3.s0) +
+							F(side1.s2, side2.s0, side3.s1) +
+							F(side1.s2, side2.s1, side3.s0);
+					}
+				}
+			}
 		}
 	}
 	return weight;

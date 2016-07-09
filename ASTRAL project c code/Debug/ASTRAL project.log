@@ -1,6 +1,4 @@
 ﻿  main.c
-c:\users\johng23\documents\visual studio 2015\projects\astral project\astral project\main.c(27): warning C4013: 'atoi' undefined; assuming extern returning int
-c:\users\johng23\documents\visual studio 2015\projects\astral project\astral project\main.c(100): warning C4048: different array subscripts: 'int (*)[200]' and 'int (*)[512][200]'
-c:\users\johng23\documents\visual studio 2015\projects\astral project\astral project\main.c(102): warning C4048: different array subscripts: 'int (*)[200]' and 'int (*)[512][200]'
-  ASTRAL project.vcxproj -> C:\Users\johng23\Documents\Visual Studio 2015\Projects\ASTRAL project\Debug\ASTRAL project.exe
-  ASTRAL project.vcxproj -> C:\Users\johng23\Documents\Visual Studio 2015\Projects\ASTRAL project\Debug\ASTRAL project.pdb (Partial PDB)
+c:\users\johng23\documents\visual studio 2015\projects\astral project\astral project\main.c(103): warning C4048: different array subscripts: 'int (*)[0][200]' and 'int (*)[1000][200]'
+  ASTRAL project.vcxproj -> C:\Users\johng23\documents\visual studio 2015\Projects\ASTRAL project\Debug\ASTRAL project.exe
+  ASTRAL project.vcxproj -> C:\Users\johng23\documents\visual studio 2015\Projects\ASTRAL project\Debug\ASTRAL project.pdb (Partial PDB)

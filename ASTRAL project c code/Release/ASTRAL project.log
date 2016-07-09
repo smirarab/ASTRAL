@@ -1,13 +1,10 @@
 ﻿  calculateWeightByTraversal.c
-calculateWeightByTraversal.c(85): warning C4028: formal parameter 1 different from declaration
-calculateWeightByTraversal.c(85): warning C4028: formal parameter 2 different from declaration
-  main.c
-main.c(27): warning C4013: 'atoi' undefined; assuming extern returning int
-main.c(100): warning C4048: different array subscripts: 'int (*)[200]' and 'int (*)[512][200]'
+calculateWeightByTraversal.c(103): warning C4028: formal parameter 1 different from declaration
+calculateWeightByTraversal.c(103): warning C4028: formal parameter 2 different from declaration
   Generating code
-  3 of 13 functions (23.1%) were compiled, the rest were copied from previous compilation.
+  4 of 15 functions (26.7%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
     0 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
-  ASTRAL project.vcxproj -> C:\Users\johng23\Documents\Visual Studio 2015\Projects\ASTRAL project\Release\ASTRAL project.exe
-  ASTRAL project.vcxproj -> C:\Users\johng23\Documents\Visual Studio 2015\Projects\ASTRAL project\Release\ASTRAL project.pdb (Full PDB)
+  ASTRAL project.vcxproj -> C:\Users\johng23\documents\visual studio 2015\Projects\ASTRAL project\Release\ASTRAL project.exe
+  ASTRAL project.vcxproj -> C:\Users\johng23\documents\visual studio 2015\Projects\ASTRAL project\Release\ASTRAL project.pdb (Full PDB)
