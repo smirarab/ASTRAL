@@ -90,14 +90,27 @@ public class Main {
 			}
 		}
 		GPUCall call = new GPUCall(geneTreesAsInts, allArray1D, tripartitions1D);
-
+		
 		long timeA;
-		for(int i = 12; i <= 13; i++) {
+		System.out.println("number of tripartitions: " + weight.size());
+		System.out.printf("%10s|%16s|%15s\n", "chunk size", "number of chunks", "time in seconds");
+		System.out.println("-------------------------------------------");
+		for(int i = 10; i <= 16; i++) {
 			call.WORK_GROUP_SIZE = 1L << i;		
 			timeA = System.nanoTime();
 			call.update();
-			System.out.println(System.nanoTime()-timeA + " " + i);
-		}	
+			System.out.printf("2^%-8d|%-16d|%-15f\n", i, (int)(weight.size()/Math.pow(2, i))+1 ,(double)(System.nanoTime()-timeA)/1000000000);
+		}
+		call.WORK_GROUP_SIZE = weight.size();
+		timeA = System.nanoTime();
+		call.update();
+		System.out.printf("%-10d|%-16d|%-15f\n", weight.size(), 1,(double)(System.nanoTime()-timeA)/1000000000);
 		
+		for(int i = 0; i < weight.size(); i++) {
+			if(call.weightArray[i] != weight.get(i)) {
+				System.out.println("bad " + i + " " + call.weightArray[i] + " " + weight.get(i));
+				return; 
+			}
+		}
 	}
 }
