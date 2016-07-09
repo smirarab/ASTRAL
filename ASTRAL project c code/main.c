@@ -1,5 +1,7 @@
 #include "main.h"
 #include <stdio.h>
+#include <stdlib.h>
+#define MAX_ALL_SIZE 1000
 int main()
 {
 
@@ -34,9 +36,10 @@ int main()
 		geneTreesAsInts[geneTreesAsIntsCounter++] = atoi(integerString);
 		integerStringCounter = 0;
 	}
-
+	
 	//getting the all array
-	int all[BUFSIZ][CLUSTER_SIZE] = { 0 };
+	//int all[800][CLUSTER_SIZE] = { 0 };
+	int (*all)[MAX_ALL_SIZE][CLUSTER_SIZE] = calloc(MAX_ALL_SIZE * CLUSTER_SIZE, sizeof(int));
 	int allCounter = 0;
 	int integerObtained = 0;
 	while ((characterObtained = fgetc(tripStream)) != '&') {
@@ -45,7 +48,7 @@ int main()
 				integerString[integerStringCounter] = 0;
 				integerObtained = atoi(integerString);
 
-				all[allCounter][integerObtained] = 1;
+				(*all)[allCounter][integerObtained] = 1;
 				integerStringCounter = 0;
 			}
 			allCounter++;
@@ -57,7 +60,7 @@ int main()
 			integerString[integerStringCounter] = 0;
 			integerObtained = atoi(integerString);
 
-			all[allCounter][integerObtained] = 1;
+			(*all)[allCounter][integerObtained] = 1;
 			integerStringCounter = 0;
 		}
 	}
@@ -97,9 +100,11 @@ int main()
 					integerString[integerStringCounter] = 0;
 
 					long weight = atoi(integerString);
-					long calculated = calculateWeightByTraversal(&trip, &all, allCounter, geneTreesAsInts, geneTreesAsIntsCounter);
+					long calculated = calculateWeightByTraversal(&trip, all, geneTreesAsInts, geneTreesAsIntsCounter);
 					if (weight != calculated) {
-						return -1;
+						getchar();
+
+						return -5;
 					}
 					tripCounter = 0;
 					for (int i = 0; i < CLUSTER_SIZE; i++) {
@@ -134,6 +139,5 @@ int main()
 	}
 	fclose(geneStream);
 	fclose(tripStream);
-
 	return 0;
 }

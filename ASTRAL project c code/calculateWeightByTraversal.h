@@ -2,7 +2,7 @@
 #define STACK_SIZE 200
 #define CLUSTER_SIZE 200
 #define BITSET_SIZE 1
-long calculateWeightByTraversal(struct Tripartition * trip, int all[][CLUSTER_SIZE], int allLength, int geneTreesAsInts[], int geneTreeAsIntsLength);
+long calculateWeightByTraversal(struct Tripartition * trip, int(*all)[][CLUSTER_SIZE], int geneTreesAsInts[], int geneTreeAsIntsLength);
 
 //intersects
 struct Intersects {
@@ -17,12 +17,13 @@ subtractIntersects(struct Intersects * minuend, struct Intersects * subtrahend, 
 //intersects stack
 struct IntersectsStack {
 	struct Intersects array [STACK_SIZE];
-	int currentIndex;
+	int currentIndex; //index of the last valid element. -1 if empty.
 };
 
 inline push(struct IntersectsStack * stack, struct Intersects * item);
 inline pop(struct IntersectsStack * stack, struct Intersects * item);
 poll(struct IntersectsStack * stack, struct Intersects * item);
+get(struct IntersectsStack * stack, struct Intersects * item, int index);
 clear(struct IntersectsStack * stack);
 
 //tripartition/bitset
