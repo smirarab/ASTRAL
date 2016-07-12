@@ -50,7 +50,6 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		
 		long sharedQuartetCount(Tripartition that, Tripartition other) {
 			
-			//int [] I = new int [9];
 			int 
 			I0 = that.cluster1.getBitSet().intersectionSize(other.cluster1.getBitSet()),
 			I1 = that.cluster1.getBitSet().intersectionSize(other.cluster2.getBitSet()),

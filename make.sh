@@ -20,6 +20,7 @@ cd ..
 
 chmod +x astral.$version.jar
 sed -e "s/__astral.jar__/astral.$version.jar/g" -e "s/__astral.zip__/Astral.$version.zip/g" README.template.md > README.md
+sed -e "s/__astral.jar__/astral.$version.jar/g" -e "s/__astral.zip__/Astral.$version.zip/g" astral-tutorial-template.md > astral-tutorial.md
 rm -fr Astral/*
 mkdir -p  Astral
 cd Astral
