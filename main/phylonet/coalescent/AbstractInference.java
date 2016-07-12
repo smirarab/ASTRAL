@@ -3,6 +3,7 @@ package phylonet.coalescent;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -82,6 +83,7 @@ public abstract class AbstractInference<T> {
 	}
 
 	public void mapNames() {
+		HashMap<String, Integer> taxonOccupancy = new HashMap<String, Integer>();
 		if ((trees == null) || (trees.size() == 0)) {
 			throw new IllegalArgumentException("empty or null list of trees");
 		}
@@ -89,6 +91,7 @@ public abstract class AbstractInference<T> {
             String[] leaves = tr.getLeaves();
             for (int i = 0; i < leaves.length; i++) {
                 GlobalMaps.taxonIdentifier.taxonId(leaves[i]);
+                taxonOccupancy.put(leaves[i], Utils.increment(taxonOccupancy.get(leaves[i])));
             }
         }
         
@@ -98,6 +101,7 @@ public abstract class AbstractInference<T> {
 		        " (" + GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount() +" species)"
 		);
 		System.err.println("Taxa: " + GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesNames());
+		System.err.println("Taxon occupancy: " + taxonOccupancy.toString());
 	}
 	
 	public abstract double scoreSpeciesTreeWithGTLabels(Tree scorest, boolean initialize) ;
