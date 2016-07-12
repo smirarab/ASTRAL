@@ -283,26 +283,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 		STITreeCluster revcluster = new STITreeCluster(refCluster);
 		revcluster.getBitSet().xor(c.getBitSet());
 		Vertex reverse = revcluster.new Vertex();
-		// int size = reverse._cluster.getClusterSize();
 		return reverse;
 	}
-
-	/*
-	 * public boolean addAllPossibleSubClusters(STITreeCluster cluster) { int
-	 * size = cluster.getClusterSize(); boolean ret = false; for (int i =
-	 * cluster.getCluster().nextSetBit(0); i>=0 ;i =
-	 * cluster.getCluster().nextSetBit(i+1)){ STITreeCluster c = new
-	 * STITreeCluster(cluster); c.getCluster().clear(i); ret |= addToClusters(c,
-	 * size-1); ret |= addAllPossibleSubClusters(c); } return ret; }
-	 */
-
-	/*
-	 * public boolean addAllPossibleSubClusters(STITreeCluster cluster) { int
-	 * size = cluster.getClusterSize(); boolean ret = false; for (int i =
-	 * cluster.getCluster().nextSetBit(0); i>=0 ;i =
-	 * cluster.getCluster().nextSetBit(i+1)){ STITreeCluster c = new
-	 * STITreeCluster(cluster); c.getCluster().clear(i); ret |= addToClusters(c,
-	 * size-1); ret |= addAllPossibleSubClusters(c); } return ret; }
-	 */
 
 }

@@ -39,7 +39,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.10.6";
+    protected static String _versinon = "4.10.7";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -59,7 +59,7 @@ public class CommandLine {
                 "species tree inference from unrooted gene trees. "
                 + "The ASTRAL algorithm maximizes the number of shared quartet trees with"
                 + " the collection of all gene trees. The result of this optimization problem"
-                + " is statistically consistent under the multi-species coalesent model."
+                + " is statistically consistent under the multi-species coalescent model."
                 + " This software can also solve MGD and MGDL problems (see options) instead of ASTRAL.",
                     
                 new Parameter[] {
@@ -115,16 +115,16 @@ public class CommandLine {
 	                        JSAP.STRING_PARSER, null, JSAP.NOT_REQUIRED, 
 	                        'k', "keep",
 	                          " -k completed: outputs completed gene trees (i.e. after adding missing taxa) to a file called [output file name].completed_gene_trees.\n"
-	                        + " -k bootstraps: outputs individual bootstrap replciates to a file called [output file name].[i].bs\n"
+	                        + " -k bootstraps: outputs individual bootstrap replicates to a file called [output file name].[i].bs\n"
 	                        + " -k bootstraps_norun: just like -k bootstraps, but exits after outputting bootstraps.\n"
-	                        + " -k searchspace_norun: outputs the search space and exits; use searchspace to continue the run after outputting the search space."
+	                        + " -k searchspace_norun: outputs the search space and exits; use -k searchspace to continue the run after outputting the search space."
 	                        + "When -k option is used, -o option needs to be given. "
 	                        + "The file name specified using -o is used as the prefix for the name of the extra output files.").setAllowMultipleDeclarations(true),
 
 	                new FlaggedOption("lambda", 
 	                        JSAP.DOUBLE_PARSER, "0.5", JSAP.NOT_REQUIRED,
 	                        'c', "lambda",
-	                        "Set the lambda parameter for the Yule prior used in the calculaitons"
+	                        "Set the lambda parameter for the Yule prior used in the calculations"
 	                        + " of branch lengths and posterior probabilities. Set to zero to get ML branch "
 	                        + "lengths instead of MAP."
 	                        + " Higher values tend to shorten estimated branch lengths and very"
@@ -141,7 +141,7 @@ public class CommandLine {
 	                new FlaggedOption("minleaves", 
 	                        JSAP.INTEGER_PARSER, null, JSAP.NOT_REQUIRED, 
 	                        'm', "minleaves",
-	                        "Remove genes with less than specificed number of leaves "),
+	                        "Remove genes with less than specified number of leaves "),
 	
 	                new Switch( "duplication",
 	                        'd', "dup",
@@ -151,7 +151,7 @@ public class CommandLine {
 	                                            
                     new Switch("exact",
                             'x', "exact",
-                            "find the exact solution by looking at all clusters - recommended only for small (<18) numer of taxa."),
+                            "find the exact solution by looking at all clusters - recommended only for small (<18) number of taxa."),
 
 /*                    new Switch("scoreall",
                             'y', "scoreall",
@@ -163,7 +163,7 @@ public class CommandLine {
                             "How much extra bipartitions should be added: 0, 1, or 2. "
                             + "0: adds nothing extra. "
                             + "1 (default): adds to X but not excessively (greedy resolutions). "
-                            + "2: addes a potentially large number and therefore can be slow (quadratic distance-based)."),
+                            + "2: adds a potentially large number and therefore can be slow (quadratic distance-based)."),
    
                     new FlaggedOption("extra trees", 
                             FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 
@@ -173,7 +173,7 @@ public class CommandLine {
                     new FlaggedOption("extra species trees", 
                             FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 
                             'f', "extra-species",
-                            "provide extra trees (with species lables) used to enrich the set of clusters searched"),
+                            "provide extra trees (with species labels) used to enrich the set of clusters searched"),
 
                     new FlaggedOption( "duploss weight",
                             JSAP.STRING_PARSER, null, JSAP.NOT_REQUIRED,
@@ -183,7 +183,7 @@ public class CommandLine {
                             + "DynaDyp would be used *instead of* ASTRAL. "
                             + "Use -l 0 for standard (homomorphic) definition, and -l 1 for our new bd definition. "
                             + "Any value in between weights the impact of missing taxa somewhere between these two extremes. "
-                            + "-l auto will automaticaly pick this weight. "), 
+                            + "-l auto will automatically pick this weight. "), 
                 });
     }
 
@@ -264,10 +264,10 @@ public class CommandLine {
         if (config.getFile("mapping file") != null) {
 
         	System.err.println("****** WARNNING ******\n"
-        			+ "		For multi-individual datasets please use the code\n"
+        			+ "		For multi-individual data, please use the code\n"
         			+ "		available at the multiind branch of the ASTRAL github.\n"
-        			+ "		This brnahc does not yet inlcude our improvements for the\n"
-        			+ "		multi-individual inputs."
+        			+ "		This branch does not yet include our improvements for the\n"
+        			+ "		multi-individual inputs.\n"
         			+ "****** END OF WARNNING ******\n");
             BufferedReader br = new BufferedReader(new FileReader(
                     config.getFile("mapping file")));
@@ -373,7 +373,8 @@ public class CommandLine {
                          rooted, true, true, null, 1, false? //config.getBoolean("scoreall")? 
                         		 outgroup: null).get(0);
 
-				double nscore = inference.scoreGeneTree(tr, true);
+				double nscore = inference.scoreSpeciesTreeWithGTLabels(tr, true);
+				
 				if (nscore > score) {
 					score = nscore;
 					bestTree.clear();
@@ -397,7 +398,7 @@ public class CommandLine {
         	System.exit(0);
         }
         
-        System.err.println("All outputted trees will be *arbitrarily* rooted at "+outgroup);
+        System.err.println("All output trees will be *arbitrarily* rooted at "+outgroup);
         
         if (config.getStringArray("keep") != null && config.getStringArray("keep").length != 0) {
         	if (GlobalMaps.outputfilename == null) {
@@ -479,9 +480,9 @@ public class CommandLine {
     		        }
 		        } catch (IndexOutOfBoundsException e) {
 		            exitWithErr("Error: You seem to have asked for "+config.getInt("replicates")+
-		                    " but only "+ i +" replicaes could be created.\n" + 
+		                    " but only "+ i +" replicates could be created.\n" + 
 		                    " Note that for gene resampling, you need more input bootstrap" +
-		                    " replicates than the number of species tee replicates.", jsap);
+		                    " replicates than the number of species tree replicates.", jsap);
 		        }
 			    if (keepOptions.contains("bootstraps_norun") ||
 				    	keepOptions.contains("bootstraps")) {
@@ -555,7 +556,11 @@ public class CommandLine {
         st.rerootTreeAtNode(st.getNode(outgroup));
 		Trees.removeBinaryNodes((MutableTree) st);
    
-		inference.scoreGeneTree(st, false);
+		GlobalMaps.taxonNameMap.getSpeciesIdMapper().stToGt((MutableTree) st);
+		
+		inference.scoreSpeciesTreeWithGTLabels(st, false);
+		
+		GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) st);
 		
         if ((bootstraps != null) && (bootstraps.iterator().hasNext())) {
             for (Solution solution : solutions) {
