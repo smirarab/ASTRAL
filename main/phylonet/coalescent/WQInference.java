@@ -226,6 +226,15 @@ public class WQInference extends AbstractInference<Tripartition> {
 				nd.mainfreq = s.qs;
 				nd.effn = s.effn;
 				
+				
+				if (nd.effn < 20) {
+					if (!GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleSP(cluster.getBitSet()))
+						System.err.println("You may want to ignore posterior probabilities and other statistics related to the following "
+								+ "branch branch because the effective number of genes impacting it is only "+ nd.effn +
+							". h:\n\t" +
+							GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTClusterForGeneCluster(cluster));
+				}
+				
 				Quadrapartition[] threequads = new Quadrapartition [] {quad, null,null};
 				
 				quad = weightCalculator2.new Quadrapartition
