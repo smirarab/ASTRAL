@@ -235,4 +235,7 @@ public class SpeciesMapper {
     	}
     }
 
+    public boolean isSingleIndividual() {
+    	return taxonIdToSpeciesId.length == speciesIdtoTaxonId.size();
+    }
 }
