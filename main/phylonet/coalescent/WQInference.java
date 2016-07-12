@@ -27,7 +27,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 	}
 
 	
-	public double scoreGeneTree(Tree st, boolean initialize) {
+	public double scoreSpeciesTreeWithGTLabels(Tree st, boolean initialize) {
 
 		if (initialize) {
 			mapNames();
@@ -47,11 +47,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 			//System.err.println(this.maxpossible);
 		}
 		
-		GlobalMaps.taxonNameMap.getSpeciesIdMapper().stToGt((MutableTree) st);
-		
 		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
 		long sum = 0l;
-		//long maxsum = 0l;
+
 		for (TNode node: st.postTraverse()) {
 			if (node.isLeaf()) {
 				String nodeName = node.getName(); //GlobalMaps.TaxonNameMap.getSpeciesName(node.getName());
@@ -98,25 +96,18 @@ public class WQInference extends AbstractInference<Tripartition> {
 							Tripartition trip = new Tripartition(childbslist.get(i),  childbslist.get(j), childbslist.get(k));
 							Long s = weightCalculator.getWeight(trip, null);
 							sum += s;
-							//Long m = this.dataCollection.maxPossibleScore(trip);
-							//((STINode)node).setData(s*100l/m);
-							//maxsum += m;
 						}
 					}					       
 				}
 			}
 		}
 		
-/*		if (4l*this.maxpossible != maxsum) {
-			throw new RuntimeException("Hmm... "+maxsum+" "+4l*this.maxpossible);
-		}*/
+
 		System.err.println("Quartet score is: " + sum/4l);
 		System.err.println("Normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
 		//System.out.println(st.toNewickWD());
 		
 		double logscore = this.scoreBranches(st);
-		
-		GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) st);
 		
 		if (this.getBranchAnnotation() % 12 == 0) {
 			System.err.println("log local posterior: "+logscore);
@@ -186,14 +177,6 @@ public class WQInference extends AbstractInference<Tripartition> {
 		stack = new Stack<STITreeCluster>();
 		
 		
-		//List<Double> mainfreqs = new ArrayList<Double>();
-		//List<Double> alt1freqs = new ArrayList<Double>();
-		//List<Double> alt2freqs = new ArrayList<Double>();
-		//List<Long> quartcount = new ArrayList<Long>();
-		//List<Integer> effn = new ArrayList<Integer>();
-		//List< Quadrapartition []> quads = new ArrayList<Quadrapartition[]>();
-		//List<STBipartition[]> bipartitions = new ArrayList<STBipartition[]>();
-		
 		Queue<NodeData> nodeDataList = new LinkedList<NodeData>();
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
@@ -242,7 +225,6 @@ public class WQInference extends AbstractInference<Tripartition> {
 				Results s = weightCalculator2.getWeight(quad);
 				nd.mainfreq = s.qs;
 				nd.effn = s.effn;
-				//System.err.println(s.effn + " " + quad);
 				
 				Quadrapartition[] threequads = new Quadrapartition [] {quad, null,null};
 				
@@ -283,7 +265,6 @@ public class WQInference extends AbstractInference<Tripartition> {
 				
 			}
 		}
-		//int i = 0;
 		NodeData nd = null;
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
@@ -300,7 +281,13 @@ public class WQInference extends AbstractInference<Tripartition> {
 			Double f2 = nd.alt1freqs;
 			Double f3 = nd.alt2freqs;
 			Long quarc = nd.quartcount;
-			Integer effni = nd.effn;
+			Double effni = nd.effn + 0.0;
+			
+			if ( Math.abs((f1+f2+f3) - effni) > 0.01 ) {
+				//System.err.println("Adjusting effective N from\t" + effni + "\tto\t" + (f1 + f2 + f3) + ". This should only happen as a result of polytomies in gene trees.");
+				effni = f1 + f2 + f3;
+			}
+			
 			//Long sum = p+a1+a2;
 			
 			Posterior post = new Posterior(
