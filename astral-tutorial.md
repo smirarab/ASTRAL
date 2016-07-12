@@ -122,7 +122,7 @@ A larger real dataset from the [1kp](http://www.pnas.org/content/early/2014/10/2
 424 genes from 103 species. Run:
 
 ```
-java -jar astral.4.10.7.jar -i test_data/1KP-genetrees.tre -o test_data/1kp-tre
+java -jar astral.4.10.7.jar -i test_data/1KP-genetrees.tre -o test_data/1kp.tre
 ```
 
 This takes about a minute to run on a powerful laptop. On this dataset, notice in the ASTRAL log information that it originally starts with 11043 clusters in its search space, and using heuristics implemented in ASTRAL-II, it increases the search space slightly to 11085 clusters. For more challenging datasets (i.e., more discordance or fewer genes) this number might increase a lot. 
@@ -176,35 +176,41 @@ Here is a description of various information that can be turned on by using `-t`
    * `pp1`, `pp2`, `pp3`: these three show the local posterior probabilities (as defined in the description of `-t 4`) for the main topology, the first alternative, and the second alternative, respectively.
    * `QC`: this shows the total number of quartets defined around each branch (this is what our paper calls `m`).
    * `EN`: this is the effective number of genes for the branch. If you don't have any missing data, this would be the number of branches in your tree. When there is missing data, some gene trees might have nothing to say about a branch. Thus, the effective number of genes might be smaller than the total number of genes. 
-
+* *Alternative quartet topologies* (`-t 8`): Outputs `q1`, `q2`, `q3`; these three values show quartet support (as defined in the description of `-t 1`) for the main topology, the first alternative, and the second alternative, respectively.
 
 Run:
 
 ```
-java -jar astral.4.10.7.jar -q test_data/simulated_14taxon.default.tre -i test_data/simulated_14taxon.gene.tre -t 2
+java -jar astral.4.10.7.jar -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 2 -o test_data/1kp-scored-t2.tre
+```
+```
+java -jar astral.4.10.7.jar -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 4 -o test_data/1kp-scored-t4.tre
+```
+```
+java -jar astral.4.10.7.jar -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 8 -o test_data/1kp-scored-t8.tre
 ```
 read all the values given for a couple of branches and try to make sense of them. 
 
 
-#### Priori hyper-parameter
+#### Prior hyper-parameter
 
 Our calculations of the local posterior probabilities and branch lengths use a Yule prior model for the branch lengths of the species tree. The speciation rate (in coalescent units) of the Yule process (lambda) is by default set to 0.5, which results in a flat prior for the quartet frequencies in the `[1/3,1]` range. Using `-c` option one can adjust the hyper-parameter for the prior. For example, you might want to estimate lambda from the data after one run and plug the estimate prior in a subsequent run. We have not yet fully explored the impact of lambda on the posterior. For branch lengths, lambda acts as a pseudocount and can have a substantial impact on the estimated branch length for very long branches. More specifically, if there is no, or very little discordance around a branch, the MAP lengths of the branch (which is what we report) is almost fully determined by the prior. 
 
 Run the following two commands and compare the lengths of the longest branches:
 
 ```
-java -jar astral.4.10.7.jar -q test_data/simulated_14taxon.default.tre -i test_data/simulated_14taxon.gene.tre -c 0.001
+java -jar astral.4.10.7.jar -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -c 2 -o test_data/1kp-scored-c2.tre
 ```
 
 ```
-java -jar astral.4.10.7.jar -q test_data/simulated_14taxon.default.tre -i test_data/simulated_14taxon.gene.tre -c 2
+java -jar astral.4.10.7.jar -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -c 0.001 -o test_data/1kp-scored-cs.tre
 ``` 
 
 Note that setting lambda to 0 results in reporting ML estimates of the branch lengths instead of MAP. However, for branches with no discordance, we cannot compute a branch lengths. For these, we currently arbitrarily set ML to 10 coalescent units (we might change this in future versions).
 
 
 ### Multi-locus Bootstrapping:
-Recent versions of ASTRAL output a branch support value even without bootstrapping. Our [analuses]](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1) have revealed that this form of support is more reliable than bootstrapping under conditions we have compared the two methods. Nevertheless, you may want to run bootstrapping as well. 
+Recent versions of ASTRAL output a branch support value even without bootstrapping. Our [analyses](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1) have revealed that this form of support is more reliable than bootstrapping under conditions we have compared the two methods. Nevertheless, you may want to run bootstrapping as well. 
 
 Astral can perform multi-locus bootstrapping ([Seo, 2008](http://www.ncbi.nlm.nih.gov/pubmed/18281270)). To be able to perform multi-locus bootstrapping, ASTRAL needs to have access to bootstrap replicates for each gene. To start multi-locus bootstrapping using ASTRAL, you need to provide the location of all gene tree bootstrap replicates. To run bootstrapping on our test input files, 
 
