@@ -231,7 +231,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 					if (!GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleSP(cluster.getBitSet()))
 						System.err.println("You may want to ignore posterior probabilities and other statistics related to the following "
 								+ "branch branch because the effective number of genes impacting it is only "+ nd.effn +
-							". h:\n\t" +
+							":\n\t" +
 							GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTClusterForGeneCluster(cluster));
 				}
 				

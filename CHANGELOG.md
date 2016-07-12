@@ -1,3 +1,6 @@
+- version 4.10.8:
+	- Output taxon occupancy
+	 
 - version 4.10.7:
 	- Small bug fix: with `-a` scoring using `-q` didn't work. Also, output both gene tree labels and the species tree labels. 
 	- Bug fix: effective N and quartet scores were not correctly printed out with -t X options if gene trees had polytomies. posterior values were correctly computed.

@@ -604,4 +604,8 @@ public class Utils {
 		temp.clear();*/
 		return results;
 	}
+	
+	public static Integer increment(Integer i) {
+		return i == null? 1 : (i+1);
+	}
 }
