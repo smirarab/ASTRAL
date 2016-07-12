@@ -172,8 +172,8 @@ public class SpeciesMapper {
 	            ret.add(GlobalMaps.taxonIdentifier.getTaxonName(id));
 	        }
         } catch (IndexOutOfBoundsException e) {
-        	throw new RuntimeException("Mapping between gene and species taxon names"
-        			+ "doesn't seem right. We couldn't find "+ species + " in gene trees.");
+        	throw new RuntimeException("Mapping between gene tree and species tree taxon names "
+        			+ "doesn't seem right. We couldn't find species "+ species + " in gene trees.");
         }
         return ret;
     }
