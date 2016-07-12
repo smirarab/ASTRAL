@@ -383,6 +383,10 @@ public class CommandLine {
 					bestTree.add(tr);
 				}
 				
+				if (!GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleIndividual()) {
+					System.err.println("Scored tree with gene names:\n"+tr.toNewickWD());
+				}
+				
 				GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) tr);
 				
 				if (options.getBranchannotation() != 12) {
