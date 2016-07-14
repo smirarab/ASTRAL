@@ -76,6 +76,7 @@ species_name [number of individuals] individual_1 individual_2 ...
 
 species_name:individual_1,individual_2,...
 ```
+Note that when multiple individuals exist for the same species, your species name should be different from the individual names.
 
 The code for handling multiple individuals is in its infancy and might not work well yet. Keep posted for improvements to this feature. 
 
