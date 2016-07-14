@@ -295,10 +295,14 @@ public class CommandLine {
                         System.err
                         .println("Any gene name can only map to one species");
                         System.exit(-1);
-                    } else {
-                        //System.err.println("Mapping '"+allele+"' to '"+species+"'");
-                        taxonMap.put(allele, species);
-                    }
+                    } else if (alleles.length > 1 && allele.equals(species)) {
+                        System.err
+                        .println("Error: The species name cannot be identical to gene names when"
+                        		+ "multiple alleles exist for the same gene"+ allele);
+                        System.exit(-1);
+                	}
+                    //System.err.println("Mapping '"+allele+"' to '"+species+"'");
+                    taxonMap.put(allele, species);
                 }
             }
             br.close();
