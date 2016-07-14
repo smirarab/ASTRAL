@@ -239,7 +239,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		if (gtAllBS.cardinality() < 3) {
 			throw new RuntimeException("Tree "+tr.toNewick() +" has less than 3 taxa; it cannot be completed");
 		}
-		STITree trc = new STITree(tr);		
+		STITree trc = new STITree(tr);
+		
+		Trees.removeBinaryNodes(trc);
 		
 		for (int missingId = gtAllBS.nextClearBit(0); missingId < n ; missingId = gtAllBS.nextClearBit(missingId+1)) {
 			
