@@ -1,5 +1,7 @@
 - version 4.10.8:
 	- Output taxon occupancy
+	- Don't error out on gene trees with dummy degree 2 nodes
+	- Check the species name against gene names for identity. 
 	 
 - version 4.10.7:
 	- Small bug fix: with `-a` scoring using `-q` didn't work. Also, output both gene tree labels and the species tree labels. 
