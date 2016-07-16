@@ -27,6 +27,11 @@ void pop(struct IntersectsStack * stack, struct Intersects * item) {
 	item->s1 = stack->array[stack->currentIndex].s1;
 	item->s2 = stack->array[stack->currentIndex--].s2;
 }
+void get(struct IntersectsStack * stack, struct Intersects * item, int index) {
+	item->s0 = stack->array[index].s0;
+	item->s1 = stack->array[index].s1;
+	item->s2 = stack->array[index].s2;
+}
 clear(struct IntersectsStack * stack) {
 	stack->currentIndex = -1;
 }
@@ -145,6 +150,58 @@ __kernel void calcWeight(
 			/*if(idx == 32800) {
 				printf("|%d %d %d %d %d %d %d %d %d %d |", weight, side1.s0, side1.s1, side1.s2, side2.s0, side2.s1, side2.s2, side3.s0, side3.s1, side3.s2);
 			}*/
+		}
+		else { //for polytomies
+			struct IntersectsStack children;
+			children.currentIndex = -1;
+			struct Intersects newSide;
+			newSide.s0 = 0;
+			newSide.s1 = 0;
+			newSide.s2 = 0;
+
+			for (int i = geneTreesAsInts[counter]; i < 0; i++) {
+				addIntersects(&newSide, &(stack.array[stack.currentIndex]), &newSide);
+				pop(&stack, &(children.array[++children.currentIndex]));
+			}
+			
+			push(&stack, &newSide);
+			
+			struct Intersects sideRemaining;
+			subtractIntersects(&allsides, &newSide, &sideRemaining);
+
+			if (sideRemaining.s0 != 0 || sideRemaining.s1 != 0 || sideRemaining.s2 != 0) {
+				push(&children, &sideRemaining);
+			}
+			struct Intersects side1;
+			struct Intersects side2;
+			struct Intersects side3;
+
+			for (int i = 0; i <= children.currentIndex; i++) {
+				get(&children, &side1, i);
+
+				for (int j = i + 1; j <= children.currentIndex; j++) {
+					get(&children, &side2, j);
+
+					if (children.currentIndex > 4) {
+						if ((side1.s0 + side2.s0 == 0 ? 1 : 0) +
+							(side1.s1 + side2.s1 == 0 ? 1 : 0) +
+							(side1.s2 + side2.s2 == 0 ? 1 : 0) > 1)
+							continue;
+					}
+
+					for (int k = j + 1; k <= children.currentIndex; k++) {
+						get(&children, &side3, k);
+
+						weight +=
+							F(side1.s0, side2.s1, side3.s2) +
+							F(side1.s0, side2.s2, side3.s1) +
+							F(side1.s1, side2.s0, side3.s2) +
+							F(side1.s1, side2.s2, side3.s0) +
+							F(side1.s2, side2.s0, side3.s1) +
+							F(side1.s2, side2.s1, side3.s0);
+					}
+				}
+			}
 		}
 	}
 	weightArray[idx] = weight;

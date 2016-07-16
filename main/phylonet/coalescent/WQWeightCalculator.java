@@ -16,7 +16,7 @@ import phylonet.tree.model.sti.STITreeCluster;
 
 class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	public static boolean HAS_NOT = true;
-	public static boolean WRITE_OR_DEBUG = true;
+	public static boolean WRITE_OR_DEBUG = false;
 	WQInference inference;
 	private WQDataCollection dataCollection;
 
