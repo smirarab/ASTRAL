@@ -96,7 +96,7 @@ public class GPUCall {
 		commandQueue = clCreateCommandQueue(context, device, 0, null);
 
 		// Program Setup
-		String source = readFile("main/gputest/calculateWeight.cl");
+		String source = readFile("calculateWeight.cl");
 		source = source.replaceAll("SPECIES_LENGTH", "200");
 		
 		// Create the program
