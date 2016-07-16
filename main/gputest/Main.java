@@ -12,14 +12,14 @@ public class Main {
 		ArrayList<Integer> weight = new ArrayList<Integer>();
 		FileReader reader;
 		try {
-			reader = new FileReader("geneTreesAsInts.txt");
+			reader = new FileReader("../../geneTreesAsInts.txt");
 			Scanner in = new Scanner(reader);
 			while(in.hasNextInt()){
 				gtaiArrayList.add(in.nextInt());
 			}
 			in.close();
 			reader.close();
-			reader = new FileReader("Tripartitions.txt");
+			reader = new FileReader("../../Tripartitions.txt");
 			int read;
 			String integerString = "";
 			int[] allArray = new int[SPECIES_LENGTH];
