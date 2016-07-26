@@ -104,7 +104,7 @@ Here are some of the important information captured in the log:
 * Number of taxa, and their name. Double check these to make sure they are correct
 * Number of genes. 
 * Version of ASTRAL used in your analysis
-* The normalized quartet score (portion of input gene tree quartet trees satisfied by the species tree). This is a number between zero and one; the higher this number, the more discordant your gene trees are. 
+* The normalized quartet score (portion of input gene tree quartet trees satisfied by the species tree). This is a number between zero and one; the higher this number, the *less* discordant your gene trees are. 
 * The final optimization score is similar to the above number, but is not normalized (the number of gene tree quartets satisfied by the species tree)
 * Running time
 * More advanced logs show the size of the search space in terms of the number of clusters and number of tripartitions (i.e., elements weighted). Note that for challenging detests (not this mammalian dataset) the search space grows using heuristics implemented in ASTARL. We will get back to this.  
