@@ -91,7 +91,6 @@ public class WQInference extends AbstractInference<Tripartition> {
 						continue;
 					}
 				}
-				
 				for (int i = 0; i < childbslist.size(); i++) {
 					for (int j = i+1; j < childbslist.size(); j++) {
 						for (int k = j+1; k < childbslist.size(); k++) {
@@ -375,8 +374,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	@Override
 	AbstractComputeMinCostTask<Tripartition> newComputeMinCostTask(AbstractInference<Tripartition> dlInference,
-			Vertex all, IClusterCollection clusters) {
-		return new WQComputeMinCostTask( (WQInference) dlInference, all,  clusters);
+			Vertex all, IClusterCollection clusters, boolean isWriteToQueue) {
+		return new WQComputeMinCostTask( (WQInference) dlInference, all,  clusters, isWriteToQueue);
 	}
 
 	IClusterCollection newClusterCollection() {
@@ -391,7 +390,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	@Override
 	AbstractWeightCalculator<Tripartition> newWeightCalculator() {
-		return new WQWeightCalculator(this);
+		return new WQWeightCalculator(this, super.queue2);
 	}
 
 }

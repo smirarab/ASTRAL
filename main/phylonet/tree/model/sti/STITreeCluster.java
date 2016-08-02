@@ -1,17 +1,17 @@
 package phylonet.tree.model.sti;
 
+import java.util.Iterator;
+import java.util.List;
+
 import phylonet.coalescent.GlobalMaps;
 import phylonet.coalescent.TaxonIdentifier;
 import phylonet.util.BitSet;
-
-import java.util.Iterator;
-import java.util.List;
 
 
 public class STITreeCluster implements Iterable<Integer>
 {
   //protected String[] _taxa;
-  protected BitSet _cluster;
+  public BitSet _cluster;
   private int hashCode = 0;
   private TaxonIdentifier taxonIdentifier;
 
@@ -244,7 +244,7 @@ public class STITreeCluster implements Iterable<Integer>
     return out.toString();
   }
   
-  public class Vertex {
+  public class Vertex implements Comparable{
 		//public STITreeCluster _cluster = null;
 		//public int _el_num = -1;
 		//public int _min_cost = -1;
@@ -271,6 +271,12 @@ public class STITreeCluster implements Iterable<Integer>
 		@Override
 		public int hashCode() {
 			return STITreeCluster.this.hashCode();
+		}
+
+		@Override
+		public int compareTo(Object arg0) {
+			// TODO Auto-generated method stub
+			return this.getCluster().getBitSet().compareTo(((Vertex)arg0).getCluster().getBitSet());
 		}
 
 	}
