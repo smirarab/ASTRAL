@@ -30,7 +30,7 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.util.Trees;
 import phylonet.util.BitSet;
 
-public class WQDataCollection extends AbstractDataCollection<Tripartition> {
+public class WQDataCollection extends AbstractDataCollection<Tripartition> implements Cloneable {
 
 
 
@@ -67,7 +67,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 	public WQDataCollection( WQClusterCollection clusters, int alg, 
 			AbstractInference<Tripartition> inference) {
 		this.clusters = clusters;
-		this.algorithm = alg;
+		this.algorithm = 2;
 		this.spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
 		this.SLOW = inference.getAddExtra() >= 2;
 		this.geneTrees = inference.trees;
@@ -994,4 +994,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		}
 	}
 
+	public Object clone() throws CloneNotSupportedException {
+		WQDataCollection clone = (WQDataCollection) super.clone();
+		clone.clusters = (WQClusterCollection) ((AbstractClusterCollection) this.clusters).clone();
+		return clone;
+	}
 }
