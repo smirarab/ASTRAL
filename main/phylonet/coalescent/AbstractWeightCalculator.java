@@ -5,7 +5,7 @@ import java.util.List;
 
 import phylonet.tree.model.Tree;
 
-public abstract class AbstractWeightCalculator<T> {
+public abstract class AbstractWeightCalculator<T> implements Cloneable {
 	
 	private static final boolean TESTRUN = false;
 	private int callcounter = 0;
@@ -68,4 +68,11 @@ public abstract class AbstractWeightCalculator<T> {
 	public abstract ICalculateWeightTask<T> getWeightCalculateTask(T t);
 	
 	public abstract void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees);
+	
+		@Override
+	protected Object clone() throws CloneNotSupportedException {
+		// TODO Auto-generated method stub
+		return super.clone();
+	}
+	
 }
