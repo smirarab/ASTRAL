@@ -18,7 +18,7 @@ public class DLComputeMinCostTask extends AbstractComputeMinCostTask<STBipartiti
 	
 	public DLComputeMinCostTask(DLInference inference, Vertex v,
 			IClusterCollection clusters) {
-		super(inference, v, clusters);
+		super(inference, v, clusters, true);
 		this.inference = inference;
 		dataCollection = (DLDataCollection)inference.dataCollection;
 		weightCalculator = (DLWeightCalculator) inference.weightCalculator;
