@@ -19,6 +19,8 @@ public abstract class AbstractComputeMinCostTask<T> {
 	IClusterCollection clusters;
 
 	IClusterCollection containedVertecies;
+	
+	boolean isWriteToQueue;
     private SpeciesMapper spm;
 
 	protected Double compute() {
@@ -30,11 +32,12 @@ public abstract class AbstractComputeMinCostTask<T> {
 	}
 
 	public AbstractComputeMinCostTask(AbstractInference<T> inference, Vertex v, 
-			IClusterCollection clusters) {
+			IClusterCollection clusters, boolean isWriteToQueue) {
 		this.inference = inference;
 		this.v = v;
 		this.clusters = clusters;
 		this.spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
+		this.isWriteToQueue = isWriteToQueue;
 	}
 
 	private void addComplementaryClusters(int clusterSize) {
@@ -96,8 +99,14 @@ public abstract class AbstractComputeMinCostTask<T> {
 				int smallestSize = 1;
 				while (v1 == null) {
 					Set<Vertex> cs = containedVertecies.getSubClusters(smallestSize);
-					if (cs.size() != 0)
-						v1 = cs.iterator().next();
+					if (cs.size() != 0) {
+						for(Vertex csi : cs) {
+							if(csi.getCluster().getBitSet().nextSetBit(0) == 0) {
+								v1 = csi;
+								break;
+							}
+						}				
+					}
 					else 
 						smallestSize++;
 				}
@@ -108,6 +117,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 						((ArrayList<VertexPair>) clusterResolutions).add(vp);
 						break;
 					}
+					//System.out.println(v2.toString());
 				}
 				
 			} else {
@@ -130,16 +140,23 @@ public abstract class AbstractComputeMinCostTask<T> {
 			 */
 			for (VertexPair bi : clusterResolutions) {
 				try {
+//					if(isWriteToQueue)
+//						System.out.println(bi.cluster1.toString() + " " + bi.cluster2.toString());
+//					else
+//						System.err.println(bi.cluster1.toString() + " " + bi.cluster2.toString());
+
 					Vertex smallV = bi.cluster1;
 					Vertex bigv = bi.cluster2;
+					
 					AbstractComputeMinCostTask<T> smallWork = newMinCostTask(
 							smallV, containedVertecies);
 					AbstractComputeMinCostTask<T> bigWork = newMinCostTask(
 							bigv, containedVertecies);
-
+					
+					//System.out.println(bigWork.v.toString());
 					// MP_VERSION: smallWork.fork();
 					Double rscore = bigWork.compute();
-
+					
 					if (rscore == null) {
 						// MP_VERSION: weigthWork.cancel(false);
 						// MP_VERSION: smallWork.cancel(false);
@@ -166,7 +183,12 @@ public abstract class AbstractComputeMinCostTask<T> {
 					
 					if (weight == null) {
 						T t = STB2T(bi);					
-						weight =  inference.weightCalculator.getWeight(t, this);
+						if(isWriteToQueue) {
+							weight =  inference.weightCalculatorNoCalculations.getWeight(t, this);
+						}
+						else {
+							weight =  inference.weightCalculator.getWeight(t, this);
+						}
 						//System.out.print(weight/Integer.MAX_VALUE);
 					}					
 					
