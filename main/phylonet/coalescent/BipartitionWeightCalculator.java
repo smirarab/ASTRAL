@@ -15,7 +15,7 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 	private WQDataCollection dataCollection;
 
 	public BipartitionWeightCalculator(AbstractInference<Tripartition> inference) {
-		super(false);
+		super(false, null);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
 		this.inference = (WQInference) inference;
 	}
