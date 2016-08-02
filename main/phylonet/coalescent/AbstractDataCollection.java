@@ -9,6 +9,12 @@ import phylonet.util.BitSet;
 
 public abstract class AbstractDataCollection <T> {
 
+	@Override
+	protected Object clone() throws CloneNotSupportedException {
+		AbstractDataCollection clone = (AbstractDataCollection) super.clone();
+		return clone;
+	}
+
 	protected IClusterCollection clusters;
 
 	protected boolean addToClusters(STITreeCluster c, int size) {

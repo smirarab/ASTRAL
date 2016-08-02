@@ -21,7 +21,7 @@ class DLWeightCalculator extends AbstractWeightCalculator<STBipartition>{
 	private DLInference inference;
 	
 	public DLWeightCalculator(AbstractInference<STBipartition> inference) {
-		super(true);
+		super(true, null);
 		dataCollection = (DLDataCollection) inference.dataCollection;
 		this.inference = (DLInference) inference;
 	}
@@ -128,8 +128,7 @@ class DLWeightCalculator extends AbstractWeightCalculator<STBipartition>{
 									.get(gtSTB);
 
 							if (alreadyProcessedSTBs == null) {
-								alreadyProcessedSTBs = new HashSet<STBipartition>(
-										gtTrees.size() / 4);
+								alreadyProcessedSTBs = new HashSet<STBipartition>();
 								dataCollection.alreadyWeigthProcessed.put(gtSTB,
 										alreadyProcessedSTBs);
 							}
