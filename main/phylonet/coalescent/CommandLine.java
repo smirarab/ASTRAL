@@ -551,13 +551,23 @@ public class CommandLine {
         
         AbstractInference inference =
             initializeInference(criterion, input, extraTrees, options);
-        
+              
+        inference.setupSearchSpace(); 
         List<Solution> solutions = inference.inferSpeciesTree();
-   
+        
         System.err.println("Optimal tree inferred in "
         		+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs.");
         
-        Tree st = solutions.get(0)._st;
+        Tree st = processSolution(outbuffer, bootstraps, outgroup, inference, solutions);
+        
+        return st;
+    }
+
+
+	private static Tree processSolution(BufferedWriter outbuffer,
+			Iterable<Tree> bootstraps, String outgroup,
+			AbstractInference inference, List<Solution> solutions) {
+		Tree st = solutions.get(0)._st;
         
         System.err.println(st.toNewick());
         

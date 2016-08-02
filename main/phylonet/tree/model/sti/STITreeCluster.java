@@ -255,6 +255,10 @@ public class STITreeCluster implements Iterable<Integer>
 		public List<Vertex> _subcl = null;		
 		public byte _done = 0; // 0 for not, 1 for yes, 2 for failed
 		
+		public Vertex() {
+			super();
+		}
+		
 		public String toString() {
 			return STITreeCluster.this.toString() + "/" + this._max_score;
 		}
