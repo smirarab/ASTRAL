@@ -6,27 +6,27 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 
-class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
+class WQWeightCalculatorNoCalculations extends AbstractWeightCalculatorNoCalculations<Tripartition> {
 	public static boolean HAS_NOT = true;
 	public static boolean WRITE_OR_DEBUG = false;
 	AbstractInference<Tripartition> inference;
 	private WQDataCollection dataCollection;
 
-	public WQWeightCalculator(AbstractInference<Tripartition> inference, ConcurrentLinkedQueue<Long> queue) {
-		super(false, queue);
+	public WQWeightCalculatorNoCalculations(AbstractInference<Tripartition> inference, ConcurrentLinkedQueue<ICalculateWeightTask<Tripartition>> queue1) {
+		super(false, queue1);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
 		if(inference instanceof AbstractInferenceNoCalculations) {
 			this.inference = (WQInferenceNoCalculations) inference;
 		}
 		else
-			this.inference = (WQInference) inference;
-	}
+			this.inference = (WQInference) inference;	}
 
 	class QuartetWeightTask implements ICalculateWeightTask<Tripartition> {
 
