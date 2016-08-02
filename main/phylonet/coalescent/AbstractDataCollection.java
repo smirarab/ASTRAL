@@ -47,5 +47,12 @@ public abstract class AbstractDataCollection <T> {
     public abstract void addExtraBipartitionByExtension(AbstractInference<T> inference);
     
 	abstract long maxPossibleScore(Tripartition trip);
+	
+		@Override
+	protected Object clone() throws CloneNotSupportedException {
+		AbstractDataCollection clone = (AbstractDataCollection) super.clone();
+		return clone;
+	}
+	
 
 }
