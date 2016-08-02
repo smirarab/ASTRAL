@@ -3,10 +3,12 @@ package phylonet.coalescent;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TNode;
@@ -17,7 +19,7 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.tree.util.Collapse;
 
-public abstract class AbstractInference<T> {
+public abstract class AbstractInference<T> implements Cloneable{
 
 	//protected boolean rooted = true;
 	//protected boolean extrarooted = true;
@@ -32,12 +34,16 @@ public abstract class AbstractInference<T> {
 	
 	AbstractDataCollection<T> dataCollection;
 	AbstractWeightCalculator<T> weightCalculator;
+	AbstractWeightCalculatorNoCalculations<T> weightCalculatorNoCalculations;
+	Boolean done = false;
 //	private int addExtra;
 //	public boolean outputCompleted;
 //	boolean searchSpace;
 //	private boolean run;
 	protected Options options;
 	DecimalFormat df;
+	
+	ConcurrentLinkedQueue<Long> queue2;
 	
 	public AbstractInference(Options options, List<Tree> trees,
 			List<Tree> extraTrees) {
@@ -51,7 +57,7 @@ public abstract class AbstractInference<T> {
 		DecimalFormatSymbols dfs = DecimalFormatSymbols.getInstance();
 		dfs.setDecimalSeparator('.');
 		df.setDecimalFormatSymbols(dfs);
-
+		
 	}
 
 	public boolean isRooted() {
@@ -82,6 +88,7 @@ public abstract class AbstractInference<T> {
 	}
 
 	public void mapNames() {
+		HashMap<String, Integer> taxonOccupancy = new HashMap<String, Integer>();
 		if ((trees == null) || (trees.size() == 0)) {
 			throw new IllegalArgumentException("empty or null list of trees");
 		}
@@ -89,6 +96,7 @@ public abstract class AbstractInference<T> {
             String[] leaves = tr.getLeaves();
             for (int i = 0; i < leaves.length; i++) {
                 GlobalMaps.taxonIdentifier.taxonId(leaves[i]);
+                taxonOccupancy.put(leaves[i], Utils.increment(taxonOccupancy.get(leaves[i])));
             }
         }
         
@@ -98,13 +106,13 @@ public abstract class AbstractInference<T> {
 		        " (" + GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount() +" species)"
 		);
 		System.err.println("Taxa: " + GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesNames());
+		System.err.println("Taxon occupancy: " + taxonOccupancy.toString());
 	}
-	
+
 	public abstract double scoreGeneTree(Tree scorest, boolean initialize) ;
 
 	List<Solution> findTreesByDP(IClusterCollection clusters) {
 		List<Solution> solutions = new ArrayList<Solution>();
-
 		/*
 		 * clusterToVertex = new HashMap<STITreeCluster, Vertex>(); for
 		 * (Set<Vertex> vs: clusters.values()) { for (Vertex vertex : vs) {
@@ -126,10 +134,10 @@ public abstract class AbstractInference<T> {
 		Vertex all = (Vertex) clusters.getTopVertex();
 
 		System.err.println("Size of largest cluster: " +all.getCluster().getClusterSize());
-
+		
 		try {
 			//vertexStack.push(all);
-			AbstractComputeMinCostTask<T> allTask = newComputeMinCostTask(this,all,clusters);
+			AbstractComputeMinCostTask<T> allTask = newComputeMinCostTask(this,all,clusters,false);
 			//ForkJoinPool pool = new ForkJoinPool(1);
 			allTask.compute();
 			double v = all._max_score;
@@ -142,7 +150,8 @@ public abstract class AbstractInference<T> {
 			e.printStackTrace();
 			System.exit(1);
 		}
-
+		
+		
 		//if (CommandLine._print) {
 			//System.err.println("Weights are: "
 				//	+ counter.weights);
@@ -239,17 +248,12 @@ public abstract class AbstractInference<T> {
 
 		return (List<Solution>) (List<Solution>) solutions;
 	}
-	
-	public List<Solution> inferSpeciesTree() {
+	public void setupSearchSpace() {
 		long startTime = System.currentTimeMillis();
 
 		mapNames();
 
-		IClusterCollection clusters = newClusterCollection();
-
-		List<Solution> solutions;
-
-		dataCollection = newCounter(clusters);
+		dataCollection = newCounter(newClusterCollection());
 		weightCalculator = newWeightCalculator();
 
 		dataCollection.computeTreePartitions(this);
@@ -261,14 +265,14 @@ public abstract class AbstractInference<T> {
 		
 		if (options.isExactSolution()) {
 	          System.err.println("calculating all possible bipartitions ...");
-		    dataCollection.addAllPossibleSubClusters(clusters.getTopVertex().getCluster());
+		    dataCollection.addAllPossibleSubClusters(this.dataCollection.clusters.getTopVertex().getCluster());
 		}
 
 	      
 		if (extraTrees != null && extraTrees.size() > 0) {		
 	        System.err.println("calculating extra bipartitions from extra input trees ...");
 			dataCollection.addExtraBipartitionsByInput(extraTrees,options.isExtrarooted());
-			int s = clusters.getClusterCount();
+			int s = this.dataCollection.clusters.getClusterCount();
 			/*
 			 * for (Integer c: clusters2.keySet()){ s += clusters2.get(c).size(); }
 			 */
@@ -288,17 +292,22 @@ public abstract class AbstractInference<T> {
 
 		System.err.println("partitions formed in "
 			+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
+		
+		weightCalculator.preCalculateWeights(trees, extraTrees);
+
+		System.err.println("Dynamic Programming starting after "
+				+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
+		
+	}
+	public List<Solution> inferSpeciesTree() {
 
 		if (! this.options.isRunSearch() ) {
 			System.exit(0);
 		}
-		weightCalculator.preCalculateWeights(trees, extraTrees);
 		
+		List<Solution> solutions;		
 
-		System.err.println("Dynamic Programming starting after "
-				+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
-
-		solutions = findTreesByDP(clusters);
+		solutions = findTreesByDP(this.dataCollection.clusters);
 
 /*		if (GlobalMaps.taxonNameMap == null && rooted && extraTrees == null && false) {
 			restoreCollapse(solutions, cd);
@@ -314,7 +323,7 @@ public abstract class AbstractInference<T> {
 	abstract AbstractWeightCalculator<T> newWeightCalculator();
 
 	abstract AbstractComputeMinCostTask<T> newComputeMinCostTask(AbstractInference<T> dlInference,
-			Vertex all, IClusterCollection clusters);
+			Vertex all, IClusterCollection clusters, boolean isWriteToQueue);
 	
 	abstract Long getTotalCost(Vertex all);
 	
@@ -350,5 +359,16 @@ public abstract class AbstractInference<T> {
 	public void setDLbdWeigth(double d) {
 		options.setDLbdWeigth(d);
 	}
-
+	
+	protected Object semiDeepCopy() {
+		try {
+			AbstractInference<T> clone =  (AbstractInference<T>) super.clone();
+			clone.dataCollection = (AbstractDataCollection<T>) this.dataCollection.clone();
+			clone.weightCalculator = (AbstractWeightCalculator<T>) this.weightCalculator.clone();
+			return clone;
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+			throw new RuntimeException("unexpected error");
+		}
+	}
 }

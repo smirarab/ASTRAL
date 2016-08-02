@@ -113,13 +113,6 @@ public class DLInference extends AbstractInference<STBipartition> {
 		return (long) (((DLDataCollection)this.dataCollection).sigmaNs - all._max_score);
 	}
 
-
-	@Override
-	AbstractComputeMinCostTask<STBipartition> newComputeMinCostTask(AbstractInference<STBipartition> dlInference,
-			Vertex all, IClusterCollection clusters) {
-		return new DLComputeMinCostTask( (DLInference) dlInference, all,  clusters);
-	}
-
 	DLClusterCollection newClusterCollection() {
 		return new DLClusterCollection(GlobalMaps.taxonIdentifier.taxonCount());
 	}
@@ -131,6 +124,14 @@ public class DLInference extends AbstractInference<STBipartition> {
 	@Override
 	AbstractWeightCalculator<STBipartition> newWeightCalculator() {
 		return new DLWeightCalculator(this);
+	}
+
+	@Override
+	AbstractComputeMinCostTask<STBipartition> newComputeMinCostTask(
+			AbstractInference<STBipartition> dlInference, Vertex all,
+			IClusterCollection clusters, boolean isWriteToQueue) {
+		// TODO Auto-generated method stub
+		return new DLComputeMinCostTask( (DLInference) dlInference, all,  clusters);
 	}
 
 }

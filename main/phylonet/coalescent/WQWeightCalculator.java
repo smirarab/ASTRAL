@@ -1,15 +1,13 @@
 package phylonet.coalescent;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
@@ -17,18 +15,22 @@ import phylonet.tree.model.sti.STITreeCluster;
 class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	public static boolean HAS_NOT = true;
 	public static boolean WRITE_OR_DEBUG = false;
-	WQInference inference;
+	AbstractInference<Tripartition> inference;
 	private WQDataCollection dataCollection;
 
-	public WQWeightCalculator(AbstractInference<Tripartition> inference) {
-		super(false);
+	public WQWeightCalculator(AbstractInference<Tripartition> inference, ConcurrentLinkedQueue<Long> queue) {
+		super(false, queue);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
-		this.inference = (WQInference) inference;
+		if(inference instanceof AbstractInferenceNoCalculations) {
+			this.inference = (WQInferenceNoCalculations) inference;
+		}
+		else
+			this.inference = (WQInference) inference;
 	}
 
 	class QuartetWeightTask implements ICalculateWeightTask<Tripartition> {
 
-		private Tripartition trip;
+		public Tripartition trip;
 
 		public QuartetWeightTask(Tripartition trip) {
 			this.trip = trip;

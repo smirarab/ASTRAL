@@ -1,12 +1,33 @@
 package phylonet.coalescent;
 
+import static org.jocl.CL.CL_CONTEXT_PLATFORM;
+import static org.jocl.CL.CL_DEVICE_TYPE_ALL;
+import static org.jocl.CL.CL_MEM_COPY_HOST_PTR;
+import static org.jocl.CL.CL_MEM_READ_ONLY;
+import static org.jocl.CL.CL_MEM_WRITE_ONLY;
+import static org.jocl.CL.CL_TRUE;
+import static org.jocl.CL.clBuildProgram;
+import static org.jocl.CL.clCreateBuffer;
+import static org.jocl.CL.clCreateCommandQueue;
+import static org.jocl.CL.clCreateContext;
+import static org.jocl.CL.clCreateKernel;
+import static org.jocl.CL.clCreateProgramWithSource;
+import static org.jocl.CL.clEnqueueNDRangeKernel;
+import static org.jocl.CL.clEnqueueReadBuffer;
+import static org.jocl.CL.clEnqueueWriteBuffer;
+import static org.jocl.CL.clGetDeviceIDs;
+import static org.jocl.CL.clGetPlatformIDs;
+import static org.jocl.CL.clSetKernelArg;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -14,13 +35,28 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
+import org.jocl.CL;
+import org.jocl.Pointer;
+import org.jocl.Sizeof;
+import org.jocl.cl_command_queue;
+import org.jocl.cl_context;
+import org.jocl.cl_context_properties;
+import org.jocl.cl_device_id;
+import org.jocl.cl_kernel;
+import org.jocl.cl_mem;
+import org.jocl.cl_platform_id;
+import org.jocl.cl_program;
+
+import phylonet.coalescent.WQWeightCalculatorNoCalculations.QuartetWeightTask;
 import phylonet.tree.io.NewickReader;
 import phylonet.tree.io.ParseException;
 import phylonet.tree.model.MutableTree;
@@ -39,9 +75,15 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.10.6";
+    protected static String _versinon = "4.10.8";
 
-
+    public static ConcurrentLinkedQueue<ICalculateWeightTask<Tripartition>> queue1 = new ConcurrentLinkedQueue<ICalculateWeightTask<Tripartition>>();
+    public static ConcurrentLinkedQueue<Long> queue2 = new ConcurrentLinkedQueue<Long>();
+    
+    public static long workGroupSize = 1L<<12;
+    
+    public static int SPECIES_WORD_LENGTH;
+    
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
         System.err.println();
         System.err.println(extraMessage);
@@ -59,7 +101,7 @@ public class CommandLine {
                 "species tree inference from unrooted gene trees. "
                 + "The ASTRAL algorithm maximizes the number of shared quartet trees with"
                 + " the collection of all gene trees. The result of this optimization problem"
-                + " is statistically consistent under the multi-species coalesent model."
+                + " is statistically consistent under the multi-species coalescent model."
                 + " This software can also solve MGD and MGDL problems (see options) instead of ASTRAL.",
                     
                 new Parameter[] {
@@ -115,16 +157,16 @@ public class CommandLine {
 	                        JSAP.STRING_PARSER, null, JSAP.NOT_REQUIRED, 
 	                        'k', "keep",
 	                          " -k completed: outputs completed gene trees (i.e. after adding missing taxa) to a file called [output file name].completed_gene_trees.\n"
-	                        + " -k bootstraps: outputs individual bootstrap replciates to a file called [output file name].[i].bs\n"
+	                        + " -k bootstraps: outputs individual bootstrap replicates to a file called [output file name].[i].bs\n"
 	                        + " -k bootstraps_norun: just like -k bootstraps, but exits after outputting bootstraps.\n"
-	                        + " -k searchspace_norun: outputs the search space and exits; use searchspace to continue the run after outputting the search space."
+	                        + " -k searchspace_norun: outputs the search space and exits; use -k searchspace to continue the run after outputting the search space."
 	                        + "When -k option is used, -o option needs to be given. "
 	                        + "The file name specified using -o is used as the prefix for the name of the extra output files.").setAllowMultipleDeclarations(true),
 
 	                new FlaggedOption("lambda", 
 	                        JSAP.DOUBLE_PARSER, "0.5", JSAP.NOT_REQUIRED,
 	                        'c', "lambda",
-	                        "Set the lambda parameter for the Yule prior used in the calculaitons"
+	                        "Set the lambda parameter for the Yule prior used in the calculations"
 	                        + " of branch lengths and posterior probabilities. Set to zero to get ML branch "
 	                        + "lengths instead of MAP."
 	                        + " Higher values tend to shorten estimated branch lengths and very"
@@ -141,7 +183,7 @@ public class CommandLine {
 	                new FlaggedOption("minleaves", 
 	                        JSAP.INTEGER_PARSER, null, JSAP.NOT_REQUIRED, 
 	                        'm', "minleaves",
-	                        "Remove genes with less than specificed number of leaves "),
+	                        "Remove genes with less than specified number of leaves "),
 	
 	                new Switch( "duplication",
 	                        'd', "dup",
@@ -151,7 +193,7 @@ public class CommandLine {
 	                                            
                     new Switch("exact",
                             'x', "exact",
-                            "find the exact solution by looking at all clusters - recommended only for small (<18) numer of taxa."),
+                            "find the exact solution by looking at all clusters - recommended only for small (<18) number of taxa."),
 
 /*                    new Switch("scoreall",
                             'y', "scoreall",
@@ -163,7 +205,7 @@ public class CommandLine {
                             "How much extra bipartitions should be added: 0, 1, or 2. "
                             + "0: adds nothing extra. "
                             + "1 (default): adds to X but not excessively (greedy resolutions). "
-                            + "2: addes a potentially large number and therefore can be slow (quadratic distance-based)."),
+                            + "2: adds a potentially large number and therefore can be slow (quadratic distance-based)."),
    
                     new FlaggedOption("extra trees", 
                             FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 
@@ -173,7 +215,7 @@ public class CommandLine {
                     new FlaggedOption("extra species trees", 
                             FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 
                             'f', "extra-species",
-                            "provide extra trees (with species lables) used to enrich the set of clusters searched"),
+                            "provide extra trees (with species labels) used to enrich the set of clusters searched"),
 
                     new FlaggedOption( "duploss weight",
                             JSAP.STRING_PARSER, null, JSAP.NOT_REQUIRED,
@@ -183,7 +225,7 @@ public class CommandLine {
                             + "DynaDyp would be used *instead of* ASTRAL. "
                             + "Use -l 0 for standard (homomorphic) definition, and -l 1 for our new bd definition. "
                             + "Any value in between weights the impact of missing taxa somewhere between these two extremes. "
-                            + "-l auto will automaticaly pick this weight. "), 
+                            + "-l auto will automatically pick this weight. "), 
                 });
     }
 
@@ -264,10 +306,10 @@ public class CommandLine {
         if (config.getFile("mapping file") != null) {
 
         	System.err.println("****** WARNNING ******\n"
-        			+ "		For multi-individual datasets please use the code\n"
+        			+ "		For multi-individual data, please use the code\n"
         			+ "		available at the multiind branch of the ASTRAL github.\n"
-        			+ "		This brnahc does not yet inlcude our improvements for the\n"
-        			+ "		multi-individual inputs."
+        			+ "		This branch does not yet include our improvements for the\n"
+        			+ "		multi-individual inputs.\n"
         			+ "****** END OF WARNNING ******\n");
             BufferedReader br = new BufferedReader(new FileReader(
                     config.getFile("mapping file")));
@@ -295,10 +337,14 @@ public class CommandLine {
                         System.err
                         .println("Any gene name can only map to one species");
                         System.exit(-1);
-                    } else {
-                        //System.err.println("Mapping '"+allele+"' to '"+species+"'");
-                        taxonMap.put(allele, species);
-                    }
+                    } else if (alleles.length > 1 && allele.equals(species)) {
+                        System.err
+                        .println("Error: The species name cannot be identical to gene names when"
+                        		+ "multiple alleles exist for the same gene"+ allele);
+                        System.exit(-1);
+                	}
+                    //System.err.println("Mapping '"+allele+"' to '"+species+"'");
+                    taxonMap.put(allele, species);
                 }
             }
             br.close();
@@ -365,7 +411,7 @@ public class CommandLine {
             System.err.println("Scoring: " + toScore.size() +" trees");
             
             AbstractInference inference =
-                    initializeInference(criterion, mainTrees, extraTrees, options);           
+                    initializeInference(criterion, mainTrees, extraTrees, options, true);           
        		double score = Double.NEGATIVE_INFINITY;
        		List<Tree> bestTree = new ArrayList<Tree>(); 
             for (String trs : toScore) {     
@@ -398,7 +444,8 @@ public class CommandLine {
         }
         
         System.err.println("All outputted trees will be *arbitrarily* rooted at "+outgroup);
-        
+        SPECIES_WORD_LENGTH = GlobalMaps.taxonIdentifier.taxonCount()/64 + 1;
+
         if (config.getStringArray("keep") != null && config.getStringArray("keep").length != 0) {
         	if (GlobalMaps.outputfilename == null) {
         		throw new JSAPException("When -k option is used, -o is also needed.");
@@ -540,11 +587,31 @@ public class CommandLine {
         long startTime;
         startTime = System.currentTimeMillis();
         
-        AbstractInference inference =
-            initializeInference(criterion, input, extraTrees, options);
+        AbstractInference inference = initializeInference(criterion, input, extraTrees, options, true);
+        inference.queue2 = queue2;
+
+        inference.setupSearchSpace();
         
+        AbstractInferenceNoCalculations inferenceNoCalc = new WQInferenceNoCalculations((AbstractInference) inference.semiDeepCopy());
+
+        inferenceNoCalc.queue1 = queue1;
+        int counter = 0;
+        long[] allArray = new long[ ((WQDataCollection)inference.dataCollection).treeAllClusters.size()*SPECIES_WORD_LENGTH];
+        for(int i = 0; i < ((WQDataCollection)inference.dataCollection).treeAllClusters.size(); i++) {
+        	for(int j = SPECIES_WORD_LENGTH - 1; j >= 0; j--)
+        		allArray[counter++] = ((WQDataCollection)inference.dataCollection).treeAllClusters.get(i).getBitSet().words[j];
+        }
+        int[] geneTreesAsInts = new int[((WQDataCollection)inference.dataCollection).geneTreesAsInts.length];
+        for(int i = 0; i < geneTreesAsInts.length; i++) {
+        	geneTreesAsInts[i] = ((WQDataCollection)inference.dataCollection).geneTreesAsInts[i];
+        }
+        TurnTaskToScores threadgpu = new TurnTaskToScores(inference, queue1, queue2, geneTreesAsInts, allArray);
+		WriteTaskToQueue thread1 = new WriteTaskToQueue(inferenceNoCalc, threadgpu);
+
+		(new Thread(thread1)).start();
+		(new Thread(threadgpu)).start();
         List<Solution> solutions = inference.inferSpeciesTree();
-   
+        
         System.err.println("Optimal tree inferred in "
         		+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs.");
         
@@ -553,8 +620,9 @@ public class CommandLine {
         System.err.println(st.toNewick());
         
         st.rerootTreeAtNode(st.getNode(outgroup));
+        
 		Trees.removeBinaryNodes((MutableTree) st);
-   
+
 		inference.scoreGeneTree(st, false);
 		
         if ((bootstraps != null) && (bootstraps.iterator().hasNext())) {
@@ -566,7 +634,275 @@ public class CommandLine {
         
         return st;
     }
+    public static class TurnTaskToScores implements Runnable {
+		public ConcurrentLinkedQueue<Long> queue2;
+		public ConcurrentLinkedQueue<ICalculateWeightTask<Tripartition>> queue1;
+		public AbstractInference inference;
+		public long[] tripartition;
+		public long[] all;
+		public int tripCounter = 0;
+		public boolean done = false;
+		public GPUCall gpu;
+		public TurnTaskToScores(AbstractInference inf, ConcurrentLinkedQueue<ICalculateWeightTask<Tripartition>> queue1, ConcurrentLinkedQueue<Long> queue2, int[] geneTreeAsInts, long[] all) {
+			this.inference = inf;
+			this.queue1 = queue1;
+			this.queue2 = queue2;
+			this.all = all;
+			tripartition = new long[(int)(SPECIES_WORD_LENGTH * 3 * workGroupSize)];
+			
+			gpu = new GPUCall(geneTreeAsInts, all, tripartition);
+		}
+
+		public void run() {
+			
+			QuartetWeightTask task = null;
+			
+			while(!done) {
+				if(!queue1.isEmpty()) {
+
+					task = (QuartetWeightTask)queue1.remove();
+					
+					for(int i = SPECIES_WORD_LENGTH - 1; i >= 0; i--)
+						tripartition[tripCounter++]=task.trip.cluster1.getBitSet().words[i];
+					for(int i = SPECIES_WORD_LENGTH - 1; i >= 0; i--)
+						tripartition[tripCounter++]=task.trip.cluster2.getBitSet().words[i];
+					for(int i = SPECIES_WORD_LENGTH - 1; i >= 0; i--)
+						tripartition[tripCounter++]=task.trip.cluster3.getBitSet().words[i];
+				
+					if(tripCounter == SPECIES_WORD_LENGTH * 3 * workGroupSize) {
+						gpu.compute(workGroupSize);
+						tripCounter = 0;
+						for(int i = 0; i < gpu.weightArray.length; i++) {
+							queue2.add(gpu.weightArray[i]);
+						}
+					}
+
+			
+				}
+			}
+			while(!queue1.isEmpty()) {
+
+				task = (QuartetWeightTask)queue1.remove();
+				
+				for(int i = SPECIES_WORD_LENGTH - 1; i >= 0; i--)
+					tripartition[tripCounter++]=task.trip.cluster1.getBitSet().words[i];
+				for(int i = SPECIES_WORD_LENGTH - 1; i >= 0; i--)
+					tripartition[tripCounter++]=task.trip.cluster2.getBitSet().words[i];
+				for(int i = SPECIES_WORD_LENGTH - 1; i >= 0; i--)
+					tripartition[tripCounter++]=task.trip.cluster3.getBitSet().words[i];
+				
+				if(tripCounter == SPECIES_WORD_LENGTH * 3 * workGroupSize) {
+					gpu.compute(workGroupSize);
+					tripCounter = 0;
+					for(int i = 0; i < gpu.weightArray.length; i++) {
+						queue2.add(gpu.weightArray[i]);
+					}
+
+				}
+
+			}
+			gpu.compute(tripCounter/SPECIES_WORD_LENGTH/3);
+
+			for(int i = 0; i < tripCounter/SPECIES_WORD_LENGTH/3; i++) {
+				queue2.add(gpu.weightArray[i]);
+			}
+			inference.weightCalculator.done = true;
+			
+		}
+		
+		
+	}
+    public static class GPUCall {
+    	public long[] tripartitions;
+    	public int[] geneTreesAsInts;
+    	public long[] allArray;
+    	public long[] weightArray;
+    	
+    	private cl_context context;
+    	private cl_command_queue commandQueue;
+    	private cl_kernel kernel;
+    	private cl_mem d_geneTreesAsInts;
+    	private cl_mem d_tripartitions;
+    	private cl_mem d_allArray;
+    	private cl_mem d_weightArray;
+    	
+    	public GPUCall (int[] geneTreesAsInts, long[] all, long[] trip) {
+    		this.geneTreesAsInts = geneTreesAsInts;
+    		allArray = all;
+    		tripartitions = trip;
+    		weightArray = new long[trip.length / 3 / SPECIES_WORD_LENGTH];
+
+    		initCL();
+
+    		prepare();
+
+    	}
+    	public void initCL() {
+    		final int platformIndex = 0;
+    		final long deviceType = CL_DEVICE_TYPE_ALL;
+    		final int deviceIndex = 0;
+
+    		// Enable exceptions and subsequently omit error checks in this sample
+    		CL.setExceptionsEnabled(true);
+
+    		// Obtain the number of platforms
+    		int numPlatformsArray[] = new int[1];
+    		clGetPlatformIDs(0, null, numPlatformsArray);
+    		int numPlatforms = numPlatformsArray[0];
+
+    		// Obtain a platform ID
+    		cl_platform_id platforms[] = new cl_platform_id[numPlatforms];
+    		clGetPlatformIDs(platforms.length, platforms, null);
+    		cl_platform_id platform = platforms[platformIndex];
+
+    		// Initialize the context properties
+    		cl_context_properties contextProperties = new cl_context_properties();
+    		contextProperties.addProperty(CL_CONTEXT_PLATFORM, platform);
+
+    		// Obtain the number of devices for the platform
+    		int numDevicesArray[] = new int[1];
+    		clGetDeviceIDs(platform, deviceType, 0, null, numDevicesArray);
+    		int numDevices = numDevicesArray[0];
+
+    		// Obtain a device ID
+    		cl_device_id devices[] = new cl_device_id[numDevices];
+    		clGetDeviceIDs(platform, deviceType, numDevices, devices, null);
+    		cl_device_id device = devices[deviceIndex];
+
+    		// Create a context for the selected device
+    		context = clCreateContext(contextProperties, 1, new cl_device_id[] { device }, null, null, null);
+
+    		// Create a command-queue for the selected device
+    		commandQueue = clCreateCommandQueue(context, device, 0, null);
+
+    		// Program Setup
+    		String source = readFile("calculateWeight.cl");
+    		source = source.replaceAll("SPECIES_WORD_LENGTH", Long.toString(SPECIES_WORD_LENGTH));
+    		source = source.replaceAll("LONG_BIT_LENGTH", "64");
+    		source = source.replaceAll("STACK_SIZE", Integer.toString(GlobalMaps.taxonIdentifier.taxonCount()));
+    		
+    		// Create the program
+    		cl_program cpProgram = clCreateProgramWithSource(context, 1, new String[] { source }, null, null);
+
+    		// Build the program
+    		clBuildProgram(cpProgram, 0, null, "-cl-mad-enable", null, null);
+
+    		// Create the kernel
+    		kernel = clCreateKernel(cpProgram, "calcWeight", null);
+
+    		// Create the memory object which will be filled with the
+    		// pixel data
+
+    		d_geneTreesAsInts = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
+    				Sizeof.cl_int * geneTreesAsInts.length, Pointer.to(geneTreesAsInts), null);
+    		d_allArray = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY, Sizeof.cl_long * allArray.length,
+    				Pointer.to(allArray), null);
+    		d_tripartitions = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY, Sizeof.cl_long * tripartitions.length,
+    				Pointer.to(tripartitions), null);
+    		d_weightArray = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, Sizeof.cl_long * weightArray.length,
+    				Pointer.to(weightArray), null);
+
+
+
+    	}
+
+    	private String readFile(String fileName) {
+    		try {
+    			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(fileName)));
+    			StringBuffer sb = new StringBuffer();
+    			String line = null;
+    			while (true) {
+    				line = br.readLine();
+    				if (line == null) {
+    					break;
+    				}
+    				sb.append(line).append("\n");
+    			}
+    			return sb.toString();
+    		} catch (IOException e) {
+    			e.printStackTrace();
+    			System.exit(1);
+    			return null;
+    		}
+    	}
+
+    	public void prepare() {
+
+    		
+    		clSetKernelArg(kernel, 0, Sizeof.cl_mem, Pointer.to(d_geneTreesAsInts));
+    		clSetKernelArg(kernel, 1, Sizeof.cl_int, Pointer.to(new int[] {geneTreesAsInts.length}));
+    		clSetKernelArg(kernel, 2, Sizeof.cl_mem, Pointer.to(d_allArray));
+    		clSetKernelArg(kernel, 3, Sizeof.cl_mem, Pointer.to(d_tripartitions));
+    		clSetKernelArg(kernel, 4, Sizeof.cl_mem, Pointer.to(d_weightArray));
+    		
+
+    	}
+    	
+    	public void compute(long workSize) {
+    		
+    		// Set work size and execute the kernel
+    		
+    		clEnqueueWriteBuffer(commandQueue, d_tripartitions, CL_TRUE, 0L, Sizeof.cl_long * tripartitions.length, Pointer.to(tripartitions), 0,
+    				null, null);
+    		
+    		clEnqueueNDRangeKernel(commandQueue, kernel, 1, null, new long[]{workSize}, null, 0, null, null);	
+     
+    		clEnqueueReadBuffer(commandQueue, d_weightArray, CL_TRUE, 0L, Sizeof.cl_long * weightArray.length, Pointer.to(weightArray), 0, null, null);
+
+    	}
+    }
+    public static class WriteTaskToQueue implements Runnable {
+    	AbstractInferenceNoCalculations inf;
+    	TurnTaskToScores threadgpu;
+		public WriteTaskToQueue(AbstractInferenceNoCalculations inf, TurnTaskToScores threadgpu) {
+			this.inf = inf;
+			this.threadgpu = threadgpu;
+		}
+		public void run() {
+			// TODO Auto-generated method stub
+			inf.inferSpeciesTree();
+			threadgpu.done = true;
+		}
+    	
+    }
     
+    public class ReadScoreFromQueue implements Runnable {
+    	AbstractInference inf;
+    	Tree st;
+		public ReadScoreFromQueue(AbstractInference inf, Tree st) {
+			this.inf = inf;
+			this.st = st;
+		}
+		public void run() {
+			// TODO Auto-generated method stub
+			inf.inferSpeciesTree();
+		}
+    	
+    }
+	/*private static Tree processSolution(BufferedWriter outbuffer,
+			Iterable<Tree> bootstraps, String outgroup,
+			AbstractInference inference, List<Solution> solutions) {
+		Tree st = solutions.get(0)._st;
+        
+        System.err.println(st.toNewick());
+        
+        st.rerootTreeAtNode(st.getNode(outgroup));
+		Trees.removeBinaryNodes((MutableTree) st);
+   
+		GlobalMaps.taxonNameMap.getSpeciesIdMapper().stToGt((MutableTree) st);
+		
+		inference.scoreSpeciesTree(st, false);
+		
+		GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) st);
+		
+        if ((bootstraps != null) && (bootstraps.iterator().hasNext())) {
+            for (Solution solution : solutions) {
+                Utils.computeEdgeSupports((STITree<Double>) solution._st, bootstraps);
+            }
+        }
+        writeTreeToFile(outbuffer, solutions.get(0)._st);
+		return st;
+	}*/
     static private Options newOptions(int criterion, boolean rooted,
             boolean extrarooted, 
             double cs, double cd, double wh, 
@@ -590,14 +926,19 @@ public class CommandLine {
 
     private static AbstractInference initializeInference(int criterion, 
             List<Tree> trees, List<Tree> extraTrees,
-            Options options) {
+            Options options, boolean calculations) {
         AbstractInference inference;		
 		if (criterion == 1 || criterion == 0) {
 			inference = new DLInference(options, 
 					trees, extraTrees);			
 		} else if (criterion == 2) {
-			inference = new WQInference(options, trees, 
+			if(calculations)
+				inference = new WQInference(options, trees, 
 					extraTrees );
+			else {
+				inference = new WQInferenceNoCalculations(options, trees, 
+						extraTrees );
+			}
 		} else {
 			throw new RuntimeException("criterion not set?");
 		}		
@@ -711,6 +1052,5 @@ public class CommandLine {
 		    e.printStackTrace();
 		}
     }
-
-
+    
 }

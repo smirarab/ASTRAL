@@ -1,4 +1,6 @@
 ﻿  main.c
-c:\users\johng23\documents\visual studio 2015\projects\astral project\astral project\main.c(103): warning C4048: different array subscripts: 'int (*)[0][200]' and 'int (*)[1000][200]'
-  ASTRAL project.vcxproj -> C:\Users\johng23\documents\visual studio 2015\Projects\ASTRAL project\Debug\ASTRAL project.exe
-  ASTRAL project.vcxproj -> C:\Users\johng23\documents\visual studio 2015\Projects\ASTRAL project\Debug\ASTRAL project.pdb (Partial PDB)
+c:\users\johng23\workspace\astral test\astral project c code\main.c(103): warning C4048: different array subscripts: 'int (*)[0][200]' and 'int (*)[1000][200]'
+  calculateWeightByTraversal.c
+  Generating Code...
+  ASTRAL project.vcxproj -> C:\Users\johng23\workspace\ASTRAL test\ASTRAL project c code\Debug\ASTRAL project.exe
+  ASTRAL project.vcxproj -> C:\Users\johng23\workspace\ASTRAL test\ASTRAL project c code\Debug\ASTRAL project.pdb (Partial PDB)

@@ -14,7 +14,7 @@ void subtractIntersects(struct Intersects * minuend, struct Intersects * subtrah
 	result->s2 = minuend->s2 - subtrahend->s2;
 }
 struct IntersectsStack {
-	struct Intersects array [SPECIES_LENGTH];
+	struct Intersects array [SPECIES_WORD_LENGTH];
 	int currentIndex;
 };
 void push(struct IntersectsStack * stack, struct Intersects * item) {
@@ -39,17 +39,17 @@ long F(int a, int b, int c) {
 	return ((long)(a + b + c - 3))*a*b*c;
 }
 struct Tripartition {
-	__global int* cluster1;
-	__global int* cluster2;
-	__global int* cluster3;
+	__global long* cluster1;
+	__global long* cluster2;
+	__global long* cluster3;
 };
 struct Intersects * getSide(int in, struct Intersects * side, struct Tripartition * trip) {
-	if (trip->cluster1[in]) {
+	if ((trip->cluster1[SPECIES_WORD_LENGTH - 1 - in/LONG_BIT_LENGTH])&(in%LONG_BIT_LENGTH)) {
 		side->s0 = 1;
 		side->s1 = 0;
 		side->s2 = 0;
 	}
-	else if (trip->cluster2[in]) {
+	else if ((trip->cluster2[SPECIES_WORD_LENGTH - 1 - in/LONG_BIT_LENGTH])&(in%LONG_BIT_LENGTH)) {
 		side->s0 = 0;
 		side->s1 = 1;
 		side->s2 = 0;
@@ -62,28 +62,26 @@ struct Intersects * getSide(int in, struct Intersects * side, struct Tripartitio
 
 	return side;
 }
-int bitIntersectionSize(__global int input1[SPECIES_LENGTH], __global int input2[SPECIES_LENGTH]) {
+int bitIntersectionSize(__global long input1[SPECIES_WORD_LENGTH], __global long input2[SPECIES_WORD_LENGTH]) {
 	int out = 0;
-	for (int i = 0; i < SPECIES_LENGTH; i++) {
-		if (input1[i] == input2[i] && input1[i] != 0) {
-			out++;
-		}
+	for (int i = 0; i < SPECIES_WORD_LENGTH; i++) {
+		out += popcount(input1[i]&input2[i]);
 	}
 	return out;
 }
 __kernel void calcWeight(
 	__global int* geneTreesAsInts,
 	int geneTreesAsIntsLength,
-	__global int* allArray,
-	__global int* tripartitions,
+	__global long* allArray,
+	__global long* tripartitions,
 	__global long* weightArray
 ){
 	long weight = 0;
 	struct Tripartition trip;
 	int idx = get_global_id(0);
-	trip.cluster1 = SPECIES_LENGTH * 3 * idx + tripartitions;
-	trip.cluster2 = SPECIES_LENGTH * 3 * idx + SPECIES_LENGTH + tripartitions;
-	trip.cluster3 = SPECIES_LENGTH * 3 * idx + SPECIES_LENGTH * 2 + tripartitions;
+	trip.cluster1 = SPECIES_WORD_LENGTH * 3 * idx + tripartitions;
+	trip.cluster2 = SPECIES_WORD_LENGTH * 3 * idx + SPECIES_WORD_LENGTH + tripartitions;
+	trip.cluster3 = SPECIES_WORD_LENGTH * 3 * idx + SPECIES_WORD_LENGTH * 2 + tripartitions;
 	
 	struct Intersects allsides;
 	allsides.s0 = 0;
@@ -101,9 +99,9 @@ __kernel void calcWeight(
 		if (newTree) {
 			newTree = 0;
 
-			allsides.s0 = bitIntersectionSize(&allArray[treeCounter * SPECIES_LENGTH], trip.cluster1);
-			allsides.s1 = bitIntersectionSize(&allArray[treeCounter * SPECIES_LENGTH], trip.cluster2);
-			allsides.s2 = bitIntersectionSize(&allArray[treeCounter * SPECIES_LENGTH], trip.cluster3);
+			allsides.s0 = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster1);
+			allsides.s1 = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster2);
+			allsides.s2 = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster3);
 
 			treeCounter++;
 
