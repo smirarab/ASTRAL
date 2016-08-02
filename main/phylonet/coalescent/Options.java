@@ -39,89 +39,88 @@ public class Options {
 		return rooted;
 	}
 
-	public void setRooted(boolean rooted) {
-		this.rooted = rooted;
-	}
 
 	public boolean isExtrarooted() {
 		return extrarooted;
 	}
 
-	public void setExtrarooted(boolean extrarooted) {
-		this.extrarooted = extrarooted;
-	}
 
 	public boolean isExactSolution() {
 		return exactSolution;
-	}
-
-	public void setExactSolution(boolean exactSolution) {
-		this.exactSolution = exactSolution;
 	}
 
 	public boolean isDuploss() {
 		return duploss;
 	}
 
-	public void setDuploss(boolean duploss) {
-		this.duploss = duploss;
-	}
 
 	public int getAlg() {
 		return alg;
-	}
-
-	public void setAlg(int alg) {
-		this.alg = alg;
 	}
 
 	public int getAddExtra() {
 		return addExtra;
 	}
 
-	public void setAddExtra(int addExtra) {
+	/*public void setAddExtra(int addExtra) {
 		this.addExtra = addExtra;
 	}
-
-	public boolean isOutputCompletedGenes() {
-		return outputCompletedGenes;
+	public void setAlg(int alg) {
+		this.alg = alg;
 	}
-
+	public void setDuploss(boolean duploss) {
+		this.duploss = duploss;
+	}
+	public void setExactSolution(boolean exactSolution) {
+		this.exactSolution = exactSolution;
+	}
+	public void setExtrarooted(boolean extrarooted) {
+		this.extrarooted = extrarooted;
+	}
+	
+	public void setRooted(boolean rooted) {
+		this.rooted = rooted;
+	}
 	public void setOutputCompletedGenes(boolean outputCompletedGenes) {
 		this.outputCompletedGenes = outputCompletedGenes;
 	}
-
-	public boolean isOutputSearchSpace() {
-		return outputSearchSpace;
-	}
-
 	public void setOutputSearchSpace(boolean outSearch) {
 		this.outputSearchSpace = outSearch;
 	}
-
-	public boolean isRunSearch() {
-		return runSearch;
-	}
-
 	public void setRunSearch(boolean run) {
 		this.runSearch = run;
-	}
-
-	public int getBranchannotation() {
-		return branchannotation;
 	}
 
 	public void setBranchannotation(int branchannotation) {
 		this.branchannotation = branchannotation;
 	}
 
+	*/
+
+	public boolean isOutputCompletedGenes() {
+		return outputCompletedGenes;
+	}
+
+
+	public boolean isOutputSearchSpace() {
+		return outputSearchSpace;
+	}
+
+	
+	public boolean isRunSearch() {
+		return runSearch;
+	}
+
+	
+	public int getBranchannotation() {
+		return branchannotation;
+	}
+
+
 	public double getDLbdWeigth() {
 		return DLbdWeigth;
 	}
 
-	public void setDLbdWeigth(double dLbdWeigth) {
-		DLbdWeigth = dLbdWeigth;
-	}
 
 	public double getCS() {
 		return CS;
@@ -130,13 +129,16 @@ public class Options {
 	public void setCS(double cS) {
 		CS = cS;
 	}
-
-	public double getCD() {
-		return CD;
+	public void setDLbdWeigth(double dLbdWeigth) {
+		DLbdWeigth = dLbdWeigth;
 	}
 
 	public void setCD(double cD) {
 		CD = cD;
+	}
+	
+	public double getCD() {
+		return CD;
 	}
 
 	public double getLambda() {
