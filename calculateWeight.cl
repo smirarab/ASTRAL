@@ -14,8 +14,8 @@ void subtractIntersects(struct Intersects * minuend, struct Intersects * subtrah
 	result->s2 = minuend->s2 - subtrahend->s2;
 }
 struct IntersectsStack {
-	struct Intersects array [SPECIES_WORD_LENGTH];
-	int currentIndex;
+	struct Intersects array [STACK_SIZE];
+	int currentIndex; //index of the last valid element. -1 if empty.
 };
 void push(struct IntersectsStack * stack, struct Intersects * item) {
 	stack->array[++(stack->currentIndex)].s0 = item->s0;
@@ -32,7 +32,7 @@ void get(struct IntersectsStack * stack, struct Intersects * item, int index) {
 	item->s1 = stack->array[index].s1;
 	item->s2 = stack->array[index].s2;
 }
-clear(struct IntersectsStack * stack) {
+void clear(struct IntersectsStack * stack) {
 	stack->currentIndex = -1;
 }
 long F(int a, int b, int c) {
@@ -44,12 +44,12 @@ struct Tripartition {
 	__global long* cluster3;
 };
 struct Intersects * getSide(int in, struct Intersects * side, struct Tripartition * trip) {
-	if ((trip->cluster1[SPECIES_WORD_LENGTH - 1 - in/LONG_BIT_LENGTH])&(in%LONG_BIT_LENGTH)) {
+	if ((trip->cluster1[SPECIES_WORD_LENGTH - 1 - in / LONG_BIT_LENGTH])&(1LL<<(in%LONG_BIT_LENGTH))) {
 		side->s0 = 1;
 		side->s1 = 0;
 		side->s2 = 0;
 	}
-	else if ((trip->cluster2[SPECIES_WORD_LENGTH - 1 - in/LONG_BIT_LENGTH])&(in%LONG_BIT_LENGTH)) {
+	else if ((trip->cluster2[SPECIES_WORD_LENGTH - 1 - in / LONG_BIT_LENGTH])&(1LL<<(in%LONG_BIT_LENGTH))) {
 		side->s0 = 0;
 		side->s1 = 1;
 		side->s2 = 0;

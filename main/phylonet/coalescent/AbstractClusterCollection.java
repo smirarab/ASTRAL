@@ -2,7 +2,7 @@ package phylonet.coalescent;
 
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
-import java.util.HashSet;
+import java.util.TreeSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -10,7 +10,7 @@ import java.util.Set;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
-public abstract class AbstractClusterCollection implements IClusterCollection{
+public abstract class AbstractClusterCollection implements IClusterCollection, Cloneable {
 
 	protected ArrayList<Set<Vertex>> clusters;
 	protected int topClusterLength;
@@ -20,7 +20,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection{
 		this.topClusterLength = len;
 		clusters = new ArrayList<Set<Vertex>>(len);
 		for (int i = 0; i <= len; i++) {
-			clusters.add(new HashSet<Vertex>());
+			clusters.add(new TreeSet<Vertex>());
 		}
 	}
 	
@@ -179,6 +179,20 @@ public abstract class AbstractClusterCollection implements IClusterCollection{
 		};
 	}
 	
+	public AbstractClusterCollection clone() throws CloneNotSupportedException {
+		AbstractClusterCollection clone = (AbstractClusterCollection) super.clone();
+		clone.clusters = new ArrayList<Set<Vertex>>();
+		
+		for (Set<Vertex> vset : this.clusters) {
+			TreeSet<Vertex> nset = new TreeSet<STITreeCluster.Vertex>();
+			clone.clusters.add(nset);
+			for (Vertex v: vset) {
+				nset.add(v.getCluster().new Vertex());
+			}
+		}
+		
+		return clone;
+	}
 	
 
 }
