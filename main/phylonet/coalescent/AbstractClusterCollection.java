@@ -10,7 +10,7 @@ import java.util.Set;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
-public abstract class AbstractClusterCollection implements IClusterCollection{
+public abstract class AbstractClusterCollection implements IClusterCollection, Cloneable {
 
 	protected ArrayList<Set<Vertex>> clusters;
 	protected int topClusterLength;
@@ -179,6 +179,20 @@ public abstract class AbstractClusterCollection implements IClusterCollection{
 		};
 	}
 	
+	public AbstractClusterCollection clone() throws CloneNotSupportedException {
+		AbstractClusterCollection clone = (AbstractClusterCollection) super.clone();
+		clone.clusters = new ArrayList<Set<Vertex>>();
+		
+		for (Set<Vertex> vset : this.clusters) {
+			HashSet<Vertex> nset = new HashSet<STITreeCluster.Vertex>();
+			clone.clusters.add(nset);
+			for (Vertex v: vset) {
+				nset.add(v.getCluster().new Vertex());
+			}
+		}
+		
+		return clone;
+	}
 	
 
 }

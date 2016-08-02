@@ -244,16 +244,12 @@ public abstract class AbstractInference<T> {
 		return (List<Solution>) (List<Solution>) solutions;
 	}
 	
-	public List<Solution> inferSpeciesTree() {
+	public void setupSearchSpace() {
 		long startTime = System.currentTimeMillis();
 
 		mapNames();
 
-		IClusterCollection clusters = newClusterCollection();
-
-		List<Solution> solutions;
-
-		dataCollection = newCounter(clusters);
+		dataCollection = newCounter(newClusterCollection());
 		weightCalculator = newWeightCalculator();
 
 		dataCollection.computeTreePartitions(this);
@@ -265,14 +261,14 @@ public abstract class AbstractInference<T> {
 		
 		if (options.isExactSolution()) {
 	          System.err.println("calculating all possible bipartitions ...");
-		    dataCollection.addAllPossibleSubClusters(clusters.getTopVertex().getCluster());
+		    dataCollection.addAllPossibleSubClusters(this.dataCollection.clusters.getTopVertex().getCluster());
 		}
 
 	      
 		if (extraTrees != null && extraTrees.size() > 0) {		
 	        System.err.println("calculating extra bipartitions from extra input trees ...");
 			dataCollection.addExtraBipartitionsByInput(extraTrees,options.isExtrarooted());
-			int s = clusters.getClusterCount();
+			int s = this.dataCollection.clusters.getClusterCount();
 			/*
 			 * for (Integer c: clusters2.keySet()){ s += clusters2.get(c).size(); }
 			 */
@@ -301,8 +297,14 @@ public abstract class AbstractInference<T> {
 
 		System.err.println("Dynamic Programming starting after "
 				+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
+		
+	}
+	public List<Solution> inferSpeciesTree() {
 
-		solutions = findTreesByDP(clusters);
+		
+		List<Solution> solutions;		
+
+		solutions = findTreesByDP(this.dataCollection.clusters);
 
 /*		if (GlobalMaps.taxonNameMap == null && rooted && extraTrees == null && false) {
 			restoreCollapse(solutions, cd);
@@ -354,5 +356,18 @@ public abstract class AbstractInference<T> {
 	public void setDLbdWeigth(double d) {
 		options.setDLbdWeigth(d);
 	}
+
+	protected Object semiDeepCopy() {
+		try {
+			AbstractInference<T> clone =  (AbstractInference<T>) super.clone();
+			clone.dataCollection = (AbstractDataCollection<T>) this.dataCollection.clone();
+			clone.weightCalculator = (AbstractWeightCalculator<T>) this.weightCalculator.clone();
+			return clone;
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+			throw new RuntimeException("unexpected error");
+		}
+	}
+	
 
 }
