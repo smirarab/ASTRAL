@@ -276,7 +276,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 	private int getSamplingRepeationFactor(int userProvidedRounds) {
     	if (userProvidedRounds < 1) {
     		double sampling = spm.meanSampling();
-    		int repeat = (int) (Math.ceil(sampling-1)*2+1);
+    		int repeat = (int) (Math.ceil(sampling-1)*10+1);
     		return repeat;
     	} else {
     		return userProvidedRounds;
@@ -386,6 +386,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		spm.addMissingIndividuals(b1copy);
 		
 		added |=  this.addCompletedSpeciesFixedBipartionToX(c1copy, c1copy.complementaryCluster());
+		if (added) {
+			System.err.print(".");
+		}
 
 		return added;
 
@@ -479,25 +482,44 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> {
 		
 		System.err.println("Building set of clusters (X) from gene trees ");
 		
-		int repeat = getSamplingRepeationFactor(inference.samplinground);
+		int maxRepeat = getSamplingRepeationFactor(inference.samplinground);
 		
-		if (repeat > 1)
-			System.err.println("Average sampling is "+ spm.meanSampling() +
-					".\nWill do "+repeat+" rounds of sampling ");
+		if (maxRepeat > 1)
+			System.err.println("Average  sampling is "+ spm.meanSampling() +
+					".\nWill do "+maxRepeat+" rounds of sampling ");
 
-		for (int r = 0; r < repeat; r++) {
+		System.err.println(this.completedGeeneTrees.get(0));
+		int prev = 0, firstgradiant = -1, gradiant = 0;
+		for (int r = 0; r < maxRepeat; r++) {
 
-			System.err.println("Round " +r +" of individual sampling ...");
+			System.err.println("------------\n"
+					+ "Round " +r +" of individual  sampling ...");
 			SingleIndividualSample taxonSample = new SingleIndividualSample(spm,this.similarityMatrix);
+			
+			System.err.println("taxon sample " + Arrays.toString(taxonSample.getTaxonIdentifier().getAllTaxonNames()));
 			
 			List<Tree> trees = taxonSample.contractTrees(this.completedGeeneTrees);
 			
+			//System.err.println(trees.get(0));
+			
 			addBipartitionsFromSignleIndTreesToX(trees, taxonSample);
+			
+			System.err.println("Number of clusters after simple addition from gene trees: " + clusters.getClusterCount());
 			
 			if (inference.getAddExtra() != 0) {
 			    System.err.println("calculating extra bipartitions to be added at level " + inference.getAddExtra() +" ...");
 			    this.addExtraBipartitionByHeuristics(trees, taxonSample);
+			    
 				System.err.println("Number of Clusters after addition by greedy: " + clusters.getClusterCount());
+				gradiant = clusters.getClusterCount() - prev;
+				prev = clusters.getClusterCount();
+				if (firstgradiant == -1)
+					firstgradiant = gradiant;
+				else {
+					System.err.println("First gradiant: " + firstgradiant+ " current gradiant: " + gradiant);
+					if (gradiant < firstgradiant / 10) 
+						break;
+				}
 
 			}
 		}
