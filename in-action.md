@@ -1,5 +1,5 @@
 Here is a list of some papers that have recently (as of mid-2016) used ASTRAL or ASTRAL-II.
-For citations, see one of these entries in google scholar:
+For complete citations, see one of these entries in google scholar:
 [ASTRAL-I](https://scholar.google.com/scholar?oi=bibs&hl=en&cites=16059877702267304090),
 [ASTRAL-II](https://scholar.google.com/scholar?oi=bibs&hl=en&cites=11860264284440665246), and
 [Local pp](https://scholar.google.com/scholar?oi=bibs&hl=en&cites=2700409483803565835).
