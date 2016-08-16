@@ -4,17 +4,17 @@ For citations, see one of these entries in google scholar:
 [ASTRAL-II](https://scholar.google.com/scholar?oi=bibs&hl=en&cites=11860264284440665246), and
 [Local pp](https://scholar.google.com/scholar?oi=bibs&hl=en&cites=2700409483803565835).
 
-- Plants: Wickett, et al., 2014, PNAS[1]
-- Birds: Prum, et al., 2015, Nature[2]
-- Xenoturbella, Cannon et al., 2016, Nature[3]
-- Xenoturbella, Rouse et al., 2016, Nature[4]
-- Flatworms: Laumer, et al., 2015, eLife[5]
-- Shrews: Giarla, et al., 2015, Syst. Bio.[6]
--  Frogs: Yuan et al., 2016, Syst. Bio.[7]
--  Tomatoes: Pease, et al., 2016, PLoS Bio.[8]
--  Angiosperms: Huang et al., 2016, MBE[9]
-- Worms: Andrade, et al., 2015, MBE[10]
--  Fungi: Dutheil et al., 2016, Gen. Bio. Evo.[11]
+- Plants: Wickett, et al., 2014, PNAS [1]
+- Birds: Prum, et al., 2015, Nature [2]
+- Xenoturbella, Cannon et al., 2016, Nature [3]
+- Xenoturbella, Rouse et al., 2016, Nature [4]
+- Flatworms: Laumer, et al., 2015, eLife [5]
+- Shrews: Giarla, et al., 2015, Syst. Bio. [6]
+-  Frogs: Yuan et al., 2016, Syst. Bio. [7]
+-  Tomatoes: Pease, et al., 2016, PLoS Bio. [8]
+-  Angiosperms: Huang et al., 2016, MBE [9]
+- Worms: Andrade, et al., 2015, MBE [10]
+-  Fungi: Dutheil et al., 2016, Gen. Bio. Evo. [11]
 
 1. 	Wickett NJ, Mirarab S, Nguyen N, Warnow T, Carpenter EJ, Matasci N, Ayyampalayam S, Barker MS, Burleigh JG, Gitzendanner MA, Ruhfel BR, Wafula E, Der JP, Graham SW, Mathews S, Melkonian M, Soltis DE, Soltis PS, Miles NW, Rothfels CJ, Pokorny L, Shaw AJ, DeGironimo L, Stevenson DW, Surek B, Villarreal JC, Roure B, Philippe H, DePamphilis CW, Chen T, Deyholos MK, Baucom RS, Kutchan TM, Augustin MM, Wang J, Zhang Y, Tian Z, Yan Z, Wu X, Sun X, Wong GK-S, Leebens-Mack J. Phylotranscriptomic analysis of the origin and early diversification of land plants. Proc Natl Acad Sci. 2014 Oct 29;111(45):E4859–4868. PMCID: PMC4234587
 2. 	Prum RO, Berv JS, Dornburg A, Field DJ, Townsend JP, Lemmon EM, Lemmon AR. A comprehensive phylogeny of birds (Aves) using targeted next-generation DNA sequencing. Nature. Nature Publishing Group, a division of Macmillan Publishers Limited. All Rights Reserved.; 2015 Oct 7; 
