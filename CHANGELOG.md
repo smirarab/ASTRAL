@@ -1,3 +1,7 @@
+- version 4.10.9:
+	- A bug introduced in 4.10.8 is fixed. Version 4.10.8 simply did not run
+	- Added `--gene-only` for gene-only bootstrapping
+	 
 - version 4.10.8:
 	- Output taxon occupancy
 	- Don't error out on gene trees with dummy degree 2 nodes
