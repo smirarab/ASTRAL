@@ -67,7 +67,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 	public WQDataCollection( WQClusterCollection clusters, int alg, 
 			AbstractInference<Tripartition> inference) {
 		this.clusters = clusters;
-		this.algorithm = 2;
+		this.algorithm = alg;
 		this.spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
 		this.SLOW = inference.getAddExtra() >= 2;
 		this.geneTrees = inference.trees;
