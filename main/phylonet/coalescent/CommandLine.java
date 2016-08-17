@@ -39,7 +39,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.10.8";
+    protected static String _versinon = "4.10.9";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -110,6 +110,10 @@ public class CommandLine {
 	                new Switch("gene-sampling",
 	                        'g', "gene-resampling",
 	                        "perform gene tree resampling in addition to site resampling. Useful only with the -b option."),
+	                        
+	                new Switch("gene-only",
+	                        JSAP.NO_SHORTFLAG, "gene-only",
+	                        "perform bootstrapping but only with gene tree resampling. Should not be used with the -b option."),    
 
 	                new FlaggedOption("keep", 
 	                        JSAP.STRING_PARSER, null, JSAP.NOT_REQUIRED, 
@@ -202,7 +206,7 @@ public class CommandLine {
 		String pattern = null;
 		List<Tree> mainTrees;
 		List<List<String>> bstrees = new ArrayList<List<String>>();
-		List<List<String>> inputSets = new ArrayList<List<String>>();
+		List<List<String>> bootstrapInputSets = new ArrayList<List<String>>();
 		List<Tree> extraTrees = new ArrayList<Tree>();
 		double wh = 1.0D;
 		//int addExtra;
@@ -216,6 +220,10 @@ public class CommandLine {
         config = jsap.parse(args);  
         if ( jsap.messagePrinted() ) {
             exitWithErr("",jsap);
+        }
+        
+        if (config.getBoolean("gene-only") && config.getFile("bootstraps") != null) {
+        	exitWithErr("--gene-only and -b cannot be used together",jsap);
         }
         
         File outfile = config.getFile("output file");  
@@ -471,17 +479,22 @@ public class CommandLine {
         } 
 
 	
-		if (config.getFile("bootstraps") != null) {
+		if (config.getFile("bootstraps") != null || config.getBoolean("gene-only")) {
 	        System.err.println("Bootstrapping with seed "+config.getLong("seed"));
 		    for (int i = 0; i < config.getInt("replicates"); i++) {
 		        List<String> input = new ArrayList<String>();
-		        inputSets.add(input);   
+		        bootstrapInputSets.add(input);   
 		        try {
     		        if (config.getBoolean("gene-sampling")) {
     		            for (int j = 0; j < k; j++) {
                             input.add(bstrees.get(GlobalMaps.random.nextInt(k)).remove(0));                 
                         }
-    		        } else {   		        
+    		        } else if (config.getBoolean("gene-only")) { 
+    		            for (int j = 0; j < k; j++) {
+                            input.add(mainTrees.get(GlobalMaps.random.nextInt(k)).toString());                 
+                        }	
+    		        }
+    		        else {   		        
     		            for (List<String> gene : bstrees) {
     		                input.add(gene.get(i));
     		            }
@@ -515,7 +528,7 @@ public class CommandLine {
 
         int j = 0;
         List<Tree> bootstraps = new ArrayList<Tree>();
-		for ( List<String> input : inputSets) {  
+		for ( List<String> input : bootstrapInputSets) {  
 	        System.err.println("\n======== Running bootstrap replicate " + j++);
 	        bootstraps.add(runOnOneInput(criterion, 
 	                 extraTrees, outbuffer, 
@@ -563,6 +576,9 @@ public class CommandLine {
         return st;
     }
 
+    private static boolean isGeneResamplign(JSAPResult config) {
+    	return config.getBoolean("gene-sampling") || config.getBoolean("gene-only") ;
+    }
 
 	private static Tree processSolution(BufferedWriter outbuffer,
 			Iterable<Tree> bootstraps, String outgroup,
