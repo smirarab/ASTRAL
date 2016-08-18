@@ -62,15 +62,10 @@ struct Intersects * getSide(int in, struct Intersects * side, struct Tripartitio
 
 	return side;
 }
-inline uint popcnt(const ulong i) {
-  uint n;
-  asm("popc.b64 %0, %1;" : "=r"(n) : "l" (i));
-  return n;
-}
 int bitIntersectionSize(__global long input1[SPECIES_WORD_LENGTH], __global long input2[SPECIES_WORD_LENGTH]) {
 	int out = 0;
 	for (int i = 0; i < SPECIES_WORD_LENGTH; i++) {
-		out += popcnt(input1[i]&input2[i]);
+		out += popcount(input1[i]&input2[i]);
 	}
 	return out;
 }
