@@ -1,0 +1,108 @@
+
+================== ASTRAL ===================== 
+
+This is ASTRAL version 4.10.8
+Gene trees are treated as unrooted
+975 trees read from model.500.2000000.0.000001/32/estimatedgenetre.halfresolved
+All outputted trees will be *arbitrarily* rooted at 47
+
+======== Running the main analysis
+Number of taxa: 501 (501 species)
+Taxa: [47, 63, 13, 236, 471, 38, 302, 319, 477, 272, 46, 499, 194, 165, 41, 97, 153, 310, 285, 25, 105, 378, 431, 261, 34, 48, 306, 442, 192, 355, 127, 339, 428, 463, 193, 298, 37, 398, 386, 488, 283, 323, 353, 407, 200, 241, 362, 32, 0, 320, 87, 40, 172, 171, 88, 455, 406, 439, 247, 384, 156, 422, 318, 436, 420, 117, 206, 221, 491, 26, 388, 257, 102, 414, 146, 301, 484, 307, 387, 254, 313, 410, 316, 441, 357, 212, 460, 28, 239, 473, 368, 297, 476, 243, 155, 68, 16, 140, 160, 325, 58, 182, 482, 122, 139, 7, 114, 224, 327, 44, 150, 143, 219, 51, 276, 124, 419, 149, 433, 408, 196, 59, 175, 429, 107, 321, 466, 220, 195, 289, 273, 79, 354, 225, 222, 413, 500, 45, 281, 181, 95, 128, 274, 373, 56, 303, 452, 161, 425, 207, 83, 291, 300, 240, 468, 400, 412, 253, 308, 467, 294, 454, 417, 190, 130, 348, 226, 392, 334, 304, 290, 292, 170, 371, 202, 255, 30, 335, 188, 154, 391, 54, 314, 123, 446, 317, 145, 85, 158, 342, 159, 395, 246, 423, 132, 293, 435, 459, 344, 18, 113, 17, 185, 115, 260, 205, 360, 404, 486, 214, 100, 55, 381, 15, 266, 380, 295, 223, 234, 229, 299, 264, 179, 397, 198, 23, 216, 269, 449, 187, 409, 267, 43, 73, 326, 347, 104, 178, 204, 447, 379, 1, 49, 367, 162, 375, 36, 493, 331, 403, 457, 144, 461, 98, 184, 427, 340, 81, 489, 311, 203, 359, 490, 365, 91, 432, 382, 444, 270, 284, 227, 258, 147, 287, 475, 492, 346, 280, 424, 164, 390, 350, 430, 394, 82, 11, 265, 363, 116, 361, 189, 418, 252, 250, 151, 286, 27, 50, 358, 416, 268, 29, 263, 66, 312, 157, 10, 472, 9, 352, 120, 238, 233, 396, 464, 67, 101, 33, 135, 52, 336, 230, 366, 372, 176, 109, 333, 217, 121, 469, 199, 78, 65, 137, 337, 480, 209, 248, 465, 282, 364, 249, 94, 497, 6, 356, 262, 421, 351, 438, 89, 402, 21, 14, 494, 103, 60, 110, 329, 305, 108, 232, 141, 389, 174, 76, 53, 169, 401, 483, 437, 4, 131, 235, 341, 370, 35, 448, 215, 133, 369, 245, 374, 163, 322, 211, 277, 451, 111, 338, 244, 349, 498, 210, 75, 383, 458, 496, 201, 24, 92, 69, 411, 393, 39, 167, 62, 405, 20, 183, 434, 22, 74, 186, 218, 119, 208, 343, 443, 70, 80, 8, 126, 450, 231, 180, 279, 309, 470, 376, 251, 324, 72, 3, 177, 385, 197, 296, 96, 138, 256, 84, 478, 242, 166, 118, 453, 142, 288, 456, 328, 77, 134, 445, 12, 5, 2, 399, 173, 86, 332, 71, 345, 228, 271, 481, 440, 259, 168, 479, 275, 64, 330, 136, 426, 474, 485, 112, 213, 237, 129, 377, 106, 462, 57, 90, 148, 93, 495, 99, 415, 487, 191, 152, 125, 19, 315, 278, 61, 31, 42]
+Taxon occupancy: {338=975, 339=975, 332=975, 333=975, 330=975, 159=975, 158=975, 331=975, 157=975, 336=975, 156=975, 337=975, 334=975, 155=975, 154=975, 335=975, 152=975, 153=975, 150=975, 151=975, 349=975, 202=975, 203=975, 204=975, 205=975, 200=975, 201=975, 341=975, 342=975, 169=975, 343=975, 344=975, 345=975, 166=975, 206=975, 207=975, 165=975, 346=975, 168=975, 208=975, 347=975, 167=975, 348=975, 209=975, 3=975, 161=975, 409=975, 2=975, 408=975, 162=975, 1=975, 163=975, 0=975, 164=975, 405=975, 7=975, 404=975, 6=975, 5=975, 407=975, 340=975, 160=975, 406=975, 4=975, 401=975, 400=975, 403=975, 9=975, 8=975, 402=975, 211=975, 212=975, 210=975, 318=975, 215=975, 319=975, 216=975, 213=975, 316=975, 317=975, 214=975, 314=975, 219=975, 179=975, 315=975, 178=975, 177=975, 312=975, 217=975, 218=975, 313=975, 176=975, 310=975, 311=975, 170=975, 418=975, 417=975, 171=975, 416=975, 415=975, 174=975, 175=975, 172=975, 173=975, 419=975, 410=975, 414=975, 413=975, 412=975, 411=975, 220=975, 221=975, 222=975, 223=975, 327=975, 224=975, 328=975, 225=975, 226=975, 329=975, 227=975, 228=975, 188=975, 323=975, 324=975, 229=975, 187=975, 325=975, 326=975, 189=975, 320=975, 321=975, 322=975, 427=975, 426=975, 180=975, 181=975, 429=975, 182=975, 428=975, 183=975, 184=975, 185=975, 186=975, 421=975, 420=975, 423=975, 422=975, 425=975, 424=975, 116=975, 117=975, 114=975, 115=975, 112=975, 113=975, 110=975, 111=975, 118=975, 119=975, 435=975, 436=975, 433=975, 434=975, 431=975, 432=975, 430=975, 439=975, 437=975, 438=975, 125=975, 126=975, 300=975, 127=975, 128=975, 302=975, 121=975, 122=975, 301=975, 123=975, 304=975, 303=975, 124=975, 306=975, 305=975, 308=975, 307=975, 129=975, 309=975, 444=975, 445=975, 446=975, 447=975, 440=975, 441=975, 442=975, 443=975, 120=975, 448=975, 449=975, 134=975, 135=975, 132=975, 133=975, 138=975, 139=975, 136=975, 137=975, 450=975, 453=975, 454=975, 451=975, 452=975, 457=975, 458=975, 455=975, 456=975, 459=975, 131=975, 130=975, 143=975, 144=975, 145=975, 146=975, 147=975, 148=975, 149=975, 461=975, 460=975, 462=975, 463=975, 464=975, 465=975, 466=975, 467=975, 468=975, 469=975, 140=975, 142=975, 141=975, 195=975, 194=975, 197=975, 196=975, 191=975, 190=975, 193=975, 192=975, 198=975, 199=975, 500=975, 35=975, 36=975, 33=975, 34=975, 39=975, 37=975, 38=975, 43=975, 42=975, 41=975, 40=975, 22=975, 23=975, 24=975, 25=975, 26=975, 27=975, 28=975, 29=975, 30=975, 32=975, 31=975, 19=975, 17=975, 18=975, 15=975, 16=975, 13=975, 14=975, 11=975, 12=975, 21=975, 20=975, 10=975, 79=975, 78=975, 77=975, 82=975, 83=975, 80=975, 81=975, 86=975, 87=975, 84=975, 85=975, 67=975, 66=975, 69=975, 68=975, 70=975, 71=975, 72=975, 73=975, 74=975, 75=975, 76=975, 59=975, 58=975, 57=975, 56=975, 55=975, 64=975, 65=975, 62=975, 63=975, 60=975, 61=975, 49=975, 48=975, 45=975, 44=975, 47=975, 46=975, 51=975, 52=975, 53=975, 54=975, 50=975, 487=975, 281=975, 486=975, 280=975, 485=975, 484=975, 285=975, 284=975, 283=975, 489=975, 488=975, 282=975, 288=975, 289=975, 286=975, 287=975, 482=975, 483=975, 480=975, 481=975, 474=975, 473=975, 476=975, 270=975, 475=975, 478=975, 272=975, 271=975, 477=975, 274=975, 479=975, 273=975, 275=975, 276=975, 277=975, 278=975, 279=975, 470=975, 471=975, 472=975, 109=975, 108=975, 107=975, 106=975, 105=975, 104=975, 103=975, 99=975, 102=975, 101=975, 100=975, 98=975, 97=975, 96=975, 391=975, 95=975, 390=975, 393=975, 94=975, 93=975, 392=975, 92=975, 395=975, 91=975, 394=975, 90=975, 294=975, 499=975, 293=975, 296=975, 295=975, 496=975, 290=975, 495=975, 498=975, 292=975, 291=975, 497=975, 491=975, 492=975, 493=975, 494=975, 297=975, 298=975, 299=975, 490=975, 396=975, 397=975, 398=975, 399=975, 88=975, 89=975, 240=975, 241=975, 383=975, 384=975, 381=975, 382=975, 380=975, 389=975, 388=975, 387=975, 386=975, 385=975, 245=975, 244=975, 243=975, 242=975, 249=975, 248=975, 247=975, 246=975, 230=975, 370=975, 371=975, 372=975, 373=975, 379=975, 378=975, 239=975, 375=975, 374=975, 377=975, 376=975, 232=975, 231=975, 234=975, 233=975, 236=975, 235=975, 238=975, 237=975, 262=975, 263=975, 260=975, 261=975, 361=975, 362=975, 360=975, 366=975, 365=975, 364=975, 363=975, 369=975, 368=975, 367=975, 269=975, 268=975, 267=975, 266=975, 265=975, 264=975, 250=975, 251=975, 252=975, 350=975, 351=975, 353=975, 352=975, 355=975, 354=975, 357=975, 356=975, 359=975, 358=975, 258=975, 257=975, 259=975, 254=975, 253=975, 256=975, 255=975}
+Number of gene trees: 975
+0 trees have missing taxa
+Calculating quartet distance matrix (for completion of X)
+Species tree distances calculated ...
+Building set of clusters (X) from gene trees 
+Using tree-based weight calculation.
+Number of Default Clusters: 108929
+Number of quartet trees in the gene trees: 2528380102428
+calculating extra bipartitions to be added at level 1 ...
+Number of Clusters after addition by distance: 108931
+Adding to X using resolutions of greedy consensus ...
+Threshold 0.0:
+Threshold 0.01:
+polytomy of size 5; rounds with additions with at least 0.01 support: 1; clusters: 108949
+polytomy of size 5; rounds with additions with at least 0.01 support: 1; clusters: 108957
+Threshold 0.02:
+polytomy of size 5; rounds with additions with at least 0.01 support: 1; clusters: 108961
+polytomy of size 6; rounds with additions with at least 0.01 support: 1; clusters: 108967
+Threshold 0.05:
+polytomy of size 14; rounds with additions with at least 0.01 support: 1; clusters: 108969
+Threshold 0.1:
+polytomy of size 18; rounds with additions with at least 0.01 support: 2; clusters: 108985
+Threshold 0.2:
+polytomy of size 5; rounds with additions with at least 0.01 support: 0; clusters: 108985
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 108985
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 108985
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108985
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108985
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108985
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108985
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 108985
+polytomy of size 5; rounds with additions with at least 0.01 support: 0; clusters: 108985
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108985
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 108985
+polytomy of size 29; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 108995
+Threshold 0.3333333333333333:
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 5; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 5; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 108995
+polytomy of size 8; rounds with additions with at least 0.01 support: 0; clusters: 109009
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 109009
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 109009
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 109009
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 109009
+polytomy of size 5; rounds with additions with at least 0.01 support: 0; clusters: 109009
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 109009
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 109009
+polytomy of size 47; rounds with additions with at least 0.01 support: 0; clusters: 112023
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 112023
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 112023
+Number of Clusters after addition by greedy: 112023
+partitions formed in 147.337 secs
+Dynamic Programming starting after 147.337 secs
+Size of largest cluster: 501
+Size of largest cluster: 501
+Total Number of elements weighted: 340894
+Normalized score (portion of input quartet trees satisfied): NaN
+Final optimization score: 0
+Calculated 100000 weights; time (seconds): 214
+Calculated 200000 weights; time (seconds): 66
+Calculated 300000 weights; time (seconds): 78
+Total Number of elements weighted: 340894
+Normalized score (portion of input quartet trees satisfied): 0.6441441611911982
+Final optimization score: 1628641280251
+Optimal tree inferred in 395.665 secs.
+(47,((63,13),((236,471),((((180,(279,309)),(8,(450,(126,231)))),(344,((404,486),((17,185),((260,(115,360)),(205,(18,113))))))),((((302,319),((119,(186,218)),(74,(434,22)))),(((208,343),(80,(443,70))),(((140,(16,160)),(368,(297,476))),((68,(243,155)),((441,(410,473)),(316,(239,(212,(357,(460,28)))))))))),((470,(((85,(158,342)),((395,246),((159,435),(132,(459,(423,293)))))),((194,165),((482,((122,139),(224,(7,114)))),((219,(150,143)),((58,182),(325,(327,44)))))))),(((99,415),(((93,495),(86,((399,173),(332,71)))),((((237,129),(377,106)),((112,213),(462,(148,(57,90))))),((((125,19),((31,42),((315,278),(61,(191,152))))),((392,(130,(348,226))),(487,((308,(412,(253,467))),((294,454),(417,190)))))),((51,276),(38,(((228,485),((271,481),((345,(275,(64,(479,330)))),((426,474),(136,(440,(259,168))))))),(((429,(107,321)),(408,(196,(59,175)))),((124,(433,(419,149))),((195,289),((466,220),(79,(273,354))))))))))))),(((225,((373,((56,303),(452,161))),((222,(413,500)),((45,181),(281,(95,(128,274))))))),((203,((365,(359,490)),(91,((432,382),(444,270))))),((291,(300,(425,207))),((83,(240,(468,400))),(((445,12),(5,2)),((288,456),(328,(77,134)))))))),(0,(((((405,(20,183)),(167,(62,(39,(24,((411,393),(92,69))))))),(((422,(318,(436,420))),(407,((200,241),(362,(353,32))))),((40,(247,(384,156))),(172,(((320,87),(406,((171,439),(88,455)))),((388,(257,102)),((117,26),(491,(206,221))))))))),((127,(339,428)),(355,((((418,252),(250,(151,286))),(189,(27,(50,(358,(416,268)))))),((((477,(488,(398,386))),(283,((193,37),(298,(463,323))))),((414,146),((254,(307,387)),(313,(484,(301,(46,(272,499)))))))),((192,(306,442)),((25,((48,(261,34)),(105,(378,431)))),(((82,(430,394)),(475,((424,(164,390)),(492,(346,280))))),(11,((350,(265,(361,(363,116)))),((147,287),(258,(284,227))))))))))))),(((201,((383,496),(75,(210,(498,458))))),(((469,(199,78)),((217,121),(((120,238),(9,352)),(((333,(52,109)),(336,(135,(101,33)))),(((464,67),(233,396)),(230,(176,(366,372)))))))),(((65,137),((337,480),(209,248))),(((374,163),(133,(369,245))),((215,(370,(35,448))),((131,(235,341)),((483,(437,4)),((322,211),((277,349),((451,338),(111,244))))))))))),(((((324,72),((41,97),(153,(310,285)))),((3,((177,385),(197,296))),((96,(84,(138,256))),(242,((478,166),(142,(118,453))))))),(((334,(304,(290,292))),(472,((263,66),((312,10),(29,157))))),(((54,314),(123,(145,(446,317)))),((202,(255,(170,371))),((30,335),(188,(154,391))))))),(((214,(100,55)),(104,(((380,(295,223)),(269,(73,((326,347),(187,(449,(43,(409,267)))))))),((234,((381,15),(178,(204,447)))),((266,(23,216)),(229,(397,((299,264),(179,198))))))))),(((6,(356,262)),((364,249),(282,(465,(94,497))))),(((379,1),(376,251)),(((421,((402,21),(89,(351,438)))),(14,(103,(494,(110,(60,329)))))),((((493,331),(403,(457,(144,461)))),(36,((427,340),(98,(489,(81,(184,311))))))),((108,(232,141)),(305,((49,(162,(367,375))),((169,401),(174,(389,(76,53))))))))))))))))))))))));
+Quartet score is: 1628641280251
+Normalized quartet score is: 0.6441441611911982
+ASTRAL finished in 468.842 secs
