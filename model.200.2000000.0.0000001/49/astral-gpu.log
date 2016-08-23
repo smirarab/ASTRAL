@@ -1,0 +1,64 @@
+
+================== ASTRAL ===================== 
+
+This is ASTRAL version 4.10.8
+Gene trees are treated as unrooted
+986 trees read from model.200.2000000.0.0000001/49/estimatedgenetre.halfresolved
+All outputted trees will be *arbitrarily* rooted at 79
+
+======== Running the main analysis
+Number of taxa: 201 (201 species)
+Taxa: [79, 166, 164, 143, 29, 9, 111, 171, 131, 90, 101, 12, 163, 158, 117, 33, 21, 13, 54, 177, 122, 44, 97, 190, 160, 176, 178, 183, 121, 127, 129, 14, 120, 50, 153, 76, 193, 189, 87, 68, 30, 144, 74, 128, 109, 169, 41, 23, 114, 99, 132, 182, 181, 157, 61, 26, 192, 174, 16, 20, 5, 148, 172, 159, 86, 59, 134, 184, 67, 83, 200, 3, 63, 112, 6, 60, 156, 45, 0, 147, 48, 56, 62, 73, 106, 51, 31, 113, 175, 88, 165, 1, 82, 139, 43, 2, 52, 152, 138, 133, 28, 102, 53, 100, 141, 125, 80, 116, 198, 17, 24, 19, 93, 71, 78, 130, 95, 49, 57, 81, 98, 154, 107, 70, 196, 105, 66, 27, 64, 7, 167, 140, 96, 145, 46, 115, 188, 10, 185, 123, 75, 39, 150, 22, 197, 173, 104, 191, 146, 94, 179, 135, 84, 25, 36, 65, 155, 126, 69, 180, 110, 161, 137, 18, 91, 119, 186, 47, 85, 124, 195, 92, 168, 89, 118, 11, 32, 4, 187, 149, 162, 15, 37, 38, 35, 8, 77, 55, 199, 142, 151, 40, 58, 72, 34, 170, 108, 136, 103, 42, 194]
+Taxon occupancy: {35=986, 36=986, 159=986, 33=986, 34=986, 158=986, 157=986, 39=986, 156=986, 155=986, 37=986, 154=986, 38=986, 152=986, 153=986, 150=986, 151=986, 43=986, 42=986, 41=986, 40=986, 200=986, 22=986, 169=986, 23=986, 24=986, 25=986, 26=986, 166=986, 165=986, 27=986, 28=986, 168=986, 29=986, 167=986, 3=986, 161=986, 2=986, 162=986, 1=986, 163=986, 0=986, 164=986, 30=986, 7=986, 6=986, 5=986, 32=986, 31=986, 160=986, 4=986, 9=986, 8=986, 19=986, 17=986, 179=986, 178=986, 18=986, 177=986, 15=986, 16=986, 176=986, 13=986, 14=986, 11=986, 12=986, 170=986, 21=986, 20=986, 171=986, 174=986, 175=986, 172=986, 173=986, 188=986, 187=986, 189=986, 180=986, 181=986, 10=986, 182=986, 183=986, 184=986, 185=986, 186=986, 116=986, 117=986, 79=986, 114=986, 78=986, 115=986, 77=986, 112=986, 113=986, 110=986, 111=986, 118=986, 119=986, 82=986, 83=986, 80=986, 81=986, 86=986, 87=986, 84=986, 85=986, 67=986, 125=986, 66=986, 126=986, 127=986, 69=986, 68=986, 128=986, 121=986, 122=986, 123=986, 124=986, 129=986, 70=986, 120=986, 71=986, 72=986, 73=986, 74=986, 75=986, 76=986, 134=986, 135=986, 132=986, 59=986, 133=986, 58=986, 138=986, 139=986, 57=986, 136=986, 56=986, 137=986, 55=986, 64=986, 65=986, 62=986, 63=986, 60=986, 131=986, 61=986, 130=986, 143=986, 49=986, 48=986, 144=986, 145=986, 146=986, 147=986, 45=986, 148=986, 44=986, 47=986, 149=986, 46=986, 51=986, 52=986, 53=986, 54=986, 140=986, 142=986, 50=986, 141=986, 109=986, 108=986, 107=986, 106=986, 105=986, 104=986, 103=986, 99=986, 102=986, 101=986, 100=986, 98=986, 97=986, 96=986, 95=986, 94=986, 93=986, 92=986, 91=986, 90=986, 88=986, 89=986, 195=986, 194=986, 197=986, 196=986, 191=986, 190=986, 193=986, 192=986, 198=986, 199=986}
+Number of gene trees: 986
+0 trees have missing taxa
+Calculating quartet distance matrix (for completion of X)
+Species tree distances calculated ...
+Building set of clusters (X) from gene trees 
+Using tree-based weight calculation.
+Number of Default Clusters: 61619
+Number of quartet trees in the gene trees: 65022293211
+calculating extra bipartitions to be added at level 1 ...
+Number of Clusters after addition by distance: 61623
+Adding to X using resolutions of greedy consensus ...
+Threshold 0.0:
+polytomy of size 3; rounds with additions with at least 0.01 support: 1; clusters: 61629
+Threshold 0.01:
+polytomy of size 7; rounds with additions with at least 0.01 support: 4; clusters: 61697
+Threshold 0.02:
+polytomy of size 8; rounds with additions with at least 0.01 support: 1; clusters: 61759
+Threshold 0.05:
+polytomy of size 11; rounds with additions with at least 0.01 support: 1; clusters: 61777
+Threshold 0.1:
+polytomy of size 18; rounds with additions with at least 0.01 support: 0; clusters: 61783
+Threshold 0.2:
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 61783
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 61783
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 61783
+polytomy of size 24; rounds with additions with at least 0.01 support: 0; clusters: 61787
+Threshold 0.3333333333333333:
+polytomy of size 5; rounds with additions with at least 0.01 support: 0; clusters: 61787
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 61787
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 61787
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 61787
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 61787
+polytomy of size 5; rounds with additions with at least 0.01 support: 0; clusters: 61787
+polytomy of size 5; rounds with additions with at least 0.01 support: 0; clusters: 61787
+polytomy of size 30; rounds with additions with at least 0.01 support: 0; clusters: 63877
+Number of Clusters after addition by greedy: 63877
+partitions formed in 29.969 secs
+Dynamic Programming starting after 29.969 secs
+Size of largest cluster: 201
+Size of largest cluster: 201
+Total Number of elements weighted: 159079
+Normalized score (portion of input quartet trees satisfied): NaN
+Final optimization score: 0
+Calculated 100000 weights; time (seconds): 56
+Total Number of elements weighted: 159079
+Normalized score (portion of input quartet trees satisfied): 0.5969499267127286
+Final optimization score: 38815053167
+Optimal tree inferred in 76.897 secs.
+(79,((166,164),(((110,161),(((101,(12,163)),(9,((143,29),((131,90),(111,171))))),(158,(((89,(168,118)),(124,(195,92))),(85,(47,((137,18),(91,(119,186))))))))),((((117,(33,21)),(13,(177,(54,122)))),((126,(69,180)),(135,(84,((25,36),(65,155)))))),((((192,174),(5,((148,172),(16,20)))),((0,((109,(74,128)),((193,189),(87,(68,(30,144)))))),(((169,(41,23)),(114,(99,132))),((32,(11,4)),((181,(157,(61,26))),(182,(187,(149,(162,15))))))))),(((100,(141,125)),(((190,160),((176,178),(183,(121,127)))),((50,(153,76)),((44,97),(129,(14,120)))))),(((98,(81,((196,105),(154,(107,70))))),((80,((93,71),((116,19),(24,(198,17))))),((179,((191,(146,94)),((78,130),(57,(95,49))))),((27,(64,(7,167))),(104,(66,(((46,(115,188)),(10,(140,(96,145)))),((22,(197,173)),((39,150),(185,(123,75))))))))))),((((156,45),(6,60)),(59,((159,86),((134,184),((67,83),(3,(200,(63,112)))))))),(((58,(142,(151,40))),(((72,34),(170,108)),((136,(194,(103,42))),((37,(38,35)),((55,199),(8,77)))))),((147,((106,(73,(56,62))),((48,88),((113,175),(51,31))))),((82,(165,1)),((139,(43,2)),((28,(102,53)),(152,(52,(138,133))))))))))))))));
+Quartet score is: 38815053167
+Normalized quartet score is: 0.5969499267127286
+ASTRAL finished in 88.609 secs
