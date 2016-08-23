@@ -1,0 +1,76 @@
+
+================== ASTRAL ===================== 
+
+This is ASTRAL version 4.10.8
+Gene trees are treated as unrooted
+1000 trees read from model.200.2000000.0.0000001/04/estimatedgenetre.halfresolved
+All outputted trees will be *arbitrarily* rooted at 107
+
+======== Running the main analysis
+Number of taxa: 201 (201 species)
+Taxa: [107, 152, 62, 85, 0, 63, 173, 184, 192, 51, 191, 15, 79, 101, 53, 18, 32, 87, 148, 1, 60, 172, 118, 26, 180, 117, 66, 99, 40, 6, 67, 131, 108, 106, 27, 77, 134, 23, 137, 16, 65, 7, 43, 164, 190, 83, 138, 195, 37, 39, 78, 175, 161, 197, 121, 25, 64, 165, 97, 86, 125, 80, 154, 5, 147, 4, 30, 35, 156, 139, 11, 93, 146, 104, 73, 9, 126, 155, 174, 72, 8, 50, 160, 45, 194, 196, 38, 183, 162, 112, 200, 42, 102, 82, 57, 178, 76, 58, 13, 56, 89, 94, 185, 171, 199, 124, 92, 144, 189, 34, 130, 163, 135, 75, 48, 170, 168, 52, 159, 69, 49, 41, 177, 141, 119, 36, 176, 157, 129, 33, 113, 21, 20, 186, 68, 167, 109, 114, 22, 150, 44, 70, 29, 100, 169, 61, 10, 28, 123, 98, 84, 74, 71, 151, 179, 193, 14, 105, 2, 143, 181, 182, 116, 127, 95, 122, 17, 142, 88, 19, 115, 96, 81, 12, 3, 110, 120, 55, 198, 128, 188, 46, 103, 145, 153, 91, 149, 47, 158, 54, 132, 24, 133, 187, 31, 90, 111, 166, 59, 140, 136]
+Taxon occupancy: {35=1000, 36=1000, 159=1000, 33=1000, 34=1000, 158=1000, 39=1000, 157=1000, 156=1000, 155=1000, 37=1000, 38=1000, 154=1000, 152=1000, 153=1000, 150=1000, 151=1000, 43=1000, 42=1000, 41=1000, 40=1000, 200=1000, 22=1000, 23=1000, 169=1000, 24=1000, 25=1000, 166=1000, 26=1000, 165=1000, 27=1000, 168=1000, 28=1000, 167=1000, 29=1000, 161=1000, 3=1000, 162=1000, 2=1000, 1=1000, 163=1000, 0=1000, 164=1000, 30=1000, 7=1000, 6=1000, 5=1000, 32=1000, 31=1000, 160=1000, 4=1000, 9=1000, 8=1000, 19=1000, 179=1000, 17=1000, 178=1000, 18=1000, 15=1000, 177=1000, 16=1000, 176=1000, 13=1000, 14=1000, 11=1000, 12=1000, 170=1000, 21=1000, 171=1000, 20=1000, 174=1000, 175=1000, 172=1000, 173=1000, 188=1000, 187=1000, 189=1000, 180=1000, 10=1000, 181=1000, 182=1000, 183=1000, 184=1000, 185=1000, 186=1000, 116=1000, 79=1000, 117=1000, 78=1000, 114=1000, 77=1000, 115=1000, 112=1000, 113=1000, 110=1000, 111=1000, 118=1000, 119=1000, 82=1000, 83=1000, 80=1000, 81=1000, 86=1000, 87=1000, 84=1000, 85=1000, 125=1000, 67=1000, 126=1000, 66=1000, 69=1000, 127=1000, 68=1000, 128=1000, 121=1000, 122=1000, 123=1000, 124=1000, 129=1000, 70=1000, 71=1000, 120=1000, 72=1000, 73=1000, 74=1000, 75=1000, 76=1000, 134=1000, 135=1000, 132=1000, 59=1000, 133=1000, 138=1000, 58=1000, 57=1000, 139=1000, 136=1000, 56=1000, 137=1000, 55=1000, 64=1000, 65=1000, 62=1000, 63=1000, 60=1000, 131=1000, 130=1000, 61=1000, 49=1000, 143=1000, 144=1000, 48=1000, 145=1000, 146=1000, 45=1000, 147=1000, 148=1000, 44=1000, 149=1000, 47=1000, 46=1000, 51=1000, 52=1000, 53=1000, 54=1000, 140=1000, 142=1000, 50=1000, 141=1000, 109=1000, 108=1000, 107=1000, 106=1000, 105=1000, 104=1000, 103=1000, 102=1000, 99=1000, 101=1000, 100=1000, 98=1000, 97=1000, 96=1000, 95=1000, 94=1000, 93=1000, 92=1000, 91=1000, 90=1000, 88=1000, 89=1000, 195=1000, 194=1000, 197=1000, 196=1000, 191=1000, 190=1000, 193=1000, 192=1000, 198=1000, 199=1000}
+Number of gene trees: 1000
+0 trees have missing taxa
+Calculating quartet distance matrix (for completion of X)
+Species tree distances calculated ...
+Building set of clusters (X) from gene trees 
+Using tree-based weight calculation.
+Number of Default Clusters: 95455
+Number of quartet trees in the gene trees: 65998008450
+calculating extra bipartitions to be added at level 1 ...
+Number of Clusters after addition by distance: 95469
+Adding to X using resolutions of greedy consensus ...
+Threshold 0.0:
+polytomy of size 6; rounds with additions with at least 0.01 support: 3; clusters: 95553
+Threshold 0.01:
+polytomy of size 12; rounds with additions with at least 0.01 support: 9; clusters: 96119
+Threshold 0.02:
+polytomy of size 15; rounds with additions with at least 0.01 support: 2; clusters: 96897
+Threshold 0.05:
+polytomy of size 18; rounds with additions with at least 0.01 support: 0; clusters: 96955
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 96955
+Threshold 0.1:
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 96955
+polytomy of size 25; rounds with additions with at least 0.01 support: 0; clusters: 97013
+Threshold 0.2:
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 97013
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 97013
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 97013
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 97013
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 97013
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 97013
+polytomy of size 37; rounds with additions with at least 0.01 support: 0; clusters: 97105
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 97105
+Threshold 0.3333333333333333:
+polytomy of size 6; rounds with additions with at least 0.01 support: 0; clusters: 97105
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 97105
+polytomy of size 6; rounds with additions with at least 0.01 support: 0; clusters: 97105
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 97105
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 97105
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 97105
+polytomy of size 6; rounds with additions with at least 0.01 support: 0; clusters: 97105
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 97105
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 97105
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 97105
+polytomy of size 7; rounds with additions with at least 0.01 support: 0; clusters: 97105
+polytomy of size 51; rounds with additions with at least 0.01 support: 0; clusters: 109553
+polytomy of size 6; rounds with additions with at least 0.01 support: 0; clusters: 109553
+Number of Clusters after addition by greedy: 109553
+partitions formed in 53.951 secs
+Dynamic Programming starting after 53.951 secs
+Size of largest cluster: 201
+Size of largest cluster: 201
+Calculated 100000 weights; time (seconds): 76
+Calculated 200000 weights; time (seconds): 26
+Total Number of elements weighted: 270818
+Normalized score (portion of input quartet trees satisfied): NaN
+Final optimization score: 0
+Total Number of elements weighted: 270818
+Normalized score (portion of input quartet trees satisfied): 0.5736250716971445
+Final optimization score: 37858112329
+Optimal tree inferred in 145.421 secs.
+(107,((152,(62,85)),((((16,65),(23,137)),(67,((77,134),((131,108),(106,27))))),((((40,6),(117,99)),((26,66),(180,(118,(172,(1,60)))))),(((148,38),((87,(79,101)),((173,32),(184,(18,(15,(53,(192,(51,191))))))))),(190,(163,(((100,169),(200,(50,112))),((138,195),((((164,(8,(7,43))),(89,((13,56),((57,178),(76,58))))),((126,(104,(73,9))),((111,(59,(166,140))),((133,90),((187,31),(136,(132,24))))))),((((125,(80,(82,(42,102)))),((45,(194,196)),(63,(64,(159,(52,69)))))),(((183,162),((74,(84,(28,(123,98)))),(47,(54,(158,(91,149)))))),((181,(179,(71,151))),((153,(61,10)),((143,(157,(129,33))),((114,(22,(167,109))),(29,(150,(20,(186,68)))))))))),(0,((95,((113,21),(182,(44,70)))),(((155,(174,72)),(((197,(39,25)),(121,(37,(78,(175,161))))),(48,((36,176),((141,119),(41,((49,177),(170,168)))))))),((130,(94,(171,((185,34),(124,((144,189),(199,92))))))),(((83,(19,115)),(((122,17),(142,88)),(12,(96,((81,((188,46),(103,145))),((128,(55,198)),(110,(3,120)))))))),(((4,(154,(5,147))),((30,35),(156,139))),(((93,(11,146)),(86,(165,97))),((160,(116,127)),((14,(105,2)),(193,(135,75))))))))))))))))))))));
+Quartet score is: 37858112329
+Normalized quartet score is: 0.5736250716971445
+ASTRAL finished in 153.994 secs

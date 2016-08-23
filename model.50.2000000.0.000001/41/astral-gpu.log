@@ -1,0 +1,65 @@
+
+================== ASTRAL ===================== 
+
+This is ASTRAL version 4.10.8
+Gene trees are treated as unrooted
+240 trees read from model.50.2000000.0.000001/41/estimatedgenetre.halfresolved
+All outputted trees will be *arbitrarily* rooted at 18
+
+======== Running the main analysis
+Number of taxa: 51 (51 species)
+Taxa: [18, 3, 38, 23, 45, 35, 44, 33, 41, 8, 25, 2, 11, 42, 47, 5, 1, 34, 28, 0, 24, 36, 40, 49, 46, 20, 32, 39, 9, 14, 31, 30, 19, 10, 50, 4, 16, 12, 13, 37, 22, 6, 43, 26, 17, 27, 7, 15, 48, 21, 29]
+Taxon occupancy: {19=240, 17=240, 35=240, 18=240, 36=240, 15=240, 33=240, 16=240, 34=240, 13=240, 39=240, 14=240, 37=240, 11=240, 12=240, 38=240, 21=240, 20=240, 43=240, 42=240, 41=240, 40=240, 49=240, 48=240, 45=240, 44=240, 47=240, 46=240, 22=240, 23=240, 24=240, 25=240, 26=240, 27=240, 28=240, 29=240, 3=240, 2=240, 10=240, 1=240, 0=240, 7=240, 30=240, 6=240, 32=240, 5=240, 4=240, 31=240, 9=240, 8=240, 50=240}
+Number of gene trees: 240
+0 trees have missing taxa
+Calculating quartet distance matrix (for completion of X)
+Species tree distances calculated ...
+Building set of clusters (X) from gene trees 
+Using tree-based weight calculation.
+Number of Default Clusters: 7277
+Number of quartet trees in the gene trees: 58122822
+calculating extra bipartitions to be added at level 1 ...
+Number of Clusters after addition by distance: 7277
+Adding to X using resolutions of greedy consensus ...
+Threshold 0.0:
+Threshold 0.01:
+Threshold 0.02:
+Threshold 0.05:
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 7277
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 7279
+Threshold 0.1:
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 7279
+polytomy of size 7; rounds with additions with at least 0.01 support: 0; clusters: 7279
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 7279
+Threshold 0.2:
+polytomy of size 5; rounds with additions with at least 0.01 support: 0; clusters: 7279
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 7279
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 7279
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 7279
+polytomy of size 9; rounds with additions with at least 0.01 support: 0; clusters: 7281
+polytomy of size 6; rounds with additions with at least 0.01 support: 0; clusters: 7281
+Threshold 0.3333333333333333:
+polytomy of size 5; rounds with additions with at least 0.01 support: 0; clusters: 7281
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 7281
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 7281
+polytomy of size 5; rounds with additions with at least 0.01 support: 0; clusters: 7281
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 7281
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 7281
+polytomy of size 19; rounds with additions with at least 0.01 support: 0; clusters: 8299
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 8299
+Number of Clusters after addition by greedy: 8299
+partitions formed in 3.42 secs
+Dynamic Programming starting after 3.42 secs
+Size of largest cluster: 51
+Size of largest cluster: 51
+Total Number of elements weighted: 19014
+Normalized score (portion of input quartet trees satisfied): NaN
+Final optimization score: 0
+Total Number of elements weighted: 19014
+Normalized score (portion of input quartet trees satisfied): 0.6236564872916872
+Final optimization score: 36248675
+Optimal tree inferred in 5.038 secs.
+(18,(3,(38,(23,(((49,(1,(34,39))),((40,30),(9,(14,31)))),(0,(((25,2),(19,(24,(28,36)))),((35,32),((41,(44,33)),(((10,50),((12,37),(4,(16,13)))),((8,(5,(47,(11,42)))),((29,((17,15),(27,7))),((20,(45,46)),((6,(48,21)),(22,(43,26))))))))))))))));
+Quartet score is: 36248675
+Normalized quartet score is: 0.6236564872916872
+ASTRAL finished in 6.969 secs
