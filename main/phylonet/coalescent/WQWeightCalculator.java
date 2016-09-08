@@ -13,11 +13,13 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 	WQInference inference;
 	private WQDataCollection dataCollection;
+	private int n;
 
 	public WQWeightCalculator(AbstractInference<Tripartition> inference) {
 		super(false);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
 		this.inference = (WQInference) inference;
+		this.n = GlobalMaps.taxonIdentifier.taxonCount();
 	}
 	
 	class QuartetWeightTask implements ICalculateWeightTask<Tripartition>{
@@ -122,6 +124,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			boolean newTree = true;
 			
 			Deque<Intersects> stack = new ArrayDeque<Intersects>();
+		    int[][] children = new int[n+1][3];
 			for (Integer gtb: dataCollection.geneTreesAsInts){
 				if (newTree) {
 					STITreeCluster all = tit.next();
@@ -154,39 +157,35 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 								F(side1.s2,side2.s1,side3.s0);
 					
 				} else {  // The following case is relevant only for polytomies. 
-				    ArrayList<Intersects> children = new ArrayList<Intersects>();
+					
+					int len = -gtb + 1;
+
 				    Intersects newSide = new Intersects(0,0,0);
 				    for (int i = gtb; i < 0 ; i++) {
 				        Intersects pop = stack.pop();
-				        children.add(pop);
+				        children[-i-1][0] = pop.s0; children[-i-1][1] = pop.s1; children[-i-1][2] = pop.s2;
 				        newSide.addin(pop);
 				    }
 				    stack.push(newSide);
                     Intersects sideRemaining = new Intersects (allsides);
                     sideRemaining.subtract(newSide);
-                    if ( sideRemaining.s0 !=0 || sideRemaining.s1 !=0 || sideRemaining.s2 != 0) {
-                        children.add(sideRemaining);
-                    }
-                    for (int i = 0; i < children.size(); i++) {
-                        Intersects side1 = children.get(i);
+                    
+                    children[-gtb][0] = sideRemaining.s0; children[-gtb][1] = sideRemaining.s1; children[-gtb][2] = sideRemaining.s2;
+                
+                    for (int i = 0; i < len; i++) {
                         
-                        for (int j = i+1; j < children.size(); j++) {
-                            Intersects side2 = children.get(j);
-                            if (children.size() > 5) {
-                            	if ((side1.s0+side2.s0 == 0? 1 :0) +
-                            			(side1.s1+side2.s1 == 0? 1 :0) + 
-                            			(side1.s2+side2.s2 == 0? 1:0) > 1)
-                            		continue;
-                            }
+                        if ( children[i][0] == 0)
+                        	continue;
+                        
+                        for (int j = 0; j < len; j++) {                    
+                        	if (children[j][1] == 0 || i == j)
+                        		continue;
                             
-                            for (int k = j+1; k < children.size(); k++) {
-                                Intersects side3 = children.get(k);
-                                weight += F(side1.s0,side2.s1,side3.s2)+
-                                        F(side1.s0,side2.s2,side3.s1)+
-                                        F(side1.s1,side2.s0,side3.s2)+
-                                        F(side1.s1,side2.s2,side3.s0)+
-                                        F(side1.s2,side2.s0,side3.s1)+
-                                        F(side1.s2,side2.s1,side3.s0);
+                            for (int k = 0; k < len; k++) {
+                                if (children[k][2] == 0 || k == i || k == j) 
+                                	continue;
+                                
+                                weight += F(children[i][0],children[j][1],children[k][2]);
                             }
                         }
                     }
