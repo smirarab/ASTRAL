@@ -1,3 +1,6 @@
+- version 4.10.10:
+	- Significant improvement in running time for datasets with many polytomies in input gene trees
+	 
 - version 4.10.9:
 	- A bug introduced in 4.10.8 is fixed. Version 4.10.8 simply did not run
 	- Added `--gene-only` for gene-only bootstrapping
