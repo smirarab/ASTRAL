@@ -8,7 +8,6 @@ import java.util.Stack;
 
 import phylonet.coalescent.BipartitionWeightCalculator.Quadrapartition;
 import phylonet.coalescent.BipartitionWeightCalculator.Results;
-import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STINode;
@@ -106,15 +105,21 @@ public class WQInference extends AbstractInference<Tripartition> {
 		System.err.println("Quartet score is: " + sum/4l);
 		System.err.println("Normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
 		//System.out.println(st.toNewickWD());
-		
-		double logscore = this.scoreBranches(st);
-		
-		if (this.getBranchAnnotation() % 12 == 0) {
-			System.err.println("log local posterior: "+logscore);
-			return logscore;
+
+		if (this.getBranchAnnotation() == 0){
+			for (TNode n: st.postTraverse()) {
+				((STINode) n).setData(null);
+			}
 		} else {
-			return (sum/4l+0.)/this.maxpossible;
+			double logscore = this.scoreBranches(st);
+			
+			if (this.getBranchAnnotation() % 12 == 0) {
+				System.err.println("log local posterior: "+logscore);
+				return logscore;
+			}
 		}
+		return (sum/4l+0.)/this.maxpossible;
+		
 	}
 	
 	
