@@ -1,5 +1,13 @@
 .DS_Store
+*.swp
 *.class
 main/test_data/*
 astral*jar
 array*
+ASTRALDATA
+estimated-gene-trees.tar.bz
+*.log
+pastOutput
+sb_files
+shellscripts
+Astral
