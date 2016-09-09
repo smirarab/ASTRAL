@@ -1,8 +1,6 @@
 package phylonet.coalescent;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Deque;
+
 import java.util.Iterator;
 import java.util.List;
 
@@ -21,7 +19,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		this.inference = (WQInference) inference;
 		this.n = GlobalMaps.taxonIdentifier.taxonCount();
 	}
-	
+
 	class QuartetWeightTask implements ICalculateWeightTask<Tripartition>{
 
 		private Tripartition trip;
@@ -49,9 +47,9 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			ret *= a*b*c;
 			return ret;
 		}	
-		
+
 		long sharedQuartetCount(Tripartition that, Tripartition other) {
-			
+
 			int 
 			I0 = that.cluster1.getBitSet().intersectionSize(other.cluster1.getBitSet()),
 			I1 = that.cluster1.getBitSet().intersectionSize(other.cluster2.getBitSet()),
@@ -62,144 +60,116 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			I6 = that.cluster3.getBitSet().intersectionSize(other.cluster1.getBitSet()),
 			I7 = that.cluster3.getBitSet().intersectionSize(other.cluster2.getBitSet()),
 			I8 = that.cluster3.getBitSet().intersectionSize(other.cluster3.getBitSet());
-			
+
 			return  F(I0,I4,I8)+F(I0,I5,I7)+
 					F(I1,I3,I8)+F(I1,I5,I6)+
 					F(I2,I3,I7)+F(I2,I4,I6); 
 		}
 
-		Intersects getSide(int i) {
-			if (trip.cluster1.getBitSet().get(i)) {
-				return new Intersects(1,0,0);
-			} else if (trip.cluster2.getBitSet().get(i)) {
-				return new Intersects(0,1,0);
-			} else if (trip.cluster3.getBitSet().get(i)) {
-				return  new Intersects(0,0,1);
-			} else {
-				return  new Intersects(0,0,0);
-			}
-		}
-		
-		class Intersects {
-			int s0;
-			int s1;
-			int s2;
-			
-			public Intersects(int s0, int s1, int s2) {
-				this.s0 = s0;
-				this.s1 = s1;
-				this.s2 = s2;
-			}
-			
-			public Intersects(Intersects other) {
-			    this.s0 = other.s0;
-			    this.s1 = other.s1;
-			    this.s2 = other.s2;
-			}
-
-            public void addin(Intersects pop) {
-                this.s0 += pop.s0;
-                this.s1 += pop.s1;
-                this.s2 += pop.s2;               
-            }
-            
-            public void subtract(Intersects pop) {
-                this.s0 -= pop.s0;
-                this.s1 -= pop.s1;
-                this.s2 -= pop.s2;               
-            }
-            
-            
-			
-		}
-		
 		/*
-		* The main function used for scoring a tripartition
-		*
-		*/
-		long calculateWeightByTraversal() { 
-			long weight = 0;
-			Intersects  allsides = null;
-			Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
-			boolean newTree = true;
-			
-			Deque<Intersects> stack = new ArrayDeque<Intersects>();
-		    int[][] children = new int[n+1][3];
-			for (Integer gtb: dataCollection.geneTreesAsInts){
-				if (newTree) {
-					STITreeCluster all = tit.next();
-					allsides = new Intersects(
-						trip.cluster1.getBitSet().intersectionSize(all.getBitSet()),
-						trip.cluster2.getBitSet().intersectionSize(all.getBitSet()),
-						trip.cluster3.getBitSet().intersectionSize(all.getBitSet()));
-					newTree = false;
-				}
-				if (gtb >= 0){
-					stack.push(getSide(gtb));
-				} else if (gtb == Integer.MIN_VALUE) {
-					stack.clear();
-					newTree = true;
-				} else if (gtb == -2) {
-						Intersects side1 = stack.pop();
-						Intersects side2 = stack.pop();
-						Intersects newSide = new Intersects(
-								side1.s0+side2.s0,
-								side1.s1+side2.s1,
-								side1.s2+side2.s2);
-						stack.push(newSide);
-						Intersects side3 = new Intersects (allsides);
-						side3.subtract(newSide);
-						weight += F(side1.s0,side2.s1,side3.s2)+
-								F(side1.s0,side2.s2,side3.s1)+
-								F(side1.s1,side2.s0,side3.s2)+
-								F(side1.s1,side2.s2,side3.s0)+
-								F(side1.s2,side2.s0,side3.s1)+
-								F(side1.s2,side2.s1,side3.s0);
-					
-				} else {  // The following case is relevant only for polytomies. 
-					
-					int len = -gtb + 1;
+		 * The main function used for scoring a tripartition
+		 *
+		 */
+		 long calculateWeightByTraversal() { 
+			 long weight = 0;
+			 int[]  allsides = null;
+			 Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
+			 boolean newTree = true;
+			 int[][] children = new int[n+2][3];
+			 int top = 0;
+			 for (Integer gtb: dataCollection.geneTreesAsInts){
+				 if (newTree) {
+					 STITreeCluster all = tit.next();
+					 allsides = new int [] {
+							 trip.cluster1.getBitSet().intersectionSize(all.getBitSet()),
+							 trip.cluster2.getBitSet().intersectionSize(all.getBitSet()),
+							 trip.cluster3.getBitSet().intersectionSize(all.getBitSet())};
+					 newTree = false;
+				 }
+				 if (gtb >= 0){
+					 if (trip.cluster1.getBitSet().get(gtb)) {
+						    children[top][0] = 1;
+							children[top][1] = 0;
+							children[top][2] = 0;
+						} else if (trip.cluster2.getBitSet().get(gtb)) {
+						    children[top][0] = 0;
+							children[top][1] = 1;
+							children[top][2] = 0;
+						} else if (trip.cluster3.getBitSet().get(gtb)) {
+						    children[top][0] = 0;
+							children[top][1] = 0;
+							children[top][2] = 1;
+						} 
+					 top++;
+				 } else if (gtb == Integer.MIN_VALUE) {
+					 top = 0;
+					 newTree = true;
+				 } else if (gtb == -2) {
 
-				    Intersects newSide = new Intersects(0,0,0);
-				    for (int i = gtb; i < 0 ; i++) {
-				        Intersects pop = stack.pop();
-				        children[-i-1][0] = pop.s0; children[-i-1][1] = pop.s1; children[-i-1][2] = pop.s2;
-				        newSide.addin(pop);
-				    }
-				    stack.push(newSide);
-                    Intersects sideRemaining = new Intersects (allsides);
-                    sideRemaining.subtract(newSide);
-                    
-                    children[-gtb][0] = sideRemaining.s0; children[-gtb][1] = sideRemaining.s1; children[-gtb][2] = sideRemaining.s2;
-                
-                    for (int i = 0; i < len; i++) {
-                        
-                        if ( children[i][0] == 0)
-                        	continue;
-                        
-                        for (int j = 0; j < len; j++) {                    
-                        	if (children[j][1] == 0 || i == j)
-                        		continue;
-                            
-                            for (int k = 0; k < len; k++) {
-                                if (children[k][2] == 0 || k == i || k == j) 
-                                	continue;
-                                
-                                weight += F(children[i][0],children[j][1],children[k][2]);
-                            }
-                        }
-                    }
-				} // End of polytomy section
-			}
-			return weight;
-		}
+					 top--;
+					 
+					 int newSides0 = children[top][0] + children[top-1][0];
+					 int newSides1 = children[top][1] + children[top-1][1];
+					 int newSides2 = children[top][2] + children[top-1][2];
 
-		public Long calculateWeight() {
-			Long r = dataCollection.geneTreesAsInts != null? 
-					calculateWeightByTraversal():
-						calculateMissingWeight();
-			return r;
-		}
+					 int side3s0 = allsides[0] - newSides0;
+					 int side3s1 = allsides[1] - newSides1;
+					 int side3s2 = allsides[2] - newSides2;
+
+					 weight += 
+							 F(children[top-1][0],children[top][1],side3s2)+
+							 F(children[top-1][0],children[top][2],side3s1)+
+							 F(children[top-1][1],children[top][0],side3s2)+
+							 F(children[top-1][1],children[top][2],side3s0)+
+							 F(children[top-1][2],children[top][0],side3s1)+
+							 F(children[top-1][2],children[top][1],side3s0);
+					 children[top-1][0] = newSides0;
+					 children[top-1][1] = newSides1;
+					 children[top-1][2] = newSides2;
+
+				 } else {  // The following case is relevant only for polytomies. 
+
+					 int newSides0 = 0, newSides1 = 0, newSides2 = 0;
+					 for (int i = top-1; i >= top + gtb ; i--) {
+						 newSides0 += children[i][0]; 
+						 newSides1 += children[i][1]; 
+						 newSides2 += children[i][2];
+					 }
+					 children[top][0] = allsides[0] - newSides0;
+					 children[top][1] = allsides[1] - newSides1;
+					 children[top][2] = allsides[2] - newSides2;
+
+					 for (int i = top; i >= top + gtb; i--) { 
+						 if ( children[i][0] == 0)
+							 continue;
+
+						 for (int j = top; j >= top + gtb; j--) {                    
+							 if (children[j][1] == 0 || i == j)
+								 continue;
+
+							 for (int k = top; k >= top + gtb; k--) {
+								 if (children[k][2] == 0 || k == i || k == j) 
+									 continue;
+
+								 weight += F(children[i][0],children[j][1],children[k][2]);
+							 }
+						 }
+					 }
+					 top = top + gtb + 1;
+					 children[top-1][0] = newSides0;
+					 children[top-1][1] = newSides1;
+					 children[top-1][2] = newSides2;
+				 } // End of polytomy section
+			 }
+			 return weight;
+		 }
+
+		 public Long calculateWeight() {
+			 Long r = dataCollection.geneTreesAsInts != null? 
+					 calculateWeightByTraversal():
+						 calculateMissingWeight();
+					 return r;
+		 }
 	}
 
 	public void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees) {
@@ -210,8 +180,8 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	public ICalculateWeightTask<Tripartition> getWeightCalculateTask(Tripartition t) {
 		return new QuartetWeightTask(t);
 	}
-	
-	
+
+
 	@Override
 	protected void prepareWeightTask(ICalculateWeightTask<Tripartition> weigthWork, AbstractComputeMinCostTask<Tripartition> task) {
 	}
