@@ -460,6 +460,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 				finalCounts[i] = entry.getValue();
 				i++;
 			}
+			((WQWeightCalculator)inference.weightCalculator).useSetWeights();
 		} else { 
 			System.err.println("Using tree-based weight calculation.");
 			List<Integer> temp = new ArrayList<Integer>(); 
