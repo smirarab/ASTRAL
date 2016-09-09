@@ -99,7 +99,11 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 						    children[top][0] = 0;
 							children[top][1] = 0;
 							children[top][2] = 1;
-						} 
+						} else {
+						    children[top][0] = 0;
+							children[top][1] = 0;
+							children[top][2] = 0;
+						}
 					 top++;
 				 } else if (gtb == Integer.MIN_VALUE) {
 					 top = 0;
@@ -117,12 +121,12 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 					 int side3s2 = allsides[2] - newSides2;
 
 					 weight += 
-							 F(children[top-1][0],children[top][1],side3s2)+
-							 F(children[top-1][0],children[top][2],side3s1)+
-							 F(children[top-1][1],children[top][0],side3s2)+
-							 F(children[top-1][1],children[top][2],side3s0)+
-							 F(children[top-1][2],children[top][0],side3s1)+
-							 F(children[top-1][2],children[top][1],side3s0);
+							 F(children[top][0],children[top-1][1],side3s2)+
+							 F(children[top][0],children[top-1][2],side3s1)+
+							 F(children[top][1],children[top-1][0],side3s2)+
+							 F(children[top][1],children[top-1][2],side3s0)+
+							 F(children[top][2],children[top-1][0],side3s1)+
+							 F(children[top][2],children[top-1][1],side3s0);
 					 children[top-1][0] = newSides0;
 					 children[top-1][1] = newSides1;
 					 children[top-1][2] = newSides2;
