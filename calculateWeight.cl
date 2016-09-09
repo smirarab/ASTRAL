@@ -62,15 +62,10 @@ struct Intersects * getSide(int in, struct Intersects * side, struct Tripartitio
 
 	return side;
 }
-inline uint popcnt(const ulong i) {
-  uint n;
-  asm("popc.b64 %0, %1;" : "=r"(n) : "l" (i));
-  return n;
-}
 int bitIntersectionSize(__global long input1[SPECIES_WORD_LENGTH], __global long input2[SPECIES_WORD_LENGTH]) {
 	int out = 0;
 	for (int i = 0; i < SPECIES_WORD_LENGTH; i++) {
-		out += popcnt(input1[i]&input2[i]);
+		out += popcount(input1[i]&input2[i]);
 	}
 	return out;
 }
@@ -88,123 +83,121 @@ __kernel void calcWeight(
 	trip.cluster2 = SPECIES_WORD_LENGTH * 3 * idx + SPECIES_WORD_LENGTH + tripartitions;
 	trip.cluster3 = SPECIES_WORD_LENGTH * 3 * idx + SPECIES_WORD_LENGTH * 2 + tripartitions;
 	
-	struct Intersects allsides;
-	allsides.s0 = 0;
-	allsides.s1 = 0;
-	allsides.s2 = 0;
-
-	struct IntersectsStack stack;
-	stack.currentIndex = -1;
+	int allsides[3];
 
 	int newTree = 1;
 	int counter = 0;
 	int treeCounter = 0;
+
+	int children[(STACK_SIZE+2)*3];
+	int top = 0;
 	for (; counter < geneTreesAsIntsLength; counter++) {
 
 		if (newTree) {
 			newTree = 0;
 
-			allsides.s0 = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster1);
-			allsides.s1 = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster2);
-			allsides.s2 = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster3);
+			allsides[0] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster1);
+			allsides[1] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster2);
+			allsides[2] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster3);
 
 			treeCounter++;
 
 		}
 		if (geneTreesAsInts[counter] >= 0) {
-			struct Intersects side;
-			push(&stack, getSide(geneTreesAsInts[counter], &side, &trip));
+			if (((trip.cluster1[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts[counter] / LONG_BIT_LENGTH])>>(geneTreesAsInts[counter] % LONG_BIT_LENGTH)) & 1) {
+				children[top] = 1;
+				children[top + (STACK_SIZE+2)] = 0;
+				children[top + (STACK_SIZE+2)*2] = 0;
+			}
+			else if (((trip.cluster2[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts[counter] / LONG_BIT_LENGTH])>>(geneTreesAsInts[counter] % LONG_BIT_LENGTH)) & 1) {
+				children[top] = 0;
+				children[top + (STACK_SIZE+2)] = 1;
+				children[top + (STACK_SIZE+2)*2] = 0;
+			}
+			else {
+				children[top] = 0;
+				children[top + (STACK_SIZE+2)] = 0;
+				children[top + (STACK_SIZE+2)*2] = 1;
+			}
+			top++;
 		}
 		else if (geneTreesAsInts[counter] == INT_MIN) {
-			clear(&stack);
+			top = 0;
 			newTree = 1;
 		}
 		else if (geneTreesAsInts[counter] == -2) {
-			struct Intersects side1;
-			struct Intersects side2;
-			struct Intersects newSide;
-			struct Intersects side3;
-
-			pop(&stack, &side1);
-			pop(&stack, &side2);
+			top--;
+	
+			int newSides0 = children[top] + children[top - 1];
+			int newSides1 = children[top + (STACK_SIZE+2)] + children[top - 1 + (STACK_SIZE+2)];
+			int newSides2 = children[top + (STACK_SIZE+2)*2] + children[top - 1 + (STACK_SIZE+2)*2];
 			
-			addIntersects(&side1, &side2, &newSide);
-
-			push(&stack, &newSide);
-
-			subtractIntersects(&allsides, &newSide, &side3);
+			int side3s0 = allsides[0] - newSides0;
+			int side3s1 = allsides[1] - newSides1;
+			int side3s2 = allsides[2] - newSides2;
 
 			weight += 
-				F(side1.s0, side2.s1, side3.s2) +
-				F(side1.s0, side2.s2, side3.s1) +
-				F(side1.s1, side2.s0, side3.s2) +
-				F(side1.s1, side2.s2, side3.s0) +
-				F(side1.s2, side2.s0, side3.s1) +
-				F(side1.s2, side2.s1, side3.s0);
+				F(children[top], children[top - 1 + (STACK_SIZE + 2)], side3s2) +
+				F(children[top], children[top - 1 + (STACK_SIZE + 2)*2], side3s1) +
+				F(children[top + (STACK_SIZE + 2)], children[top - 1], side3s2) +
+				F(children[top + (STACK_SIZE + 2)], children[top - 1 + (STACK_SIZE + 2)*2], side3s0) +
+				F(children[top + (STACK_SIZE + 2)*2], children[top - 1], side3s1) +
+				F(children[top + (STACK_SIZE + 2)*2], children[top - 1 + (STACK_SIZE + 2)], side3s0);
+				
+			children[top - 1] = newSides0;
+			children[top - 1 + (STACK_SIZE + 2)] = newSides1;
+			children[top - 1 + (STACK_SIZE + 2)*2] = newSides2;
+			
 			/*
 			weight += 
-				((long)(side1.s0 + side2.s1 + side3.s2 - 3))*side1.s0*side2.s1*side3.s2 +
-				((long)(side1.s0 + side2.s2 + side3.s1 - 3))*side1.s0*side2.s2*side3.s1 +
-				((long)(side1.s1 + side2.s0 + side3.s2 - 3))*side1.s1*side2.s0*side3.s2 +
-				((long)(side1.s1 + side2.s2 + side3.s0 - 3))*side1.s1*side2.s2*side3.s0 +
-				((long)(side1.s2 + side2.s0 + side3.s1 - 3))*side1.s2*side2.s0*side3.s1 +
-				((long)(side1.s2 + side2.s1 + side3.s0 - 3))*side1.s2*side2.s1*side3.s0;
+				((long)(children[top] + children[top - 1 + (STACK_SIZE + 2)] + side3.s2 - 3))*children[top]*children[top - 1 + (STACK_SIZE + 2)]*side3.s2 +
+				((long)(children[top] + children[top - 1 + (STACK_SIZE + 2)*2] + side3.s1 - 3))*children[top]*children[top - 1 + (STACK_SIZE + 2)*2]*side3.s1 +
+				((long)(children[top + (STACK_SIZE + 2)] + children[top - 1] + side3.s2 - 3))*children[top + (STACK_SIZE + 2)]*children[top - 1]*side3.s2 +
+				((long)(children[top + (STACK_SIZE + 2)] + children[top - 1 + (STACK_SIZE + 2)*2] + side3.s0 - 3))*children[top + (STACK_SIZE + 2)]*children[top - 1 + (STACK_SIZE + 2)*2]*side3.s0 +
+				((long)(children[top + (STACK_SIZE + 2)*2] + children[top - 1] + side3.s1 - 3))*children[top + (STACK_SIZE + 2)*2]*children[top - 1]*side3.s1 +
+				((long)(children[top + (STACK_SIZE + 2)*2] + children[top - 1 + (STACK_SIZE + 2)] + side3.s0 - 3))*children[top + (STACK_SIZE + 2)*2]*children[top - 1 + (STACK_SIZE + 2)]*side3.s0;
 				*/
 			/*if(idx == 32800) {
-				printf("|%d %d %d %d %d %d %d %d %d %d |", weight, side1.s0, side1.s1, side1.s2, side2.s0, side2.s1, side2.s2, side3.s0, side3.s1, side3.s2);
+				printf("|%d %d %d %d %d %d %d %d %d %d |", weight, children[top], children[top + (STACK_SIZE + 2)], children[top + (STACK_SIZE + 2)*2], children[top - 1], children[top - 1 + (STACK_SIZE + 2)], children[top - 1 + (STACK_SIZE + 2)*2], side3.s0, side3.s1, side3.s2);
 			}*/
 		}
 		else { //for polytomies
-			struct IntersectsStack children;
-			children.currentIndex = -1;
-			struct Intersects newSide;
-			newSide.s0 = 0;
-			newSide.s1 = 0;
-			newSide.s2 = 0;
+		
+			int len = -geneTreesAsInts[counter] + 1;
 
-			for (int i = geneTreesAsInts[counter]; i < 0; i++) {
-				addIntersects(&newSide, &(stack.array[stack.currentIndex]), &newSide);
-				pop(&stack, &(children.array[++children.currentIndex]));
+			int newSides0 = 0;
+			int newSides1 = 0;
+			int newSides2 = 0;
+			
+			for (int i = top - 1; i >= top + geneTreesAsInts[counter]; i--) {
+				newSides0 = children[i];
+				newSides1 = children[i + (STACK_SIZE+2)];
+				newSides2 = children[i + (STACK_SIZE+2)*2];
+
 			}
 			
-			push(&stack, &newSide);
-			
-			struct Intersects sideRemaining;
-			subtractIntersects(&allsides, &newSide, &sideRemaining);
-
-			if (sideRemaining.s0 != 0 || sideRemaining.s1 != 0 || sideRemaining.s2 != 0) {
-				push(&children, &sideRemaining);
-			}
-			struct Intersects side1;
-			struct Intersects side2;
-			struct Intersects side3;
-
-			for (int i = 0; i <= children.currentIndex; i++) {
-				get(&children, &side1, i);
-
-				for (int j = i + 1; j <= children.currentIndex; j++) {
-					get(&children, &side2, j);
-
-					if (children.currentIndex > 4) {
-						if ((side1.s0 + side2.s0 == 0 ? 1 : 0) +
-							(side1.s1 + side2.s1 == 0 ? 1 : 0) +
-							(side1.s2 + side2.s2 == 0 ? 1 : 0) > 1)
+			children[top] = allsides[0] - newSides0;
+			children[top + (STACK_SIZE+2)] = allsides[1] - newSides1;
+			children[top + (STACK_SIZE+2)*2] = allsides[2] - newSides2;
+			for (int i = top; i >= top + geneTreesAsInts[counter]; i--) {
+				if(children[i] == 0)
+					continue;
+				for (int j = top; j >= top + geneTreesAsInts[counter]; j--) {
+					if(children[j+(STACK_SIZE+2)] == 0 || i == j)
+						continue;
+					for (int k = top; k >= top + geneTreesAsInts[counter]; k--) {
+						if(children[k+(STACK_SIZE+2)*2] == 0 || i == k || j == k)
 							continue;
-					}
-
-					for (int k = j + 1; k <= children.currentIndex; k++) {
-						get(&children, &side3, k);
-
-						weight +=
-							F(side1.s0, side2.s1, side3.s2) +
-							F(side1.s0, side2.s2, side3.s1) +
-							F(side1.s1, side2.s0, side3.s2) +
-							F(side1.s1, side2.s2, side3.s0) +
-							F(side1.s2, side2.s0, side3.s1) +
-							F(side1.s2, side2.s1, side3.s0);
+						weight += F(children[i], children[j+(STACK_SIZE+2)], children[k+(STACK_SIZE+2)*2]);
 					}
 				}
 			}
+			
+			top = top + geneTreesAsInts[counter] + 1;
+			
+			children[top - 1] = newSides0;
+			children[top - 1 + (STACK_SIZE + 2)] = newSides1;
+			children[top - 1 + (STACK_SIZE + 2)*2] = newSides2;
 		}
 	}
 	weightArray[idx] = weight;
