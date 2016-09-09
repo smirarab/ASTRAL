@@ -115,7 +115,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 					stack[top][2] = allsides[2] - newSides2;
 
 					for (int i = top; i >= top + gtb; i--) {
-						if (stack[i][0] == 0)
+						if (stack[i][2] == 0)
 							continue;
 
 						for (int j = top; j >= top + gtb; j--) {
@@ -123,11 +123,11 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 								continue;
 
 							for (int k = top; k >= top + gtb; k--) {
-								if (stack[k][2] == 0 || k == i || k == j)
+								if (stack[k][0] == 0 || k == i || k == j)
 									continue;
 
-								weight += F(stack[i][0], stack[j][1],
-										stack[k][2]);
+								weight += F(stack[i][2], stack[j][1],
+										stack[k][0]);
 							}
 						}
 					}
