@@ -39,10 +39,10 @@ public abstract class AbstractWeightCalculator<T> implements Cloneable {
 		this.callcounter ++;
 		Long weight = getCalculatedWeight(t);
 		if (weight == null) {
-			ICalculateWeightTask<T> weigthWork = getWeightCalculateTask(t);
-			prepareWeightTask(weigthWork, minCostTask);
+			//ICalculateWeightTask<T> weigthWork = getWeightCalculateTask(t);
+			//prepareWeightTask(weigthWork, minCostTask);
 			// MP_VERSION: smallWork.fork();
-			weight = TESTRUN ? 0 : weigthWork.calculateWeight();
+			weight = TESTRUN ? 0 : calculateWeight(t, minCostTask);
 			int count;
 			if (save && !TESTRUN ) {
 				weights.put(t, weight);
@@ -63,9 +63,7 @@ public abstract class AbstractWeightCalculator<T> implements Cloneable {
 		return weight;
 	}
 	
-	protected abstract void prepareWeightTask(ICalculateWeightTask<T> weigthWork,AbstractComputeMinCostTask<T> task);
-	
-	public abstract ICalculateWeightTask<T> getWeightCalculateTask(T t);
+	abstract Long calculateWeight(T t, AbstractComputeMinCostTask<T> minCostTask);
 	
 	public abstract void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees);
 	

@@ -9,6 +9,7 @@ import java.util.List;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 
+// TODO: why extend the abstract? It doesn't seem to follow the same pattern exactly
 class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 	WQInference inference;
@@ -118,6 +119,13 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 			qs = q;
 			effn = n;
 		}
+	}
+
+	@Override
+	Long calculateWeight(Tripartition t,
+			AbstractComputeMinCostTask<Tripartition> minCostTask) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	public Results getWeight(Quadrapartition quad) {
@@ -333,25 +341,11 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 
 	}
 
-	@Override
-	protected void prepareWeightTask(
-			ICalculateWeightTask<Tripartition> weigthWork,
-			AbstractComputeMinCostTask<Tripartition> task) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public ICalculateWeightTask<Tripartition> getWeightCalculateTask(
-			Tripartition t) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	@Override
 	public void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees) {
 		// TODO Auto-generated method stub
-
+	
 	}
 
 }
