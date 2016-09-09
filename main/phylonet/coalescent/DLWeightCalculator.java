@@ -152,66 +152,34 @@ class DLWeightCalculator extends AbstractWeightCalculator<STBipartition>{
 	}
 
 	
+
 	@Override
-	public ICalculateWeightTask getWeightCalculateTask(
-			STBipartition stb) {
-		return new DPWeightTask(stb);
-	}
-	
-	@Override
-	protected void prepareWeightTask(ICalculateWeightTask<STBipartition> weigthWork, AbstractComputeMinCostTask<STBipartition> task) {
-		((DPWeightTask)weigthWork).setContainedClusterCollection((DLClusterCollection)task.containedVertecies);
-	}
-	
-	class DPWeightTask implements ICalculateWeightTask<STBipartition> {
-
-		private static final long serialVersionUID = -2614161117603289345L;
-		private STBipartition stb;
-		private DLClusterCollection containedClusterCollection;
-
-		public DLClusterCollection getContainedClusterCollection() {
-			return containedClusterCollection;
-		}
-
-		public void setContainedClusterCollection(
-				DLClusterCollection containedClusterCollection) {
-			this.containedClusterCollection = containedClusterCollection;
-		}
-
-		public DPWeightTask(STBipartition stb) {
-			this.stb = stb;
-		}
-
-		Long calculateMissingWeight() {
-			// System.err.print("Calculating weight for: " + biggerSTB);
-			Long weight = 0l;
-			for (STBipartition smallerSTB : containedClusterCollection
-					.getContainedGeneTreeSTBs()) {
-				if (smallerSTB == stb || smallerSTB.isDominatedBy(stb)) {
-					weight += dataCollection.geneTreeSTBCount.get(smallerSTB);
-				}
+	Long calculateWeight(STBipartition stb,
+			AbstractComputeMinCostTask<STBipartition> task) {
+		DLClusterCollection containedClusterCollection = (DLClusterCollection) task.containedVertecies;
+		// System.err.print("Calculating weight for: " + biggerSTB);
+		Long weight = 0l;
+		for (STBipartition smallerSTB : containedClusterCollection.getContainedGeneTreeSTBs()) {
+			if (smallerSTB == stb || smallerSTB.isDominatedBy(stb)) {
+				weight += dataCollection.geneTreeSTBCount.get(smallerSTB);
 			}
-			// System.err.print(" ... " + weight);
-			if (!dataCollection.rooted) {
-				throw new RuntimeException("Unrooted not implemented.");
-				/*
-				 * for (STBipartition rootSTB : geneTreeRootSTBs.keySet()) { int
-				 * c = geneTreeRootSTBs.get(rootSTB); STBipartition inducedSTB =
-				 * biggerSTB.getInducedSTB(rootSTB.c); if
-				 * (inducedSTB.equals(rootSTB)){ weight -= 2 * c;
-				 * //System.err.print(" .. (" + rootSTB +" )" +c+" "+ weight);
-				 * if (inducedSTB.cluster1.getClusterSize() != 1 &&
-				 * inducedSTB.cluster2.getClusterSize() != 1) { weight -= 2 * c;
-				 * //System.err.print(" . " + weight); } } }
-				 */
-			}
-			// System.err.println("Weight of " + biggerSTB + " is " + weight);
-			return weight;
 		}
-
-		public Long calculateWeight() {
-			return calculateMissingWeight();
+		// System.err.print(" ... " + weight);
+		if (!dataCollection.rooted) {
+			throw new RuntimeException("Unrooted not implemented.");
+			/*
+			 * for (STBipartition rootSTB : geneTreeRootSTBs.keySet()) { int c =
+			 * geneTreeRootSTBs.get(rootSTB); STBipartition inducedSTB =
+			 * biggerSTB.getInducedSTB(rootSTB.c); if
+			 * (inducedSTB.equals(rootSTB)){ weight -= 2 * c;
+			 * //System.err.print(" .. (" + rootSTB +" )" +c+" "+ weight); if
+			 * (inducedSTB.cluster1.getClusterSize() != 1 &&
+			 * inducedSTB.cluster2.getClusterSize() != 1) { weight -= 2 * c;
+			 * //System.err.print(" . " + weight); } } }
+			 */
 		}
+		// System.err.println("Weight of " + biggerSTB + " is " + weight);
+		return weight;
 	}
 
 }
