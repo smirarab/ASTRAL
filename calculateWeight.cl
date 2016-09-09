@@ -1,40 +1,3 @@
-struct Intersects {
-	int s0;
-	int s1;
-	int s2;
-};
-void addIntersects(struct Intersects * augend, struct Intersects * addend, struct Intersects * result) {
-	result->s0 = augend->s0 + addend->s0;
-	result->s1 = augend->s1 + addend->s1;
-	result->s2 = augend->s2 + addend->s2;
-}
-void subtractIntersects(struct Intersects * minuend, struct Intersects * subtrahend, struct Intersects * result) {
-	result->s0 = minuend->s0 - subtrahend->s0;
-	result->s1 = minuend->s1 - subtrahend->s1;
-	result->s2 = minuend->s2 - subtrahend->s2;
-}
-struct IntersectsStack {
-	struct Intersects array [STACK_SIZE];
-	int currentIndex; //index of the last valid element. -1 if empty.
-};
-void push(struct IntersectsStack * stack, struct Intersects * item) {
-	stack->array[++(stack->currentIndex)].s0 = item->s0;
-	stack->array[(stack->currentIndex)].s1 = item->s1;
-	stack->array[(stack->currentIndex)].s2 = item->s2;
-}
-void pop(struct IntersectsStack * stack, struct Intersects * item) {
-	item->s0 = stack->array[stack->currentIndex].s0;
-	item->s1 = stack->array[stack->currentIndex].s1;
-	item->s2 = stack->array[stack->currentIndex--].s2;
-}
-void get(struct IntersectsStack * stack, struct Intersects * item, int index) {
-	item->s0 = stack->array[index].s0;
-	item->s1 = stack->array[index].s1;
-	item->s2 = stack->array[index].s2;
-}
-void clear(struct IntersectsStack * stack) {
-	stack->currentIndex = -1;
-}
 long F(int a, int b, int c) {
 	return ((long)(a + b + c - 3))*a*b*c;
 }
@@ -43,25 +6,6 @@ struct Tripartition {
 	__global long* cluster2;
 	__global long* cluster3;
 };
-struct Intersects * getSide(int in, struct Intersects * side, struct Tripartition * trip) {
-	if (((trip->cluster1[SPECIES_WORD_LENGTH - 1 - in / LONG_BIT_LENGTH])>>(in%LONG_BIT_LENGTH))&1) {
-		side->s0 = 1;
-		side->s1 = 0;
-		side->s2 = 0;
-	}
-	else if (((trip->cluster2[SPECIES_WORD_LENGTH - 1 - in / LONG_BIT_LENGTH])>>(in%LONG_BIT_LENGTH))&1) {
-		side->s0 = 0;
-		side->s1 = 1;
-		side->s2 = 0;
-	}
-	else {
-		side->s0 = 0;
-		side->s1 = 0;
-		side->s2 = 1;
-	}
-
-	return side;
-}
 int bitIntersectionSize(__global long input1[SPECIES_WORD_LENGTH], __global long input2[SPECIES_WORD_LENGTH]) {
 	int out = 0;
 	for (int i = 0; i < SPECIES_WORD_LENGTH; i++) {
@@ -114,10 +58,15 @@ __kernel void calcWeight(
 				children[top + (STACK_SIZE+2)] = 1;
 				children[top + (STACK_SIZE+2)*2] = 0;
 			}
-			else {
+			else if (((trip.cluster3[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts[counter] / LONG_BIT_LENGTH])>>(geneTreesAsInts[counter] % LONG_BIT_LENGTH)) & 1){
 				children[top] = 0;
 				children[top + (STACK_SIZE+2)] = 0;
 				children[top + (STACK_SIZE+2)*2] = 1;
+			}
+			else {
+				children[top] = 0;
+				children[top + (STACK_SIZE+2)] = 0;
+				children[top + (STACK_SIZE+2)*2] = 0;
 			}
 			top++;
 		}
