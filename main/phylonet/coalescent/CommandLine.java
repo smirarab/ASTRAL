@@ -374,131 +374,157 @@ public class CommandLine {
         }
         
         if (toScore != null ) {	
-            System.err.println("Scoring: " + toScore.size() +" trees");
-            
-            AbstractInference inference =
-                    initializeInference(criterion, mainTrees, extraTrees, options);           
-       		double score = Double.NEGATIVE_INFINITY;
-       		List<Tree> bestTree = new ArrayList<Tree>(); 
-            for (String trs : toScore) {     
-            	Tree tr = readInputTrees(Arrays.asList(new String[]{trs}),
-                         rooted, true, true, null, 1, false? //config.getBoolean("scoreall")? 
-                        		 outgroup: null).get(0);
+            runScore(criterion, rooted, mainTrees, extraTrees, outbuffer,
+					options, outgroup, toScore);
+        } else {
+        
+	        runInference(jsap, config, criterion, rooted, extrarooted,
+					mainTrees, bstrees, bootstrapInputSets, extraTrees, k,
+					minleaves, outbuffer, keepOptions, outfile, options,
+					outgroup);
+        }
+		
+	    System.err.println("ASTRAL finished in "  + 
+	            (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
+	}
 
-				double nscore = inference.scoreSpeciesTreeWithGTLabels(tr, true);
-				
-				if (nscore > score) {
-					score = nscore;
-					bestTree.clear();
-					bestTree.add(tr);
-				} else if (nscore == score) {
-					bestTree.add(tr);
-				}
-				
-				if (!GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleIndividual()) {
-					System.err.println("Scored tree with gene names:\n"+tr.toNewickWD());
-				}
-				
-				GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) tr);
-				
-				if (options.getBranchannotation() != 12) {
-                	writeTreeToFile(outbuffer, tr);
-				} 
-        	}
-			if (options.getBranchannotation() == 12) {
-				for (Tree bt: bestTree)
-					writeTreeToFile(outbuffer, bt);
+
+	private static void runScore(int criterion, boolean rooted,
+			List<Tree> mainTrees, List<Tree> extraTrees,
+			BufferedWriter outbuffer, Options options, String outgroup,
+			List<String> toScore) throws FileNotFoundException, IOException {
+		System.err.println("Scoring: " + toScore.size() +" trees");
+		
+		AbstractInference inference =
+		        initializeInference(criterion, mainTrees, extraTrees, options);           
+		double score = Double.NEGATIVE_INFINITY;
+		List<Tree> bestTree = new ArrayList<Tree>(); 
+		for (String trs : toScore) {     
+			Tree tr = readInputTrees(Arrays.asList(new String[]{trs}),
+		             rooted, true, true, null, 1, false? //config.getBoolean("scoreall")? 
+		            		 outgroup: null).get(0);
+
+			double nscore = inference.scoreSpeciesTreeWithGTLabels(tr, true);
+			
+			if (nscore > score) {
+				score = nscore;
+				bestTree.clear();
+				bestTree.add(tr);
+			} else if (nscore == score) {
+				bestTree.add(tr);
 			}
-        	
-        	outbuffer.close();
-        	System.exit(0);
-        }
-        
-        System.err.println("All output trees will be *arbitrarily* rooted at "+outgroup);
-        
-        if (config.getStringArray("keep") != null && config.getStringArray("keep").length != 0) {
-        	if (GlobalMaps.outputfilename == null) {
-        		throw new JSAPException("When -k option is used, -o is also needed.");
-        	}
-        	for (String koption : config.getStringArray("keep")) {
-        		if ("completed".equals(koption) ||
-        			"bootstraps".equals(koption) ||
-        			"bootstraps_norun".equals(koption)||
-        			"searchspace_norun".equals(koption)||
-        			"searchspace".equals(koption)) {
-        			keepOptions.add(koption);
-        		} else {
-        			throw new JSAPException("-k "+koption+" not recognized.");
-        		}
-        	}
-        }
-        
-        try {
+			
+			if (!GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleIndividual()) {
+				System.err.println("Scored tree with gene names:\n"+tr.toNewickWD());
+			}
+			
+			GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) tr);
+			
+			if (options.getBranchannotation() != 12) {
+		    	writeTreeToFile(outbuffer, tr);
+			} 
+		}
+		if (options.getBranchannotation() == 12) {
+			for (Tree bt: bestTree)
+				writeTreeToFile(outbuffer, bt);
+		}
+		
+		outbuffer.close();
+	}
 
-            if (config.getFile("extra trees") != null) {
-            	extraTrees = readInputTrees(
-                	readTreeFileAsString(config.getFile("extra trees")), 
-                        extrarooted, true, false, null, 1, null);
-                System.err.println(extraTrees.size() + " extra trees read from "
-                        + config.getFile("extra trees"));
-            }
-            
-            if (config.getFile("extra species trees") != null) {
-            	extraTrees = readInputTrees(
-                	readTreeFileAsString(config.getFile("extra species trees")), 
-                        extrarooted, true, true, null, 1, null);
-                System.err.println(extraTrees.size() + " extra trees read from "
-                        + config.getFile("extra trees"));
-            }
-            
-        } catch (IOException e) {
-            System.err.println("Error when reading extra trees.");
-            System.err.println(e.getMessage());
-            e.printStackTrace();
-            return;
-        } 
-        
-        try {           
 
-            if (config.getFile("bootstraps") != null) {
-                String line;
-                BufferedReader rebuff = new BufferedReader(new FileReader(config.getFile("bootstraps")));
-                while ((line = rebuff.readLine()) != null) {
-                    List<String> g = readTreeFileAsString(new File(line));
-                    Collections.shuffle(g, GlobalMaps.random);
-                    bstrees.add(g);
-                }
-                rebuff.close();
-            }
+	private static void runInference(SimpleJSAP jsap, JSAPResult config,
+			int criterion, boolean rooted, boolean extrarooted,
+			List<Tree> mainTrees, List<List<String>> bstrees,
+			List<List<String>> bootstrapInputSets, List<Tree> extraTrees,
+			int k, Integer minleaves, BufferedWriter outbuffer,
+			Set<String> keepOptions, File outfile, Options options,
+			String outgroup) throws JSAPException, IOException,
+			FileNotFoundException {
+		System.err.println("All output trees will be *arbitrarily* rooted at "+outgroup);
+		
+		if (config.getStringArray("keep") != null && config.getStringArray("keep").length != 0) {
+			if (GlobalMaps.outputfilename == null) {
+				throw new JSAPException("When -k option is used, -o is also needed.");
+			}
+			for (String koption : config.getStringArray("keep")) {
+				if ("completed".equals(koption) ||
+					"bootstraps".equals(koption) ||
+					"bootstraps_norun".equals(koption)||
+					"searchspace_norun".equals(koption)||
+					"searchspace".equals(koption)) {
+					keepOptions.add(koption);
+				} else {
+					throw new JSAPException("-k "+koption+" not recognized.");
+				}
+			}
+		}
+		
+		try {
 
-        } catch (IOException e) {
-            System.err.println("Error when reading bootstrap trees.");
-            System.err.println(e.getMessage());
-            e.printStackTrace();
-            return;
-        } 
+		    if (config.getFile("extra trees") != null) {
+		    	extraTrees = readInputTrees(
+		        	readTreeFileAsString(config.getFile("extra trees")), 
+		                extrarooted, true, false, null, 1, null);
+		        System.err.println(extraTrees.size() + " extra trees read from "
+		                + config.getFile("extra trees"));
+		    }
+		    
+		    if (config.getFile("extra species trees") != null) {
+		    	extraTrees = readInputTrees(
+		        	readTreeFileAsString(config.getFile("extra species trees")), 
+		                extrarooted, true, true, null, 1, null);
+		        System.err.println(extraTrees.size() + " extra trees read from "
+		                + config.getFile("extra trees"));
+		    }
+		    
+		} catch (IOException e) {
+		    System.err.println("Error when reading extra trees.");
+		    System.err.println(e.getMessage());
+		    e.printStackTrace();
+		    System.exit(1);
+		} 
+		
+		try {           
+		    if (config.getFile("bootstraps") != null) {
+		        String line;
+		        BufferedReader rebuff = new BufferedReader(new FileReader(config.getFile("bootstraps")));
+		        while ((line = rebuff.readLine()) != null) {
+		            List<String> g = readTreeFileAsString(new File(line));
+		            Collections.shuffle(g, GlobalMaps.random);
+		            bstrees.add(g);
+		        }
+		        rebuff.close();
+		    }
 
-	
+		} catch (IOException e) {
+		    System.err.println("Error when reading bootstrap trees.");
+		    System.err.println(e.getMessage());
+		    e.printStackTrace();
+		    System.exit(1);
+		} 
+
+
 		if (config.getFile("bootstraps") != null || config.getBoolean("gene-only")) {
-	        System.err.println("Bootstrapping with seed "+config.getLong("seed"));
+		    System.err.println("Bootstrapping with seed "+config.getLong("seed"));
 		    for (int i = 0; i < config.getInt("replicates"); i++) {
 		        List<String> input = new ArrayList<String>();
 		        bootstrapInputSets.add(input);   
 		        try {
-    		        if (config.getBoolean("gene-sampling")) {
-    		            for (int j = 0; j < k; j++) {
-                            input.add(bstrees.get(GlobalMaps.random.nextInt(k)).remove(0));                 
-                        }
-    		        } else if (config.getBoolean("gene-only")) { 
-    		            for (int j = 0; j < k; j++) {
-                            input.add(mainTrees.get(GlobalMaps.random.nextInt(k)).toString());                 
-                        }	
-    		        }
-    		        else {   		        
-    		            for (List<String> gene : bstrees) {
-    		                input.add(gene.get(i));
-    		            }
-    		        }
+			        if (config.getBoolean("gene-sampling")) {
+			            for (int j = 0; j < k; j++) {
+		                    input.add(bstrees.get(GlobalMaps.random.nextInt(k)).remove(0));                 
+		                }
+			        } else if (config.getBoolean("gene-only")) { 
+			            for (int j = 0; j < k; j++) {
+		                    input.add(mainTrees.get(GlobalMaps.random.nextInt(k)).toString());                 
+		                }	
+			        }
+			        else {   		        
+			            for (List<String> gene : bstrees) {
+			                input.add(gene.get(i));
+			            }
+			        }
 		        } catch (IndexOutOfBoundsException e) {
 		            exitWithErr("Error: You seem to have asked for "+config.getInt("replicates")+
 		                    " but only "+ i +" replicates could be created.\n" + 
@@ -526,33 +552,30 @@ public class CommandLine {
 		    }
 		}
 
-        int j = 0;
-        List<Tree> bootstraps = new ArrayList<Tree>();
+		int j = 0;
+		List<Tree> bootstraps = new ArrayList<Tree>();
 		for ( List<String> input : bootstrapInputSets) {  
-	        System.err.println("\n======== Running bootstrap replicate " + j++);
-	        bootstraps.add(runOnOneInput(criterion, 
-	                 extraTrees, outbuffer, 
-                    readInputTrees(input, rooted, false, false, minleaves,
-                    		config.getInt("branch annotation level"), null),
-                    null, outgroup, options));
+		    System.err.println("\n======== Running bootstrap replicate " + j++);
+		    bootstraps.add(runOnOneInput(criterion, 
+		             extraTrees, outbuffer, 
+		            readInputTrees(input, rooted, false, false, minleaves,
+		            		config.getInt("branch annotation level"), null),
+		            null, outgroup, options));
 		}
-	    
+		
 		if (bootstraps != null && bootstraps.size() != 0) {
-            STITree<Double> cons = (STITree<Double>) Utils.greedyConsensus(bootstraps,false, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
-            cons.rerootTreeAtNode(cons.getNode(outgroup));
+		    STITree<Double> cons = (STITree<Double>) Utils.greedyConsensus(bootstraps,false, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
+		    cons.rerootTreeAtNode(cons.getNode(outgroup));
 			Trees.removeBinaryNodes(cons);
-            Utils.computeEdgeSupports(cons, bootstraps);
-            writeTreeToFile(outbuffer, cons);
+		    Utils.computeEdgeSupports(cons, bootstraps);
+		    writeTreeToFile(outbuffer, cons);
 		}
 		
-        System.err.println("\n======== Running the main analysis");
-        runOnOneInput(criterion, extraTrees, outbuffer, mainTrees, bootstraps, 
-                outgroup, options);
-           
+		System.err.println("\n======== Running the main analysis");
+		runOnOneInput(criterion, extraTrees, outbuffer, mainTrees, bootstraps, 
+		        outgroup, options);
+		   
 		outbuffer.close();
-		
-	    System.err.println("ASTRAL finished in "  + 
-	            (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 	}
 
 
