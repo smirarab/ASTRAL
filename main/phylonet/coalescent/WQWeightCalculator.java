@@ -43,6 +43,10 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		
 		int[][] stack = new int[GlobalMaps.taxonIdentifier.taxonCount() + 2][3];
 
+		int[][] overlap = new int[3][GlobalMaps.taxonIdentifier.taxonCount() +1];
+		int[][] overlapind = new int[3][GlobalMaps.taxonIdentifier.taxonCount() +1];
+
+		
 		Long calculateWeight(Tripartition trip) {
 
 			long weight = 0;
@@ -104,38 +108,39 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 					stack[top - 1][2] = newSides2;
 				} else { // The following case is relevant only for polytomies.
 
-					int newSides0 = 0, newSides1 = 0, newSides2 = 0;
-					for (int i = top - 1; i >= top + gtb; i--) {
-						newSides0 += stack[i][0];
-						newSides1 += stack[i][1];
-						newSides2 += stack[i][2];
+					int [] nzc = {0,0,0};
+					int [] newSides = {0,0,0};
+					for (int side = 0; side < 3; side++) {
+						for (int i = top - 1; i >= top + gtb; i--) {
+							if (stack[i][side] > 0) {
+								newSides[side] += stack[i][side];
+								overlap[side][nzc[side]] = stack[i][side]; 
+								overlapind[side][nzc[side]++] = i;
+							}
+						}					
+						stack[top][side] = allsides[side] - newSides[side];
+
+						if (stack[top][side] > 0) {
+							overlap[side][nzc[side]] = stack[top][side]; 
+							overlapind[side][nzc[side]++] = top;
+						}
 					}
-					stack[top][0] = allsides[0] - newSides0;
-					stack[top][1] = allsides[1] - newSides1;
-					stack[top][2] = allsides[2] - newSides2;
 
-					for (int i = top; i >= top + gtb; i--) {
-						if (stack[i][2] == 0)
-							continue;
-
-						for (int j = top; j >= top + gtb; j--) {
-							if (stack[j][1] == 0 || i == j)
-								continue;
-
-							for (int k = top; k >= top + gtb; k--) {
-								if (stack[k][0] == 0 || k == i || k == j)
-									continue;
-
-								weight += F(stack[i][2], stack[j][1],
-										stack[k][0]);
+					for (int i = nzc[0] - 1; i >= 0; i--) {
+						for (int j = nzc[1] - 1; j >= 0; j--) {
+							for (int k = nzc[2] - 1; k >= 0; k--) {
+								if ( (overlapind[0][i] != overlapind[1][j]) &&
+										(overlapind[0][i] != overlapind[2][k]) &&
+										(overlapind[1][j] != overlapind[2][k]))
+									weight += F(overlap[0][i], overlap[1][j], overlap[2][k]);
 							}
 						}
 					}
 					top = top + gtb + 1;
 
-					stack[top - 1][0] = newSides0;
-					stack[top - 1][1] = newSides1;
-					stack[top - 1][2] = newSides2;
+					stack[top - 1][0] = newSides[0];
+					stack[top - 1][1] = newSides[1];
+					stack[top - 1][2] = newSides[2];
 				} // End of polytomy section
 
 			}
