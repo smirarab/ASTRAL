@@ -43,8 +43,8 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		
 		int[][] stack = new int[GlobalMaps.taxonIdentifier.taxonCount() + 2][3];
 
-		int[][] overlap = new int[3][GlobalMaps.taxonIdentifier.taxonCount() +1];
-		int[][] overlapind = new int[3][GlobalMaps.taxonIdentifier.taxonCount() +1];
+		int[][] overlap = new int[GlobalMaps.taxonIdentifier.taxonCount() +1][3];
+		int[][] overlapind = new int[GlobalMaps.taxonIdentifier.taxonCount() +1][3];
 
 		
 		Long calculateWeight(Tripartition trip) {
@@ -110,32 +110,30 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 					int [] nzc = {0,0,0};
 					int [] newSides = {0,0,0};
-					for (int i = top - 1; i >= top + gtb; i--) {
-						for (int side = 0; side < 3; side++) {
+					for (int side = 0; side < 3; side++) {
+						for (int i = top - 1; i >= top + gtb; i--) {
 							if (stack[i][side] > 0) {
 								newSides[side] += stack[i][side];
-								overlap[side][nzc[side]] = stack[i][side]; 
-								overlapind[side][nzc[side]++] = i;
+								overlap[nzc[side]][side] = stack[i][side]; 
+								overlapind[nzc[side]++][side] = i;
 							}
-						}		
-					}
-					for (int side = 0; side < 3; side++) {
+						}
 						stack[top][side] = allsides[side] - newSides[side];
 
 						if (stack[top][side] > 0) {
-							overlap[side][nzc[side]] = stack[top][side]; 
-							overlapind[side][nzc[side]++] = top;
+							overlap[nzc[side]][side] = stack[top][side]; 
+							overlapind[nzc[side]++][side] = top;
 						}
-						stack[ top + gtb][side] = newSides[side];
+						stack[top + gtb][side] = newSides[side];
 					}
 
 					for (int i = nzc[0] - 1; i >= 0; i--) {
 						for (int j = nzc[1] - 1; j >= 0; j--) {
 							for (int k = nzc[2] - 1; k >= 0; k--) {
-								if ( (overlapind[0][i] != overlapind[1][j]) &&
-										(overlapind[0][i] != overlapind[2][k]) &&
-										(overlapind[1][j] != overlapind[2][k]))
-									weight += F(overlap[0][i], overlap[1][j], overlap[2][k]);
+								if ((overlapind[i][0] != overlapind[j][1]) &&
+									(overlapind[i][0] != overlapind[k][2]) &&
+									(overlapind[j][1] != overlapind[k][2]))
+									weight += F(overlap[i][0], overlap[j][1], overlap[k][2]);
 							}
 						}
 					}
