@@ -110,20 +110,23 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 					int [] nzc = {0,0,0};
 					int [] newSides = {0,0,0};
-					for (int side = 0; side < 3; side++) {
-						for (int i = top - 1; i >= top + gtb; i--) {
+					for (int i = top - 1; i >= top + gtb; i--) {
+						for (int side = 0; side < 3; side++) {
 							if (stack[i][side] > 0) {
 								newSides[side] += stack[i][side];
 								overlap[side][nzc[side]] = stack[i][side]; 
 								overlapind[side][nzc[side]++] = i;
 							}
-						}					
+						}		
+					}
+					for (int side = 0; side < 3; side++) {
 						stack[top][side] = allsides[side] - newSides[side];
 
 						if (stack[top][side] > 0) {
 							overlap[side][nzc[side]] = stack[top][side]; 
 							overlapind[side][nzc[side]++] = top;
 						}
+						stack[ top + gtb][side] = newSides[side];
 					}
 
 					for (int i = nzc[0] - 1; i >= 0; i--) {
@@ -138,9 +141,6 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 					}
 					top = top + gtb + 1;
 
-					stack[top - 1][0] = newSides[0];
-					stack[top - 1][1] = newSides[1];
-					stack[top - 1][2] = newSides[2];
 				} // End of polytomy section
 
 			}
