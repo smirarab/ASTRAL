@@ -1,0 +1,49 @@
+
+================== ASTRAL ===================== 
+
+This is ASTRAL version 4.10.10
+Gene trees are treated as unrooted
+1000 trees read from ASTRALDATA/model.100.2000000.0.000001/26/estimatedgenetre.halfresolved
+All output trees will be *arbitrarily* rooted at 51
+
+======== Running the main analysis
+Number of taxa: 101 (101 species)
+Taxa: [51, 97, 76, 0, 53, 96, 9, 95, 80, 57, 81, 47, 7, 87, 6, 55, 25, 45, 8, 31, 37, 1, 19, 14, 84, 52, 49, 98, 94, 20, 66, 100, 59, 22, 83, 72, 4, 13, 27, 41, 90, 82, 34, 2, 29, 39, 40, 91, 86, 61, 42, 12, 79, 11, 89, 44, 92, 18, 64, 77, 24, 75, 32, 70, 15, 5, 88, 48, 28, 99, 62, 23, 67, 68, 35, 38, 71, 43, 93, 65, 16, 60, 74, 63, 46, 69, 26, 33, 85, 58, 10, 3, 17, 50, 21, 78, 36, 30, 54, 56, 73]
+Taxon occupancy: {35=1000, 36=1000, 33=1000, 34=1000, 39=1000, 37=1000, 38=1000, 43=1000, 42=1000, 41=1000, 40=1000, 22=1000, 23=1000, 24=1000, 25=1000, 26=1000, 27=1000, 28=1000, 29=1000, 3=1000, 2=1000, 1=1000, 0=1000, 30=1000, 7=1000, 6=1000, 32=1000, 5=1000, 4=1000, 31=1000, 9=1000, 8=1000, 19=1000, 17=1000, 18=1000, 15=1000, 16=1000, 13=1000, 14=1000, 11=1000, 12=1000, 21=1000, 20=1000, 99=1000, 100=1000, 98=1000, 97=1000, 96=1000, 95=1000, 94=1000, 93=1000, 92=1000, 91=1000, 90=1000, 10=1000, 88=1000, 89=1000, 79=1000, 78=1000, 77=1000, 82=1000, 83=1000, 80=1000, 81=1000, 86=1000, 87=1000, 84=1000, 85=1000, 67=1000, 66=1000, 69=1000, 68=1000, 70=1000, 71=1000, 72=1000, 73=1000, 74=1000, 75=1000, 76=1000, 59=1000, 58=1000, 57=1000, 56=1000, 55=1000, 64=1000, 65=1000, 62=1000, 63=1000, 60=1000, 61=1000, 49=1000, 48=1000, 45=1000, 44=1000, 47=1000, 46=1000, 51=1000, 52=1000, 53=1000, 54=1000, 50=1000}
+Number of gene trees: 1000
+0 trees have missing taxa
+Calculating quartet distance matrix (for completion of X)
+Species tree distances calculated ...
+Building set of clusters (X) from gene trees 
+Using tree-based weight calculation.
+Number of Default Clusters: 14209
+Number of quartet trees in the gene trees: 4082925000
+calculating extra bipartitions to be added at level 1 ...
+Number of Clusters after addition by distance: 14209
+Adding to X using resolutions of greedy consensus ...
+Threshold 0.0:
+Threshold 0.01:
+Threshold 0.02:
+Threshold 0.05:
+Threshold 0.1:
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 14209
+Threshold 0.2:
+polytomy of size 8; rounds with additions with at least 0.01 support: 0; clusters: 14209
+Threshold 0.3333333333333333:
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 14209
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 14209
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 14209
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 14209
+polytomy of size 9; rounds with additions with at least 0.01 support: 0; clusters: 14227
+Number of Clusters after addition by greedy: 14227
+partitions formed in 5.332 secs
+Dynamic Programming starting after 5.332 secs
+Size of largest cluster: 101
+Total Number of elements weighted: 68762
+Normalized score (portion of input quartet trees satisfied): 0.8181675930858392
+Final optimization score: 3340516920
+Optimal tree inferred in 213.114 secs.
+(21,((50,78),(17,(3,((36,30),((10,(54,(56,73))),((33,((85,58),((69,26),(63,(74,46))))),(((5,(99,(88,(48,28)))),(((68,35),(23,(62,67))),(38,((71,43),(65,(93,(16,60))))))),(0,(((25,45),(8,(31,37))),((((18,64),(92,(89,44))),(32,((70,15),(77,(24,75))))),(53,(((12,(79,11)),((51,(97,76)),((29,39),((82,(34,2)),(42,((41,(27,90)),(61,(86,(40,91))))))))),((59,(13,((22,83),(72,4)))),((((9,80),(96,95)),((49,98),((66,100),(94,20)))),(((1,19),(52,(14,84))),(6,(55,(87,(57,(81,(47,7))))))))))))))))))))));
+Quartet score is: 3340516920
+Normalized quartet score is: 0.8181675930858392
+ASTRAL finished in 215.599 secs

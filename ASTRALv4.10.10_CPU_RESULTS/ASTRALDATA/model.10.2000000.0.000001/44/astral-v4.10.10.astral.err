@@ -1,0 +1,42 @@
+
+================== ASTRAL ===================== 
+
+This is ASTRAL version 4.10.10
+Gene trees are treated as unrooted
+950 trees read from ASTRALDATA/model.10.2000000.0.000001/44/estimatedgenetre.halfresolved
+All output trees will be *arbitrarily* rooted at 10
+
+======== Running the main analysis
+Number of taxa: 11 (11 species)
+Taxa: [10, 3, 4, 9, 1, 0, 8, 5, 7, 2, 6]
+Taxon occupancy: {3=950, 2=950, 1=950, 10=950, 0=950, 7=950, 6=950, 5=950, 4=950, 9=950, 8=950}
+Number of gene trees: 950
+0 trees have missing taxa
+Calculating quartet distance matrix (for completion of X)
+Species tree distances calculated ...
+Building set of clusters (X) from gene trees 
+Using tree-based weight calculation.
+Number of Default Clusters: 291
+Number of quartet trees in the gene trees: 312516
+calculating extra bipartitions to be added at level 1 ...
+Number of Clusters after addition by distance: 291
+Adding to X using resolutions of greedy consensus ...
+Threshold 0.0:
+Threshold 0.01:
+Threshold 0.02:
+Threshold 0.05:
+Threshold 0.1:
+Threshold 0.2:
+Threshold 0.3333333333333333:
+Number of Clusters after addition by greedy: 291
+partitions formed in 0.436 secs
+Dynamic Programming starting after 0.436 secs
+Size of largest cluster: 11
+Total Number of elements weighted: 749
+Normalized score (portion of input quartet trees satisfied): 0.8684291364282148
+Final optimization score: 271398
+Optimal tree inferred in 0.857 secs.
+(4,(9,(3,(1,((10,(2,6)),(0,(8,(5,7))))))));
+Quartet score is: 271398
+Normalized quartet score is: 0.8684291364282148
+ASTRAL finished in 1.309 secs

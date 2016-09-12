@@ -4,7 +4,7 @@
 main/test_data/*
 astral*jar
 array*
-ASTRALDATA
+/ASTRALDATA
 estimated-gene-trees.tar.bz
 *.log
 pastOutput
