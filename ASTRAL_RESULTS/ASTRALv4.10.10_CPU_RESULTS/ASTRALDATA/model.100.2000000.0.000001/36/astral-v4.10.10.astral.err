@@ -1,0 +1,60 @@
+
+================== ASTRAL ===================== 
+
+This is ASTRAL version 4.10.10
+Gene trees are treated as unrooted
+1000 trees read from ASTRALDATA/model.100.2000000.0.000001/36/estimatedgenetre.halfresolved
+All output trees will be *arbitrarily* rooted at 77
+
+======== Running the main analysis
+Number of taxa: 101 (101 species)
+Taxa: [77, 48, 60, 74, 12, 49, 57, 97, 32, 16, 36, 83, 18, 44, 40, 87, 22, 46, 17, 9, 43, 51, 14, 25, 31, 4, 90, 91, 99, 71, 13, 88, 29, 79, 35, 28, 10, 7, 62, 89, 54, 92, 5, 52, 70, 15, 78, 34, 93, 69, 37, 47, 6, 98, 2, 24, 55, 80, 86, 94, 1, 50, 19, 23, 66, 30, 53, 21, 41, 95, 42, 61, 27, 58, 72, 96, 26, 67, 85, 8, 33, 75, 45, 11, 100, 76, 39, 82, 64, 81, 38, 84, 63, 56, 65, 20, 68, 0, 73, 59, 3]
+Taxon occupancy: {79=1000, 78=1000, 77=1000, 35=1000, 36=1000, 33=1000, 34=1000, 39=1000, 37=1000, 38=1000, 43=1000, 42=1000, 41=1000, 40=1000, 82=1000, 83=1000, 80=1000, 81=1000, 86=1000, 87=1000, 84=1000, 85=1000, 67=1000, 66=1000, 69=1000, 68=1000, 22=1000, 23=1000, 24=1000, 25=1000, 26=1000, 27=1000, 28=1000, 29=1000, 3=1000, 2=1000, 1=1000, 0=1000, 30=1000, 7=1000, 6=1000, 32=1000, 5=1000, 31=1000, 4=1000, 70=1000, 9=1000, 71=1000, 8=1000, 72=1000, 73=1000, 74=1000, 75=1000, 76=1000, 59=1000, 58=1000, 57=1000, 56=1000, 19=1000, 55=1000, 17=1000, 18=1000, 15=1000, 16=1000, 13=1000, 14=1000, 11=1000, 12=1000, 21=1000, 20=1000, 64=1000, 65=1000, 62=1000, 63=1000, 60=1000, 99=1000, 61=1000, 100=1000, 98=1000, 49=1000, 48=1000, 97=1000, 96=1000, 95=1000, 45=1000, 94=1000, 93=1000, 44=1000, 47=1000, 92=1000, 46=1000, 91=1000, 90=1000, 10=1000, 51=1000, 52=1000, 53=1000, 54=1000, 88=1000, 50=1000, 89=1000}
+Number of gene trees: 1000
+0 trees have missing taxa
+Calculating quartet distance matrix (for completion of X)
+Species tree distances calculated ...
+Building set of clusters (X) from gene trees 
+Using tree-based weight calculation.
+Number of Default Clusters: 17593
+Number of quartet trees in the gene trees: 4082891734
+calculating extra bipartitions to be added at level 1 ...
+Number of Clusters after addition by distance: 17593
+Adding to X using resolutions of greedy consensus ...
+Threshold 0.0:
+Threshold 0.01:
+Threshold 0.02:
+Threshold 0.05:
+Threshold 0.1:
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 17593
+Threshold 0.2:
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 17593
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 17593
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 17593
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 17593
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 17593
+Threshold 0.3333333333333333:
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 17593
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 17593
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 17593
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 17593
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 17593
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 17593
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 17593
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 17593
+polytomy of size 5; rounds with additions with at least 0.01 support: 0; clusters: 17593
+polytomy of size 7; rounds with additions with at least 0.01 support: 0; clusters: 17595
+polytomy of size 5; rounds with additions with at least 0.01 support: 0; clusters: 17595
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 17595
+Number of Clusters after addition by greedy: 17595
+partitions formed in 6.902 secs
+Dynamic Programming starting after 6.902 secs
+Size of largest cluster: 101
+Total Number of elements weighted: 83382
+Normalized score (portion of input quartet trees satisfied): 0.8036723897611927
+Final optimization score: 3281307357
+Optimal tree inferred in 259.825 secs.
+(65,((20,68),(63,(56,(84,(38,(((45,((81,(82,64)),(39,(11,(100,76))))),((58,(72,96)),(27,(33,(75,(85,(26,(67,8)))))))),((73,(59,3)),(0,(((74,(60,(77,48))),((18,44),((57,(12,49)),(36,(97,(83,(32,16))))))),((53,(42,(61,(41,(21,95))))),((80,(86,(94,1))),(((71,(13,88)),(29,((54,(92,(5,(52,70)))),((62,89),((79,35),(28,(10,7))))))),(((50,(30,(66,(19,23)))),((47,6),(37,(24,(55,(98,2)))))),(((46,(43,51)),((17,9),((4,90),(14,(25,31))))),((15,(91,99)),((40,(87,22)),((93,69),(78,34)))))))))))))))))));
+Quartet score is: 3281307357
+Normalized quartet score is: 0.8036723897611927
+ASTRAL finished in 262.366 secs

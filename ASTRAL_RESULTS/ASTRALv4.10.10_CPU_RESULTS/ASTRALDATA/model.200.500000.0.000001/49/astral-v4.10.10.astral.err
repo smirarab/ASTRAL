@@ -1,0 +1,111 @@
+Error: ASTRALDATA/model.200.500000.0.000001/49/estimatedgenetre.halfresolved does not exist.
+
+
+
+Usage: java -jar astral.4.10.10.jar [--help] (-i|--input) <input file> [(-o|--output) <output file>] [(-q|--score-tree) <score species trees>] [(-t|--branch-annotate) <branch annotation level>] [(-b|--bootstraps) <bootstraps>] [(-r|--reps) <replicates>] [(-s|--seed) <seed>] [-g|--gene-resampling] [--gene-only] [(-k|--keep) <keep>] [(-c|--lambda) <lambda>] [(-a|--namemapfile) <mapping file>] [(-m|--minleaves) <minleaves>] [-d|--dup] [-x|--exact] [(-p|--extraLevel) <extraLevel>] [(-e|--extra) <extra trees>] [(-f|--extra-species) <extra species trees>] [(-l|--duploss) <duploss weight>]
+
+  [--help]
+        Prints this help message.
+
+  (-i|--input) <input file>
+        a file containing input gene trees in newick format. (required)
+
+  [(-o|--output) <output file>]
+        a filename for storing the output species tree. Defaults to outputting
+        to stdout.
+
+  [(-q|--score-tree) <score species trees>]
+        score the provided species tree and exit
+
+  [(-t|--branch-annotate) <branch annotation level>]
+        How much annotations should be added to each branch: 0, 1, or 2. 
+        0: no annotations. 
+        1: only the quartet support for the main resolution. 
+        2: full annotation (quartet support, quartet frequency, and posterior
+        probability for all three alternatives, plus total number of quartets
+        around the branch and effective number of genes).
+        3 (default): only the posterior probability for the main resolution.
+        4: only three alternative posterior probabilities. (default: 3)
+
+  [(-b|--bootstraps) <bootstraps>]
+        perform multi-locus bootstrapping using input bootstrap replicate files
+        (use --rep to change the number of replications). The file given with
+        this option should have a list of the gene tree bootstrap files, one per
+        line, and each line corresponding to one gene. By default performs
+        site-only resampling, but gene/site resampling can also be used. 
+
+  [(-r|--reps) <replicates>]
+        Set the number of bootstrap replicates done in multi-locus
+        bootstrapping.  (default: 100)
+
+  [(-s|--seed) <seed>]
+        Set the seed number used in multi-locus bootstrapping.  (default: 692)
+
+  [-g|--gene-resampling]
+        perform gene tree resampling in addition to site resampling. Useful only
+        with the -b option.
+
+  [--gene-only]
+        perform bootstrapping but only with gene tree resampling. Should not be
+        used with the -b option.
+
+  [(-k|--keep) <keep>]
+        -k completed: outputs completed gene trees (i.e. after adding missing
+        taxa) to a file called [output file name].completed_gene_trees.
+        -k bootstraps: outputs individual bootstrap replicates to a file called
+        [output file name].[i].bs
+        -k bootstraps_norun: just like -k bootstraps, but exits after outputting
+        bootstraps.
+        -k searchspace_norun: outputs the search space and exits; use -k
+        searchspace to continue the run after outputting the search space.When
+        -k option is used, -o option needs to be given. The file name specified
+        using -o is used as the prefix for the name of the extra output files.
+
+  [(-c|--lambda) <lambda>]
+        Set the lambda parameter for the Yule prior used in the calculations of
+        branch lengths and posterior probabilities. Set to zero to get ML branch
+        lengths instead of MAP. Higher values tend to shorten estimated branch
+        lengths and very high values can give inaccurate results (or even result
+        in underflow). (default: 0.5)
+
+  [(-a|--namemapfile) <mapping file>]
+        a file containing the mapping between names in gene tree and names in
+        the species tree. The mapping file has one line per species, with one of
+        two formats:
+        species: gene1,gene2,gene3,gene4
+        species 4 gene1 gene2 gene3 gene4
+
+  [(-m|--minleaves) <minleaves>]
+        Remove genes with less than specified number of leaves 
+
+  [-d|--dup]
+        Solves MGD problem. Minimizes the number duplications required to
+        explain gene trees using DynaDup algorithm (Bayzid, 2011). Note that
+        with this option, DynaDyp would be used *instead of* ASTRAL.
+
+  [-x|--exact]
+        find the exact solution by looking at all clusters - recommended only
+        for small (<18) number of taxa.
+
+  [(-p|--extraLevel) <extraLevel>]
+        How much extra bipartitions should be added: 0, 1, or 2. 0: adds nothing
+        extra. 1 (default): adds to X but not excessively (greedy resolutions).
+        2: adds a potentially large number and therefore can be slow (quadratic
+        distance-based). (default: 1)
+
+  [(-e|--extra) <extra trees>]
+        provide extra trees (with gene labels) used to enrich the set of
+        clusters searched
+
+  [(-f|--extra-species) <extra species trees>]
+        provide extra trees (with species labels) used to enrich the set of
+        clusters searched
+
+  [(-l|--duploss) <duploss weight>]
+        Solves MGDL problem. Minimizes the number duplication and losses
+        required to explain gene trees using DynaDup algorithm. Note that with
+        this option, DynaDyp would be used *instead of* ASTRAL. Use -l 0 for
+        standard (homomorphic) definition, and -l 1 for our new bd definition.
+        Any value in between weights the impact of missing taxa somewhere
+        between these two extremes. -l auto will automatically pick this weight.
+
