@@ -1,0 +1,47 @@
+
+================== ASTRAL ===================== 
+
+This is ASTRAL version 4.10.10
+Gene trees are treated as unrooted
+836 trees read from ASTRALDATA/model.50.2000000.0.000001/50/estimatedgenetre.halfresolved
+All output trees will be *arbitrarily* rooted at 13
+
+======== Running the main analysis
+Number of taxa: 51 (51 species)
+Taxa: [13, 35, 1, 45, 11, 15, 48, 19, 25, 37, 44, 42, 29, 36, 43, 14, 21, 0, 26, 50, 6, 3, 41, 8, 34, 18, 33, 7, 9, 28, 49, 30, 39, 27, 38, 46, 2, 40, 16, 10, 20, 23, 22, 47, 32, 5, 24, 4, 12, 17, 31]
+Taxon occupancy: {35=836, 36=836, 33=836, 34=836, 39=836, 37=836, 38=836, 43=836, 42=836, 41=836, 40=836, 22=836, 23=836, 24=836, 25=836, 26=836, 27=836, 28=836, 29=836, 3=836, 2=836, 1=836, 0=836, 7=836, 30=836, 6=836, 32=836, 5=836, 31=836, 4=836, 9=836, 8=836, 19=836, 17=836, 18=836, 15=836, 16=836, 13=836, 14=836, 11=836, 12=836, 21=836, 20=836, 49=836, 48=836, 45=836, 44=836, 47=836, 46=836, 10=836, 50=836}
+Number of gene trees: 836
+0 trees have missing taxa
+Calculating quartet distance matrix (for completion of X)
+Species tree distances calculated ...
+Building set of clusters (X) from gene trees 
+Using tree-based weight calculation.
+Number of Default Clusters: 4719
+Number of quartet trees in the gene trees: 208634634
+calculating extra bipartitions to be added at level 1 ...
+Number of Clusters after addition by distance: 4719
+Adding to X using resolutions of greedy consensus ...
+Threshold 0.0:
+Threshold 0.01:
+Threshold 0.02:
+Threshold 0.05:
+Threshold 0.1:
+Threshold 0.2:
+Threshold 0.3333333333333333:
+polytomy of size 4; rounds with additions with at least 0.01 support: 0; clusters: 4719
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 4719
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 4719
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 4719
+polytomy of size 3; rounds with additions with at least 0.01 support: 0; clusters: 4719
+Number of Clusters after addition by greedy: 4719
+partitions formed in 2.214 secs
+Dynamic Programming starting after 2.214 secs
+Size of largest cluster: 51
+Total Number of elements weighted: 17106
+Normalized score (portion of input quartet trees satisfied): 0.8657909740910994
+Final optimization score: 180633983
+Optimal tree inferred in 24.367 secs.
+(25,(48,(((1,19),(15,37)),(45,(11,(((18,(50,34)),((41,8),(6,3))),(42,(44,((4,(5,24)),(((28,49),(47,32)),(((16,(2,(46,40))),((38,(39,27)),(30,(10,(22,(20,23)))))),(0,((43,(36,(29,(13,26)))),((7,9),((33,(35,21)),(14,(17,(12,31))))))))))))))))));
+Quartet score is: 180633983
+Normalized quartet score is: 0.8657909740910994
+ASTRAL finished in 25.36 secs
