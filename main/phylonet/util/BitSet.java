@@ -532,7 +532,7 @@ public class BitSet implements Cloneable, Serializable {
 	int numBits = wordsInUse <= 128 ? wordsInUse * 64 : cardinality();
 	StringBuilder b = new StringBuilder();
 	b.append('{');
-	for (int i =GlobalMaps.taxonIdentifier.taxonCount()/BITS_PER_WORD ; i>=0; i--) {
+	for (int i = wordsInUse - 1 ; i>=0; i--) {
 		b.append(words[i]+" ");
 	}
 	b.append('}');
