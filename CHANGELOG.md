@@ -1,3 +1,6 @@
+- version 4.10.11:
+    - A bug fixed where number of taxa = 64*X was throwing an error
+    
 - version 4.10.10:
 	- Very significant improvement in the running time for datasets with many polytomies in input gene trees
 	- Some running time improvement for datasets without polytomies 
