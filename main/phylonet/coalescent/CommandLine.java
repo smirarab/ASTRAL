@@ -282,10 +282,13 @@ public class CommandLine {
 
             taxonMap = new HashMap<String, String>();
             String s;
+            try {
             while ((s = br.readLine()) != null) {
                 s = s.trim();
                 String species;
                 String[] alleles;
+                if ("".equals(s.trim()))  
+                	continue;
                 if (s.indexOf(":") != -1) {
                     species = s.substring(0, s.indexOf(":")).trim();
                     s = s.substring(s.indexOf(":") + 1);
@@ -312,6 +315,9 @@ public class CommandLine {
                     //System.err.println("Mapping '"+allele+"' to '"+species+"'");
                     taxonMap.put(allele, species);
                 }
+            }
+            } catch (Exception e) {
+            	throw new RuntimeException("\n** Error **: Your name mapping file looks incorrect.\n   Carefully check its format. ", e);
             }
             br.close();
         }
