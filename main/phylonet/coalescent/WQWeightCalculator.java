@@ -3,8 +3,11 @@ package phylonet.coalescent;
 import java.util.Iterator;
 import java.util.List;
 
+import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.Tree;
+import phylonet.tree.model.sti.STITree;
 import phylonet.tree.model.sti.STITreeCluster;
+import phylonet.tree.util.Trees;
 
 class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
@@ -129,12 +132,12 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 					for (int i = nzc[0] - 1; i >= 0; i--) {
 						for (int j = nzc[1] - 1; j >= 0; j--) {
-							for (int k = nzc[2] - 1; k >= 0; k--) {
-								if ((overlapind[i][0] != overlapind[j][1]) &&
-									(overlapind[i][0] != overlapind[k][2]) &&
-									(overlapind[j][1] != overlapind[k][2]))
-									weight += F(overlap[i][0], overlap[j][1], overlap[k][2]);
-							}
+							if (overlapind[i][0] != overlapind[j][1])
+								for (int k = nzc[2] - 1; k >= 0; k--) {
+									if ((overlapind[i][0] != overlapind[k][2]) &&
+										(overlapind[j][1] != overlapind[k][2]))
+										weight += F(overlap[i][0], overlap[j][1], overlap[k][2]);
+								}
 						}
 					}
 					top = top + gtb + 1;

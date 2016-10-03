@@ -64,6 +64,7 @@ java -jar astral.4.10.11.jar -i in.tree -o out.tre
 ```
 
 The input gene trees can have missing taxa, polytomies (unresolved branches), and also multiple individuals per species. 
+Taxon names cannot have quotation marks in their names (sorry!). This means you also cannot have weird characters like ? in the name (underscore is fine).
 The output gives the species tree topology, branch lengths in coalescent units
 for internal branches, and branch supports measured as local posterior probabilities. It can also output other quantities per branch, 
 as described in the [tutorial](astral-tutorial.md).
