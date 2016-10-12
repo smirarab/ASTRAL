@@ -22,15 +22,17 @@ __kernel void calcWeight(
 	__global int* geneTreesAsInts,
 	int geneTreesAsIntsLength,
 	__global long* allArray,
-	__global long* tripartitions,
+	__global long* tripartitions1,
+	__global long* tripartitions2,
+	__global long* tripartitions3,
 	__global long* weightArray
 ){
 	long weight = 0;
 	struct Tripartition trip;
 	int idx = get_global_id(0);
-	trip.cluster1 = SPECIES_WORD_LENGTH * 3 * idx + tripartitions;
-	trip.cluster2 = SPECIES_WORD_LENGTH * 3 * idx + SPECIES_WORD_LENGTH + tripartitions;
-	trip.cluster3 = SPECIES_WORD_LENGTH * 3 * idx + SPECIES_WORD_LENGTH * 2 + tripartitions;
+	trip.cluster1 = SPECIES_WORD_LENGTH * idx + tripartitions1;
+	trip.cluster2 = SPECIES_WORD_LENGTH * idx + tripartitions2;
+	trip.cluster3 = SPECIES_WORD_LENGTH * idx + tripartitions3;
 	
 	int allsides[3];
 
@@ -38,9 +40,9 @@ __kernel void calcWeight(
 	int counter = 0;
 	int treeCounter = 0;
 
-	int stack[(STACK_SIZE+2)*3];
-	int overlap [(STACK_SIZE+1)*3];
-	int overlapind [(STACK_SIZE+1)*3];
+	int stack[(STACK_SIZE + 2) * 3];
+	int overlap [(STACK_SIZE + 1) * 3];
+	int overlapind [(STACK_SIZE + 1) * 3];
 	
 	int top = 0;
 	for (; counter < geneTreesAsIntsLength; counter++) {
@@ -57,8 +59,8 @@ __kernel void calcWeight(
 		}
 		if (geneTreesAsInts[counter] >= 0) {
 			stack[top] = ((trip.cluster1[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts[counter] / LONG_BIT_LENGTH])>>(geneTreesAsInts[counter] % LONG_BIT_LENGTH)) & 1;
-			stack[top + (STACK_SIZE+2)] = ((trip.cluster2[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts[counter] / LONG_BIT_LENGTH])>>(geneTreesAsInts[counter] % LONG_BIT_LENGTH)) & 1;
-			stack[top + (STACK_SIZE+2)*2] = ((trip.cluster3[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts[counter] / LONG_BIT_LENGTH])>>(geneTreesAsInts[counter] % LONG_BIT_LENGTH)) & 1;
+			stack[top + (STACK_SIZE + 2)] = ((trip.cluster2[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts[counter] / LONG_BIT_LENGTH])>>(geneTreesAsInts[counter] % LONG_BIT_LENGTH)) & 1;
+			stack[top + (STACK_SIZE + 2) * 2] = ((trip.cluster3[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts[counter] / LONG_BIT_LENGTH])>>(geneTreesAsInts[counter] % LONG_BIT_LENGTH)) & 1;
 			top++;
 		}
 		else if (geneTreesAsInts[counter] == INT_MIN) {
@@ -67,26 +69,26 @@ __kernel void calcWeight(
 		}
 		else if (geneTreesAsInts[counter] == -2) {
 			top--;
-	
-			int newSides0 = stack[top] + stack[top - 1];
-			int newSides1 = stack[top + (STACK_SIZE+2)] + stack[top - 1 + (STACK_SIZE+2)];
-			int newSides2 = stack[top + (STACK_SIZE+2)*2] + stack[top - 1 + (STACK_SIZE+2)*2];
+			int topminus1 = top - 1;
+			int newSides0 = stack[top] + stack[topminus1];
+			int newSides1 = stack[top + (STACK_SIZE + 2)] + stack[topminus1 + (STACK_SIZE + 2)];
+			int newSides2 = stack[top + (STACK_SIZE + 2) * 2] + stack[topminus1 + (STACK_SIZE + 2) * 2];
 			
 			int side3s0 = allsides[0] - newSides0;
 			int side3s1 = allsides[1] - newSides1;
 			int side3s2 = allsides[2] - newSides2;
 
 			weight += 
-				F(stack[top], stack[top - 1 + (STACK_SIZE + 2)], side3s2) +
-				F(stack[top], stack[top - 1 + (STACK_SIZE + 2)*2], side3s1) +
-				F(stack[top + (STACK_SIZE + 2)], stack[top - 1], side3s2) +
-				F(stack[top + (STACK_SIZE + 2)], stack[top - 1 + (STACK_SIZE + 2)*2], side3s0) +
-				F(stack[top + (STACK_SIZE + 2)*2], stack[top - 1], side3s1) +
-				F(stack[top + (STACK_SIZE + 2)*2], stack[top - 1 + (STACK_SIZE + 2)], side3s0);
+				F(stack[top], stack[topminus1 + (STACK_SIZE + 2)], side3s2) +
+				F(stack[top], stack[topminus1 + (STACK_SIZE + 2) * 2], side3s1) +
+				F(stack[top + (STACK_SIZE + 2)], stack[topminus1], side3s2) +
+				F(stack[top + (STACK_SIZE + 2)], stack[topminus1 + (STACK_SIZE + 2) * 2], side3s0) +
+				F(stack[top + (STACK_SIZE + 2) * 2], stack[topminus1], side3s1) +
+				F(stack[top + (STACK_SIZE + 2) * 2], stack[topminus1 + (STACK_SIZE + 2)], side3s0);
 				
-			stack[top - 1] = newSides0;
-			stack[top - 1 + (STACK_SIZE + 2)] = newSides1;
-			stack[top - 1 + (STACK_SIZE + 2)*2] = newSides2;
+			stack[topminus1] = newSides0;
+			stack[topminus1 + (STACK_SIZE + 2)] = newSides1;
+			stack[topminus1 + (STACK_SIZE + 2) * 2] = newSides2;
 			
 		}
 		else { //for polytomies
