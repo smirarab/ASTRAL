@@ -17,7 +17,8 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	public static boolean WRITE_OR_DEBUG = false;
 	AbstractInference<Tripartition> inference;
 	private WQDataCollection dataCollection;
-
+	private int n;
+	
 	public WQWeightCalculator(AbstractInference<Tripartition> inference, ConcurrentLinkedQueue<Long> queue) {
 		super(false, queue);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
@@ -26,6 +27,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		}
 		else
 			this.inference = (WQInference) inference;
+		this.n = GlobalMaps.taxonIdentifier.taxonCount();
 	}
 
 	class QuartetWeightTask implements ICalculateWeightTask<Tripartition> {

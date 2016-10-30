@@ -6,6 +6,7 @@ import static org.jocl.CL.CL_MEM_COPY_HOST_PTR;
 import static org.jocl.CL.CL_MEM_READ_ONLY;
 import static org.jocl.CL.CL_MEM_WRITE_ONLY;
 import static org.jocl.CL.CL_TRUE;
+import static org.jocl.CL.*;
 import static org.jocl.CL.clBuildProgram;
 import static org.jocl.CL.clCreateBuffer;
 import static org.jocl.CL.clCreateCommandQueue;
@@ -45,12 +46,16 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.jocl.CL;
+import org.jocl.EventCallbackFunction;
 import org.jocl.Pointer;
 import org.jocl.Sizeof;
 import org.jocl.cl_command_queue;
 import org.jocl.cl_context;
 import org.jocl.cl_context_properties;
 import org.jocl.cl_device_id;
+import org.jocl.cl_event;
+import org.jocl.cl_image_desc;
+import org.jocl.cl_image_format;
 import org.jocl.cl_kernel;
 import org.jocl.cl_mem;
 import org.jocl.cl_platform_id;
@@ -80,7 +85,7 @@ public class CommandLine {
     public static ConcurrentLinkedQueue<ICalculateWeightTask<Tripartition>> queue1 = new ConcurrentLinkedQueue<ICalculateWeightTask<Tripartition>>();
     public static ConcurrentLinkedQueue<Long> queue2 = new ConcurrentLinkedQueue<Long>();
     
-    public static long workGroupSize = 1L<<12;
+    public static long workGroupSize = 1L<<13;
     
     public static int SPECIES_WORD_LENGTH;
     
@@ -94,7 +99,7 @@ public class CommandLine {
         System.exit( 1 );
     }
 
-
+    
     private static SimpleJSAP getJSAP() throws JSAPException {
         return new SimpleJSAP(
                 "ASTRAL (version" + _versinon + ")",
@@ -364,6 +369,45 @@ public class CommandLine {
             System.err.println(k+" trees read from " + config.getFile("input file"));
             
             GlobalMaps.taxonIdentifier.lock();        
+            
+            //johng23
+            System.err.println("global work group size is : " + workGroupSize);
+            final int platformIndex = 0;
+    		final long deviceType = CL_DEVICE_TYPE_ALL;
+    		final int deviceIndex = 0;
+
+    		// Enable exceptions and subsequently omit error checks in this sample
+    		CL.setExceptionsEnabled(true);
+
+    		// Obtain the number of platforms
+    		int numPlatformsArray[] = new int[1];
+    		clGetPlatformIDs(0, null, numPlatformsArray);
+    		int numPlatforms = numPlatformsArray[0];
+
+    		// Obtain a platform ID
+    		cl_platform_id platforms[] = new cl_platform_id[numPlatforms];
+    		clGetPlatformIDs(platforms.length, platforms, null);
+    		cl_platform_id platform = platforms[platformIndex];
+
+    		// Initialize the context properties
+    		cl_context_properties contextProperties = new cl_context_properties();
+    		contextProperties.addProperty(CL_CONTEXT_PLATFORM, platform);
+
+    		// Obtain the number of devices for the platform
+    		int numDevicesArray[] = new int[1];
+    		clGetDeviceIDs(platform, deviceType, 0, null, numDevicesArray);
+    		int numDevices = numDevicesArray[0];
+
+    		// Obtain a device ID
+    		cl_device_id devices[] = new cl_device_id[numDevices];
+    		clGetDeviceIDs(platform, deviceType, numDevices, devices, null);
+    		for (int i=0; i<numDevices; i++)
+            {
+                String deviceName = getString(devices[i], CL_DEVICE_NAME);
+                System.out.println("Device "+i+" of "+numDevices+": "+deviceName);
+            }
+    		cl_device_id device = devices[deviceIndex];
+
 
         } catch (IOException e) {
             System.err.println("Error when reading trees.");
@@ -638,38 +682,46 @@ public class CommandLine {
 		public ConcurrentLinkedQueue<Long> queue2;
 		public ConcurrentLinkedQueue<ICalculateWeightTask<Tripartition>> queue1;
 		public AbstractInference inference;
-		public long[] tripartition;
+		public long[] tripartition1;
+		public long[] tripartition2;
+		public long[] tripartition3;
+		
 		public long[] all;
 		public int tripCounter = 0;
 		public boolean done = false;
 		public GPUCall gpu;
+		
+		public final boolean p = false;
 		public TurnTaskToScores(AbstractInference inf, ConcurrentLinkedQueue<ICalculateWeightTask<Tripartition>> queue1, ConcurrentLinkedQueue<Long> queue2, int[] geneTreeAsInts, long[] all) {
 			this.inference = inf;
 			this.queue1 = queue1;
 			this.queue2 = queue2;
 			this.all = all;
-			tripartition = new long[(int)(SPECIES_WORD_LENGTH * 3 * workGroupSize)];
+			tripartition1 = new long[(int)(SPECIES_WORD_LENGTH * workGroupSize)];
+			tripartition2 = new long[(int)(SPECIES_WORD_LENGTH * workGroupSize)];
+			tripartition3 = new long[(int)(SPECIES_WORD_LENGTH * workGroupSize)];
 			
-			gpu = new GPUCall(geneTreeAsInts, all, tripartition);
+			gpu = new GPUCall(geneTreeAsInts, all, tripartition1, tripartition2, tripartition3, inference);
+			gpu.p = p;
 		}
 
 		public void run() {
 			
 			QuartetWeightTask task = null;
-			
-			while(!done) {
+			((WQWeightCalculator)inference.weightCalculator).lastTime = System.currentTimeMillis();
+			while(!done || !queue1.isEmpty()) {
 				if(!queue1.isEmpty()) {
 
 					task = (QuartetWeightTask)queue1.remove();
 					
 					for(int i = SPECIES_WORD_LENGTH - 1; i >= 0; i--)
-						tripartition[tripCounter++]=task.trip.cluster1.getBitSet().words[i];
+						tripartition1[tripCounter * SPECIES_WORD_LENGTH + SPECIES_WORD_LENGTH - 1 - i]=task.trip.cluster1.getBitSet().words[i];
 					for(int i = SPECIES_WORD_LENGTH - 1; i >= 0; i--)
-						tripartition[tripCounter++]=task.trip.cluster2.getBitSet().words[i];
+						tripartition2[tripCounter * SPECIES_WORD_LENGTH + SPECIES_WORD_LENGTH - 1 - i]=task.trip.cluster2.getBitSet().words[i];
 					for(int i = SPECIES_WORD_LENGTH - 1; i >= 0; i--)
-						tripartition[tripCounter++]=task.trip.cluster3.getBitSet().words[i];
-				
-					if(tripCounter == SPECIES_WORD_LENGTH * 3 * workGroupSize) {
+						tripartition3[tripCounter * SPECIES_WORD_LENGTH + SPECIES_WORD_LENGTH - 1 - i]=task.trip.cluster3.getBitSet().words[i];
+					tripCounter++;
+					if(tripCounter == workGroupSize) {
 						gpu.compute(workGroupSize);
 						tripCounter = 0;
 						for(int i = 0; i < gpu.weightArray.length; i++) {
@@ -680,31 +732,23 @@ public class CommandLine {
 			
 				}
 			}
-			while(!queue1.isEmpty()) {
+			
+			gpu.compute(tripCounter);
 
-				task = (QuartetWeightTask)queue1.remove();
-				
-				for(int i = SPECIES_WORD_LENGTH - 1; i >= 0; i--)
-					tripartition[tripCounter++]=task.trip.cluster1.getBitSet().words[i];
-				for(int i = SPECIES_WORD_LENGTH - 1; i >= 0; i--)
-					tripartition[tripCounter++]=task.trip.cluster2.getBitSet().words[i];
-				for(int i = SPECIES_WORD_LENGTH - 1; i >= 0; i--)
-					tripartition[tripCounter++]=task.trip.cluster3.getBitSet().words[i];
-				
-				if(tripCounter == SPECIES_WORD_LENGTH * 3 * workGroupSize) {
-					gpu.compute(workGroupSize);
-					tripCounter = 0;
-					for(int i = 0; i < gpu.weightArray.length; i++) {
-						queue2.add(gpu.weightArray[i]);
-					}
-
-				}
-
-			}
-			gpu.compute(tripCounter/SPECIES_WORD_LENGTH/3);
-
-			for(int i = 0; i < tripCounter/SPECIES_WORD_LENGTH/3; i++) {
+			for(int i = 0; i < tripCounter; i++) {
 				queue2.add(gpu.weightArray[i]);
+			}
+			
+			if(p) {
+    				clEnqueueReadBuffer(gpu.commandQueue, gpu.d_profile, CL_TRUE, 0L, Sizeof.cl_long * gpu.profile.length, Pointer.to(gpu.profile), 0, null, null);
+				long total = 0;	
+				for(int i = 0; i < 4; i++) {
+					total += gpu.profile[i];
+				}
+				System.out.println("intersecting with the all arrays takes: " + (double)gpu.profile[0]/total);
+				System.out.println("adding numbers to the stack takes: " + (double)gpu.profile[1]/total);
+				System.out.println("calculating weight of a tripartition takes: " + (double)gpu.profile[2]/total);
+				System.out.println("calculating weight of a polytomy takes: " + (double)gpu.profile[3]/total);
 			}
 			inference.weightCalculator.done = true;
 			
@@ -713,25 +757,45 @@ public class CommandLine {
 		
 	}
     public static class GPUCall {
-    	public long[] tripartitions;
+    	public long[] tripartitions1;
+    	public long[] tripartitions2;
+    	public long[] tripartitions3;
+    	
     	public int[] geneTreesAsInts;
+    	public short[] geneTreesAsShorts;
     	public long[] allArray;
     	public long[] weightArray;
+    	public short[] stack;
+    	public long[] profile;
+    	public AbstractInference inference;
     	
+	public boolean p;
     	private cl_context context;
     	private cl_command_queue commandQueue;
     	private cl_kernel kernel;
     	private cl_mem d_geneTreesAsInts;
-    	private cl_mem d_tripartitions;
+    	private cl_mem[] d_geneTreesAsIntsConst;
+    	private cl_mem d_tripartitions1;
+    	private cl_mem d_tripartitions2;
+    	private cl_mem d_tripartitions3;
     	private cl_mem d_allArray;
     	private cl_mem d_weightArray;
-    	
-    	public GPUCall (int[] geneTreesAsInts, long[] all, long[] trip) {
+    	private cl_mem d_stack;
+    	private cl_mem d_profile;
+    	public GPUCall (int[] geneTreesAsInts, long[] all, long[] trip1, long[] trip2, long[] trip3, AbstractInference inference) {
     		this.geneTreesAsInts = geneTreesAsInts;
+    		geneTreesAsShorts = new short[(geneTreesAsInts.length/4 + 1) * 4];
+    		for(int i = 0; i < geneTreesAsInts.length; i++) {
+    			geneTreesAsShorts[i] = (short)geneTreesAsInts[i];
+    			if(geneTreesAsInts[i] == Integer.MIN_VALUE)
+    				geneTreesAsShorts[i] = Short.MIN_VALUE;
+    		}
     		allArray = all;
-    		tripartitions = trip;
-    		weightArray = new long[trip.length / 3 / SPECIES_WORD_LENGTH];
-
+    		tripartitions1 = trip1;
+    		tripartitions2 = trip2;
+    		tripartitions3 = trip3;
+    		weightArray = new long[trip1.length / SPECIES_WORD_LENGTH];
+    		this.inference = inference;
     		initCL();
 
     		prepare();
@@ -767,6 +831,11 @@ public class CommandLine {
     		// Obtain a device ID
     		cl_device_id devices[] = new cl_device_id[numDevices];
     		clGetDeviceIDs(platform, deviceType, numDevices, devices, null);
+    		for (int i=0; i<numDevices; i++)
+            {
+                String deviceName = getString(devices[i], CL_DEVICE_NAME);
+                System.out.println("Device "+i+" of "+numDevices+": "+deviceName);
+            }
     		cl_device_id device = devices[deviceIndex];
 
     		// Create a context for the selected device
@@ -775,36 +844,87 @@ public class CommandLine {
     		// Create a command-queue for the selected device
     		commandQueue = clCreateCommandQueue(context, device, 0, null);
 
+    		//moved to here to edit source
+    		cl_image_format geneTreesImageFormat = new cl_image_format();
+    		geneTreesImageFormat.image_channel_data_type = CL_SIGNED_INT16;
+    		geneTreesImageFormat.image_channel_order = CL_RGBA;
+    		
+    		cl_image_desc geneTreesImageDesc = new cl_image_desc();
+    		geneTreesImageDesc.image_type = CL_MEM_OBJECT_IMAGE2D;
+    		geneTreesImageDesc.image_width = 4*((int)Math.sqrt((double)geneTreesAsShorts.length)/16);
+    		geneTreesImageDesc.image_height = geneTreesAsShorts.length/geneTreesImageDesc.image_width+1;
+    		geneTreesImageDesc.image_depth = 0;
+    		geneTreesImageDesc.image_array_size = 0;
+    		geneTreesImageDesc.image_row_pitch = 0;
+    		geneTreesImageDesc.image_slice_pitch = 0;
+    		geneTreesImageDesc.num_mip_levels = 0;
+    		geneTreesImageDesc.num_samples = 0;
+    		geneTreesImageDesc.buffer = null;
+    		
+    		// getting the tree height
+    		int treeheight = ((WQDataCollection)inference.dataCollection).maxHeight;
+    		System.out.println("TREE HEIGHT IS: " + treeheight);
     		// Program Setup
     		String source = readFile("calculateWeight.cl");
+    		source = source.replaceAll("SPECIES_WORD_LENGTH - 1", Long.toString(SPECIES_WORD_LENGTH - 1));
     		source = source.replaceAll("SPECIES_WORD_LENGTH", Long.toString(SPECIES_WORD_LENGTH));
     		source = source.replaceAll("LONG_BIT_LENGTH", "64");
-    		source = source.replaceAll("STACK_SIZE", Integer.toString(GlobalMaps.taxonIdentifier.taxonCount()));
+//    		source = source.replaceAll("(STACK_SIZE + 1) * 3", Integer.toString((treeheight + 1) * 3));
+//    		source = source.replaceAll("(STACK_SIZE + 2) * 3", Integer.toString((treeheight + 2) * 3));
+//    		source = source.replaceAll("(STACK_SIZE + 1) * 2", Integer.toString((treeheight + 1) * 2));
+//    		source = source.replaceAll("(STACK_SIZE + 2) * 2", Integer.toString((treeheight + 2) * 2));
+//    		source = source.replaceAll("(STACK_SIZE + 1)", Integer.toString(treeheight + 1));
+//    		source = source.replaceAll("(STACK_SIZE + 2)", Integer.toString(treeheight + 2));
+    		source = source.replaceAll("STACK_SIZE", Integer.toString(treeheight));
+    		source = source.replaceAll("TAXON_SIZE", Integer.toString(GlobalMaps.taxonIdentifier.taxonCount()));
+    		source = source.replaceAll("INT_MIN", "SHRT_MIN");
+    		source = source.replaceAll("WORK_GROUP_SIZE", Long.toString(workGroupSize));
+    		source = source.replaceAll("IMAGE_WIDTH", Long.toString(geneTreesImageDesc.image_width));
     		
+    		long[] localmemsize = new long[1];
+    		long[] constmemsize = new long[1];
+    		clGetDeviceInfo(device, CL_DEVICE_LOCAL_MEM_SIZE, 8, Pointer.to(localmemsize), null);
+    		clGetDeviceInfo(device, CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE, 8, Pointer.to(constmemsize), null);
+    		System.out.println("LOCAL MEMORY SIZE IS: " + localmemsize[0]);
+    		System.out.println("CONSTANT MEMORY SIZE IS: " + constmemsize[0]);
     		// Create the program
     		cl_program cpProgram = clCreateProgramWithSource(context, 1, new String[] { source }, null, null);
 
     		// Build the program
-    		clBuildProgram(cpProgram, 0, null, "-cl-mad-enable", null, null);
+    		clBuildProgram(cpProgram, 0, null, "-cl-strict-aliasing", null, null);
 
     		// Create the kernel
     		kernel = clCreateKernel(cpProgram, "calcWeight", null);
 
     		// Create the memory object which will be filled with the
     		// pixel data
-
-    		d_geneTreesAsInts = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
-    				Sizeof.cl_int * geneTreesAsInts.length, Pointer.to(geneTreesAsInts), null);
+    		
+    		d_geneTreesAsInts = clCreateImage2D(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, new cl_image_format[] {geneTreesImageFormat}, geneTreesImageDesc.image_width, geneTreesImageDesc.image_height, 0L, 
+    				Pointer.to(geneTreesAsShorts), null);
     		d_allArray = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY, Sizeof.cl_long * allArray.length,
     				Pointer.to(allArray), null);
-    		d_tripartitions = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY, Sizeof.cl_long * tripartitions.length,
-    				Pointer.to(tripartitions), null);
+    		d_tripartitions1 = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY, Sizeof.cl_long * tripartitions1.length,
+    				Pointer.to(tripartitions1), null);
+    		d_tripartitions2 = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY, Sizeof.cl_long * tripartitions2.length,
+    				Pointer.to(tripartitions2), null);
+    		d_tripartitions3 = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY, Sizeof.cl_long * tripartitions3.length,
+    				Pointer.to(tripartitions3), null);
+    		
+    		//stack = new short[(int) (Sizeof.cl_ushort * 3 * (2 + treeheight) * workGroupSize)];
+    		d_stack = clCreateBuffer(context, CL_MEM_READ_WRITE , Sizeof.cl_ushort * 3 * (2 + treeheight) * workGroupSize,
+    				null, null);
     		d_weightArray = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, Sizeof.cl_long * weightArray.length,
     				Pointer.to(weightArray), null);
-
-
+		if(p){
+    			profile = new long[20];
+    			d_profile = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR, Sizeof.cl_long * profile.length,
+    				Pointer.to(profile), null);
+    		}
+		//d_c = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_USE_HOST_PTR, Sizeof.cl_int,
+    		//		Pointer.to(c), null);
 
     	}
+
 
     	private String readFile(String fileName) {
     		try {
@@ -832,9 +952,19 @@ public class CommandLine {
     		clSetKernelArg(kernel, 0, Sizeof.cl_mem, Pointer.to(d_geneTreesAsInts));
     		clSetKernelArg(kernel, 1, Sizeof.cl_int, Pointer.to(new int[] {geneTreesAsInts.length}));
     		clSetKernelArg(kernel, 2, Sizeof.cl_mem, Pointer.to(d_allArray));
-    		clSetKernelArg(kernel, 3, Sizeof.cl_mem, Pointer.to(d_tripartitions));
-    		clSetKernelArg(kernel, 4, Sizeof.cl_mem, Pointer.to(d_weightArray));
-    		
+    		clSetKernelArg(kernel, 3, Sizeof.cl_mem, Pointer.to(d_tripartitions1));
+    		clSetKernelArg(kernel, 4, Sizeof.cl_mem, Pointer.to(d_tripartitions2));
+    		clSetKernelArg(kernel, 5, Sizeof.cl_mem, Pointer.to(d_tripartitions3));
+       		clSetKernelArg(kernel, 6, Sizeof.cl_mem, Pointer.to(d_weightArray));
+       		clSetKernelArg(kernel, 7, Sizeof.cl_mem, Pointer.to(d_stack));
+		if(p)
+       			clSetKernelArg(kernel, 8, Sizeof.cl_mem, Pointer.to(d_profile));
+
+//     		clSetKernelArg(kernel, 8, Sizeof.cl_mem, Pointer.to(d_c));
+       		
+//    		clSetKernelArg(kernel, 7, Sizeof.cl_long * workGroupSize * SPECIES_WORD_LENGTH, null);
+//    		clSetKernelArg(kernel, 8, Sizeof.cl_long * workGroupSize * SPECIES_WORD_LENGTH, null);
+//    		clSetKernelArg(kernel, 9, Sizeof.cl_long * workGroupSize * SPECIES_WORD_LENGTH, null);
 
     	}
     	
@@ -842,13 +972,20 @@ public class CommandLine {
     		
     		// Set work size and execute the kernel
     		
-    		clEnqueueWriteBuffer(commandQueue, d_tripartitions, CL_TRUE, 0L, Sizeof.cl_long * tripartitions.length, Pointer.to(tripartitions), 0,
+    		clEnqueueWriteBuffer(commandQueue, d_tripartitions1, CL_TRUE, 0L, Sizeof.cl_long * tripartitions1.length, Pointer.to(tripartitions1), 0,
     				null, null);
-    		
-    		clEnqueueNDRangeKernel(commandQueue, kernel, 1, null, new long[]{workSize}, null, 0, null, null);	
-     
-    		clEnqueueReadBuffer(commandQueue, d_weightArray, CL_TRUE, 0L, Sizeof.cl_long * weightArray.length, Pointer.to(weightArray), 0, null, null);
+    		clEnqueueWriteBuffer(commandQueue, d_tripartitions2, CL_TRUE, 0L, Sizeof.cl_long * tripartitions2.length, Pointer.to(tripartitions2), 0,
+    				null, null);
+    		clEnqueueWriteBuffer(commandQueue, d_tripartitions3, CL_TRUE, 0L, Sizeof.cl_long * tripartitions3.length, Pointer.to(tripartitions3), 0,
+    				null, null);
+//    		if(workSize >= 32 && workSize % 32 == 0) {
+//    			clEnqueueNDRangeKernel(commandQueue, kernel, 1, null, new long[]{workSize}, new long[]{32L}, 0, null, null);
+//    		}
+//    		else	
+    			clEnqueueNDRangeKernel(commandQueue, kernel, 1, null, new long[]{workSize}, null, 0, null, null);	
 
+    		clEnqueueReadBuffer(commandQueue, d_weightArray, CL_TRUE, 0L, Sizeof.cl_long * weightArray.length, Pointer.to(weightArray), 0, null, null);
+    		
     	}
     }
     public static class WriteTaskToQueue implements Runnable {
@@ -865,20 +1002,16 @@ public class CommandLine {
 		}
     	
     }
-    
-    public class ReadScoreFromQueue implements Runnable {
-    	AbstractInference inf;
-    	Tree st;
-		public ReadScoreFromQueue(AbstractInference inf, Tree st) {
-			this.inf = inf;
-			this.st = st;
-		}
-		public void run() {
-			// TODO Auto-generated method stub
-			inf.inferSpeciesTree();
-		}
-    	
+	private static String getString(cl_device_id device, int paramName)
+    {
+        long size[] = new long[1];
+        clGetDeviceInfo(device, paramName, 0, null, size);
+        byte buffer[] = new byte[(int)size[0]];
+        clGetDeviceInfo(device, paramName, 
+            buffer.length, Pointer.to(buffer), null);
+        return new String(buffer, 0, buffer.length-1);
     }
+  
 	/*private static Tree processSolution(BufferedWriter outbuffer,
 			Iterable<Tree> bootstraps, String outgroup,
 			AbstractInference inference, List<Solution> solutions) {

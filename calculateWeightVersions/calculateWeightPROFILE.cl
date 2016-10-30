@@ -2,11 +2,16 @@ __constant sampler_t sampler =
       CLK_NORMALIZED_COORDS_FALSE
     | CLK_ADDRESS_CLAMP_TO_EDGE
     | CLK_FILTER_NEAREST;
+inline ulong clock() {
+	ulong xa;
+	asm("mov.u64 %0, %%globaltimer;" : "=l"(xa));
+	return xa;
+}
 inline long F(ushort a, ushort b, ushort c) {
 	return ((long)(a + b + c - 3))*a*b*c;
 }
 inline long FF(ushort a1, ushort a2, ushort a3, ushort b1, ushort b2, ushort b3, ushort c1, ushort c2, ushort c3) {
-	return a1*((long)(a1 + b2 + c3 - 3)*b2*c3 + (long)(a1 + b3 + c2 - 3)*b3*c2) + a2*((long)(a2 + b1 + c3 - 3)*b1*c3 + (long)(a2 + b3 + c1 - 3)*b3*c1) + a3*((long)(a3 + b1 + c2 - 3)*b1*c2 + (long)(a3 + b2 + c1 - 3)*b2*c1);
+	return a1*((a1 + b2 + c3 - 3)*b2*c3 + (a1 + b3 + c2 - 3)*b3*c2) + a2*((a2 + b1 + c3 - 3)*b1*c3 + (a2 + b3 + c1 - 3)*b3*c1) + a3*((a3 + b1 + c2 - 3)*b1*c2 + (a3 + b2 + c1 - 3)*b2*c1);
 }
 struct cl_Tripartition {
 	__global const long * cluster1;
@@ -33,7 +38,8 @@ __kernel void calcWeight(
 	__global const long* tripartitions2glob,
 	__global const long* tripartitions3glob,
 	__global long* weightArray,
-	__global ushort* stack
+	__global ushort* stack,
+	__global ulong* profile
 ){
 	long weight = 0;
 	struct cl_Tripartition trip;
@@ -57,6 +63,7 @@ __kernel void calcWeight(
 
 	int top = 0;
 	int4 geneTreesAsInts4Ints;
+	ulong starttime = clock();
 	while(1){
 		geneTreesAsInts4Ints = read_imagei(geneTreesAsInts, sampler, (int2)((counter / 4) % IMAGE_WIDTH, counter / 4 / IMAGE_WIDTH));
 		/*
@@ -77,6 +84,9 @@ __kernel void calcWeight(
 		if(counter < geneTreesAsIntsLength) {
 			counter++;
 			if (newTree) {
+				if(idx == 0){
+					starttime = clock();
+				}
 				newTree = 0;
 
 				allsides[0] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster1);
@@ -84,18 +94,27 @@ __kernel void calcWeight(
 				allsides[2] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster3);
 
 				treeCounter++;
+				if(idx == 0){
+					profile[0] += clock() - starttime;
+				}
 			}
 			if (geneTreesAsInts4Ints.x >= 0) {
+				if(idx == 0)
+					starttime = clock();
 				stack[top * globallen3 + idx] = ((trip.cluster1[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.x / LONG_BIT_LENGTH])>>(geneTreesAsInts4Ints.x % LONG_BIT_LENGTH)) & 1;
 				stack[top * globallen3 + globallen + idx] = ((trip.cluster2[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.x / LONG_BIT_LENGTH])>>(geneTreesAsInts4Ints.x % LONG_BIT_LENGTH)) & 1;
 				stack[top * globallen3 + globallen2 + idx] = ((trip.cluster3[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.x / LONG_BIT_LENGTH])>>(geneTreesAsInts4Ints.x % LONG_BIT_LENGTH)) & 1;
 				top++;
+				if(idx == 0)
+					profile[1] += clock() - starttime;
 			}
 			else if (geneTreesAsInts4Ints.x == INT_MIN) {
 				top = 0;
 				newTree = 1;
 			}
 			else if (geneTreesAsInts4Ints.x == -2) {
+				if(idx == 0)
+					starttime = clock();
 				top--;
 				int topminus1 = top - 1;
 				ushort newSides0 = stack[top * globallen3 + idx] + stack[topminus1 * globallen3 + idx];
@@ -115,14 +134,18 @@ __kernel void calcWeight(
 					F(stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + globallen + idx], side3s0);
 				*/
 
-				weight += FF(stack[top * globallen3 + idx], stack[top * globallen3 + globallen + idx], stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + idx], stack[topminus1 * globallen3 + globallen + idx], stack[topminus1 * globallen3 + globallen2 + idx], side3s0, side3s1, side3s2);	
+				weight += FF(stack[top * globallen3 + idx], stack[top * globallen3 + globallen + idx], stack[top * globallen3 + globallen + idx], stack[topminus1 * globallen3 + idx], stack[topminus1 * globallen3 + globallen + idx], stack[topminus1 * globallen3 + globallen2 + idx], side3s0, side3s1, side3s2);	
 				stack[topminus1 * globallen3 + idx] = newSides0;
 				stack[topminus1 * globallen3 + globallen + idx] = newSides1;
 				stack[topminus1 * globallen3 + globallen2 + idx] = newSides2;
 
+				if(idx == 0)
+					profile[2] += clock() - starttime;
 			}
 			else { //for polytomies
 			
+				if(idx == 0)
+					starttime = clock();
 				int nzc[3];
 				nzc[0] = nzc[1] = nzc[2] = 0;
 				int newSides[3];
@@ -158,6 +181,8 @@ __kernel void calcWeight(
 				}
 				
 				top = top + geneTreesAsInts4Ints.x + 1;
+				if(idx == 0)
+					profile[3] += clock() - starttime;		
 			}
 		}
 		else {
@@ -204,7 +229,7 @@ __kernel void calcWeight(
 					F(stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + idx], side3s1) +
 					F(stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + globallen + idx], side3s0);
 				*/	
-				weight += FF(stack[top * globallen3 + idx], stack[top * globallen3 + globallen + idx], stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + idx], stack[topminus1 * globallen3 + globallen + idx], stack[topminus1 * globallen3 + globallen2 + idx], side3s0, side3s1, side3s2);	
+				weight += FF(stack[top * globallen3 + idx], stack[top * globallen3 + globallen + idx], stack[top * globallen3 + globallen + idx], stack[topminus1 * globallen3 + idx], stack[topminus1 * globallen3 + globallen + idx], stack[topminus1 * globallen3 + globallen2 + idx], side3s0, side3s1, side3s2);	
 				stack[topminus1 * globallen3 + idx] = newSides0;
 				stack[topminus1 * globallen3 + globallen + idx] = newSides1;
 				stack[topminus1 * globallen3 + globallen2 + idx] = newSides2;
@@ -295,7 +320,7 @@ __kernel void calcWeight(
 					F(stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + idx], side3s1) +
 					F(stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + globallen + idx], side3s0);
 				*/	
-				weight += FF(stack[top * globallen3 + idx], stack[top * globallen3 + globallen + idx], stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + idx], stack[topminus1 * globallen3 + globallen + idx], stack[topminus1 * globallen3 + globallen2 + idx], side3s0, side3s1, side3s2);	
+				weight += FF(stack[top * globallen3 + idx], stack[top * globallen3 + globallen + idx], stack[top * globallen3 + globallen + idx], stack[topminus1 * globallen3 + idx], stack[topminus1 * globallen3 + globallen + idx], stack[topminus1 * globallen3 + globallen2 + idx], side3s0, side3s1, side3s2);	
 				stack[topminus1 * globallen3 + idx] = newSides0;
 				stack[topminus1 * globallen3 + globallen + idx] = newSides1;
 				stack[topminus1 * globallen3 + globallen2 + idx] = newSides2;
@@ -386,7 +411,7 @@ __kernel void calcWeight(
 					F(stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + idx], side3s1) +
 					F(stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + globallen + idx], side3s0);
 				*/	
-				weight += FF(stack[top * globallen3 + idx], stack[top * globallen3 + globallen + idx], stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + idx], stack[topminus1 * globallen3 + globallen + idx], stack[topminus1 * globallen3 + globallen2 + idx], side3s0, side3s1, side3s2);	
+				weight += FF(stack[top * globallen3 + idx], stack[top * globallen3 + globallen + idx], stack[top * globallen3 + globallen + idx], stack[topminus1 * globallen3 + idx], stack[topminus1 * globallen3 + globallen + idx], stack[topminus1 * globallen3 + globallen2 + idx], side3s0, side3s1, side3s2);	
 				stack[topminus1 * globallen3 + idx] = newSides0;
 				stack[topminus1 * globallen3 + globallen + idx] = newSides1;
 				stack[topminus1 * globallen3 + globallen2 + idx] = newSides2;
