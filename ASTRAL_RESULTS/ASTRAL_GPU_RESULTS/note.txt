@@ -1,0 +1,1 @@
+tried some optimizations with calculating weight

@@ -1,0 +1,1 @@
+this program runs the same program on the mid-point-rooted tree
