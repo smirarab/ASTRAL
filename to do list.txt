@@ -1,1 +1,0 @@
-deal with a 3 side polytomy at the end, since you can just root it elsewhere
