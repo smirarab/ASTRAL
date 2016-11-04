@@ -63,6 +63,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 	private List<Tree> geneTrees;
 	private List<Tree> completedGeeneTrees;
 	private boolean outputCompleted;
+	private String outfileName; 
 
 	public WQDataCollection( WQClusterCollection clusters, int alg, 
 			AbstractInference<Tripartition> inference) {
@@ -73,6 +74,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		this.geneTrees = inference.trees;
 		this.completedGeeneTrees = new ArrayList<Tree>();
 		this.outputCompleted = inference.shouldOutputCompleted();
+		this.outfileName = inference.options.getOutputFile();
 	}
 
 
@@ -602,7 +604,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		int t = 0;
 		BufferedWriter completedFile = null;
 		if (this.outputCompleted) {
-			String fn = GlobalMaps.outputfilename + ".completed_gene_trees";
+			String fn = this.outfileName + ".completed_gene_trees";
 			System.err.println("Outputting completed gene trees to " + fn);
 			try {
 				completedFile = new BufferedWriter(new FileWriter(fn));
