@@ -215,6 +215,8 @@ public class CommandLine {
 		Integer minleaves = null;
         BufferedWriter outbuffer;
         Set<String> keepOptions = new HashSet<String>();
+        String outfileName = null;
+        
 		
         jsap = getJSAP();     
         config = jsap.parse(args);  
@@ -231,7 +233,8 @@ public class CommandLine {
             outbuffer = new BufferedWriter(new OutputStreamWriter(System.out));
         } else {
             outbuffer = new BufferedWriter(new FileWriter(outfile));
-            GlobalMaps.outputfilename = config.getFile("output file").getCanonicalPath();
+			outfileName = config.getFile("output file") == null? 
+					null: config.getFile("output file").getCanonicalPath();
         }
         
         
@@ -358,7 +361,7 @@ public class CommandLine {
         }
         
         Options options = newOptions(criterion, rooted, extrarooted, 
-        		1.0D, 1.0D, wh, keepOptions, config);
+        		1.0D, 1.0D, wh, keepOptions, config, outfileName);
         
         /*Options bsoptions = newOptions(criterion, rooted, extrarooted, 
         		1.0D, 1.0D, wh, keepOptions, config);
@@ -450,7 +453,7 @@ public class CommandLine {
 		System.err.println("All output trees will be *arbitrarily* rooted at "+outgroup);
 		
 		if (config.getStringArray("keep") != null && config.getStringArray("keep").length != 0) {
-			if (GlobalMaps.outputfilename == null) {
+			if (options.getOutputFile() == null) {
 				throw new JSAPException("When -k option is used, -o is also needed.");
 			}
 			for (String koption : config.getStringArray("keep")) {
@@ -638,7 +641,7 @@ public class CommandLine {
     static private Options newOptions(int criterion, boolean rooted,
             boolean extrarooted, 
             double cs, double cd, double wh, 
-            Set<String> keepOptions, JSAPResult config) {
+            Set<String> keepOptions, JSAPResult config, String outfileName) {
     	Options options = new Options(
     			rooted, extrarooted, 
     			config.getBoolean("exact"), 
@@ -648,10 +651,12 @@ public class CommandLine {
     			keepOptions.contains("searchspace_norun") || keepOptions.contains("searchspace"), 
     			!keepOptions.contains("searchspace_norun"),
     			config.getInt("branch annotation level"), 
-    			config.getDouble("lambda"));
+    			config.getDouble("lambda"),
+    			outfileName);
     	options.setDLbdWeigth(wh); 
     	options.setCS(cs);
     	options.setCD(cd);
+ 
     	
     	return options;
     }
