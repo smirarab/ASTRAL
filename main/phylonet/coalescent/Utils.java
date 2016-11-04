@@ -49,6 +49,12 @@ public class Utils {
 		return children;
 	}
 
+	/**
+	 * For a given set of compatible clusters, it outputs the Tree object
+	 * @param clusters
+	 * @param identifier
+	 * @return
+	 */
 	public static Tree buildTreeFromClusters(Iterable<STITreeCluster> clusters, TaxonIdentifier identifier ) {
         if ((clusters == null) || (!clusters.iterator().hasNext())) {
           throw new RuntimeException("Empty list of clusters. The function returns a null tree.");
@@ -113,6 +119,12 @@ public class Utils {
         return (Tree)tree;
       }
 
+	
+	/**
+	 * Compute branch support given as set of trees
+	 * @param support_tree
+	 * @param trees
+	 */
     public static final void computeEdgeSupports(STITree<Double> support_tree, Iterable<Tree> trees) {
     
         // generate leaf assignment
@@ -153,6 +165,13 @@ public class Utils {
         return;
     }
 
+    /**
+     * Greedy consensus
+     * @param trees
+     * @param randomize
+     * @param taxonIdentifier
+     * @return
+     */
     public static final Tree greedyConsensus(Iterable<Tree> trees, boolean randomize,
     		TaxonIdentifier taxonIdentifier) {
     	return greedyConsensus(trees,new double[]{0d}, randomize, 1, taxonIdentifier).iterator().next();
@@ -175,6 +194,15 @@ public class Utils {
 		return range;
 	}
     
+    /***
+     * Greedy consensus with a set of thresholds
+     * @param trees
+     * @param thresholds
+     * @param randomzie
+     * @param repeat
+     * @param taxonIdentifier
+     * @return
+     */
     public static final Collection<Tree> greedyConsensus(Iterable<Tree> trees, 
     		double[] thresholds, boolean randomzie, int repeat, 
     		TaxonIdentifier taxonIdentifier) {
@@ -344,8 +372,14 @@ public class Utils {
 	}
 	
 	//TODO: change to an iterable
-	public static List<BitSet> getBitsets(HashMap<String,Integer> randomSample,
-			Tree restrictedTree) {
+	/**
+	 * Given a tree with one sample from each side of a polytomy, 
+	 *   this method returns a resolution of the original tree
+	 * @param randomSample
+	 * @param restrictedTree
+	 * @return The resolution is returned as a set of bitsets
+	 */
+	public static List<BitSet> getBitsets(HashMap<String,Integer> randomSample, Tree restrictedTree) {
 		
 		ArrayList<BitSet> ret = new ArrayList<BitSet>();
 

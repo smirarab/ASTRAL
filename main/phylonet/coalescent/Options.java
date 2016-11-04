@@ -12,6 +12,7 @@ public class Options {
 	private boolean runSearch;
 	private int branchannotation; 
 	private double lambda;
+	private String outputFile;
 	
 	//OLD parameters
 	private double DLbdWeigth;
@@ -21,7 +22,7 @@ public class Options {
 	public Options(boolean rooted, boolean extrarooted, 
 			boolean exactSolution, boolean duploss, int alg, int addExtra,
 			boolean outputCompletedGenes, boolean outSearch, boolean run,
-			int branchannotation, double lambda) {
+			int branchannotation, double lambda, String outputFile) {
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
 		this.exactSolution = exactSolution;
@@ -33,6 +34,7 @@ public class Options {
 		this.runSearch = run;
 		this.branchannotation = branchannotation;
 		this.setLambda(lambda);
+		this.setOutputFile(outputFile);
 	}
 
 	public boolean isRooted() {
@@ -147,5 +149,13 @@ public class Options {
 
 	public void setLambda(double lambda) {
 		this.lambda = lambda;
+	}
+
+	public String getOutputFile() {
+		return outputFile;
+	}
+
+	public void setOutputFile(String outputFile) {
+		this.outputFile = outputFile;
 	}
 }
