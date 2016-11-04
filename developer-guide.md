@@ -25,7 +25,7 @@ A few of them are overwritten in ASTRAL.
 
 ## Code components
 
-The code is in several packages. [phylonet.coalescent](main/phylonet/coalescent/) this is where the majority of the code resides. When we don't mention a package, we mean this place. 
+The code is in several packages but [phylonet.coalescent](main/phylonet/coalescent/)  is where the majority of the code resides. When we don't mention a package, we mean this place. 
 
 
 ### General
@@ -34,7 +34,7 @@ In ASTRAL, each clade or partition is represented as a BitSet.
 
 *  [phylonet.util.BitSet](main/phylonet/util/BitSet.java): This simply modifies Java's Bitset class for improved efficiency and usability.
 *  [phylonet.tree.model.sti.STITreeCluster](main/phylonet/tree/model/sti/STITreeCluster.java): This is a cluster, which is simply a subset of the set of leaves. Each Cluster should be associated with a taxon identifier, and inside includes a bitset.
-	* [phylonet.tree.model.sti.STITreeCluster.Vertex](main/phylonet/tree/model/sti/STITreeCluster.java): This is an inner class inside STITreeCluster, which simply constitutes a node in the dynamic programming. It has various extra fields (in addition to the implicit reference to its out class, which is the cluster in the dynamic programming) for backtracking of the dynamic programming. 
+	* [phylonet.tree.model.sti.STITreeCluster.Vertex](main/phylonet/tree/model/sti/STITreeCluster.java): This is an inner class inside STITreeCluster, which simply constitutes a node in the dynamic programming. It has various extra fields (in addition to the implicit reference to its outter class, which is the cluster in the dynamic programming) for backtracking of the dynamic programming. 
 
 Then, there are interfaces and abstract classes:
 
@@ -49,28 +49,9 @@ Mostly just has methods for setting up the set `X`. Thus, this sets up and maint
 The hub for all types of operations that ASTRAL can perform (dynamic programming inference, scoring, building set X, etc.).
 Actual computations are delegated to other classes. This just "manages" stuff. Has access to input options, to data collections, and to weight
 calculators. Sets everything up and starts computations. 
-* [AbstractComputeMinCostTask](main/phylonet/coalescent/AbstractComputeMinCostTask.java): This is where the **dynamic programming** algorithm is actually implemented. Uses Vertex and IClusterCollection, in addition to the WeightCalculator to perform one run of the dynamic programming. 
+* [AbstractComputeMinCostTask](main/phylonet/coalescent/AbstractComputeMinCostTask.java): This is where the **dynamic programming** algorithm is actually implemented. Uses Vertex and IClusterCollection, in addition to the WeightCalculator to perform the dynamic programming. 
 * [AbstractWeightCalculator](main/phylonet/coalescent/AbstractWeightCalculator.java): Subclasses of this are where the weights in the dynamic programming are computed. The abstract class does little useful work. Important methods are abstract. 
 
-### Relevant to input/output
-
-Classes relevant to the command-line GUI, including handling of input and output, are:
-
-* [GlobalMaps](main/phylonet/coalescent/GlobalMaps.java): Static class, keeping instances of singleton classes that should be accessed only through here:
-	* taxon identifier
-	* random number generator
-	* taxon name map 	
-* [CommandLine](main/phylonet/coalescent/CommandLine.java): Reads command line input using the JSAP library and starts the correct inference, based on the options provided by the user
-	* Handles bootstrapping options here (to be refactored out)
-	* Handles creation of some singletons, such as taxon identifier, name maps, etc.  
-* [Options](main/phylonet/coalescent/Options.java): Saves user input options. Inference class has an instance, which is created by the CommandLine. 
-* [TaxonIdentifier](main/phylonet/coalescent/TaxonIdentifier.java):
- Maps taxon names to taxon IDs.  
-* [TaxonNameMap](main/phylonet/coalescent/TaxonNameMap.java):
-Maps the names in the gene trees to the names in the species tree 
-* [SpeciesMapper](main/phylonet/coalescent/SpeciesMapper.java): Maps IDs between gene trees and the species tree
-* [Solution](main/phylonet/coalescent/Solution.java): Used for building and keeping the output (not important; to be removed maybe)
-* [phylonet.tree.io.NewickWriter](main/phylonet/tree/io/NewickWriter.java): simple modifications to phylonet's newick writer
 
 
 ### Relevant to ASTRAL
@@ -96,7 +77,25 @@ and also:
 * [Tripartition](main/phylonet/coalescent/Tripartition.java): This class  represents a tripartition
 
 
+### Relevant to input/output
 
+Classes relevant to the command-line GUI, including handling of input and output and taxon names are:
+
+* [GlobalMaps](main/phylonet/coalescent/GlobalMaps.java): Static class, keeping instances of singleton classes that should be accessed only through here:
+	* taxon identifier
+	* random number generator
+	* taxon name map 	
+* [CommandLine](main/phylonet/coalescent/CommandLine.java): Reads command line input using the JSAP library and starts the correct inference based on the options provided by the user
+	* Handles bootstrapping options (to be refactored out)
+	* Handles creation of some singletons, such as taxon identifier, name maps, etc.  
+* [Options](main/phylonet/coalescent/Options.java): Saves user input options. Inference class has an instance, which is created by the CommandLine. 
+* [TaxonIdentifier](main/phylonet/coalescent/TaxonIdentifier.java):
+ Maps taxon names to taxon IDs.  
+* [TaxonNameMap](main/phylonet/coalescent/TaxonNameMap.java):
+Maps the names in the gene trees to the names in the species tree 
+* [SpeciesMapper](main/phylonet/coalescent/SpeciesMapper.java): Maps IDs between gene trees and the species tree
+* [Solution](main/phylonet/coalescent/Solution.java): Used for building and keeping the output (not important; to be removed maybe)
+* [phylonet.tree.io.NewickWriter](main/phylonet/tree/io/NewickWriter.java): simple modifications to phylonet's newick writer
 
 
 
