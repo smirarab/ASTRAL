@@ -35,12 +35,12 @@ We focus on `phylonet.coalescent`.
 ### General
 First, some interfaces and abstract classes are:
 
-* [IClusterCollection.java](), [AbstractClusterCollection.java](main/phylonet/coalescent/IClusterCollection.java](), [AbstractClusterCollection.java):
-	* Keep the set of clusters (used as X in ASTRAL)
+* [IClusterCollection.java](main/phylonet/coalescent/IClusterCollection.java), [AbstractClusterCollection.java](main/phylonet/coalescent/AbstractClusterCollection.java):
+Keep the set of clusters (used as X in ASTRAL)
 * [AbstractInference.java](main/phylonet/coalescent/AbstractInference.java):
-	* The hub for all types of operations (dynamic programming inference, scoring, building set X, etc. ) 
+The hub for all types of operations (dynamic programming inference, scoring, building set X, etc. ) 
 * [AbstractDataCollection.java](main/phylonet/coalescent/AbstractDataCollection.java):
-	* Methods for setting up the set X 
+Methods for setting up the set X 
 * [AbstractComputeMinCostTask.java](main/phylonet/coalescent/AbstractComputeMinCostTask.java):
 * [AbstractWeightCalculator.java](main/phylonet/coalescent/AbstractWeightCalculator.java):
 
