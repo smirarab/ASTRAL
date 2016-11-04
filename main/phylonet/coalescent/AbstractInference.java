@@ -262,10 +262,21 @@ public abstract class AbstractInference<T> {
 		return (List<Solution>) (List<Solution>) solutions;
 	}
 	
+	/**
+	 * Sets up data structures before starting DP
+	 */
+	void setup() {
+		this.setupSearchSpace();
+		this.initializeWeightCalculator();
+		this.setupMisc();
+	}
+	
+	abstract void initializeWeightCalculator();
+
 	/***
 	 * Creates the set X 
 	 */
-	public void setupSearchSpace() {
+	private void setupSearchSpace() {
 		long startTime = System.currentTimeMillis();
 
 		mapNames();
@@ -277,7 +288,7 @@ public abstract class AbstractInference<T> {
 		dataCollection.computeTreePartitions(this);
 
 		/***
-		 * Adds new bipartitions using ASTRAL-II hueristics
+		 * Adds new bipartitions using heuristics
 		 */
 		if (this.getAddExtra() != 0) {
 		    System.err.println("calculating extra bipartitions to be added at level " + this.getAddExtra() +" ...");
@@ -326,6 +337,8 @@ public abstract class AbstractInference<T> {
 				+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 		
 	}
+	abstract void setupMisc();
+
 	public List<Solution> inferSpeciesTree() {
 
 		
