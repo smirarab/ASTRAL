@@ -42,6 +42,11 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		return this.algorithm.calculateWeight(t);
 	}
 
+	/**
+	 * ASTRAL-II way of calculating weights 
+	 * @author smirarab
+	 *
+	 */
 	class TraversalWeightCalculator extends WeightCalculatorAlgorithm {
 		
 		int[][] stack = new int[GlobalMaps.taxonIdentifier.taxonCount() + 2][3];
@@ -150,6 +155,11 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		}
 	}
 
+	/***
+	 * This is for ASTRAL-I
+	 * @author smirarab
+	 *
+	 */
 	class SetWeightCalculator extends WeightCalculatorAlgorithm {
 		Long calculateWeight(Tripartition trip) {
 			long weight = 0l;

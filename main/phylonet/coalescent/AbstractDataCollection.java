@@ -7,6 +7,14 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.util.BitSet;
 
+/**
+ * This class is used in the inference class, and does two things:
+ *  -- Keeps an instance of the top level IClusterCollection
+ *  -- Has methods for building the set X
+ * @author smirarab
+ *
+ * @param <T>
+ */
 public abstract class AbstractDataCollection <T> {
 
 	protected IClusterCollection clusters;
@@ -46,6 +54,7 @@ public abstract class AbstractDataCollection <T> {
 
     public abstract void addExtraBipartitionByExtension(AbstractInference<T> inference);
     
+    //TODO: see if this method belongs here. 
 	abstract long maxPossibleScore(Tripartition trip);
 	
 		@Override
