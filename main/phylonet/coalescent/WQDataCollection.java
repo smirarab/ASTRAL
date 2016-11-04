@@ -30,27 +30,27 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.util.Trees;
 import phylonet.util.BitSet;
 
+/**
+ * Sets up the set X
+ * @author smirarab
+ *
+ */
 public class WQDataCollection extends AbstractDataCollection<Tripartition> implements Cloneable {
 
 
 
+	/**
+	 * A list that includes the cluster associated with the set of all taxa included in each gene tree
+	 */
 	List<STITreeCluster> treeAllClusters = new ArrayList<STITreeCluster>();
-
-	Tripartition [] finalTripartitions = null;
-	int [] finalCounts = null;	
-
-	Integer [] geneTreesAsInts;
-
-	//private float[][] similarityMatrix;
-	//private Integer[][] orderedTaxonBySimilarity;
 	
 	SimilarityMatrix similarityMatrix;
 	SimilarityMatrix speciesSimilarityMatrix;
 	
 	private int n;
-	private int algorithm;
 	private SpeciesMapper spm;
 
+	// Parameters of ASTRAL-II heuristics
 	private boolean SLOW = false;
 	private final double [] GREEDY_ADDITION_THRESHOLDS = new double [] {0, 1/100., 1/50., 1/20., 1/10., 1/5., 1/3.} ;
 	private final int GREEDY_DIST_ADDITTION_LAST_THRESHOLD_INDX = 3;
@@ -65,10 +65,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 	private boolean outputCompleted;
 	private String outfileName; 
 
-	public WQDataCollection( WQClusterCollection clusters, int alg, 
+	public WQDataCollection( WQClusterCollection clusters, 
 			AbstractInference<Tripartition> inference) {
 		this.clusters = clusters;
-		this.algorithm = alg;
 		this.spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
 		this.SLOW = inference.getAddExtra() >= 2;
 		this.geneTrees = inference.trees;
@@ -78,85 +77,21 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 	}
 
 
-	private STITreeCluster getClusterForNodeName(String nodeName) {
-		STITreeCluster cluster = new STITreeCluster();
-		Integer taxonID = GlobalMaps.taxonIdentifier.taxonId(nodeName);
-		cluster.addLeaf(taxonID);
-		return cluster;
-	}
-
-
-	private void addTripartition(STITreeCluster l_cluster,
-			STITreeCluster r_cluster, STITreeCluster remaining, TNode node,
-			Map<Tripartition, Integer> geneTreeTripartitonCount) {
-	
-		Tripartition trip = new Tripartition(l_cluster, r_cluster, remaining);
-		geneTreeTripartitonCount.put(trip,
-				geneTreeTripartitonCount.containsKey(trip) ? 
-						geneTreeTripartitonCount.get(trip) + 1 : 1);
-	}
-
-
-	void findGenetreeTripartitions( Map<Tripartition, Integer> geneTreeTripartitonCount,
-			List<STITreeCluster> treeCompteleClusters) {
-	
-		System.err.println("Calculating tripartitions from gene trees ");
-		int t = 0;
-		for (Tree tr : this.geneTrees) {
-			//System.err.print(".");
-			Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
-			STITreeCluster gtAll = treeCompteleClusters.get(t++);
-			BitSet gtAllBS = gtAll.getBitSet();
-	
-			
-			for (TNode node : tr.postTraverse()) {				
-				if (node.isLeaf()) {				
-					STITreeCluster cluster = getClusterForNodeName(node.getName());
-					stack.add(cluster);
-				} else {
-	
-					ArrayList<STITreeCluster> childbslist = new ArrayList<STITreeCluster>();
-					BitSet bs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
-					for (TNode child: node.getChildren()) {
-						STITreeCluster pop = stack.pop();
-						childbslist.add(pop);
-						bs.or(pop.getBitSet());
-					}
-	
-					STITreeCluster cluster = new STITreeCluster();
-					cluster.setCluster((BitSet) bs.clone());
-					stack.add(cluster);
-	
-					STITreeCluster remaining = cluster.complementaryCluster();
-					remaining.getBitSet().and(gtAllBS);
-					if (remaining.getClusterSize() != 0) {
-						childbslist.add(remaining);
-					}
-					//System.err.println(childbslist.size());
-					for (int i = 0; i < childbslist.size(); i++) {
-						for (int j = i+1; j < childbslist.size(); j++) {
-							for (int k = j+1; k < childbslist.size(); k++) {
-								addTripartition( childbslist.get(i),  childbslist.get(j), 
-										childbslist.get(k), node, geneTreeTripartitonCount);
-							}
-						}					       
-					}
-					
-				}
-			}
-	
-		}
-	}
 
 
 	void addTreeBipartitionsToX(List<Tree> trees) {
 
 		Tree[] greedies = new Tree[POLYTOMY_RESOLUTIONS];
+		
+		/**
+		 * Get two randomly resolved greedy consensus of gene trees, further
+		 * resolved by UPGMA. Used for gene trees with polytomies. 
+		 */
 		for (int i = 0; i < greedies.length; i++ ) {
 			greedies[i] = Utils.greedyConsensus(trees, true, GlobalMaps.taxonIdentifier);
 			resolveByUPGMA((MutableTree) greedies[i]);
 		}
-		
+
 		for (Tree tr : trees) {
 			
 			Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
@@ -164,7 +99,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 			for (TNode node : tr.postTraverse()) {				
 				// System.err.println("Node is:" + node);
 				if (node.isLeaf()) {
-					STITreeCluster cluster = getClusterForNodeName(node.getName());
+					STITreeCluster cluster = Utils.getClusterForNodeName(node.getName());
 					stack.add(cluster);
 					STITreeCluster remaining = cluster.complementaryCluster();
 					addARawBipartitionToX(cluster,remaining);
@@ -200,6 +135,15 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 						childbslist.add(newcl);
 					}*/
 				
+					
+					/**
+					 * For polytomies, if we don't do anything extra, 
+					 *  the cluster associated with the polytomy may
+					 *  not have any resolutions in X. We don't want that. 
+					 *  We use the greedy consensus trees and random
+					 *  sampling to add extra bipartitions to the input 
+					 *  set when we have polytomies. 
+					 */
 					if (childbslist.size() > 2) {	
 						//sampleAndResolve(childbslist.toArray(new BitSet[]{}), false);
 						boolean isRoot = remaining.getClusterSize() == 0;
@@ -236,6 +180,13 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 	}
 
 
+	/**
+	 * Completes an incomplete tree for the purpose of adding to set X
+	 * Otherwise, bipartitions are meaningless. 
+	 * @param tr
+	 * @param gtAllBS
+	 * @return
+	 */
 	Tree getCompleteTree(Tree tr, BitSet gtAllBS) {
 		
 		if (gtAllBS.cardinality() < 3) {
@@ -304,9 +255,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 				newinternalnode.adoptChild(c2);
 			}		
 		}
-		
-	
-		
+
 		return trc;
 	}
 
@@ -316,7 +265,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		return this.addARawBipartitionToX(cluster, cluster.complementaryCluster());
 	}
 
-	/*
+	/**
 	 * Adds bipartitions to X, ensuring that individuals from the same
 	 * species are not on both sides of any bipartitions
 	 * Uses heuristics to move individuals around if they are on both sides.
@@ -347,8 +296,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 			if (spm.getLowestIndexIndividual(sID) == i ) {
 				countsC2c[sID]++;
 			}
-		}  		
-		/*
+		}  
+		
+		/**
 		 * Add a bipartition where every individual is moved to the side where it is more common
 		 */
 		BitSet bs1Voted = new BitSet(spm.getSpeciesCount()); 
@@ -393,7 +343,12 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		addTreeBipartitionsToX(completedExtraGeeneTrees);
 	}
 
-
+	/**
+	 * Assumes inputs are already fixed to have all individuals of the same species. 
+	 * @param c1
+	 * @param c2
+	 * @return
+	 */
 	private boolean addCompletedSpeciesFixedBipartionToX(STITreeCluster c1, STITreeCluster c2) {
 		boolean added = false;
 		int size = c1.getClusterSize();
@@ -407,6 +362,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 	}
 
 
+	/**
+	 * Computes and adds partitions from the input set (ASTRAL-I)
+	 */
 	public void computeTreePartitions(AbstractInference<Tripartition> inference) {
 
 		int haveMissing = preProcess(inference);
@@ -427,130 +385,12 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		addToClusters(all, GlobalMaps.taxonIdentifier.taxonCount());	
 		System.err.println("Building set of clusters (X) from gene trees ");
 		addTreeBipartitionsToX( this.completedGeeneTrees);
-		
-		initializeWeightCalculator(inference);
-		
-		((WQInference)inference).maxpossible = this.calculateMaxPossible();
-		System.err.println("Number of quartet trees in the gene trees: "+((WQInference)inference).maxpossible);
 
-
-	}
-
-
-	void initializeWeightCalculator(
-			AbstractInference<Tripartition> inference) {
-		/*
-		 * If needed calculate gene tree tripartitions
-		 */
-		int k = this.geneTrees.size();
-		Map<Tripartition, Integer> geneTreeTripartitonCount = new HashMap<Tripartition, Integer>(k * n);
-		if (this.algorithm == 2 || this.algorithm == -1) {
-			findGenetreeTripartitions(geneTreeTripartitonCount, treeAllClusters);
-		}
-		if (this.algorithm == -1) {
-			this.setAlgorithm(geneTreeTripartitonCount.size(), k);
-		}
-		
-		if (this.algorithm == 2) {
-			System.err.println("Using tripartition-based weight calculation.");
-
-			finalTripartitions = new Tripartition[geneTreeTripartitonCount.size()];
-			finalCounts = new int[geneTreeTripartitonCount.size()];
-			int i = 0;
-			for (Entry<Tripartition, Integer> entry : geneTreeTripartitonCount.entrySet()){
-				finalTripartitions[i] = entry.getKey();
-				finalCounts[i] = entry.getValue();
-				i++;
-			}
-			((WQWeightCalculator)inference.weightCalculator).useSetWeights();
-		} else { 
-			System.err.println("Using tree-based weight calculation.");
-			List<Integer> temp = new ArrayList<Integer>(); 
-
-			for (Tree tr :  this.geneTrees) {
-				for (TNode node : tr.postTraverse()) {
-					if (node.isLeaf()) {                        
-						temp.add(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
-					} else {
-						temp.add(-node.getChildCount());
-					}
-					if (node.isRoot()) {
-						temp.add(Integer.MIN_VALUE);
-					}
-				}
-			}
-			geneTreesAsInts = temp.toArray(new Integer[]{});
-		}
-
-
-		if (geneTreeTripartitonCount.size() > 0) {
-			long s = 0;
-			for (Integer c : geneTreeTripartitonCount.values()) {
-				s += c;
-			}
-			System.err.println("Tripartitions in gene trees (count): "
-					+ geneTreeTripartitonCount.size());
-			System.err.println("Tripartitions in gene trees (sum): " + s);
-		}
 		System.err.println("Number of Default Clusters: " + clusters.getClusterCount());
-
-		inference.weightCalculator.initializeWeightContainer(
-				geneTreeTripartitonCount.size() * 2);
-	}
-
-	long calculateMaxPossible() {
-		long weight = 0;
-		Integer  allsides = null;
-		Iterator<STITreeCluster> tit = this.treeAllClusters.iterator();
-		boolean newTree = true;
 		
-		Deque<Integer> stack = new ArrayDeque<Integer>();
-		for (Integer gtb: this.geneTreesAsInts){
-			if (newTree) {
-				allsides = tit.next().getBitSet().cardinality();
-				newTree = false;
-			}
-			if (gtb >= 0){
-				stack.push(1);
-			} else if (gtb == Integer.MIN_VALUE) {
-				stack.clear();
-				newTree = true;
-			}  else {
-			    ArrayList<Integer> children = new ArrayList<Integer>();
-			    Integer newSide = 0;
-			    for (int i = gtb; i < 0 ; i++) {
-			    	Integer pop = stack.pop();
-			        children.add(pop);
-			        newSide+=pop;
-			    }
-			    stack.push(newSide);
-                Integer sideRemaining = allsides - newSide;
-                if ( sideRemaining !=0) {
-                    children.add(sideRemaining);
-                }
-                for (int i = 0; i < children.size(); i++) {
-                	Long a = children.get(i) + 0l;
-                    
-                    for (int j = i+1; j < children.size(); j++) {
-                    	Long b = children.get(j) + 0l;
-                        /*if (children.size() > 5) {
-                        	if ((side1.s0+side2.s0 == 0? 1 :0) +
-                        			(side1.s1+side2.s1 == 0? 1 :0) + 
-                        			(side1.s2+side2.s2 == 0? 1:0) > 1)
-                        		continue;
-                        }
-                        */
-                        for (int k = j+1; k < children.size(); k++) {
-                        	Long c = children.get(k) + 0l;
-                            weight += (a+b+c-3) *a*b*c;
-                        }
-                    }
-                }
-			}
-		}
-		return weight/4l;
 	}
 
+	
 	private void calculateDistances() {
 		System.err.println("Calculating quartet distance matrix (for completion of X)");
 		
@@ -583,7 +423,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 	}
 
 	
-	long maxPossibleScore(Tripartition trip) {
+	/*long maxPossibleScore(Tripartition trip) {
 		
 		long weight = 0;
 
@@ -596,7 +436,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 				weight += (a+b+c-3)*a*b*c;
 		}
 		return weight;
-	}
+	}*/
 	
 
 	private void completeGeneTrees() {
@@ -633,6 +473,10 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		}
 	}
 	
+	/**
+	 * for debugging
+	 * @param distSTMatrix
+	 */
 	private void printoutdistmatrix(double [][] distSTMatrix) {
 		for (String s :spm.getSTTaxonIdentifier().getAllTaxonNames()) {
 	        System.err.print(String.format("%1$8s",s));
@@ -646,21 +490,11 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 	    }
 	}
 
-	private void setAlgorithm(int geneTreeTripartitonCountSize, int k){
-		if (this.algorithm != -1) {
-			return;
-		}
-		if (k <= 0 || geneTreeTripartitonCountSize <= 0) {
-			throw new RuntimeException("gene tree tripartition size or k not set properly");
-		}
-		if (this.algorithm == -1) {
-			this.algorithm = (n <= 32 || (geneTreeTripartitonCountSize < k*6)) ? 2 : 1;
-		} else {
-			throw new RuntimeException("Algorithm already set");
-		}
-	}
-
-
+	/**
+	 * By default (when SLOW is false) it only computes
+	 * an UPGMA from the distance data and adds to the
+	 * set of bipartitions
+	 */
 	public void addExtraBipartitionByDistance() {
 
 		for (BitSet bs: speciesSimilarityMatrix.UPGMA()) {
@@ -679,12 +513,14 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 	}
 
 
+	/**
+	 * Main function implementing new heuiristics in ASTRAL-II
+	 */
 	@Override
 	public void addExtraBipartitionByExtension(AbstractInference<Tripartition> inference) {
 		
 		this.addExtraBipartitionByDistance(); 
 
-	
 		System.err.println("Adding to X using resolutions of greedy consensus ...");
 		for (Tree tree:  this.completedGeeneTrees) {
 			tree.rerootTreeAtEdge(GlobalMaps.taxonIdentifier.getTaxonName(0));
@@ -763,6 +599,12 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 	}
 
 
+	/**
+	 * Resolves a polytomy using UPGMA and adds resulting
+	 * new bipartitions to the set X
+	 * @param polytomyBSList
+	 * @return
+	 */
 	private boolean resolveByUPGMA(BitSet [] polytomyBSList) {
 		boolean added = false;
 		
@@ -772,7 +614,15 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		return added;
 	}
 
-
+	/**
+	 * This is the first step of the greedy algorithm where
+	 * one counts how many times a bitset is present in input gene trees.
+	 * A complication is that this is computing the greedy consensus
+	 * among the gene trees subsampled to the given randomSample
+	 * @param genetrees
+	 * @param randomSample
+	 * @return
+	 */
 	private HashMap<BitSet, Integer> returnBitSetCounts(List<Tree> genetrees,
 			HashMap<String, Integer> randomSample) {
 		
@@ -798,9 +648,14 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		return counts;
 	}
 
-
 	
-	
+	/**
+	 * For a given polytomy, samples randomly around its branches
+	 * and adds results to the set X. 
+	 * @param polytomyBSList
+	 * @param addQuadratic
+	 * @return Whether any clusters of high frequency were added in this round
+	 */
 	private boolean sampleAndResolve(BitSet[] polytomyBSList, boolean addQuadratic) {
 		
 		boolean addedHighFreq = false;
@@ -814,10 +669,17 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		return addedHighFreq;
 	}
 
+	/**
+	 * Resolves a polytomy using the greedy consensus of a subsample from clusters around it
+	 * @param polytomyBSList
+	 * @param randomSample
+	 * @return
+	 */
 	private boolean resolveLinearly(BitSet[] polytomyBSList, HashMap<String, Integer> randomSample) {
 		int sampleSize = randomSample.size();
 		// get bipartition counts in the induced trees
-		HashMap<BitSet, Integer> counts = returnBitSetCounts(this.completedGeeneTrees, randomSample);
+		HashMap<BitSet, Integer> counts = 
+				returnBitSetCounts(this.completedGeeneTrees, randomSample);
 		
 		// sort bipartitions
 		TreeSet<Entry<BitSet,Integer>> countSorted = new 
