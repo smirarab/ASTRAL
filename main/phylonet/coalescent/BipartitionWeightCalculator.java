@@ -14,11 +14,14 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 
 	WQInference inference;
 	private WQDataCollection dataCollection;
+	private Integer[] geneTreesAsInts;
 
-	public BipartitionWeightCalculator(AbstractInference<Tripartition> inference) {
+	public BipartitionWeightCalculator(AbstractInference<Tripartition> inference,
+			Integer[] geneAsInts) {
 		super(false);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
 		this.inference = (WQInference) inference;
+		this.geneTreesAsInts = geneAsInts;
 	}
 
 	
@@ -140,7 +143,7 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 		Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
 		Deque<Intersects> stack = new ArrayDeque<Intersects>();
 
-		for (Integer gtb: dataCollection.geneTreesAsInts){
+		for (Integer gtb: geneTreesAsInts){
 			//n++;
 			if (newTree) {
 				STITreeCluster all = tit.next();

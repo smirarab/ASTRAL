@@ -1,14 +1,23 @@
 package phylonet.coalescent;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Stack;
 
-import phylonet.tree.model.MutableTree;
+import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
-import phylonet.tree.model.sti.STITree;
 import phylonet.tree.model.sti.STITreeCluster;
-import phylonet.tree.util.Trees;
+import phylonet.util.BitSet;
 
+/**
+ * Knows how to compute the score of a given tripartition
+ * @author smirarab
+ *
+ */
 class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 	WQInference inference;
@@ -34,6 +43,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		}
 
 		abstract Long calculateWeight(Tripartition trip);
+		abstract void setupGeneTrees(WQInference inference);
 	}
 
 	@Override
@@ -54,6 +64,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		int[][] overlap = new int[GlobalMaps.taxonIdentifier.taxonCount() +1][3];
 		int[][] overlapind = new int[GlobalMaps.taxonIdentifier.taxonCount() +1][3];
 
+		Integer [] geneTreesAsInts;
 		
 		Long calculateWeight(Tripartition trip) {
 
@@ -62,7 +73,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
 			boolean newTree = true;
 			int top = 0; // The first empty place on stack (generally)
-			for (Integer gtb : dataCollection.geneTreesAsInts) {
+			for (Integer gtb : this.geneTreesAsInts) {
 				if (newTree) {
 					STITreeCluster all = tit.next();
 					allsides = new int[] {
@@ -153,6 +164,30 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 			return weight;
 		}
+
+
+		@Override
+		void setupGeneTrees(WQInference inference) {
+			System.err.println("Using tree-based weight calculation.");
+			List<Integer> temp = new ArrayList<Integer>(); 
+
+			for (Tree tr :  inference.trees) {
+				for (TNode node : tr.postTraverse()) {
+					if (node.isLeaf()) {                        
+						temp.add(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
+					} else {
+						temp.add(-node.getChildCount());
+					}
+					if (node.isRoot()) {
+						temp.add(Integer.MIN_VALUE);
+					}
+				}
+			}
+			geneTreesAsInts = temp.toArray(new Integer[]{});
+			
+		}
+		
+		
 	}
 
 	/***
@@ -161,14 +196,110 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	 *
 	 */
 	class SetWeightCalculator extends WeightCalculatorAlgorithm {
+		
+		Tripartition [] finalTripartitions = null;
+		int [] finalCounts = null;
+		
 		Long calculateWeight(Tripartition trip) {
 			long weight = 0l;
-			for (int i = 0; i < dataCollection.finalCounts.length; i++) {
+			for (int i = 0; i < this.finalCounts.length; i++) {
 				weight += sharedQuartetCount(trip,
-						dataCollection.finalTripartitions[i])
-						* dataCollection.finalCounts[i];
+						this.finalTripartitions[i])
+						* this.finalCounts[i];
 			}
 			return weight;
+		}
+		
+		
+		private void addTripartition(STITreeCluster l_cluster,
+				STITreeCluster r_cluster, STITreeCluster remaining, TNode node,
+				Map<Tripartition, Integer> geneTreeTripartitonCount) {
+		
+			Tripartition trip = new Tripartition(l_cluster, r_cluster, remaining);
+			geneTreeTripartitonCount.put(trip,
+					geneTreeTripartitonCount.containsKey(trip) ? 
+							geneTreeTripartitonCount.get(trip) + 1 : 1);
+		}
+
+		void setupGeneTrees(WQInference inference) {
+		
+			List<STITreeCluster> treeCompteleClusters = 
+					((WQDataCollection)inference.dataCollection).treeAllClusters;
+			List<Tree> geneTrees = inference.trees;
+			
+			System.err.println("Calculating tripartitions from gene trees ");
+			
+			Map<Tripartition, Integer> geneTreeTripartitonCount = new 
+					HashMap<Tripartition, Integer>(inference.trees.size() 
+							*  GlobalMaps.taxonIdentifier.taxonCount());
+			
+			int t = 0;
+			for (Tree tr : geneTrees) {
+				//System.err.print(".");
+				Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
+				STITreeCluster gtAll = treeCompteleClusters.get(t++);
+				BitSet gtAllBS = gtAll.getBitSet();
+		
+				
+				for (TNode node : tr.postTraverse()) {				
+					if (node.isLeaf()) {				
+						STITreeCluster cluster = Utils.getClusterForNodeName(node.getName());
+						stack.add(cluster);
+					} else {
+		
+						ArrayList<STITreeCluster> childbslist = new ArrayList<STITreeCluster>();
+						BitSet bs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
+						for (TNode child: node.getChildren()) {
+							STITreeCluster pop = stack.pop();
+							childbslist.add(pop);
+							bs.or(pop.getBitSet());
+						}
+		
+						STITreeCluster cluster = new STITreeCluster();
+						cluster.setCluster((BitSet) bs.clone());
+						stack.add(cluster);
+		
+						STITreeCluster remaining = cluster.complementaryCluster();
+						remaining.getBitSet().and(gtAllBS);
+						if (remaining.getClusterSize() != 0) {
+							childbslist.add(remaining);
+						}
+						//System.err.println(childbslist.size());
+						for (int i = 0; i < childbslist.size(); i++) {
+							for (int j = i+1; j < childbslist.size(); j++) {
+								for (int k = j+1; k < childbslist.size(); k++) {
+									
+									addTripartition( childbslist.get(i),  childbslist.get(j), 
+											childbslist.get(k), node, geneTreeTripartitonCount);
+								}
+							}					       
+						}
+						
+					}
+				}
+		
+			}
+			
+			System.err.println("Using tripartition-based weight calculation.");
+
+			finalTripartitions = new Tripartition[geneTreeTripartitonCount.size()];
+			finalCounts = new int[geneTreeTripartitonCount.size()];
+			int i = 0;
+			for (Entry<Tripartition, Integer> entry : geneTreeTripartitonCount.entrySet()){
+				finalTripartitions[i] = entry.getKey();
+				finalCounts[i] = entry.getValue();
+				i++;
+			}
+			
+			if (geneTreeTripartitonCount.size() > 0) {
+				long s = 0;
+				for (Integer c : geneTreeTripartitonCount.values()) {
+					s += c;
+				}
+				System.err.println("Tripartitions in gene trees (count): "
+						+ geneTreeTripartitonCount.size());
+				System.err.println("Tripartitions in gene trees (sum): " + s);
+			}
 		}
 
 		long sharedQuartetCount(Tripartition that, Tripartition other) {
@@ -189,11 +320,27 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		}
 	}
 	
-	public void useSetWeights() {
+	public void useSetWeightsAlgorithm() {
 		algorithm = new SetWeightCalculator();
 	}
 
+	/**
+	 * obsolete (for now)
+	 */
 	public void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees) {
+	}
+
+	/**
+	 * Each algorithm will have its own data structure for gene trees
+	 * @param wqInference
+	 */
+	public void setupGeneTrees(WQInference wqInference) {
+		this.algorithm.setupGeneTrees(wqInference);		
+	}
+	
+	//TODO: this is algorithm-specific should not be exposed. Fix. 
+	public Integer[] geneTreesAsInts() {
+		return ((TraversalWeightCalculator)algorithm).geneTreesAsInts;
 	}
 
 
