@@ -597,7 +597,7 @@ public class CommandLine {
         AbstractInference inference =
             initializeInference(criterion, input, extraTrees, options);
               
-        inference.setupSearchSpace(); 
+        inference.setup(); 
         List<Solution> solutions = inference.inferSpeciesTree();
         
         System.err.println("Optimal tree inferred in "
