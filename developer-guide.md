@@ -34,9 +34,9 @@ In ASTRAL, each clade or partition is represented as a BitSet.
 
 *  [phylonet.util.BitSet](main/phylonet/util/BitSet.java): This simply modifies Java's Bitset class for improved efficiency and usability.
 *  [phylonet.tree.model.sti.STITreeCluster](main/phylonet/tree/model/sti/STITreeCluster.java): This is a cluster, which is simply a subset of the set of leaves. Each Cluster should be associated with a taxon identifier, and inside includes a bitset.
-	* [phylonet.tree.model.sti.STITreeCluster.Vertex](main/phylonet/tree/model/sti/STITreeCluster.java): This is an inner class inside Vertex, which simply constitutes a node in the dynamic programming. It has various extra fields (in addition to the implicit reference to its out class, which is the cluster in the dynamic programming) for backtracking of the dynamic programming. 
+	* [phylonet.tree.model.sti.STITreeCluster.Vertex](main/phylonet/tree/model/sti/STITreeCluster.java): This is an inner class inside STITreeCluster, which simply constitutes a node in the dynamic programming. It has various extra fields (in addition to the implicit reference to its out class, which is the cluster in the dynamic programming) for backtracking of the dynamic programming. 
 
-The, there are interfaces and abstract classes:
+Then, there are interfaces and abstract classes:
 
 * [IClusterCollection](main/phylonet/coalescent/IClusterCollection.java), [AbstractClusterCollection](main/phylonet/coalescent/AbstractClusterCollection.java):
 Keep the set of clusters (used as the set `X` in ASTRAL)
@@ -50,24 +50,26 @@ The hub for all types of operations that ASTRAL can perform (dynamic programming
 Actual computations are delegated to other classes. This just "manages" stuff. Has access to input options, to data collections, and to weight
 calculators. Sets everything up and starts computations. 
 * [AbstractComputeMinCostTask](main/phylonet/coalescent/AbstractComputeMinCostTask.java): This is where the **dynamic programming** algorithm is actually implemented. Uses Vertex and IClusterCollection, in addition to the WeightCalculator to perform one run of the dynamic programming. 
-* [AbstractWeightCalculator](main/phylonet/coalescent/AbstractWeightCalculator.java): This is where the weights in the dynamic programming are computed. 
+* [AbstractWeightCalculator](main/phylonet/coalescent/AbstractWeightCalculator.java): Subclasses of this are where the weights in the dynamic programming are computed. The abstract class does little useful work. Important methods are abstract. 
 
 ### Relevant to input/output
 
 Classes relevant to the command-line GUI, including handling of input and output, are:
 
-* [CommandLine](main/phylonet/coalescent/CommandLine.java): Reads command line input using the JSAP library and starts the execution
-* [Options](main/phylonet/coalescent/Options.java): Saves user input options 
 * [GlobalMaps](main/phylonet/coalescent/GlobalMaps.java): Static class, keeping instances of singleton classes that should be accessed only through here:
 	* taxon identifier
 	* random number generator
 	* taxon name map 	
+* [CommandLine](main/phylonet/coalescent/CommandLine.java): Reads command line input using the JSAP library and starts the correct inference, based on the options provided by the user
+	* Handles bootstrapping options here (to be refactored out)
+	* Handles creation of some singletons, such as taxon identifier, name maps, etc.  
+* [Options](main/phylonet/coalescent/Options.java): Saves user input options. Inference class has an instance, which is created by the CommandLine. 
 * [TaxonIdentifier](main/phylonet/coalescent/TaxonIdentifier.java):
  Maps taxon names to taxon IDs.  
 * [TaxonNameMap](main/phylonet/coalescent/TaxonNameMap.java):
 Maps the names in the gene trees to the names in the species tree 
 * [SpeciesMapper](main/phylonet/coalescent/SpeciesMapper.java): Maps IDs between gene trees and the species tree
-* [Solution](main/phylonet/coalescent/Solution.java): Used for keeping the output
+* [Solution](main/phylonet/coalescent/Solution.java): Used for building and keeping the output (not important; to be removed maybe)
 * [phylonet.tree.io.NewickWriter](main/phylonet/tree/io/NewickWriter.java): simple modifications to phylonet's newick writer
 
 
@@ -77,13 +79,21 @@ Classes specific to ASTRAL are:
 
 * [WQClusterCollection](main/phylonet/coalescent/WQClusterCollection.java): Doesn't do anything. Work done in the abstract class. 
 * [WQComputeMinCostTask](main/phylonet/coalescent/WQComputeMinCostTask.java): Doesn't do anything. Work done in the abstract class.
-* [WQDataCollection](main/phylonet/coalescent/WQDataCollection.java)
-* [WQInference](main/phylonet/coalescent/WQInference.java)
-* [WQWeightCalculator](main/phylonet/coalescent/WQWeightCalculator.java)
-* [BipartitionWeightCalculator](main/phylonet/coalescent/BipartitionWeightCalculator.java)
-* [Posterior](main/phylonet/coalescent/Posterior.java)
-* [SimilarityMatrix](main/phylonet/coalescent/SimilarityMatrix.java)
-* [Tripartition](main/phylonet/coalescent/Tripartition.java)
+* [WQDataCollection](main/phylonet/coalescent/WQDataCollection.java):
+Has important functionality related to building the search space, including all the ASTRAL-II heuristics for augmenting the set `X`, the heuristics
+for completing incomplete gene trees, heuristics for handling multi-individual datasets, etc. 
+* [WQInference](main/phylonet/coalescent/WQInference.java):
+has implementation of functions for setting up the data structures, 
+and also:
+	* Has functions for scoring a given species tree
+	* Has functions (scoreBrances) for branch annotations using BipartitionWeightCalculator. 
+* [WQWeightCalculator](main/phylonet/coalescent/WQWeightCalculator.java): This class knows how to find the score of a tripartition from the gene trees. Has two algorithms, implemented in two nested inner classes:
+	* WQWeightCalculator.SetWeightCalculator: this is the old algorithm, used in ASTRAL-I and is based on set intersections
+	* WQWeightCalculator.TraversalWeightCalculator: this is the new algorithm based on tree traversal, used in ASTRAL-II
+* [BipartitionWeightCalculator](main/phylonet/coalescent/BipartitionWeightCalculator.java): This class computes a weight of Bipartition versus a set of input tripartitions. This is relevant to our local posterior probability paper and computation of branch lengths
+* [Posterior](main/phylonet/coalescent/Posterior.java): This computes posterior probabilities given quartet frequencies
+* [SimilarityMatrix](main/phylonet/coalescent/SimilarityMatrix.java): This implements simple functionalities for a distance matrix. The distance matrix is used in completion of gene trees and in adding to set X. 
+* [Tripartition](main/phylonet/coalescent/Tripartition.java): This class  represents a tripartition
 
 
 
