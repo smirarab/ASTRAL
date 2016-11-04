@@ -48,6 +48,13 @@ public class Utils {
 		}
 		return children;
 	}
+	
+	public static STITreeCluster getClusterForNodeName(String nodeName) {
+		STITreeCluster cluster = new STITreeCluster();
+		Integer taxonID = GlobalMaps.taxonIdentifier.taxonId(nodeName);
+		cluster.addLeaf(taxonID);
+		return cluster;
+	}
 
 	/**
 	 * For a given set of compatible clusters, it outputs the Tree object

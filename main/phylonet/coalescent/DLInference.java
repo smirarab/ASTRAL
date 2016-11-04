@@ -1,7 +1,6 @@
 package phylonet.coalescent;
 
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
@@ -9,7 +8,6 @@ import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITree;
-import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
 public class DLInference extends AbstractInference<STBipartition> {
@@ -131,6 +129,18 @@ public class DLInference extends AbstractInference<STBipartition> {
 	@Override
 	AbstractWeightCalculator<STBipartition> newWeightCalculator() {
 		return new DLWeightCalculator(this);
+	}
+
+	@Override
+	void setupMisc() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	void initializeWeightCalculator() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
