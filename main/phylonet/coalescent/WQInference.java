@@ -1,5 +1,7 @@
 package phylonet.coalescent;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -19,13 +21,87 @@ public class WQInference extends AbstractInference<Tripartition> {
 	
 	int forceAlg = -1;
 	long maxpossible;
+	
 	public WQInference(Options inOptions, List<Tree> trees, List<Tree> extraTrees) {
 		super(inOptions, trees, extraTrees);
 		
 		this.forceAlg = inOptions.getAlg();
 	}
 
+
+	/**
+	 * Calculates maximum possible score, to be used for normalization.
+	 * @return
+	 */
+	long calculateMaxPossible() {
+		long weight = 0;
+		Integer  allsides = null;
+		Iterator<STITreeCluster> tit = ((WQDataCollection)this.dataCollection).treeAllClusters.iterator();
+		boolean newTree = true;
+		
+		Deque<Integer> stack = new ArrayDeque<Integer>();
+		// TODO: this should not use private stuff from weight calculator. 
+		//       redo to use tree objects. 
+		for (Integer gtb: ((WQWeightCalculator)this.weightCalculator).geneTreesAsInts()){
+			if (newTree) {
+				allsides = tit.next().getBitSet().cardinality();
+				newTree = false;
+			}
+			if (gtb >= 0){
+				stack.push(1);
+			} else if (gtb == Integer.MIN_VALUE) {
+				stack.clear();
+				newTree = true;
+			}  else {
+			    ArrayList<Integer> children = new ArrayList<Integer>();
+			    Integer newSide = 0;
+			    for (int i = gtb; i < 0 ; i++) {
+			    	Integer pop = stack.pop();
+			        children.add(pop);
+			        newSide+=pop;
+			    }
+			    stack.push(newSide);
+                Integer sideRemaining = allsides - newSide;
+                if ( sideRemaining !=0) {
+                    children.add(sideRemaining);
+                }
+                for (int i = 0; i < children.size(); i++) {
+                	Long a = children.get(i) + 0l;
+                    
+                    for (int j = i+1; j < children.size(); j++) {
+                    	Long b = children.get(j) + 0l;
+                        /*if (children.size() > 5) {
+                        	if ((side1.s0+side2.s0 == 0? 1 :0) +
+                        			(side1.s1+side2.s1 == 0? 1 :0) + 
+                        			(side1.s2+side2.s2 == 0? 1:0) > 1)
+                        		continue;
+                        }
+                        */
+                        for (int k = j+1; k < children.size(); k++) {
+                        	Long c = children.get(k) + 0l;
+                            weight += (a+b+c-3) *a*b*c;
+                        }
+                    }
+                }
+			}
+		}
+		return weight/4l;
+	}
 	
+	void initializeWeightCalculator() {
+		((WQWeightCalculator)this.weightCalculator).setupGeneTrees(this);
+		if (this.forceAlg == 2) {
+			((WQWeightCalculator)this.weightCalculator).useSetWeightsAlgorithm();
+		} 
+
+		this.weightCalculator.initializeWeightContainer(
+				this.trees.size() *  GlobalMaps.taxonIdentifier.taxonCount() * 2);
+	}
+	
+	/**
+	 * Score first computes the quartet scors and the calls
+	 * scoreBranches to annotate branches (if needed). 
+	 */
 	public double scoreSpeciesTreeWithGTLabels(Tree st, boolean initialize) {
 
 		if (initialize) {
@@ -39,8 +115,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 	
 			WQDataCollection wqDataCollection = (WQDataCollection) this.dataCollection;
 			wqDataCollection.preProcess(this);
-			wqDataCollection.initializeWeightCalculator(this);
-			this.maxpossible = wqDataCollection.calculateMaxPossible();
+			this.initializeWeightCalculator();			
+			this.maxpossible = this.calculateMaxPossible();
 			System.err.println("Number of quartet trees in the gene trees: "+this.maxpossible);
 	
 			//System.err.println(this.maxpossible);
@@ -123,14 +199,14 @@ public class WQInference extends AbstractInference<Tripartition> {
 	}
 	
 	
-	boolean skipNode (TNode node) {
+	private boolean skipNode (TNode node) {
 		return 	node.isLeaf() || node.isRoot() || node.getChildCount() > 2 || 
 				(node.getParent().getChildCount() >3) ||
 				(node.getParent().getChildCount() >2 && !node.getParent().isRoot())||
 				((node.getParent().isRoot() && node.getParent().getChildCount() == 2));
 	}
 	
-	class NodeData {
+	private class NodeData {
 		Double mainfreq, alt1freqs, alt2freqs;
 		Long quartcount;
 		Integer effn ;
@@ -139,11 +215,16 @@ public class WQInference extends AbstractInference<Tripartition> {
 		
 	}
 	
-	public double scoreBranches(Tree st) {
+	/**
+	 * Annotates the species tree branches with support, branch length, etc. 
+	 * @param st
+	 * @return
+	 */
+	private double scoreBranches(Tree st) {
 
 		double ret = 0;
 		
-		weightCalculator = new BipartitionWeightCalculator(this);
+		weightCalculator = new BipartitionWeightCalculator(this,((WQWeightCalculator)this.weightCalculator).geneTreesAsInts());
 		
 		BipartitionWeightCalculator weightCalculator2 = (BipartitionWeightCalculator) weightCalculator;
 		WQDataCollection wqDataCollection = (WQDataCollection) this.dataCollection;
@@ -385,7 +466,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 	}
 	
 	WQDataCollection newCounter(IClusterCollection clusters) {
-		return new WQDataCollection((WQClusterCollection)clusters, this.forceAlg, this);
+		return new WQDataCollection((WQClusterCollection)clusters, this);
 	}
 
 
@@ -395,4 +476,29 @@ public class WQInference extends AbstractInference<Tripartition> {
 		return new WQWeightCalculator(this);
 	}
 
+
+	@Override
+	void setupMisc() {
+		this.maxpossible = this.calculateMaxPossible();
+		System.err.println("Number of quartet trees in the gene trees: " +
+				this.maxpossible);
+		
+	}
+
+	/**
+	 * obsolete
+	 */
+	private void automaticallyDecideAlgorithm(int geneTreeTripartitonCountSize, int k){
+		if (this.forceAlg != -1) {
+			return;
+		}
+		if (k <= 0 || geneTreeTripartitonCountSize <= 0) {
+			throw new RuntimeException("gene tree tripartition size or k not set properly");
+		}
+		if (this.forceAlg == -1) {
+			this.forceAlg = ( GlobalMaps.taxonIdentifier.taxonCount() <= 32 || (geneTreeTripartitonCountSize < k*6)) ? 2 : 1;
+		} else {
+			throw new RuntimeException("Algorithm already set");
+		}
+	}
 }
