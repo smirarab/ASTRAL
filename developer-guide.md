@@ -25,56 +25,65 @@ A few of them are overwritten in ASTRAL.
 
 ## Code components
 
-The code is in several packages:
+The code is in several packages. [phylonet.coalescent](main/phylonet/coalescent/) this is where the majority of the code resides. When we don't mention a package, we mean this place. 
 
-* `phylonet.coalescent`: this is where the majority of the code resides. 
-* `phylonet.tree.io`, `phylonet.tree.model.sti`, `phylonet.util`: these each include a single class, overwriting parts of java or phylonet for our purposes. 
-
-We focus on `phylonet.coalescent`. 
 
 ### General
-First, some interfaces and abstract classes are:
 
-* [IClusterCollection.java](main/phylonet/coalescent/IClusterCollection.java), [AbstractClusterCollection.java](main/phylonet/coalescent/AbstractClusterCollection.java):
-Keep the set of clusters (used as X in ASTRAL)
-* [AbstractInference.java](main/phylonet/coalescent/AbstractInference.java):
-The hub for all types of operations (dynamic programming inference, scoring, building set X, etc. ) 
-* [AbstractDataCollection.java](main/phylonet/coalescent/AbstractDataCollection.java):
-Methods for setting up the set X 
-* [AbstractComputeMinCostTask.java](main/phylonet/coalescent/AbstractComputeMinCostTask.java):
-* [AbstractWeightCalculator.java](main/phylonet/coalescent/AbstractWeightCalculator.java):
+In ASTRAL, each clade or partition is represented as a BitSet. 
+
+*  [phylonet.util.BitSet](main/phylonet/util/BitSet.java): This simply modifies Java's Bitset class for improved efficiency and usability.
+*  [phylonet.tree.model.sti.STITreeCluster](main/phylonet/tree/model/sti/STITreeCluster.java): This is a cluster, which is simply a subset of the set of leaves. Each Cluster should be associated with a taxon identifier, and inside includes a bitset.
+	* [phylonet.tree.model.sti.STITreeCluster.Vertex](main/phylonet/tree/model/sti/STITreeCluster.java): This is an inner class inside Vertex, which simply constitutes a node in the dynamic programming. It has various extra fields (in addition to the implicit reference to its out class, which is the cluster in the dynamic programming) for backtracking of the dynamic programming. 
+
+The, there are interfaces and abstract classes:
+
+* [IClusterCollection](main/phylonet/coalescent/IClusterCollection.java), [AbstractClusterCollection](main/phylonet/coalescent/AbstractClusterCollection.java):
+Keep the set of clusters (used as the set `X` in ASTRAL)
+	* Always has a *top* cluster; all other clusters are a subset of the top cluster
+	* Has the important capacity to generate a subset of itself limited only to those clusters that are a subset of a given cluster; thus, it can generate a subset of itself with a different top element
+	* Can find all resolutions of the top element among pairs of clusters in it. Useful in the dynamic programming. 
+* [AbstractDataCollection](main/phylonet/coalescent/AbstractDataCollection.java):
+Mostly just has methods for setting up the set `X`. Thus, this sets up and maintains an instance of IClusterCollection 
+* [AbstractInference](main/phylonet/coalescent/AbstractInference.java):
+The hub for all types of operations that ASTRAL can perform (dynamic programming inference, scoring, building set X, etc.).
+Actual computations are delegated to other classes. This just "manages" stuff. Has access to input options, to data collections, and to weight
+calculators. Sets everything up and starts computations. 
+* [AbstractComputeMinCostTask](main/phylonet/coalescent/AbstractComputeMinCostTask.java): This is where the **dynamic programming** algorithm is actually implemented. Uses Vertex and IClusterCollection, in addition to the WeightCalculator to perform one run of the dynamic programming. 
+* [AbstractWeightCalculator](main/phylonet/coalescent/AbstractWeightCalculator.java): This is where the weights in the dynamic programming are computed. 
 
 ### Relevant to input/output
 
 Classes relevant to the command-line GUI, including handling of input and output, are:
 
-* [CommandLine.java](main/phylonet/coalescent/CommandLine.java): Reads command line input using the JSAP library and starts the execution
-* [Options.java](main/phylonet/coalescent/Options.java): Saves user input options 
-* [GlobalMaps.java](main/phylonet/coalescent/GlobalMaps.java): Static class, keeping instances of singleton classes that should be accessed only through here:
+* [CommandLine](main/phylonet/coalescent/CommandLine.java): Reads command line input using the JSAP library and starts the execution
+* [Options](main/phylonet/coalescent/Options.java): Saves user input options 
+* [GlobalMaps](main/phylonet/coalescent/GlobalMaps.java): Static class, keeping instances of singleton classes that should be accessed only through here:
 	* taxon identifier
 	* random number generator
 	* taxon name map 	
-* [TaxonIdentifier.java](main/phylonet/coalescent/TaxonIdentifier.java):
+* [TaxonIdentifier](main/phylonet/coalescent/TaxonIdentifier.java):
  Maps taxon names to taxon IDs.  
-* [TaxonNameMap.java](main/phylonet/coalescent/TaxonNameMap.java):
+* [TaxonNameMap](main/phylonet/coalescent/TaxonNameMap.java):
 Maps the names in the gene trees to the names in the species tree 
-* [SpeciesMapper.java](main/phylonet/coalescent/SpeciesMapper.java): Maps IDs between gene trees and the species tree
-* [Solution.java](main/phylonet/coalescent/Solution.java): Used for keeping the output
+* [SpeciesMapper](main/phylonet/coalescent/SpeciesMapper.java): Maps IDs between gene trees and the species tree
+* [Solution](main/phylonet/coalescent/Solution.java): Used for keeping the output
+* [phylonet.tree.io.NewickWriter](main/phylonet/tree/io/NewickWriter.java): simple modifications to phylonet's newick writer
 
 
 ### Relevant to ASTRAL
 
 Classes specific to ASTRAL are:
 
-* [WQClusterCollection.java](main/phylonet/coalescent/WQClusterCollection.java): Doesn't do anything. Work done in the abstract class. 
-* [WQComputeMinCostTask.java](main/phylonet/coalescent/WQComputeMinCostTask.java): Doesn't do anything. Work done in the abstract class.
-* [WQDataCollection.java](main/phylonet/coalescent/WQDataCollection.java)
-* [WQInference.java](main/phylonet/coalescent/WQInference.java)
-* [WQWeightCalculator.java](main/phylonet/coalescent/WQWeightCalculator.java)
-* [BipartitionWeightCalculator.java](main/phylonet/coalescent/BipartitionWeightCalculator.java)
-* [Posterior.java](main/phylonet/coalescent/Posterior.java)
-* [SimilarityMatrix.java](main/phylonet/coalescent/SimilarityMatrix.java)
-* [Tripartition.java](main/phylonet/coalescent/Tripartition.java)
+* [WQClusterCollection](main/phylonet/coalescent/WQClusterCollection.java): Doesn't do anything. Work done in the abstract class. 
+* [WQComputeMinCostTask](main/phylonet/coalescent/WQComputeMinCostTask.java): Doesn't do anything. Work done in the abstract class.
+* [WQDataCollection](main/phylonet/coalescent/WQDataCollection.java)
+* [WQInference](main/phylonet/coalescent/WQInference.java)
+* [WQWeightCalculator](main/phylonet/coalescent/WQWeightCalculator.java)
+* [BipartitionWeightCalculator](main/phylonet/coalescent/BipartitionWeightCalculator.java)
+* [Posterior](main/phylonet/coalescent/Posterior.java)
+* [SimilarityMatrix](main/phylonet/coalescent/SimilarityMatrix.java)
+* [Tripartition](main/phylonet/coalescent/Tripartition.java)
 
 
 

@@ -386,7 +386,6 @@ public class DLDataCollection extends AbstractDataCollection<STBipartition>{
         
     }
 
-	@Override
 	long maxPossibleScore(Tripartition trip) {
 		return 0;
 	}
