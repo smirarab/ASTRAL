@@ -8,11 +8,20 @@ import java.util.Iterator;
 import java.util.List;
 
 
+/**
+ * A subset of a set of taxa
+ * @author smirarab
+ *
+ */
 public class STITreeCluster implements Iterable<Integer>
 {
   //protected String[] _taxa;
   protected BitSet _cluster;
   private int hashCode = 0;
+  /**
+   * This identifies the meaning of the biset set. 
+   * Bit number x in the bitset corresponds to taxon with ID x. 
+   */
   private TaxonIdentifier taxonIdentifier;
 
 
