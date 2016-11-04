@@ -165,7 +165,12 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			return weight;
 		}
 
-
+		/***
+		* Each gene tree is represented as a list of integers, using positive numbers
+		* for leaves, where the number gives the index of the leaf. 
+		* We use negative numbers for internal nodes, where the value gives the number of children. 
+		* Minus infinity is used for separating different genes. 
+		*/
 		@Override
 		void setupGeneTrees(WQInference inference) {
 			System.err.println("Using tree-based weight calculation.");
