@@ -19,6 +19,11 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.util.Trees;
 import phylonet.util.BitSet;
 
+/**
+ * Maps the gene (i.e., taxon) IDs to species IDs. 
+ * @author smirarab
+ *
+ */
 public class SpeciesMapper {
 
     private int [] taxonIdToSpeciesId;
@@ -141,6 +146,11 @@ public class SpeciesMapper {
         return this.getGeneClusterForSTCluster(stCluster.getBitSet());
     }
     
+    /***
+     * For a bitset in the gene ID universe, it will add all the other genes from all the
+     * species that are represented in the given bitset. 
+     * @param geneBS
+     */
     public void addMissingIndividuals(BitSet geneBS) {
         BitSet stBS = this.getSTBisetForGeneBitset(geneBS);
         for (int i = stBS.nextSetBit(0); i >=0 ; i = stBS.nextSetBit(i+1)) {
