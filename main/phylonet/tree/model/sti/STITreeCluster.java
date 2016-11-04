@@ -244,6 +244,15 @@ public class STITreeCluster implements Iterable<Integer>
     return out.toString();
   }
   
+  /**
+   * A node in the dynamic programming. Thus, it includes
+   *   -- A cluster that we are trying to divide (the instance of the outer class)
+   *   -- A best resolution of this cluster into two cluster (min_lc and min_rc)
+   *   -- The score of the best resolution (_max_score)
+   *   -- Whether this nodes has been processed (_done)
+   * @author smirarab
+   *
+   */
   public class Vertex {
 		//public STITreeCluster _cluster = null;
 		//public int _el_num = -1;
@@ -252,7 +261,7 @@ public class STITreeCluster implements Iterable<Integer>
 		public double _c = 0;
 		public Vertex _min_lc = this._min_rc = null;
 		public Vertex _min_rc;
-		public List<Vertex> _subcl = null;		
+		public List<Vertex> _subcl = null;	 // Don't matter	
 		public byte _done = 0; // 0 for not, 1 for yes, 2 for failed
 		
 		public Vertex() {

@@ -12,6 +12,12 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.util.BitSet;
 
+/**
+ * This class implements the dynamic programming
+ * @author smirarab
+ *
+ * @param <T>
+ */
 public abstract class AbstractComputeMinCostTask<T> {
 
 	AbstractInference<T> inference;
@@ -56,6 +62,11 @@ public abstract class AbstractComputeMinCostTask<T> {
 		}
 	}
 
+	/**
+	 * This is the dynamic programming
+	 * @return
+	 * @throws CannotResolveException
+	 */
 	private double computeMinCost() throws CannotResolveException {
 
 
@@ -111,15 +122,14 @@ public abstract class AbstractComputeMinCostTask<T> {
 				}
 				
 			} else {
-				if (clusterSize >= GlobalMaps.taxonIdentifier.taxonCount() * inference.getCS()) {
+				if (clusterSize >= GlobalMaps.taxonIdentifier.taxonCount() * inference.getCS()) { //obsolete
 					addComplementaryClusters(clusterSize);
 				}
-				clusterResolutions = containedVertecies
-						.getClusterResolutions();
+				clusterResolutions = containedVertecies.getClusterResolutions();
 			}
 			
 			long clusterLevelCost = 0;
-			if (clusterResolutions.iterator().hasNext()) {
+			if (clusterResolutions.iterator().hasNext()) { // Not relevant to ASTRAL
 				clusterLevelCost = calculateClusterLevelCost();
 			}
 			/*
@@ -170,7 +180,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 						//System.out.print(weight/Integer.MAX_VALUE);
 					}					
 					
-					double c = adjustWeight(clusterLevelCost, smallV, bigv, weight);					
+					double c = adjustWeight(clusterLevelCost, smallV, bigv, weight);	// Not relevant to ASTRAL				
 //					double l = 2.4;
 //					if (clusterSize > 5 && v._max_score > l*(lscore + rscore))
 //						if ((lscore + rscore + c)> v._max_score)
@@ -193,6 +203,9 @@ public abstract class AbstractComputeMinCostTask<T> {
 					// c.getMessage());
 				}
 			}
+			/**
+			 * This should be irrelevant if everything in the set X has at least one resolution (which is our goal). 
+			 */
 			if (v._min_lc == null || v._min_rc == null) {
 				if (clusterSize <= 5) {
 					addAllPossibleSubClusters(v.getCluster(), containedVertecies);
@@ -224,12 +237,18 @@ public abstract class AbstractComputeMinCostTask<T> {
 
 				}
 			}
+			/**
+			 * We never want this to happen
+			 */
 			if (tryAnotherTime) {
 				System.err.println("... auto expanding: " + this.v.getCluster().getClusterSize()+" "+this.v.getCluster());
 			}
 		} while (tryAnotherTime);
 
 
+		/**
+		 * Should never happen
+		 */
 		if (v._min_lc == null || v._min_rc == null) {
 			System.err.println("WARN: No Resolution found for ( "
 					+ v.getCluster().getClusterSize() + " taxa ):\n"
@@ -262,6 +281,11 @@ public abstract class AbstractComputeMinCostTask<T> {
 	
 	abstract protected T STB2T(VertexPair stb);
 
+	/***
+	 * Used in the exact version
+	 * @param cluster
+	 * @param containedVertecies
+	 */
 	void addAllPossibleSubClusters(STITreeCluster cluster,
 			IClusterCollection containedVertecies) {
 		int size = cluster.getClusterSize();

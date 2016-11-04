@@ -2,6 +2,11 @@ package phylonet.coalescent;
 
 import cern.jet.stat.*;
 
+/***
+ * Computes branch length and posterior support
+ * @author smirarab
+ *
+ */
 public class Posterior extends cern.jet.math.Constants{
 	private double f1;
 	private double f2;
