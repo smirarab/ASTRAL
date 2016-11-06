@@ -691,7 +691,7 @@ public class CommandLine {
 		public boolean done = false;
 		public GPUCall gpu;
 		
-		public final boolean p = false;
+		public final boolean p = true;
 		public TurnTaskToScores(AbstractInference inf, ConcurrentLinkedQueue<ICalculateWeightTask<Tripartition>> queue1, ConcurrentLinkedQueue<Long> queue2, int[] geneTreeAsInts, long[] all) {
 			this.inference = inf;
 			this.queue1 = queue1;
@@ -701,8 +701,7 @@ public class CommandLine {
 			tripartition2 = new long[(int)(SPECIES_WORD_LENGTH * workGroupSize)];
 			tripartition3 = new long[(int)(SPECIES_WORD_LENGTH * workGroupSize)];
 			
-			gpu = new GPUCall(geneTreeAsInts, all, tripartition1, tripartition2, tripartition3, inference);
-			gpu.p = p;
+			gpu = new GPUCall(geneTreeAsInts, all, tripartition1, tripartition2, tripartition3, inference, p);
 		}
 
 		public void run() {
@@ -715,11 +714,14 @@ public class CommandLine {
 					task = (QuartetWeightTask)queue1.remove();
 					
 					for(int i = SPECIES_WORD_LENGTH - 1; i >= 0; i--)
-						tripartition1[tripCounter * SPECIES_WORD_LENGTH + SPECIES_WORD_LENGTH - 1 - i]=task.trip.cluster1.getBitSet().words[i];
+						//tripartition1[tripCounter * SPECIES_WORD_LENGTH + SPECIES_WORD_LENGTH - i - 1] = task.trip.cluster1.getBitSet().words[i];
+						tripartition1[(SPECIES_WORD_LENGTH - i - 1) * (int)workGroupSize + tripCounter]=task.trip.cluster1.getBitSet().words[i];
 					for(int i = SPECIES_WORD_LENGTH - 1; i >= 0; i--)
-						tripartition2[tripCounter * SPECIES_WORD_LENGTH + SPECIES_WORD_LENGTH - 1 - i]=task.trip.cluster2.getBitSet().words[i];
+						//tripartition2[tripCounter * SPECIES_WORD_LENGTH + SPECIES_WORD_LENGTH - i - 1] = task.trip.cluster2.getBitSet().words[i];
+						tripartition2[(SPECIES_WORD_LENGTH - i - 1) * (int)workGroupSize + tripCounter]=task.trip.cluster2.getBitSet().words[i];
 					for(int i = SPECIES_WORD_LENGTH - 1; i >= 0; i--)
-						tripartition3[tripCounter * SPECIES_WORD_LENGTH + SPECIES_WORD_LENGTH - 1 - i]=task.trip.cluster3.getBitSet().words[i];
+						//tripartition3[tripCounter * SPECIES_WORD_LENGTH + SPECIES_WORD_LENGTH - i - 1] = task.trip.cluster3.getBitSet().words[i];
+						tripartition3[(SPECIES_WORD_LENGTH - i - 1) * (int)workGroupSize + tripCounter]=task.trip.cluster3.getBitSet().words[i];
 					tripCounter++;
 					if(tripCounter == workGroupSize) {
 						gpu.compute(workGroupSize);
@@ -782,7 +784,8 @@ public class CommandLine {
     	private cl_mem d_weightArray;
     	private cl_mem d_stack;
     	private cl_mem d_profile;
-    	public GPUCall (int[] geneTreesAsInts, long[] all, long[] trip1, long[] trip2, long[] trip3, AbstractInference inference) {
+    	public GPUCall (int[] geneTreesAsInts, long[] all, long[] trip1, long[] trip2, long[] trip3, AbstractInference inference, boolean p) {
+		this.p = p;
     		this.geneTreesAsInts = geneTreesAsInts;
     		geneTreesAsShorts = new short[(geneTreesAsInts.length/4 + 1) * 4];
     		for(int i = 0; i < geneTreesAsInts.length; i++) {
@@ -891,7 +894,10 @@ public class CommandLine {
     		cl_program cpProgram = clCreateProgramWithSource(context, 1, new String[] { source }, null, null);
 
     		// Build the program
-    		clBuildProgram(cpProgram, 0, null, "-cl-strict-aliasing", null, null);
+    		if(p)
+    			clBuildProgram(cpProgram, 0, null, "-cl-opt-disable", null, null);
+		else
+    			clBuildProgram(cpProgram, 0, null, "-cl-mad-enable -cl-strict-aliasing", null, null);
 
     		// Create the kernel
     		kernel = clCreateKernel(cpProgram, "calcWeight", null);
