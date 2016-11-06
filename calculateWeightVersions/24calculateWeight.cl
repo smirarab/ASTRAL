@@ -134,7 +134,7 @@ __kernel void calcWeight(
 					F(stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + globallen + idx], side3s0);
 				*/
 
-				weight += FF(stack[top * globallen3 + idx], stack[top * globallen3 + globallen + idx], stack[top * globallen3 + globallen + idx], stack[topminus1 * globallen3 + idx], stack[topminus1 * globallen3 + globallen + idx], stack[topminus1 * globallen3 + globallen2 + idx], side3s0, side3s1, side3s2);	
+				weight += FF(stack[top * globallen3 + idx], stack[top * globallen3 + globallen + idx], stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + idx], stack[topminus1 * globallen3 + globallen + idx], stack[topminus1 * globallen3 + globallen2 + idx], side3s0, side3s1, side3s2);	
 				stack[topminus1 * globallen3 + idx] = newSides0;
 				stack[topminus1 * globallen3 + globallen + idx] = newSides1;
 				stack[topminus1 * globallen3 + globallen2 + idx] = newSides2;
@@ -229,7 +229,7 @@ __kernel void calcWeight(
 					F(stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + idx], side3s1) +
 					F(stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + globallen + idx], side3s0);
 				*/	
-				weight += FF(stack[top * globallen3 + idx], stack[top * globallen3 + globallen + idx], stack[top * globallen3 + globallen + idx], stack[topminus1 * globallen3 + idx], stack[topminus1 * globallen3 + globallen + idx], stack[topminus1 * globallen3 + globallen2 + idx], side3s0, side3s1, side3s2);	
+				weight += FF(stack[top * globallen3 + idx], stack[top * globallen3 + globallen + idx], stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + idx], stack[topminus1 * globallen3 + globallen + idx], stack[topminus1 * globallen3 + globallen2 + idx], side3s0, side3s1, side3s2);	
 				stack[topminus1 * globallen3 + idx] = newSides0;
 				stack[topminus1 * globallen3 + globallen + idx] = newSides1;
 				stack[topminus1 * globallen3 + globallen2 + idx] = newSides2;
@@ -320,7 +320,7 @@ __kernel void calcWeight(
 					F(stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + idx], side3s1) +
 					F(stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + globallen + idx], side3s0);
 				*/	
-				weight += FF(stack[top * globallen3 + idx], stack[top * globallen3 + globallen + idx], stack[top * globallen3 + globallen + idx], stack[topminus1 * globallen3 + idx], stack[topminus1 * globallen3 + globallen + idx], stack[topminus1 * globallen3 + globallen2 + idx], side3s0, side3s1, side3s2);	
+				weight += FF(stack[top * globallen3 + idx], stack[top * globallen3 + globallen + idx], stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + idx], stack[topminus1 * globallen3 + globallen + idx], stack[topminus1 * globallen3 + globallen2 + idx], side3s0, side3s1, side3s2);	
 				stack[topminus1 * globallen3 + idx] = newSides0;
 				stack[topminus1 * globallen3 + globallen + idx] = newSides1;
 				stack[topminus1 * globallen3 + globallen2 + idx] = newSides2;
@@ -411,7 +411,7 @@ __kernel void calcWeight(
 					F(stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + idx], side3s1) +
 					F(stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + globallen + idx], side3s0);
 				*/	
-				weight += FF(stack[top * globallen3 + idx], stack[top * globallen3 + globallen + idx], stack[top * globallen3 + globallen + idx], stack[topminus1 * globallen3 + idx], stack[topminus1 * globallen3 + globallen + idx], stack[topminus1 * globallen3 + globallen2 + idx], side3s0, side3s1, side3s2);	
+				weight += FF(stack[top * globallen3 + idx], stack[top * globallen3 + globallen + idx], stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + idx], stack[topminus1 * globallen3 + globallen + idx], stack[topminus1 * globallen3 + globallen2 + idx], side3s0, side3s1, side3s2);	
 				stack[topminus1 * globallen3 + idx] = newSides0;
 				stack[topminus1 * globallen3 + globallen + idx] = newSides1;
 				stack[topminus1 * globallen3 + globallen2 + idx] = newSides2;
