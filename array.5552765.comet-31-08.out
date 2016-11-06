@@ -1,0 +1,11 @@
+My SLURM_ARRAY_TASK_ID:  5  running on comet-31-08.sdsc.edu
+mkdir: cannot create directory `ASTRAL_RESULTS/ASTRAL_GPU_RESULTS26': File exists
+Device 0 of 1: Tesla K80
+Device 0 of 1: Tesla K80
+TREE HEIGHT IS: 29
+LOCAL MEMORY SIZE IS: 49152
+CONSTANT MEMORY SIZE IS: 65536
+intersecting with the all arrays takes: 0.004191071893505064
+adding numbers to the stack takes: 0.723994667677048
+calculating weight of a tripartition takes: 0.26789028224274875
+calculating weight of a polytomy takes: 0.00392397818669817
