@@ -1,0 +1,10 @@
+My SLURM_ARRAY_TASK_ID:  1  running on comet-30-03.sdsc.edu
+Device 0 of 1: Tesla K80
+Device 0 of 1: Tesla K80
+TREE HEIGHT IS: 27
+LOCAL MEMORY SIZE IS: 49152
+CONSTANT MEMORY SIZE IS: 65536
+intersecting with the all arrays takes: 0.00426668911521318
+adding numbers to the stack takes: 0.7247624640332363
+calculating weight of a tripartition takes: 0.267234069669049
+calculating weight of a polytomy takes: 0.0037367771825015743
