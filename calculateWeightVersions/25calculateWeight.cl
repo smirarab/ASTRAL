@@ -23,10 +23,10 @@ inline uint popcnt(const ulong i) {
         asm("popc.b64 %0, %1;" : "=r"(n) : "l" (i));
         return n;
 }
-inline int bitIntersectionSize(__global const long input1[SPECIES_WORD_LENGTH], __global const long input2[SPECIES_WORD_LENGTH], int globallen) {
+int bitIntersectionSize(__global const long input1[SPECIES_WORD_LENGTH], __global const long input2[SPECIES_WORD_LENGTH]) {
 	int out = 0;
 	for (int i = 0; i < SPECIES_WORD_LENGTH; i++) {
-		out += popcnt(input1[i]&input2[i * globallen]);
+		out += popcnt(input1[i]&input2[i]);
 	}
 	return out;
 }
@@ -48,6 +48,10 @@ __kernel void calcWeight(
 	int globallen2 = globallen * 2;
 	int globallen3 = globallen * 3;
 	
+	trip.cluster1 = tripartitions1glob + idx * SPECIES_WORD_LENGTH;
+	trip.cluster2 = tripartitions2glob + idx * SPECIES_WORD_LENGTH;
+	trip.cluster3 = tripartitions3glob + idx * SPECIES_WORD_LENGTH;
+
 	int allsides[3];
 
 	int newTree = 1;
@@ -85,9 +89,9 @@ __kernel void calcWeight(
 				}
 				newTree = 0;
 
-				allsides[0] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], tripartitions1glob + idx, globallen);
-				allsides[1] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], tripartitions2glob + idx, globallen);
-				allsides[2] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], tripartitions3glob + idx, globallen);
+				allsides[0] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster1);
+				allsides[1] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster2);
+				allsides[2] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster3);
 
 				treeCounter++;
 				if(idx == 0){
@@ -97,9 +101,9 @@ __kernel void calcWeight(
 			if (geneTreesAsInts4Ints.x >= 0) {
 				if(idx == 0)
 					starttime = clock();
-				stack[top * globallen3 + idx] = ((tripartitions1glob[idx + (SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.x / LONG_BIT_LENGTH) * globallen])>>(geneTreesAsInts4Ints.x % LONG_BIT_LENGTH)) & 1;
-				stack[top * globallen3 + globallen + idx] = ((tripartitions2glob[idx + (SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.x / LONG_BIT_LENGTH) * globallen])>>(geneTreesAsInts4Ints.x % LONG_BIT_LENGTH)) & 1;
-				stack[top * globallen3 + globallen2 + idx] = ((tripartitions3glob[idx + (SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.x / LONG_BIT_LENGTH) * globallen])>>(geneTreesAsInts4Ints.x % LONG_BIT_LENGTH)) & 1;
+				stack[top * globallen3 + idx] = ((trip.cluster1[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.x / LONG_BIT_LENGTH])>>(geneTreesAsInts4Ints.x % LONG_BIT_LENGTH)) & 1;
+				stack[top * globallen3 + globallen + idx] = ((trip.cluster2[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.x / LONG_BIT_LENGTH])>>(geneTreesAsInts4Ints.x % LONG_BIT_LENGTH)) & 1;
+				stack[top * globallen3 + globallen2 + idx] = ((trip.cluster3[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.x / LONG_BIT_LENGTH])>>(geneTreesAsInts4Ints.x % LONG_BIT_LENGTH)) & 1;
 				top++;
 				if(idx == 0)
 					profile[1] += clock() - starttime;
@@ -127,9 +131,6 @@ __kernel void calcWeight(
 					F(stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + globallen + idx], side3s0);
 				*/
 
-				stack[topminus1 * globallen3 + idx] = newSides0;
-				stack[topminus1 * globallen3 + globallen + idx] = newSides1;
-				stack[topminus1 * globallen3 + globallen2 + idx] = newSides2;
 
 				if(idx == 0)
 					profile[1] += clock() - starttime;
@@ -142,6 +143,14 @@ __kernel void calcWeight(
 				weight += FF(stack[top * globallen3 + idx], stack[top * globallen3 + globallen + idx], stack[top * globallen3 + globallen2 + idx], stack[topminus1 * globallen3 + idx], stack[topminus1 * globallen3 + globallen + idx], stack[topminus1 * globallen3 + globallen2 + idx], side3s0, side3s1, side3s2);	
 				if(idx == 0)
 					profile[2] += clock() - starttime;
+
+				if(idx == 0)
+					starttime = clock();
+				stack[topminus1 * globallen3 + idx] = newSides0;
+				stack[topminus1 * globallen3 + globallen + idx] = newSides1;
+				stack[topminus1 * globallen3 + globallen2 + idx] = newSides2;
+				if(idx == 0)
+					profile[1] += clock() - starttime;
 			}
 			else { //for polytomies
 			
@@ -194,17 +203,17 @@ __kernel void calcWeight(
 			if (newTree) {
 				newTree = 0;
 
-				allsides[0] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], tripartitions1glob + idx, globallen);
-				allsides[1] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], tripartitions2glob + idx, globallen);
-				allsides[2] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], tripartitions3glob + idx, globallen);
+				allsides[0] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster1);
+				allsides[1] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster2);
+				allsides[2] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster3);
 
 				treeCounter++;
 
 			}
 			if (geneTreesAsInts4Ints.y >= 0) {
-				stack[top * globallen3 + idx] = ((tripartitions1glob[idx + (SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.y / LONG_BIT_LENGTH) * globallen])>>(geneTreesAsInts4Ints.y % LONG_BIT_LENGTH)) & 1;
-				stack[top * globallen3 + globallen + idx] = ((tripartitions2glob[idx + (SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.y / LONG_BIT_LENGTH) * globallen])>>(geneTreesAsInts4Ints.y % LONG_BIT_LENGTH)) & 1;
-				stack[top * globallen3 + globallen2 + idx] = ((tripartitions3glob[idx + (SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.y / LONG_BIT_LENGTH) * globallen])>>(geneTreesAsInts4Ints.y % LONG_BIT_LENGTH)) & 1;
+				stack[top * globallen3 + idx] = ((trip.cluster1[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.y / LONG_BIT_LENGTH])>>(geneTreesAsInts4Ints.y % LONG_BIT_LENGTH)) & 1;
+				stack[top * globallen3 + globallen + idx] = ((trip.cluster2[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.y / LONG_BIT_LENGTH])>>(geneTreesAsInts4Ints.y % LONG_BIT_LENGTH)) & 1;
+				stack[top * globallen3 + globallen2 + idx] = ((trip.cluster3[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.y / LONG_BIT_LENGTH])>>(geneTreesAsInts4Ints.y % LONG_BIT_LENGTH)) & 1;
 				top++;
 			}
 			else if (geneTreesAsInts4Ints.y == INT_MIN) {
@@ -285,17 +294,17 @@ __kernel void calcWeight(
 			if (newTree) {
 				newTree = 0;
 
-				allsides[0] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], tripartitions1glob + idx, globallen);
-				allsides[1] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], tripartitions2glob + idx, globallen);
-				allsides[2] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], tripartitions3glob + idx, globallen);
+				allsides[0] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster1);
+				allsides[1] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster2);
+				allsides[2] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster3);
 
 				treeCounter++;
 
 			}
 			if (geneTreesAsInts4Ints.z >= 0) {
-				stack[top * globallen3 + idx] = ((tripartitions1glob[idx + (SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.z / LONG_BIT_LENGTH) * globallen])>>(geneTreesAsInts4Ints.z % LONG_BIT_LENGTH)) & 1;
-				stack[top * globallen3 + globallen + idx] = ((tripartitions2glob[idx + (SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.z / LONG_BIT_LENGTH) * globallen])>>(geneTreesAsInts4Ints.z % LONG_BIT_LENGTH)) & 1;
-				stack[top * globallen3 + globallen2 + idx] = ((tripartitions3glob[idx + (SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.z / LONG_BIT_LENGTH) * globallen])>>(geneTreesAsInts4Ints.z % LONG_BIT_LENGTH)) & 1;
+				stack[top * globallen3 + idx] = ((trip.cluster1[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.z / LONG_BIT_LENGTH])>>(geneTreesAsInts4Ints.z % LONG_BIT_LENGTH)) & 1;
+				stack[top * globallen3 + globallen + idx] = ((trip.cluster2[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.z / LONG_BIT_LENGTH])>>(geneTreesAsInts4Ints.z % LONG_BIT_LENGTH)) & 1;
+				stack[top * globallen3 + globallen2 + idx] = ((trip.cluster3[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.z / LONG_BIT_LENGTH])>>(geneTreesAsInts4Ints.z % LONG_BIT_LENGTH)) & 1;
 				top++;
 			}
 			else if (geneTreesAsInts4Ints.z == INT_MIN) {
@@ -376,17 +385,17 @@ __kernel void calcWeight(
 			if (newTree) {
 				newTree = 0;
 
-				allsides[0] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], tripartitions1glob + idx, globallen);
-				allsides[1] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], tripartitions2glob + idx, globallen);
-				allsides[2] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], tripartitions3glob + idx, globallen);
+				allsides[0] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster1);
+				allsides[1] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster2);
+				allsides[2] = bitIntersectionSize(&allArray[treeCounter * SPECIES_WORD_LENGTH], trip.cluster3);
 
 				treeCounter++;
 
 			}
 			if (geneTreesAsInts4Ints.w >= 0) {
-				stack[top * globallen3 + idx] = ((tripartitions1glob[idx + (SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.w / LONG_BIT_LENGTH) * globallen])>>(geneTreesAsInts4Ints.w % LONG_BIT_LENGTH)) & 1;
-				stack[top * globallen3 + globallen + idx] = ((tripartitions2glob[idx + (SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.w / LONG_BIT_LENGTH) * globallen])>>(geneTreesAsInts4Ints.w % LONG_BIT_LENGTH)) & 1;
-				stack[top * globallen3 + globallen2 + idx] = ((tripartitions3glob[idx + (SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.w / LONG_BIT_LENGTH) * globallen])>>(geneTreesAsInts4Ints.w % LONG_BIT_LENGTH)) & 1;
+				stack[top * globallen3 + idx] = ((trip.cluster1[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.w / LONG_BIT_LENGTH])>>(geneTreesAsInts4Ints.w % LONG_BIT_LENGTH)) & 1;
+				stack[top * globallen3 + globallen + idx] = ((trip.cluster2[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.w / LONG_BIT_LENGTH])>>(geneTreesAsInts4Ints.w % LONG_BIT_LENGTH)) & 1;
+				stack[top * globallen3 + globallen2 + idx] = ((trip.cluster3[SPECIES_WORD_LENGTH - 1 - geneTreesAsInts4Ints.w / LONG_BIT_LENGTH])>>(geneTreesAsInts4Ints.w % LONG_BIT_LENGTH)) & 1;
 				top++;
 			}
 			else if (geneTreesAsInts4Ints.w == INT_MIN) {
