@@ -1,0 +1,11 @@
+My SLURM_ARRAY_TASK_ID:  7  running on comet-31-11.sdsc.edu
+mkdir: cannot create directory `ASTRAL_RESULTS/ASTRAL_GPU_RESULTS26': File exists
+Device 0 of 1: Tesla K80
+Device 0 of 1: Tesla K80
+TREE HEIGHT IS: 31
+LOCAL MEMORY SIZE IS: 49152
+CONSTANT MEMORY SIZE IS: 65536
+/var/spool/slurmd/job5552766/slurm_script: line 26: 33188 Killed                  java -jar astral.4.10.8.jar -i ASTRALDATA/$dataset/$rep/estimatedgenetre.halfresolved -o ASTRALDATA/$dataset/$rep/astral-gpu 2> ASTRALDATA/$dataset/$rep/astral-gpu.log
+(standard_in) 2: syntax error
+(standard_in) 2: syntax error
+slurmstepd: Exceeded step memory limit at some point.
