@@ -99,7 +99,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 	}
 	
 	/**
-	 * Score first computes the quartet scors and the calls
+	 * Score first computes the quartet scores and the calls
 	 * scoreBranches to annotate branches (if needed). 
 	 */
 	public double scoreSpeciesTreeWithGTLabels(Tree st, boolean initialize) {
@@ -214,7 +214,282 @@ public class WQInference extends AbstractInference<Tripartition> {
 		STBipartition[] bipartitions;
 		
 	}
+	private ArrayList<STITreeCluster> listClustersBelowNode(TNode node, int depth){
+		ArrayList<STITreeCluster> retClusters = new ArrayList<STITreeCluster>();
+		STINode n = (STINode) node;
+		if (depth == 0 || node.isLeaf()){
+				retClusters.add((STITreeCluster) n.getData());
+				return retClusters;
+		}
+		for(TNode child: node.getChildren()){
+			retClusters.addAll(listClustersBelowNode(child, depth - 1));
+		}
+		return retClusters;
+		
+	}
 	
+	
+	private ArrayList<STITreeCluster> listClustersAboveParentNode(TNode node, int maxDist){
+		ArrayList<STITreeCluster> retClusters = new ArrayList<STITreeCluster>();
+		for (int i = 0; i<maxDist; i++){
+			for (TNode child: node.getChildren()){
+				if (child == node ) continue;
+				retClusters.addAll(listClustersBelowNode(child, maxDist - 1));
+			}
+			if (node.getParent().isRoot()){
+				STINode n = (STINode) node;
+				retClusters.add(((STITreeCluster) n.getParent().getData()).complementaryCluster());
+				return retClusters;
+			}
+			node = node.getParent();
+			
+		}
+		return retClusters;
+	}
+	
+	
+	private double listQuartets(Tree st, int depth){
+		double ret = 0;
+		
+		weightCalculator = new BipartitionWeightCalculator(this,((WQWeightCalculator)this.weightCalculator).geneTreesAsInts());
+		
+		BipartitionWeightCalculator weightCalculator2 = (BipartitionWeightCalculator) weightCalculator;
+		WQDataCollection wqDataCollection = (WQDataCollection) this.dataCollection;
+		//wqDataCollection.initializeWeightCalculator(this);
+		
+		/**
+		 * Add bitsets to each node for all taxa under it. 
+		 * Bitsets are saved in nodes "data" field
+		 */
+		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
+		for (TNode n: st.postTraverse()) {
+			STINode node = (STINode) n;
+			if (node.isLeaf()) {
+				String nodeName = node.getName(); //GlobalMaps.TaxonNameMap.getSpeciesName(node.getName());
+
+				STITreeCluster cluster = new STITreeCluster();
+				Integer taxonID = GlobalMaps.taxonIdentifier.taxonId(nodeName);
+				cluster.addLeaf(taxonID);
+
+				stack.add(cluster);
+				node.setData(cluster);
+
+			} else {
+				ArrayList<STITreeCluster> childbslist = new ArrayList<STITreeCluster>();
+				BitSet bs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
+				for (TNode child: n.getChildren()) {
+					STITreeCluster pop = stack.pop();
+					childbslist.add(pop);
+					bs.or(pop.getBitSet());
+				}
+				
+				STITreeCluster cluster = new STITreeCluster();
+				cluster.setCluster((BitSet) bs.clone());
+
+				//((STINode)node).setData(new GeneTreeBitset(node.isRoot()? -2: -1));
+				stack.add(cluster);
+				node.setData(cluster);
+			}
+		}
+		
+		stack = new Stack<STITreeCluster>();
+		
+		ArrayList<ArrayList<Quadrapartition>> allQuads = new ArrayList<ArrayList<Quadrapartition>>();
+		ArrayList<ArrayList<STITreeCluster>> allBelowClusters = new ArrayList<ArrayList<STITreeCluster>>();
+		ArrayList<ArrayList<STITreeCluster>> allAboveClusters = new ArrayList<ArrayList<STITreeCluster>>();
+		ArrayList<ArrayList<NodeData>> allDataNodes = new ArrayList<ArrayList<NodeData>>();
+		for (TNode n: st.postTraverse()) {
+			ArrayList<NodeData> nodeDataList = new ArrayList<NodeData>();
+			STINode node = (STINode) n;
+			if (skipNode(node)) {
+				continue;
+			} else {
+				/**
+				 * 1. Create quadripartion
+				 */
+				ArrayList<STITreeCluster> belowClusters = listClustersBelowNode(n, depth);
+				ArrayList<STITreeCluster> aboveClusters = listClustersAboveParentNode(n.getParent(), depth); 
+				allBelowClusters.add(belowClusters);
+				allAboveClusters.add(aboveClusters);
+				NodeData nd = new NodeData();
+				nodeDataList.add(nd);
+				ArrayList<Quadrapartition> quadList = new ArrayList<Quadrapartition>();
+				for (STITreeCluster c1: belowClusters){
+					int ic1 = belowClusters.indexOf(c1);
+					int mb = belowClusters.size();
+					for (STITreeCluster c2: belowClusters.subList(ic1,mb)){
+						for (STITreeCluster sister: aboveClusters){
+							int isister = aboveClusters.indexOf(sister);
+							int ma = aboveClusters.size();
+							for (STITreeCluster remaining: aboveClusters.subList(isister,ma)){
+								Quadrapartition quad = weightCalculator2.new Quadrapartition
+										(c1,  c2, sister, remaining);
+								if (this.getBranchAnnotation() == 7){
+									if (remaining.getClusterSize() != 0 && sister.getClusterSize() != 0 && c2.getClusterSize() != 0 && c1.getClusterSize() != 0 ){
+										System.err.print(c1.toString()+c2.toString()+"|"+sister.toString()+remaining.toString()+"\n");
+									}
+								}
+								quadList.add(quad);
+								Results s = weightCalculator2.getWeight(quad);
+								nd.mainfreq = s.qs;
+								nd.effn = s.effn;
+								STITreeCluster cluster = new STITreeCluster();
+								STITreeCluster c1plussis = new STITreeCluster();
+								STITreeCluster c1plusrem = new STITreeCluster();
+								
+								c1plussis.setCluster((BitSet) c1.getBitSet().clone());
+								c1plussis.getBitSet().or(c2.getBitSet());
+								
+								c1plusrem.setCluster((BitSet) sister.getBitSet().clone());
+								c1plusrem.getBitSet().or(remaining.getBitSet());
+								
+								//if (nd.effn < 20) {
+									//if (!GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleSP(cluster.getBitSet()))
+										//System.err.println("You may want to ignore posterior probabilities and other statistics related to the following "
+											//	+ "branch branch because the effective number of genes impacting it is only "+ nd.effn +
+											//":\n\t" +
+											//GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTClusterForGeneCluster(cluster));
+								//}
+								
+								Quadrapartition[] threequads = new Quadrapartition [] {quad, null,null};
+								
+								quad = weightCalculator2.new Quadrapartition
+										(c1, sister, c2, remaining);
+								s = weightCalculator2.getWeight(quad);
+								nd.alt1freqs=s.qs;
+								threequads[1] = quad;
+								
+								quad = weightCalculator2.new Quadrapartition
+										(c1, remaining, c2, sister);
+								s = weightCalculator2.getWeight(quad);
+								nd.alt2freqs=s.qs;
+								threequads[2] = quad;
+							
+								nd.quartcount= (c1.getClusterSize()+0l)
+										* (c2.getClusterSize()+0l)
+										* (sister.getClusterSize()+0l)
+										* (remaining.getClusterSize()+0l);
+								quadList.add(quad);
+								
+								
+								if (this.getBranchAnnotation() == 6) {
+									
+									c1plussis.setCluster((BitSet) c1.getBitSet().clone());
+									c1plussis.getBitSet().or(sister.getBitSet());
+									
+									c1plusrem.setCluster((BitSet) c1.getBitSet().clone());
+									c1plusrem.getBitSet().or(remaining.getBitSet());
+									
+									STBipartition bmain = new STBipartition(cluster, cluster.complementaryCluster());
+									STBipartition b2 = new STBipartition(c1plussis, c1plussis.complementaryCluster());
+									STBipartition b3 = new STBipartition(c1plusrem, c1plusrem.complementaryCluster());
+					
+									STBipartition[] biparts = new STBipartition[] {bmain, b2, b3};
+									nd.quads = threequads;
+									nd.bipartitions = biparts;
+								}
+								nodeDataList.add(nd);
+							}
+							allQuads.add(quadList);
+							allDataNodes.add(nodeDataList);
+						}
+					}
+				}
+				
+			}
+		}
+		
+		
+		
+		/**
+		 * Annotate each branch by updating its data field
+		 * according to scores and user's annotation preferences. 
+		 */
+		NodeData nd = null;
+		for (TNode n: st.postTraverse()) {
+			STINode node = (STINode) n;
+			
+			if (!node.isLeaf()) {
+				nd = nodeDataList.poll();
+			}
+			if (skipNode(node)) {
+				node.setData(null);
+				continue;
+			} 
+				
+			Double f1 = nd.mainfreq;
+			Double f2 = nd.alt1freqs;
+			Double f3 = nd.alt2freqs;
+			Long quarc = nd.quartcount;
+			Double effni = nd.effn + 0.0;
+			
+			if ( Math.abs((f1+f2+f3) - effni) > 0.01 ) {
+				//System.err.println("Adjusting effective N from\t" + effni + "\tto\t" + (f1 + f2 + f3) + ". This should only happen as a result of polytomies in gene trees.");
+				effni = f1 + f2 + f3;
+			}
+			
+			//Long sum = p+a1+a2;
+			
+			Posterior post = new Posterior(
+					f1,f2,f3,(double)effni, options.getLambda());
+			double bl = post.branchLength();
+			
+			node.setParentDistance(bl);
+			if (this.getBranchAnnotation() == 0){
+				node.setData(null);
+			} else if (this.getBranchAnnotation() == 1){
+				node.setData(df.format((f1+.0)/effni*100));
+			} else if (this.getBranchAnnotation() == 10) {
+				df.setMaximumFractionDigits(5);
+				node.setData(df.format(post.getPvalue()));
+			} else {
+				double postQ1 = post.getPost();
+				ret += Math.log(postQ1);
+				
+				if (this.getBranchAnnotation() == 3 || this.getBranchAnnotation() == 12) {
+					node.setData(df.format(postQ1));
+				} else if (this.getBranchAnnotation() % 2 == 0) {
+					post = new Posterior(f2,f1,f3,(double)effni, options.getLambda());
+					double postQ2 = post.getPost();
+					post =  new Posterior(f3,f1,f2,(double)effni, options.getLambda());
+					double postQ3 = post.getPost();
+					
+					if (this.getBranchAnnotation() == 2)
+						node.setData(
+								"'[q1="+(f1)/effni+";q2="+(f2)/effni+";q3="+(f3)/effni+
+								 ";f1="+f1+";f2="+f2+";f3="+f3+
+								 ";pp1="+postQ1+";pp2="+postQ2+";pp3="+postQ3+
+								 ";QC="+quarc+";EN="+effni+"]'");
+					else if (this.getBranchAnnotation() == 4) {
+						node.setData("'[pp1="+df.format(postQ1)+";pp2="+df.format(postQ2)+";pp3="+df.format(postQ3)+"]'");
+					} else if (this.getBranchAnnotation() == 6){
+						node.setData(df.format(postQ1));
+						Quadrapartition[] threequads = nd.quads;
+						STBipartition[] biparts = nd.bipartitions;
+						System.err.println(threequads[0] +
+								" [" + biparts[0].toString2() +"] : "+postQ1 +" ** f1 = "+f1+
+								" f2 = "+f2+" f3 = "+f3+" EN = "+ effni+" **");
+						System.err.println(threequads[1] +
+								" ["+biparts[1].toString2()+"] : "+postQ2+ " ** f1 = "+f2+
+								" f2 = "+f1+" f3 = "+f3+" EN = "+ effni+" **");
+						System.err.println(threequads[2] +
+								" ["+biparts[2].toString2()+"] : "+postQ3+ " ** f1 = "+f3+
+								" f2 = "+f1+" f3 = "+f2+" EN = "+ effni+" **");
+					}  else if (this.getBranchAnnotation() == 8){
+						node.setData(
+								"'[q1="+df.format((f1)/effni)+
+								 ";q2="+df.format((f2)/effni)+
+								 ";q3="+df.format((f3)/effni)+"]'");
+					}
+				}
+				//i++;
+			} 
+		}
+		if (!nodeDataList.isEmpty())
+			throw new RuntimeException("Hmm, this shouldn't happen; "+nodeDataList);
+		
+		return ret;
+	}
 	/**
 	 * Annotates the species tree branches with support, branch length, etc. 
 	 * @param st
