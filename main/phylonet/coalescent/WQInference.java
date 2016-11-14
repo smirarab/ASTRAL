@@ -365,10 +365,6 @@ private void scoreBranches2(Tree st, int depth){
 		
 		stack = new Stack<STITreeCluster>();
 		
-	//	ArrayList<ArrayList<Quadrapartition>> allQuads = new ArrayList<ArrayList<Quadrapartition>>();
-	//	ArrayList<ArrayList<STITreeCluster>> allBelowClusters = new ArrayList<ArrayList<STITreeCluster>>();
-	//	ArrayList<ArrayList<STITreeCluster>> allAboveClusters = new ArrayList<ArrayList<STITreeCluster>>();
-	//	ArrayList<ArrayList<NodeData>> allDataNodes = new ArrayList<ArrayList<NodeData>>();
 		for (TNode n: st.postTraverse()) {
 			ArrayList<NodeData> nodeDataList = new ArrayList<NodeData>();
 			STINode node = (STINode) n;
@@ -389,8 +385,6 @@ private void scoreBranches2(Tree st, int depth){
 				ArrayList<STITreeCluster> sisterClusters = listClustersBelowNode(pc, depth-1);
 				ArrayList<STITreeCluster> remainingClusters = listClustersAboveParentNode(n.getParent().getParent(),depth-1);
 				
-//				allBelowClusters.add(belowClusters);
-//				allAboveClusters.add(aboveClusters);
 				NodeData nd = new NodeData();
 				nodeDataList.add(nd);
 				ArrayList<Quadrapartition> quadList = new ArrayList<Quadrapartition>();
@@ -459,17 +453,26 @@ private void scoreBranches2(Tree st, int depth){
 								setLocalPP(nd);
 								nodeDataList.add(nd);
 							}
-							double minPost = -1;
+							double minPostQ1 = -1;
+							double minPostQ2 = -1;
+							double minPostQ3 = -1;
 							NodeData criticalNd= new NodeData();
 							for(NodeData ndI: nodeDataList ){
-									if(ndI.post < minPost ){
-											minPost = ndI.post;
-											criticalNd = ndI;
+									if(ndI.postQ1.getPost() < minPostQ1){
+										minPostQ1 = ndI.postQ1.getPost();
+										criticalNd.postQ1 = ndI.postQ1;
+									}
+									if(ndI.postQ2.getPost() < minPostQ2){
+										minPostQ2 = ndI.postQ2.getPost();
+										criticalNd.postQ2 = ndI.postQ2;
+									}
+									if(ndI.postQ3.getPost() < minPostQ3){
+										minPostQ3 = ndI.postQ3.getPost();
+										criticalNd.postQ3 = ndI.postQ3;
 									}
 							}
-							System.err.print(criticalNd.data);
-//							allQuads.add(quadList);
-//							allDataNodes.add(nodeDataList);
+							//// TODO, change toString()
+							System.err.print(criticalNd.toString());
 						}
 					}
 				}
