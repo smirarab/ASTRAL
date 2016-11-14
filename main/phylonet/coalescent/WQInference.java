@@ -212,6 +212,14 @@ public class WQInference extends AbstractInference<Tripartition> {
 		Integer effn ;
 		Quadrapartition [] quads;
 		STBipartition[] bipartitions;
+		double post;
+		Posterior postQ1;
+		Posterior postQ2;
+		Posterior postQ3;
+		String data;
+		void setData(String s){
+			this.data = s;
+		}
 		
 	}
 	private ArrayList<STITreeCluster> listClustersBelowNode(TNode node, int depth){
@@ -247,15 +255,78 @@ public class WQInference extends AbstractInference<Tripartition> {
 		return retClusters;
 	}
 	
-	
-	private double listQuartets(Tree st, int depth){
-		double ret = 0;
+	private void setLocalPP(NodeData nd){
+		Double f1 = nd.mainfreq;
+		Double f2 = nd.alt1freqs;
+		Double f3 = nd.alt2freqs;
+		Long quarc = nd.quartcount;
+		Double effni = nd.effn + 0.0;
+		
+		if ( Math.abs((f1+f2+f3) - effni) > 0.01 ) {
+			effni = f1 + f2 + f3;
+		}
+		
+		
+		Posterior post = new Posterior(
+				f1,f2,f3,(double)effni, options.getLambda());
+		
+		nd.postQ1 = post;
+		nd.post = post.getPost();
+		
+		if (this.getBranchAnnotation() == 0){
+			nd.setData(null);
+		} else if (this.getBranchAnnotation() == 1){
+			nd.setData(df.format((f1+.0)/effni*100));
+		} else if (this.getBranchAnnotation() == 10) {
+			df.setMaximumFractionDigits(5);
+			nd.setData(df.format(post.getPvalue()));
+		} else {
+			double postQ1 = post.getPost();
+			
+			if (this.getBranchAnnotation() == 3 || this.getBranchAnnotation() == 12) {
+				nd.setData(df.format(postQ1));
+			} else if (this.getBranchAnnotation() % 2 == 0) {
+				post = new Posterior(f2,f1,f3,(double)effni, options.getLambda());
+				nd.postQ2 = post;
+				double postQ2 = post.getPost();
+				post =  new Posterior(f3,f1,f2,(double)effni, options.getLambda());
+				nd.postQ3 = post;
+				double postQ3 = post.getPost();
+				
+				if (this.getBranchAnnotation() == 2)
+					nd.setData(
+							"'[q1="+(f1)/effni+";q2="+(f2)/effni+";q3="+(f3)/effni+
+							 ";f1="+f1+";f2="+f2+";f3="+f3+
+							 ";pp1="+postQ1+";pp2="+postQ2+";pp3="+postQ3+
+							 ";QC="+quarc+";EN="+effni+"]'");
+				else if (this.getBranchAnnotation() == 4) {
+					nd.setData("'[pp1="+df.format(postQ1)+";pp2="+df.format(postQ2)+";pp3="+df.format(postQ3)+"]'");
+				} else if (this.getBranchAnnotation() == 6){
+					nd.setData(df.format(postQ1));
+					Quadrapartition[] threequads = nd.quads;
+					STBipartition[] biparts = nd.bipartitions;
+					nd.setData(threequads[0] +
+							" [" + biparts[0].toString2() +"] : "+postQ1 +" ** f1 = "+f1+
+							" f2 = "+f2+" f3 = "+f3+" EN = "+ effni+" **\n"+ threequads[1] +
+							" ["+biparts[1].toString2()+"] : "+postQ2+ " ** f1 = "+f2+
+							" f2 = "+f1+" f3 = "+f3+" EN = "+ effni+" **\n"+threequads[2] +
+							" ["+biparts[2].toString2()+"] : "+postQ3+ " ** f1 = "+f3+
+							" f2 = "+f1+" f3 = "+f2+" EN = "+ effni+" **");
+				}  else if (this.getBranchAnnotation() == 8){
+					nd.setData(
+							"'[q1="+df.format((f1)/effni)+
+							 ";q2="+df.format((f2)/effni)+
+							 ";q3="+df.format((f3)/effni)+"]'");
+				}
+			}
+		} 
+	}
+	private void scoreBranches(Tree st, int depth){
 		
 		weightCalculator = new BipartitionWeightCalculator(this,((WQWeightCalculator)this.weightCalculator).geneTreesAsInts());
 		
 		BipartitionWeightCalculator weightCalculator2 = (BipartitionWeightCalculator) weightCalculator;
 		WQDataCollection wqDataCollection = (WQDataCollection) this.dataCollection;
-		//wqDataCollection.initializeWeightCalculator(this);
 		
 		/**
 		 * Add bitsets to each node for all taxa under it. 
@@ -294,10 +365,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 		
 		stack = new Stack<STITreeCluster>();
 		
-		ArrayList<ArrayList<Quadrapartition>> allQuads = new ArrayList<ArrayList<Quadrapartition>>();
-		ArrayList<ArrayList<STITreeCluster>> allBelowClusters = new ArrayList<ArrayList<STITreeCluster>>();
-		ArrayList<ArrayList<STITreeCluster>> allAboveClusters = new ArrayList<ArrayList<STITreeCluster>>();
-		ArrayList<ArrayList<NodeData>> allDataNodes = new ArrayList<ArrayList<NodeData>>();
+	//	ArrayList<ArrayList<Quadrapartition>> allQuads = new ArrayList<ArrayList<Quadrapartition>>();
+	//	ArrayList<ArrayList<STITreeCluster>> allBelowClusters = new ArrayList<ArrayList<STITreeCluster>>();
+	//	ArrayList<ArrayList<STITreeCluster>> allAboveClusters = new ArrayList<ArrayList<STITreeCluster>>();
+	//	ArrayList<ArrayList<NodeData>> allDataNodes = new ArrayList<ArrayList<NodeData>>();
 		for (TNode n: st.postTraverse()) {
 			ArrayList<NodeData> nodeDataList = new ArrayList<NodeData>();
 			STINode node = (STINode) n;
@@ -308,9 +379,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 				 * 1. Create quadripartion
 				 */
 				ArrayList<STITreeCluster> belowClusters = listClustersBelowNode(n, depth);
-				ArrayList<STITreeCluster> aboveClusters = listClustersAboveParentNode(n.getParent(), depth); 
-				allBelowClusters.add(belowClusters);
-				allAboveClusters.add(aboveClusters);
+				ArrayList<STITreeCluster> aboveClusters = listClustersAboveParentNode(n.getParent(), depth);
+				
+//				allBelowClusters.add(belowClusters);
+//				allAboveClusters.add(aboveClusters);
 				NodeData nd = new NodeData();
 				nodeDataList.add(nd);
 				ArrayList<Quadrapartition> quadList = new ArrayList<Quadrapartition>();
@@ -342,14 +414,6 @@ public class WQInference extends AbstractInference<Tripartition> {
 								
 								c1plusrem.setCluster((BitSet) sister.getBitSet().clone());
 								c1plusrem.getBitSet().or(remaining.getBitSet());
-								
-								//if (nd.effn < 20) {
-									//if (!GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleSP(cluster.getBitSet()))
-										//System.err.println("You may want to ignore posterior probabilities and other statistics related to the following "
-											//	+ "branch branch because the effective number of genes impacting it is only "+ nd.effn +
-											//":\n\t" +
-											//GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTClusterForGeneCluster(cluster));
-								//}
 								
 								Quadrapartition[] threequads = new Quadrapartition [] {quad, null,null};
 								
@@ -388,113 +452,37 @@ public class WQInference extends AbstractInference<Tripartition> {
 									nd.quads = threequads;
 									nd.bipartitions = biparts;
 								}
+								setLocalPP(nd);
 								nodeDataList.add(nd);
 							}
-							allQuads.add(quadList);
-							allDataNodes.add(nodeDataList);
+							double minPost = -1;
+							NodeData criticalNd= new NodeData();
+							for(NodeData ndI: nodeDataList ){
+									if(ndI.post < minPost ){
+											minPost = ndI.post;
+											criticalNd = ndI;
+									}
+							}
+							System.err.print(criticalNd.data);
+//							allQuads.add(quadList);
+//							allDataNodes.add(nodeDataList);
 						}
 					}
 				}
 				
 			}
 		}
-		
-		
-		
-		/**
-		 * Annotate each branch by updating its data field
-		 * according to scores and user's annotation preferences. 
-		 */
-		NodeData nd = null;
-		for (TNode n: st.postTraverse()) {
-			STINode node = (STINode) n;
-			
-			if (!node.isLeaf()) {
-				nd = nodeDataList.poll();
-			}
-			if (skipNode(node)) {
-				node.setData(null);
-				continue;
-			} 
-				
-			Double f1 = nd.mainfreq;
-			Double f2 = nd.alt1freqs;
-			Double f3 = nd.alt2freqs;
-			Long quarc = nd.quartcount;
-			Double effni = nd.effn + 0.0;
-			
-			if ( Math.abs((f1+f2+f3) - effni) > 0.01 ) {
-				//System.err.println("Adjusting effective N from\t" + effni + "\tto\t" + (f1 + f2 + f3) + ". This should only happen as a result of polytomies in gene trees.");
-				effni = f1 + f2 + f3;
-			}
-			
-			//Long sum = p+a1+a2;
-			
-			Posterior post = new Posterior(
-					f1,f2,f3,(double)effni, options.getLambda());
-			double bl = post.branchLength();
-			
-			node.setParentDistance(bl);
-			if (this.getBranchAnnotation() == 0){
-				node.setData(null);
-			} else if (this.getBranchAnnotation() == 1){
-				node.setData(df.format((f1+.0)/effni*100));
-			} else if (this.getBranchAnnotation() == 10) {
-				df.setMaximumFractionDigits(5);
-				node.setData(df.format(post.getPvalue()));
-			} else {
-				double postQ1 = post.getPost();
-				ret += Math.log(postQ1);
-				
-				if (this.getBranchAnnotation() == 3 || this.getBranchAnnotation() == 12) {
-					node.setData(df.format(postQ1));
-				} else if (this.getBranchAnnotation() % 2 == 0) {
-					post = new Posterior(f2,f1,f3,(double)effni, options.getLambda());
-					double postQ2 = post.getPost();
-					post =  new Posterior(f3,f1,f2,(double)effni, options.getLambda());
-					double postQ3 = post.getPost();
-					
-					if (this.getBranchAnnotation() == 2)
-						node.setData(
-								"'[q1="+(f1)/effni+";q2="+(f2)/effni+";q3="+(f3)/effni+
-								 ";f1="+f1+";f2="+f2+";f3="+f3+
-								 ";pp1="+postQ1+";pp2="+postQ2+";pp3="+postQ3+
-								 ";QC="+quarc+";EN="+effni+"]'");
-					else if (this.getBranchAnnotation() == 4) {
-						node.setData("'[pp1="+df.format(postQ1)+";pp2="+df.format(postQ2)+";pp3="+df.format(postQ3)+"]'");
-					} else if (this.getBranchAnnotation() == 6){
-						node.setData(df.format(postQ1));
-						Quadrapartition[] threequads = nd.quads;
-						STBipartition[] biparts = nd.bipartitions;
-						System.err.println(threequads[0] +
-								" [" + biparts[0].toString2() +"] : "+postQ1 +" ** f1 = "+f1+
-								" f2 = "+f2+" f3 = "+f3+" EN = "+ effni+" **");
-						System.err.println(threequads[1] +
-								" ["+biparts[1].toString2()+"] : "+postQ2+ " ** f1 = "+f2+
-								" f2 = "+f1+" f3 = "+f3+" EN = "+ effni+" **");
-						System.err.println(threequads[2] +
-								" ["+biparts[2].toString2()+"] : "+postQ3+ " ** f1 = "+f3+
-								" f2 = "+f1+" f3 = "+f2+" EN = "+ effni+" **");
-					}  else if (this.getBranchAnnotation() == 8){
-						node.setData(
-								"'[q1="+df.format((f1)/effni)+
-								 ";q2="+df.format((f2)/effni)+
-								 ";q3="+df.format((f3)/effni)+"]'");
-					}
-				}
-				//i++;
-			} 
-		}
-		if (!nodeDataList.isEmpty())
-			throw new RuntimeException("Hmm, this shouldn't happen; "+nodeDataList);
-		
-		return ret;
 	}
+	
+	
+	
+	
 	/**
 	 * Annotates the species tree branches with support, branch length, etc. 
 	 * @param st
 	 * @return
 	 */
+	
 	private double scoreBranches(Tree st) {
 
 		double ret = 0;
