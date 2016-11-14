@@ -389,11 +389,11 @@ public class WQInference extends AbstractInference<Tripartition> {
 				for (STITreeCluster c1: belowClusters){
 					int ic1 = belowClusters.indexOf(c1);
 					int mb = belowClusters.size();
-					for (STITreeCluster c2: belowClusters.subList(ic1,mb)){
+					for (STITreeCluster c2: belowClusters.subList(ic1+1,mb)){
 						for (STITreeCluster sister: aboveClusters){
 							int isister = aboveClusters.indexOf(sister);
 							int ma = aboveClusters.size();
-							for (STITreeCluster remaining: aboveClusters.subList(isister,ma)){
+							for (STITreeCluster remaining: aboveClusters.subList(isister+1,ma)){
 								Quadrapartition quad = weightCalculator2.new Quadrapartition
 										(c1,  c2, sister, remaining);
 								if (this.getBranchAnnotation() == 7){
