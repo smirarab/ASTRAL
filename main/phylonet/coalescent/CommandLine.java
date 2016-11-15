@@ -90,6 +90,11 @@ public class CommandLine {
                             + "3 (default): only the posterior probability for the main resolution.\n"
                             + "4: only three alternative posterior probabilities."),
                             
+                    new FlaggedOption("branch annotation option",
+                    		JSAP.INTEGER_PARSER, "0", JSAP.NOT_REQUIRED,
+                    		'j', "depth",
+                    		"What is the acceptable distance for clusters to be included around each branch?: 0 (default, original definition), 1 ( The same as original definition, new implementation), 2, etc.\n"
+                    		),
 	                new FlaggedOption("bootstraps", 
 	                        FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED,
 	                        'b', "bootstraps",
@@ -652,7 +657,7 @@ public class CommandLine {
     			!keepOptions.contains("searchspace_norun"),
     			config.getInt("branch annotation level"), 
     			config.getDouble("lambda"),
-    			outfileName);
+    			outfileName, config.getInt("branch annotation option"));
     	options.setDLbdWeigth(wh); 
     	options.setCS(cs);
     	options.setCD(cd);
