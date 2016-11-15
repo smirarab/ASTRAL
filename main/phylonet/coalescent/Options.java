@@ -119,7 +119,9 @@ public class Options {
 	public int getBranchannotation() {
 		return branchannotation;
 	}
-
+	public int getDepth() {
+		return depth;
+	}
 
 	public double getDLbdWeigth() {
 		return DLbdWeigth;
