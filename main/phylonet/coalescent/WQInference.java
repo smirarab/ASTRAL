@@ -244,18 +244,18 @@ public class WQInference extends AbstractInference<Tripartition> {
 					if (i == 2)
 						this.setData("'[q1="+(f1)/effni+";q2="+(f2)/effni+";q3="+(f3)/effni+
 								 ";f1="+f1+";f2="+f2+";f3="+f3+
-								 ";pp1="+postQ1+";pp2="+postQ2+";pp3="+postQ3+
+								 ";pp1="+pQ1+";pp2="+pQ2+";pp3="+pQ3+
 								 ";QC="+this.quartcount+";EN="+effni+"]'");
 					else if (i == 4) {
-						this.setData("'[pp1="+df.format(postQ1)+";pp2="+df.format(postQ2)+";pp3="+df.format(postQ3)+"]'");
+						this.setData("'[pp1="+df.format(pQ1)+";pp2="+df.format(pQ2)+";pp3="+df.format(pQ3)+"]'");
 					} else if (i == 6){
 						this.setData(df.format(postQ1));
 						this.setData(this.quads[0] +
-								" [" + this.bipartitions[0].toString2() +"] : "+postQ1 +" ** f1 = "+f1+
+								" [" + this.bipartitions[0].toString2() +"] : "+pQ1 +" ** f1 = "+f1+
 								" f2 = "+f2+" f3 = "+f3+" EN = "+ effni+" **\n"+ this.quads[1] +
-								" ["+this.bipartitions[1].toString2()+"] : "+postQ2+ " ** f1 = "+f2+
+								" ["+this.bipartitions[1].toString2()+"] : "+pQ2+ " ** f1 = "+f2+
 								" f2 = "+f1+" f3 = "+f3+" EN = "+ effni+" **\n"+this.quads[2] +
-								" ["+this.bipartitions[2].toString2()+"] : "+postQ3+ " ** f1 = "+f3+
+								" ["+this.bipartitions[2].toString2()+"] : "+pQ3+ " ** f1 = "+f3+
 								" f2 = "+f1+" f3 = "+f2+" EN = "+ effni+" **");
 					}  else if (i == 8){
 						this.setData(
