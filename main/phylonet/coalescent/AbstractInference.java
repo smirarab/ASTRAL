@@ -387,6 +387,9 @@ public abstract class AbstractInference<T> {
 	public int getBranchAnnotation() {
 		return this.options.getBranchannotation();
 	}
+	public int getDepth() {
+		return this.options.getDepth();
+	}
 
 	public boolean shouldOutputCompleted() {
 		
