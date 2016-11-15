@@ -220,6 +220,55 @@ public class WQInference extends AbstractInference<Tripartition> {
 		void setData(String s){
 			this.data = s;
 		}
+		void setString(int i){
+			Double f1 = mainfreq;
+			Double f2 = alt1freqs;
+			Double f3 = alt2freqs;
+			Integer effni = effn;
+			
+			if (i == 0){
+				this.setData(null);
+			} else if (i == 1){
+				this.setData(df.format((f1+.0)/effni*100));
+			} else if (i == 10) {
+				df.setMaximumFractionDigits(5);
+				this.setData(df.format(this.postQ1.getPost()));
+			} else {
+				double pQ1 = this.postQ1.getPost();
+				
+				if (i == 3 || i == 12) {
+					this.setData(df.format(postQ1));
+				} else if (i % 2 == 0) {
+					double pQ2 = postQ2.getPost();
+					double pQ3 = postQ3.getPost();
+					if (i == 2)
+						this.setData("'[q1="+(f1)/effni+";q2="+(f2)/effni+";q3="+(f3)/effni+
+								 ";f1="+f1+";f2="+f2+";f3="+f3+
+								 ";pp1="+postQ1+";pp2="+postQ2+";pp3="+postQ3+
+								 ";QC="+this.quartcount+";EN="+effni+"]'");
+					else if (i == 4) {
+						this.setData("'[pp1="+df.format(postQ1)+";pp2="+df.format(postQ2)+";pp3="+df.format(postQ3)+"]'");
+					} else if (i == 6){
+						this.setData(df.format(postQ1));
+						this.setData(this.quads[0] +
+								" [" + this.bipartitions[0].toString2() +"] : "+postQ1 +" ** f1 = "+f1+
+								" f2 = "+f2+" f3 = "+f3+" EN = "+ effni+" **\n"+ this.quads[1] +
+								" ["+this.bipartitions[1].toString2()+"] : "+postQ2+ " ** f1 = "+f2+
+								" f2 = "+f1+" f3 = "+f3+" EN = "+ effni+" **\n"+this.quads[2] +
+								" ["+this.bipartitions[2].toString2()+"] : "+postQ3+ " ** f1 = "+f3+
+								" f2 = "+f1+" f3 = "+f2+" EN = "+ effni+" **");
+					}  else if (i == 8){
+						this.setData(
+								"'[q1="+df.format((f1)/effni)+
+								 ";q2="+df.format((f2)/effni)+
+								 ";q3="+df.format((f3)/effni)+"]'");
+					}
+				}
+			}
+		}
+		String toString2(){
+			return this.data;
+		}
 		
 	}
 	private ArrayList<STITreeCluster> listClustersBelowNode(TNode node, int depth){
@@ -273,51 +322,16 @@ public class WQInference extends AbstractInference<Tripartition> {
 		nd.postQ1 = post;
 		nd.post = post.getPost();
 		
-		if (this.getBranchAnnotation() == 0){
-			nd.setData(null);
-		} else if (this.getBranchAnnotation() == 1){
-			nd.setData(df.format((f1+.0)/effni*100));
-		} else if (this.getBranchAnnotation() == 10) {
-			df.setMaximumFractionDigits(5);
-			nd.setData(df.format(post.getPvalue()));
-		} else {
+		if (this.getBranchAnnotation() != 0 && this.getBranchAnnotation() != 1 && this.getBranchAnnotation() != 10 ){
+				
 			double postQ1 = post.getPost();
-			
-			if (this.getBranchAnnotation() == 3 || this.getBranchAnnotation() == 12) {
-				nd.setData(df.format(postQ1));
-			} else if (this.getBranchAnnotation() % 2 == 0) {
+			if (this.getBranchAnnotation() != 3 && this.getBranchAnnotation() != 12 && this.getBranchAnnotation() % 2 == 0) {
 				post = new Posterior(f2,f1,f3,(double)effni, options.getLambda());
 				nd.postQ2 = post;
 				double postQ2 = post.getPost();
 				post =  new Posterior(f3,f1,f2,(double)effni, options.getLambda());
 				nd.postQ3 = post;
 				double postQ3 = post.getPost();
-				
-				if (this.getBranchAnnotation() == 2)
-					nd.setData(
-							"'[q1="+(f1)/effni+";q2="+(f2)/effni+";q3="+(f3)/effni+
-							 ";f1="+f1+";f2="+f2+";f3="+f3+
-							 ";pp1="+postQ1+";pp2="+postQ2+";pp3="+postQ3+
-							 ";QC="+quarc+";EN="+effni+"]'");
-				else if (this.getBranchAnnotation() == 4) {
-					nd.setData("'[pp1="+df.format(postQ1)+";pp2="+df.format(postQ2)+";pp3="+df.format(postQ3)+"]'");
-				} else if (this.getBranchAnnotation() == 6){
-					nd.setData(df.format(postQ1));
-					Quadrapartition[] threequads = nd.quads;
-					STBipartition[] biparts = nd.bipartitions;
-					nd.setData(threequads[0] +
-							" [" + biparts[0].toString2() +"] : "+postQ1 +" ** f1 = "+f1+
-							" f2 = "+f2+" f3 = "+f3+" EN = "+ effni+" **\n"+ threequads[1] +
-							" ["+biparts[1].toString2()+"] : "+postQ2+ " ** f1 = "+f2+
-							" f2 = "+f1+" f3 = "+f3+" EN = "+ effni+" **\n"+threequads[2] +
-							" ["+biparts[2].toString2()+"] : "+postQ3+ " ** f1 = "+f3+
-							" f2 = "+f1+" f3 = "+f2+" EN = "+ effni+" **");
-				}  else if (this.getBranchAnnotation() == 8){
-					nd.setData(
-							"'[q1="+df.format((f1)/effni)+
-							 ";q2="+df.format((f2)/effni)+
-							 ";q3="+df.format((f3)/effni)+"]'");
-				}
 			}
 		} 
 	}
@@ -471,8 +485,8 @@ private void scoreBranches2(Tree st, int depth){
 										criticalNd.postQ3 = ndI.postQ3;
 									}
 							}
-							//// TODO, change toString()
-							System.err.print(criticalNd.toString());
+							criticalNd.setString(this.getBranchAnnotation());
+							System.err.print(criticalNd.toString2());
 						}
 					}
 				}
@@ -627,9 +641,8 @@ private void scoreBranches2(Tree st, int depth){
 											criticalNd = ndI;
 									}
 							}
-							System.err.print(criticalNd.data);
-//							allQuads.add(quadList);
-//							allDataNodes.add(nodeDataList);
+							criticalNd.setString(this.getBranchAnnotation());
+							System.err.print(criticalNd.toString2());
 						}
 					}
 				}
