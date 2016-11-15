@@ -187,11 +187,15 @@ public class WQInference extends AbstractInference<Tripartition> {
 				((STINode) n).setData(null);
 			}
 		} else {
-			double logscore = this.scoreBranches(st);
-			
-			if (this.getBranchAnnotation() % 12 == 0) {
-				System.err.println("log local posterior: "+logscore);
-				return logscore;
+			if (this.getDepth() == 0){
+				double logscore = this.scoreBranches(st);
+				if (this.getBranchAnnotation() % 12 == 0) {
+					System.err.println("log local posterior: "+logscore);
+					return logscore;
+				}
+			}
+			else {
+				scoreBranches2(st, this.getDepth());
 			}
 		}
 		return (sum/4l+0.)/this.maxpossible;
