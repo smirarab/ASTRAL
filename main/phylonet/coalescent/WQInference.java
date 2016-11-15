@@ -485,6 +485,8 @@ private void scoreBranches2(Tree st, int depth){
 										criticalNd.postQ3 = ndI.postQ3;
 									}
 							}
+							double bl = criticalNd.postQ1.branchLength();
+							node.setParentDistance(bl);
 							criticalNd.setString(this.getBranchAnnotation());
 							System.err.print(criticalNd.toString2());
 						}
@@ -641,6 +643,8 @@ private void scoreBranches2(Tree st, int depth){
 											criticalNd = ndI;
 									}
 							}
+							double bl = criticalNd.postQ1.branchLength();
+							node.setParentDistance(bl);
 							criticalNd.setString(this.getBranchAnnotation());
 							System.err.print(criticalNd.toString2());
 						}
