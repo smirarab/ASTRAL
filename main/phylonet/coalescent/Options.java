@@ -18,11 +18,12 @@ public class Options {
 	private double DLbdWeigth;
 	private double CS;
 	private double CD;
+	private int depth;
 
 	public Options(boolean rooted, boolean extrarooted, 
 			boolean exactSolution, boolean duploss, int alg, int addExtra,
 			boolean outputCompletedGenes, boolean outSearch, boolean run,
-			int branchannotation, double lambda, String outputFile) {
+			int branchannotation, double lambda, String outputFile, int depth) {
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
 		this.exactSolution = exactSolution;
@@ -35,6 +36,7 @@ public class Options {
 		this.branchannotation = branchannotation;
 		this.setLambda(lambda);
 		this.setOutputFile(outputFile);
+		this.depth = depth;
 	}
 
 	public boolean isRooted() {
