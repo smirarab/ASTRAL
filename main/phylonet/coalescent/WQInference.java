@@ -330,7 +330,24 @@ public class WQInference extends AbstractInference<Tripartition> {
 		
 		nd.postQ1 = post;
 		nd.post = post.getPost();
+		Quadrapartition[] threequads = new Quadrapartition [] {quad, null,null};
 		
+		quad = weightCalculator2.new Quadrapartition
+				(c1, sister, c2, remaining);
+		s = weightCalculator2.getWeight(quad);
+		nd.alt1freqs=s.qs;
+		threequads[1] = quad;
+		
+		quad = weightCalculator2.new Quadrapartition
+				(c1, remaining, c2, sister);
+		s = weightCalculator2.getWeight(quad);
+		nd.alt2freqs=s.qs;
+		threequads[2] = quad;
+	
+		nd.quartcount= (c1.getClusterSize()+0l)
+				* (c2.getClusterSize()+0l)
+				* (sister.getClusterSize()+0l)
+				* (remaining.getClusterSize()+0l);
 		if (this.getBranchAnnotation() != 0 && this.getBranchAnnotation() != 1 && this.getBranchAnnotation() != 10 ){
 				
 			double postQ1 = post.getPost();
