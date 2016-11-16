@@ -217,9 +217,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 		Quadrapartition [] quads;
 		STBipartition[] bipartitions;
 		double post;
-		Posterior postQ1;
-		Posterior postQ2;
-		Posterior postQ3;
+		Posterior postQ1 = null;
+		Posterior postQ2 = null;
+		Posterior postQ3 = null;
 		String data;
 		void setData(String s){
 			this.data = s;
@@ -253,7 +253,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 					else if (i == 4) {
 						this.setData("'[pp1="+df.format(pQ1)+";pp2="+df.format(pQ2)+";pp3="+df.format(pQ3)+"]'");
 					} else if (i == 6){
-						this.setData(df.format(postQ1));
+						this.setData(df.format(pQ1));
 						this.setData(this.quads[0] +
 								" [" + this.bipartitions[0].toString2() +"] : "+pQ1 +" ** f1 = "+f1+
 								" f2 = "+f2+" f3 = "+f3+" EN = "+ effni+" **\n"+ this.quads[1] +
@@ -292,6 +292,11 @@ public class WQInference extends AbstractInference<Tripartition> {
 	
 	private ArrayList<STITreeCluster> listClustersAboveParentNode(TNode node, int maxDist){
 		ArrayList<STITreeCluster> retClusters = new ArrayList<STITreeCluster>();
+		if (maxDist == 0 || node.isLeaf()) {
+			STINode n = (STINode) node;
+			retClusters.add((STITreeCluster) n.getData());
+			return retClusters;
+		}
 		for (int i = 0; i<maxDist; i++){
 			for (TNode child: node.getChildren()){
 				if (child == node ) continue;
@@ -386,7 +391,7 @@ private void scoreBranches2(Tree st, int depth){
 		for (TNode n: st.postTraverse()) {
 			ArrayList<NodeData> nodeDataList = new ArrayList<NodeData>();
 			STINode node = (STINode) n;
-			if (skipNode(node)) {
+			if (node.isLeaf() || node.getParent() == null || node.getParent().getParent() == null) {
 				continue;
 			} else {
 				/**
@@ -403,8 +408,6 @@ private void scoreBranches2(Tree st, int depth){
 				ArrayList<STITreeCluster> sisterClusters = listClustersBelowNode(pc, depth-1);
 				ArrayList<STITreeCluster> remainingClusters = listClustersAboveParentNode(n.getParent().getParent(),depth-1);
 				
-				NodeData nd = new NodeData();
-				nodeDataList.add(nd);
 				ArrayList<Quadrapartition> quadList = new ArrayList<Quadrapartition>();
 				for (STITreeCluster c1: belowClusters1){
 					for (STITreeCluster c2: belowClusters2){
@@ -417,6 +420,7 @@ private void scoreBranches2(Tree st, int depth){
 										System.err.print(c1.toString()+c2.toString()+"|"+sister.toString()+remaining.toString()+"\n");
 									}
 								}
+								NodeData nd = new NodeData();
 								quadList.add(quad);
 								Results s = weightCalculator2.getWeight(quad);
 								nd.mainfreq = s.qs;
@@ -468,14 +472,21 @@ private void scoreBranches2(Tree st, int depth){
 									nd.quads = threequads;
 									nd.bipartitions = biparts;
 								}
-								setLocalPP(nd);
+								this.setLocalPP(nd);
 								nodeDataList.add(nd);
 							}
-							double minPostQ1 = -1;
-							double minPostQ2 = -1;
-							double minPostQ3 = -1;
+							if (nodeDataList.size()==0) {
+								throw new RuntimeException("Hmm, this shouldn't happen; "+nodeDataList);
+							}
+							double minPostQ1 = Double.MAX_VALUE;
+							double minPostQ2 = Double.MAX_VALUE;
+							double minPostQ3 = Double.MAX_VALUE;
 							NodeData criticalNd= new NodeData();
-							for(NodeData ndI: nodeDataList ){
+							for(NodeData ndI: nodeDataList){
+									if (ndI == null) {
+										throw new RuntimeException("Hmm, this shouldn't happen; "+ndI);
+									}
+									System.err.print(ndI.toString());
 									if(ndI.postQ1.getPost() < minPostQ1){
 										minPostQ1 = ndI.postQ1.getPost();
 										criticalNd.postQ1 = ndI.postQ1;
@@ -488,11 +499,12 @@ private void scoreBranches2(Tree st, int depth){
 										minPostQ3 = ndI.postQ3.getPost();
 										criticalNd.postQ3 = ndI.postQ3;
 									}
-							}
+							} 
 							double bl = criticalNd.postQ1.branchLength();
 							node.setParentDistance(bl);
 							criticalNd.setString(this.getBranchAnnotation());
 							System.err.print(criticalNd.toString2());
+							System.err.println(bl);
 						}
 					}
 				}
