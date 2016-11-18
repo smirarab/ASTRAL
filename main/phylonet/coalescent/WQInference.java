@@ -343,7 +343,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 		} 
 	}
 private void scoreBranches2(Tree st, int depth){
-		
+		System.out.println(depth);
+		System.out.println(options.getBranchannotation());
 		weightCalculator = new BipartitionWeightCalculator(this,((WQWeightCalculator)this.weightCalculator).geneTreesAsInts());
 		
 		BipartitionWeightCalculator weightCalculator2 = (BipartitionWeightCalculator) weightCalculator;
@@ -457,9 +458,7 @@ private void scoreBranches2(Tree st, int depth){
 								s = weightCalculator2.getWeight(quad);
 								nd.alt2freqs=s.qs;
 								threequads[2] = quad;
-								if (this.getBranchAnnotation() == 6) {
-									nd.quads = threequads;
-								}
+								nd.quads = threequads;
 								nd.quartcount= (c1.getClusterSize()+0l)
 										* (c2.getClusterSize()+0l)
 										* (sister.getClusterSize()+0l)
@@ -487,25 +486,27 @@ private void scoreBranches2(Tree st, int depth){
 						if (ndI == null) {
 							throw new RuntimeException("Hmm, this shouldn't happen; "+ndI);
 						}
-						if(ndI.postQ1.getPost() < minPostQ1){
+						if (ndI.postQ1.getPost() < minPostQ1) {
 							minPostQ1 = ndI.postQ1.getPost();
 							criticalNd.postQ1 = ndI.postQ1;
 							criticalNd.quads[0] = ndI.quads[0];
 							criticalNd.mainfreq = ndI.mainfreq;
 							criticalNd.effn = ndI.effn;
 						}
-						if(ndI.postQ2.getPost() < minPostQ2){
+						if (ndI.postQ2.getPost() < minPostQ2) {
 							minPostQ2 = ndI.postQ2.getPost();
 							criticalNd.postQ2 = ndI.postQ2;
 							criticalNd.quads[1] = ndI.quads[1];
 							criticalNd.alt1freqs = ndI.alt1freqs;
 						}
-						if(ndI.postQ3.getPost() < minPostQ3){
+						
+						if (ndI.postQ3.getPost() < minPostQ3) {
 							minPostQ3 = ndI.postQ3.getPost();
 							criticalNd.postQ3 = ndI.postQ3;
 							criticalNd.quads[2] = ndI.quads[2];
 							criticalNd.alt2freqs = ndI.alt2freqs;
 						}
+
 				} 
 				STBipartition bmain = new STBipartition(cluster, cluster.complementaryCluster());		
 				if (this.getBranchAnnotation() == 6) {					
