@@ -1,3 +1,5 @@
+- version 4.10.13:
+    - Adding option "-j d" to consider minimum localpp for quartets around branch with distance at maximum "d" from endpoints of the branch
 - version 4.10.11:
     - A bug fixed where number of taxa = 64*X was throwing an error
     
