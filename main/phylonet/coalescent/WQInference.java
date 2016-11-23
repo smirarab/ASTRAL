@@ -444,6 +444,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 			STINode node = (STINode) n;
 
 			if (node.isLeaf() || node.getParent() == null || node.getParent().getParent() == null) {
+				node.setData(null);
 				continue;
 			}
 			node.setData(finalNodeDataList.poll().toString2(this.getBranchAnnotation()));
@@ -551,6 +552,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 					criticalNd.quads[0] = ndI.quads[0];
 					criticalNd.mainfreq = ndI.mainfreq;
 					criticalNd.effn = ndI.effn;
+					criticalNd.quartcount = ndI.quartcount;
 				}
 				if (toAnnotateAltTopologies()) {
 					if (ndI.postQ2.getPost() < minPostQ2) {
