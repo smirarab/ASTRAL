@@ -580,8 +580,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 		}
 		double bl = criticalNd.postQ1.branchLength();
 		node.setParentDistance(bl);
-		criticalNd.setString(this.getBranchAnnotation());			
-		System.err.println(criticalNd.toString2(this.getBranchAnnotation()));
+		criticalNd.setString(this.getBranchAnnotation());
+		System.err.println(criticalNd.data);
 		return(criticalNd);
 
 	}
