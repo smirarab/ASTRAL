@@ -14,28 +14,50 @@ import phylonet.tree.model.sti.STITree;
 import phylonet.tree.util.Trees;
 import phylonet.util.BitSet;
 
+/**
+ * This class keeps track of a single-individual sample
+ * of a multi-individual dataset. For each species, 
+ * we will include only one of its individuals in any instance of this class. 
+ * @author smirarab
+ *
+ */
 public class SingleIndividualSample {
 	
-	private List<Integer> sampleOrigIDs;
+	/**
+	 * IDs of sampled individuals in the original (global) taxon identifier
+	 */
+	private List<Integer> sampleGlobalIDs;
+	/**
+	 * Name of sampled individuals
+	 */
 	private List<String> sampleNames;
-	private TaxonIdentifier tempTaxonId;
+	/**
+	 * A taxon identifier specifc to this subsample. This 
+	 * taxon identifer will only include the individuals sampled. 
+	 */
+	private TaxonIdentifier sampleSpecificTaxonIdentifier;
+	// TODO: maybe we should take the distanc matrix out of this class.
+	//       not sure why it's here. 
 	private SimilarityMatrix similarityMatrix;
+	/**
+	 * Size of the sample. 
+	 */
 	private int sampleSize;
 
 	public SingleIndividualSample(SpeciesMapper spm, SimilarityMatrix matrix) {
-		sampleOrigIDs = new ArrayList<Integer>();
+		sampleGlobalIDs = new ArrayList<Integer>();
 		sampleNames = new ArrayList<String>();
-		tempTaxonId = new TaxonIdentifier();
+		sampleSpecificTaxonIdentifier = new TaxonIdentifier();
     	for (int s = 0; s< spm.getSpeciesCount(); s++){
     		List<Integer> stTaxa = spm.getTaxaForSpecies(s);
     		int tid = stTaxa.get(GlobalMaps.random.nextInt(stTaxa.size()));
-    		sampleOrigIDs.add(tid);
+    		sampleGlobalIDs.add(tid);
 			sampleNames.add(GlobalMaps.taxonIdentifier.getTaxonName(tid));
-			tempTaxonId.taxonId(sampleNames.get(sampleNames.size()-1));
+			sampleSpecificTaxonIdentifier.taxonId(sampleNames.get(sampleNames.size()-1));
     	}
-		setSampleSize(sampleOrigIDs.size());
+		setSampleSize(sampleGlobalIDs.size());
 		
-		this.similarityMatrix = matrix.getInducedMatrix(this.sampleOrigIDs);
+		this.similarityMatrix = matrix.getInducedMatrix(this.sampleGlobalIDs);
 	}
 	
 	
@@ -51,7 +73,7 @@ public class SingleIndividualSample {
 	}
 
 	public TaxonIdentifier getTaxonIdentifier() {
-		return this.tempTaxonId;
+		return this.sampleSpecificTaxonIdentifier;
 	}
 
 
@@ -59,15 +81,10 @@ public class SingleIndividualSample {
 	public SimilarityMatrix getSimilarityMatrix() {
 		return this.similarityMatrix;
 	}
-	
-
-
 
 	public int getSampleSize() {
 		return sampleSize;
 	}
-
-
 
 	public void setSampleSize(int sampleSize) {
 		this.sampleSize = sampleSize;
@@ -77,7 +94,7 @@ public class SingleIndividualSample {
 		BitSet ret = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
 		for (int j = bs.nextSetBit(0); 
 				j >= 0; j = bs.nextSetBit(j+1)) {
-			ret.set(this.sampleOrigIDs.get(j));
+			ret.set(this.sampleGlobalIDs.get(j));
 		}
 		return ret;
 	}
