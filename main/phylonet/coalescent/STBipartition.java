@@ -23,7 +23,7 @@ public class STBipartition {
 	}
 	
 	private void initizlize(STITreeCluster c1, STITreeCluster c2){
-		if (c1.getBitSet().nextSetBit(0) > c2.getBitSet().nextSetBit(0)) {
+		if (c1.getBitSet().nextSetBit(0) < c2.getBitSet().nextSetBit(0)) {
 			cluster1 = c1;
 			cluster2 = c2;
 		} else {
@@ -49,6 +49,9 @@ public class STBipartition {
 	@Override
 	public String toString() {		
 		return cluster1.toString()+"|"+cluster2.toString();
+	}
+	public String toString2() {		
+		return cluster1.getBitSet().toString2()+"|"+cluster2.getBitSet().toString2();
 	}
 	public boolean isDominatedBy(STBipartition dominant) {
 /*		if (! dominant.c.containsCluster(this.c)) {
