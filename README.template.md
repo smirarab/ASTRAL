@@ -9,9 +9,6 @@ Starting from version **4.7.4**, the code given here corresponds to ASTRAL-II, d
 
 * Mirarab, Siavash, Tandy Warnow. “ASTRAL-II: Coalescent-Based Species Tree Estimation with Many Hundreds of Taxa and Thousands of Genes.”. Bioinformatics (ISMB special issue) 31 (12): i44–i52. 2015. [doi:10.1093/bioinformatics/btv234](http://bioinformatics.oxfordjournals.org/content/31/12/i44)
 
-<<<<<<< HEAD
-See our [tutorial](astral-tutorial.md) in addition to the rest of this README file. Also, the chapter of my dissertation that describes ASTRAL in detail is provided [here](thesis-astral.pdf).
-=======
 Since version 4.10.0, ASTRAL can also compute branch length (in coalescent units) and a measure of support called “local posterior probability”, described here:
 
 * Sayyari, Erfan, and Siavash Mirarab. “Fast Coalescent-Based Computation of Local Branch Support from Quartet Frequencies.” Molecular Biology and Evolution 33 (7): 1654–68. 2016. [doi:10.1093/molbev/msw079](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1)
@@ -21,7 +18,6 @@ The ASTRAL algorithm has an exact version that can run for small datasets (less 
 
 
 **See our [tutorial](astral-tutorial.md)** in addition to the rest of this README file. Also, the chapter of Siavash Mirarab's dissertation that describes ASTRAL in detail is provided [here](thesis-astral.pdf).
->>>>>>> master
 
 Email: `astral-users@googlegroups.com` for questions.
 
