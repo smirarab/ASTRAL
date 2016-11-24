@@ -7,6 +7,14 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.util.BitSet;
 
+/**
+ * This class is used in the inference class, and does two things:
+ *  -- Keeps an instance of the top level IClusterCollection
+ *  -- Has methods for building the set X
+ * @author smirarab
+ *
+ * @param <T>
+ */
 public abstract class AbstractDataCollection <T> {
 
 	protected IClusterCollection clusters;
@@ -42,6 +50,16 @@ public abstract class AbstractDataCollection <T> {
 	public abstract void addExtraBipartitionsByInput(
 			List<Tree> trees, boolean extraTreeRooted);
 	
-	public abstract void computeTreePartitions(AbstractInference<T> inference);
+	//public abstract void computeTreePartitions(AbstractInference<T> inference);
+
+    //public abstract void addExtraBipartitionByExtension(AbstractInference<T> inference);
+	
+	public abstract void formSetX(AbstractInference<T> inference);
+	
+	@Override
+	protected Object clone() throws CloneNotSupportedException {
+		AbstractDataCollection clone = (AbstractDataCollection) super.clone();
+		return clone;
+	}
 
 }
