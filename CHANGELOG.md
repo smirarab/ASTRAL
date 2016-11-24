@@ -106,7 +106,7 @@
 - version 4.8.1:
   - Major improvement: ASTRAL now computes branch lengths in coalescent units and also computes a quartet support for each branch 
 
--version 4.8.0:
+- version 4.8.0:
   - BugFix: greedy consensus with bootstrapping was failing
 
 - version 4.7.12:
