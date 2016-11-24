@@ -1,5 +1,7 @@
 - version 5.0.0:
-    - Merge main branch (4.10.12) and multi-ind branch (4.8.0)
+    - Merge the master branch (4.10.12) and the multi-ind branch (4.8.0)
+      This version should have all the multi-ind features of 4.8.0 and
+      local posterior probability features of 4.10.12 (plus all other misc changes on the master branch)
 
 - version 4.10.12:
     - Update code documentation and some refactoring
