@@ -48,81 +48,95 @@ public class Utils {
 		}
 		return children;
 	}
-	
-	public static STITreeCluster getClusterForNodeName(String nodeName) {
-		STITreeCluster cluster = GlobalMaps.taxonIdentifier.newCluster();;
-		Integer taxonID = GlobalMaps.taxonIdentifier.taxonId(nodeName);
-		cluster.addLeaf(taxonID);
-		return cluster;
-	}
+
 
 	/**
 	 * For a given set of compatible clusters, it outputs the Tree object
 	 * @param clusters
 	 * @param identifier
+	 * @param keepclusters a boolean indicating whether the data field of each node in the return 
+	 *                     tree should be set to the corresponding input cluster
 	 * @return
 	 */
-	public static Tree buildTreeFromClusters(Iterable<STITreeCluster> clusters, TaxonIdentifier identifier ) {
+	public static Tree buildTreeFromClusters(Iterable<STITreeCluster> clusters, 
+			TaxonIdentifier identifier, boolean keepclusters) {
+		
         if ((clusters == null) || (!clusters.iterator().hasNext())) {
           throw new RuntimeException("Empty list of clusters. The function returns a null tree.");
         }
     
         //TaxonIdentifier spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier();
-        MutableTree tree = new STITree<Double>();
+        STITree tree = new STITree<Double>();
+        tree.getRoot().setData(identifier.newCluster().complementaryCluster());
     
-        //String[] taxa = ((STITreeCluster)clusters.get(0)).getTaxa();
+        // Start from a star tree
         for (int i = 0; i < identifier.taxonCount(); i++) {
-          tree.getRoot().createChild(identifier.getTaxonName(i));
+          tree.getRoot().createChild(identifier.getTaxonName(i)).setData(identifier.getClusterForNodeName(identifier.getTaxonName(i)));
         }
     
+        /**
+         *  Add each cluster to the start tree one by one
+         */
         for (STITreeCluster tc : clusters) {
-          if ((tc.getClusterSize() <= 1) || (tc.getClusterSize() == identifier.taxonCount()))
-          {
-            continue;
-          }
+          // Let's start with easy cases
+          if (tc.getClusterSize() <= 1 || tc.getClusterSize() == identifier.taxonCount())
+        	  continue;
     
+          /**  
+           * Find the LCA of all nodes inside this cluster
+           */
           Set<TNode> clusterLeaves = new HashSet<TNode>();
-          TNode node;
           for (String l : tc.getClusterLeaves()) {
-            node = tree.getNode(l);
+            TNode node = tree.getNode(l);
             clusterLeaves.add(node);
           }
-    
           SchieberVishkinLCA lcaFinder = new SchieberVishkinLCA(tree);
           TNode lca = lcaFinder.getLCA(clusterLeaves);
     
+          // The set of clusters that will be moved from the LCA
+          //    to become the children of this new node that we 
+          //    will (potentially) create. 
           LinkedList<TNode> movedChildren = new LinkedList<TNode>();
-          int nodes = clusterLeaves.size();
+          int remainingleaves = clusterLeaves.size();
+          
+          // Go through the children of the LCA
           for (TNode child : lca.getChildren()) {
-            BitSet childCluster = new BitSet(identifier.taxonCount());
-            for (TNode cl : child.getLeaves()) {
-              int i = identifier.taxonId(cl.getName());
-              childCluster.set(i);
-            }
-            
-    
-            BitSet temp = (BitSet)childCluster.clone();
-            temp.and(tc.getBitSet());
-            if (temp.equals(childCluster)) {
+            STITreeCluster childCluster = (STITreeCluster) ((STINode)child).getData();
+
+            // If the child cluster is a substet of this cluster
+            //    add it to the set of clusters that will be moved
+            //    to become the children of this cluster
+            if (tc.containsCluster(childCluster)) {
               movedChildren.add(child);
-              nodes -= temp.cardinality();
+              remainingleaves -= childCluster.getClusterSize();
             }
     
           }
           
-          if (movedChildren.size() == 0 || nodes != 0) {
+          // This should only happen if our set of clusters are not compatible. 
+          // TODO: either update the documentation of the method or remove this check
+          if (movedChildren.size() == 0 || remainingleaves != 0) {
               continue;
           }
     
+          // Create a new child for this cluster and adopt
+          //   the lca children that are a subset of this node
+          //   as the new node's children
           STINode newChild = ((STINode)lca).createChild();
-    
+          newChild.setData(tc);
           while (!movedChildren.isEmpty()) {
             newChild.adoptChild((TMutableNode)movedChildren.get(0));
             movedChildren.remove(0);
           }
         }
     
-        ((STITree<Double>)tree).setRooted(false);
+        tree.setRooted(false);
+        
+        if (!keepclusters) {
+        	for (TNode node: ((MutableTree)tree).postTraverse()) {
+        		((STINode)node).setData(null);
+        	}
+        }
         return (Tree)tree;
       }
 
@@ -177,11 +191,12 @@ public class Utils {
      * @param trees
      * @param randomize
      * @param taxonIdentifier
+     * @param keepclusters should we keep clusters as node objects
      * @return
      */
     public static final Tree greedyConsensus(Iterable<Tree> trees, boolean randomize,
-    		TaxonIdentifier taxonIdentifier) {
-    	return greedyConsensus(trees,new double[]{0d}, randomize, 1, taxonIdentifier).iterator().next();
+    		TaxonIdentifier taxonIdentifier, boolean keepclusters) {
+    	return greedyConsensus(trees,new double[]{0d}, randomize, 1, taxonIdentifier, keepclusters).iterator().next();
     }
     
 	
@@ -208,11 +223,12 @@ public class Utils {
      * @param randomzie
      * @param repeat
      * @param taxonIdentifier
+     * @param keepclusters should we keep clusters as node objects
      * @return
      */
     public static final Collection<Tree> greedyConsensus(Iterable<Tree> trees, 
     		double[] thresholds, boolean randomzie, int repeat, 
-    		TaxonIdentifier taxonIdentifier) {
+    		TaxonIdentifier taxonIdentifier, boolean keepclusters) {
     
     	List<Tree> outTrees = new ArrayList<Tree>();
 
@@ -247,7 +263,7 @@ public class Utils {
 	        List<STITreeCluster> clusters = new ArrayList<STITreeCluster>();   
 	        for (Entry<STITreeCluster, Integer> entry : countSorted) {
 	        	if (threshold > (entry.getValue()+.0d)/treecount) {	
-	        		outTrees.add(0,Utils.buildTreeFromClusters(clusters, taxonIdentifier));
+	        		outTrees.add(0,Utils.buildTreeFromClusters(clusters, taxonIdentifier, keepclusters));
 	        		ti--;
 	        		if (ti < 0) {
 	        			break;
@@ -257,7 +273,7 @@ public class Utils {
 	    		clusters.add(entry.getKey());
 	        }
 	        while (ti >= 0) {
-	        	outTrees.add(0, Utils.buildTreeFromClusters(clusters, taxonIdentifier));
+	        	outTrees.add(0, Utils.buildTreeFromClusters(clusters, taxonIdentifier, keepclusters));
 	    		ti--;
 	        }
         }
@@ -265,7 +281,14 @@ public class Utils {
         return outTrees;
     }
 
-    
+    /**
+     * Gives you all clusters in the tree. These are equivalent
+     *  of all bipartitions (if you know the set of all leaves in the tree). 
+     *  
+     * @param tree
+     * @param taxonIdentifier
+     * @return
+     */
     public static List<STITreeCluster> getGeneClusters(Tree tree, 
     		TaxonIdentifier taxonIdentifier ){
         List<STITreeCluster> biClusters = new LinkedList<STITreeCluster>();
@@ -292,7 +315,7 @@ public class Utils {
             }
                           
             if(bs.cardinality()<leaves.length && bs.cardinality()>1){
-                STITreeCluster tb = new STITreeCluster(taxonIdentifier);
+                STITreeCluster tb = taxonIdentifier.newCluster();
                 tb.setCluster((BitSet)bs.clone());
                 //if(!biClusters.contains(tb)){
                 biClusters.add(tb);

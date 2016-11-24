@@ -1,3 +1,7 @@
+- version 5.0.1: 
+	- Improved documentation of the multi-ind branch
+	- Some code refactoring impacting greedy consensus. May have changed speed a bit.
+	 
 - version 5.0.0:
     - Merge the master branch (4.10.12) and the multi-ind branch (4.8.0)
       This version should have all the multi-ind features of 4.8.0 and
