@@ -41,7 +41,7 @@ public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 		this.clusters = clusters;
 	}
 
-	public void computeTreePartitions(AbstractInference<STBipartition> inference) {
+	public void formSetX(AbstractInference<STBipartition> inference) {
 
 		double unweigthedConstant = 0;
 		double weightedConstant = 0;
@@ -381,6 +381,10 @@ public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 		}
 	}
 
+
+	long maxPossibleScore(Tripartition trip) {
+		return 0;
+	}
 
 
 	/*
