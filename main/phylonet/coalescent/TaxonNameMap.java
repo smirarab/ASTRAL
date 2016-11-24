@@ -7,6 +7,12 @@ import java.util.Map.Entry;
 import phylonet.tree.model.Tree;
 import phylonet.tree.util.Trees;
 
+/**
+ * Maps gene names to species names (as strings)
+ * 
+ * @author smirarab
+ *
+ */
 public class TaxonNameMap {
     private Map<String, String> taxonMap = null;
     private String pattern = null;
@@ -40,6 +46,11 @@ public class TaxonNameMap {
         }
     }
 
+    /**
+     * For a given gene name, give the species name
+     * @param geneName
+     * @return
+     */
     public String getTaxonName(String geneName) {
         if (geneName == null || "".equals(geneName)) {
             throw new RuntimeException("Empty name?");
@@ -55,9 +66,14 @@ public class TaxonNameMap {
         }
     }
 
+    /**
+     * Returns SpeciesIDMapper instance associated with this mapping. 
+     * @return
+     */
     public SpeciesMapper getSpeciesIdMapper() {
         return this.speciesIdMapper;
     }
+    
     public void checkMapping(List<Tree> trees) {
         if (this.taxonMap != null) {
             Map<String,String> taxonMap = GlobalMaps.taxonNameMap.taxonMap;

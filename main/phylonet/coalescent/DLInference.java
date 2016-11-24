@@ -1,7 +1,6 @@
 package phylonet.coalescent;
 
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
@@ -9,17 +8,16 @@ import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITree;
-import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
 public class DLInference extends AbstractInference<STBipartition> {
 	private int optimizeDuploss = 1; //one means dup, 3 means duploss
 	//Map<STITreeCluster, Vertex> clusterToVertex;
 	
-	public DLInference(boolean rooted, boolean extrarooted, List<Tree> trees,
-			List<Tree> extraTrees, boolean exactSolution, boolean duploss, boolean outputCompletedGenes) {
-		super(rooted, extrarooted, trees, extraTrees, exactSolution, 0, outputCompletedGenes, false, true);
-		this.optimizeDuploss = duploss ? 3 : 1;
+	public DLInference(Options options, List<Tree> trees,
+			List<Tree> extraTrees) {
+		super(options, trees, extraTrees);
+		this.optimizeDuploss = options.isDuploss() ? 3 : 1;
 	}
 
 	public int getOptimizeDuploss() {
@@ -79,7 +77,7 @@ public class DLInference extends AbstractInference<STBipartition> {
 	    return Math.max(ret-1,0);
 	}
 	
-	public void scoreGeneTree(Tree st) {
+	public double scoreSpeciesTreeWithGTLabels(Tree st, boolean init) {
 		// first calculated duplication cost by looking at gene trees. 
 		
 		SchieberVishkinLCA lcaLookup = new SchieberVishkinLCA(st);
@@ -105,6 +103,7 @@ public class DLInference extends AbstractInference<STBipartition> {
 		System.out.println("Total number of duploss (bd) is: " + (losses+duplications));
 		System.out.println("Total number of duploss (st) is: " + (lossesstd+duplications));
 		System.out.println("Total weighted (wd = "+this.getDLbdWeigth()+") loss is: " + (lossesstd + this.getDLbdWeigth()*(losses-lossesstd)));
+		return (lossesstd+duplications);
 	}
 
 
@@ -124,12 +123,24 @@ public class DLInference extends AbstractInference<STBipartition> {
 	}
 	
 	DLDataCollection newCounter(IClusterCollection clusters) {
-		return new DLDataCollection(rooted, (DLClusterCollection)clusters);
+		return new DLDataCollection(options.isRooted(), (DLClusterCollection)clusters);
 	}
 
 	@Override
 	AbstractWeightCalculator<STBipartition> newWeightCalculator() {
 		return new DLWeightCalculator(this);
+	}
+
+	@Override
+	void setupMisc() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	void initializeWeightCalculator() {
+		// TODO Auto-generated method stub
+		
 	}
 
 }
