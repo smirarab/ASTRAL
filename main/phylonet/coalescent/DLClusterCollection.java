@@ -66,7 +66,6 @@ public class DLClusterCollection extends AbstractClusterCollection {
 						
 						return clusterSTBIt.next();
 					}
-
 					@Override
 					public void remove() {
 						throw new ConcurrentModificationException();
