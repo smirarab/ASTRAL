@@ -224,7 +224,7 @@ public abstract class AbstractInference<T> {
 			}
 			sol._st = tr;
 		} else {
-			sol._st = Utils.buildTreeFromClusters(minClusters, spm.getSTTaxonIdentifier());
+			sol._st = Utils.buildTreeFromClusters(minClusters, spm.getSTTaxonIdentifier(), false);
 		}
 
 		/* HashMap<TNode,BitSet> map = new HashMap<TNode,BitSet>();
@@ -384,10 +384,6 @@ public abstract class AbstractInference<T> {
 		return this.options.getBranchannotation();
 	}
 
-	public boolean shouldOutputCompleted() {
-		
-		return options.isOutputCompletedGenes();
-	}
 
 	public void setDLbdWeigth(double d) {
 		options.setDLbdWeigth(d);
