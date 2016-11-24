@@ -44,4 +44,11 @@ public class TaxonIdentifier {
     public int taxonCount(){
         return taxonCount;
     }
+    
+	public  STITreeCluster getClusterForNodeName(String nodeName) {
+		STITreeCluster cluster = this.newCluster();;
+		Integer taxonID = this.taxonId(nodeName);
+		cluster.addLeaf(taxonID);
+		return cluster;
+	}
 }
