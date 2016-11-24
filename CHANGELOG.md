@@ -1,12 +1,9 @@
-<<<<<<< HEAD
--version 4.8.0:
-  - BugFix: greedy consensus with bootstrapping was failing
-  
-- version 4.7.9:
-  - First pass at handling multi-individuals with a sampling strategy for forming X
-  - Check for gene trees with <4 taxa
-  - add an option --samplingrounds to enable more rounds of individual sampling
-=======
+- version 5.0.0:
+    - Merge main branch (4.10.12) and multi-ind branch (4.8.0)
+
+- version 4.10.12:
+    - Update code documentation and some refactoring
+
 - version 4.10.11:
     - A bug fixed where number of taxa = 64*X was throwing an error
     
@@ -107,9 +104,16 @@
 - version 4.8.1:
   - Major improvement: ASTRAL now computes branch lengths in coalescent units and also computes a quartet support for each branch 
 
+-version 4.8.0:
+  - BugFix: greedy consensus with bootstrapping was failing
+
 - version 4.7.12:
   - Added an option (-c) so that ties are broken randomly
->>>>>>> master
+  
+- version 4.7.9:
+  - First pass at handling multi-individuals with a sampling strategy for forming X
+  - Check for gene trees with <4 taxa
+  - add an option --samplingrounds to enable more rounds of individual sampling
 
 - version 4.7.8:
   - Fixed a bug in normalization of quartet scores. For very large datasets, the normalization of the quartet scores was incorrect. 
