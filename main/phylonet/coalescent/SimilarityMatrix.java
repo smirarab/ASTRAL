@@ -17,6 +17,11 @@ import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.util.BitSet;
 
+/**
+ * Implements a Distance method
+ * @author smirarab
+ *
+ */
 public class SimilarityMatrix {
 	
 	private float[][] similarityMatrix;

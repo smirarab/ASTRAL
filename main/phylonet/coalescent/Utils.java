@@ -14,6 +14,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +22,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import phylonet.bits.BitVector;
 import phylonet.lca.SchieberVishkinLCA;
@@ -45,7 +48,20 @@ public class Utils {
 		}
 		return children;
 	}
+	
+	public static STITreeCluster getClusterForNodeName(String nodeName) {
+		STITreeCluster cluster = GlobalMaps.taxonIdentifier.newCluster();;
+		Integer taxonID = GlobalMaps.taxonIdentifier.taxonId(nodeName);
+		cluster.addLeaf(taxonID);
+		return cluster;
+	}
 
+	/**
+	 * For a given set of compatible clusters, it outputs the Tree object
+	 * @param clusters
+	 * @param identifier
+	 * @return
+	 */
 	public static Tree buildTreeFromClusters(Iterable<STITreeCluster> clusters, TaxonIdentifier identifier ) {
         if ((clusters == null) || (!clusters.iterator().hasNext())) {
           throw new RuntimeException("Empty list of clusters. The function returns a null tree.");
@@ -110,6 +126,12 @@ public class Utils {
         return (Tree)tree;
       }
 
+	
+	/**
+	 * Compute branch support given as set of trees
+	 * @param support_tree
+	 * @param trees
+	 */
     public static final void computeEdgeSupports(STITree<Double> support_tree, Iterable<Tree> trees) {
     
         // generate leaf assignment
@@ -150,6 +172,13 @@ public class Utils {
         return;
     }
 
+    /**
+     * Greedy consensus
+     * @param trees
+     * @param randomize
+     * @param taxonIdentifier
+     * @return
+     */
     public static final Tree greedyConsensus(Iterable<Tree> trees, boolean randomize,
     		TaxonIdentifier taxonIdentifier) {
     	return greedyConsensus(trees,new double[]{0d}, randomize, 1, taxonIdentifier).iterator().next();
@@ -172,6 +201,15 @@ public class Utils {
 		return range;
 	}
     
+    /***
+     * Greedy consensus with a set of thresholds
+     * @param trees
+     * @param thresholds
+     * @param randomzie
+     * @param repeat
+     * @param taxonIdentifier
+     * @return
+     */
     public static final Collection<Tree> greedyConsensus(Iterable<Tree> trees, 
     		double[] thresholds, boolean randomzie, int repeat, 
     		TaxonIdentifier taxonIdentifier) {
@@ -321,7 +359,12 @@ public class Utils {
             }
             outbuffer.flush();
             System.err.println("File "+args[1]+" fixed and saved as " + outfile);
-        } else {
+        } else if ("--alltrees".equals(args[0])) {
+        	System.out.println(Utils.generateAllBinaryTrees(new String[]{"1","2","3","4","5"}));
+        	System.out.println(Utils.generateAllBinaryTreeStrings(new String[]{"1","2","3","4","5"}));
+        	System.out.println(Utils.generateAllBinaryTreeStrings(new String[]{"11","12","13","14"}));
+        } 
+        else {
             System.err.println("Command " + args[0]+ " not found.");
         }
     }
@@ -336,8 +379,14 @@ public class Utils {
 	}
 	
 	//TODO: change to an iterable
-	public static List<BitSet> getBitsets(HashMap<String,Integer> randomSample,
-			Tree restrictedTree) {
+	/**
+	 * Given a tree with one sample from each side of a polytomy, 
+	 *   this method returns a resolution of the original tree
+	 * @param randomSample
+	 * @param restrictedTree
+	 * @return The resolution is returned as a set of bitsets
+	 */
+	public static List<BitSet> getBitsets(HashMap<String,Integer> randomSample, Tree restrictedTree) {
 		
 		ArrayList<BitSet> ret = new ArrayList<BitSet>();
 
@@ -456,5 +505,148 @@ public class Utils {
 			}
 			throw new RuntimeException("hmm! this should never be reached");
 		}
+	}
+	
+	public static List<Tree> generateAllBinaryTrees(String[] leaves){
+		List<Tree> alltrees = new ArrayList<Tree>();
+
+		int index = 0;
+		//build a basic 3 leaf unrooted tree
+		STITree threeLeafTree = new STITree(false);
+		STINode root = threeLeafTree.getRoot();
+		root.createChild(leaves[index++]);
+		STINode innode = root.createChild();
+		innode.createChild(leaves[index++]);
+		innode.createChild(leaves[index++]);
+		alltrees.add(threeLeafTree);
+
+		for(;index<leaves.length; index++){
+			String leaf = leaves[index];
+			List<Tree> temp = new ArrayList<Tree>();
+			temp.addAll(alltrees);
+			alltrees.clear();
+			for(Tree preTree: temp){
+				for(TNode n: preTree.postTraverse()){
+					if(!n.isLeaf()){
+						Iterator it = n.getChildren().iterator();
+						STINode lchild = (STINode)(it.next());
+						STITree newTree = new STITree(preTree);
+						TNode peerChild = newTree.getNode(lchild.getID());
+						TNode peerParent = peerChild.getParent();
+						STINode newchild = ((STINode<Integer>)peerParent).createChild();
+						newchild.adoptChild((TMutableNode)peerChild);
+						newchild.createChild(leaf);
+						alltrees.add(newTree);
+						if(!n.isRoot()){
+							STINode rchild = (STINode)(it.next());
+							STITree newTree2 = new STITree(preTree);
+							TNode peerChild2 = newTree2.getNode(rchild.getID());
+							TNode peerParent2 = peerChild2.getParent();
+							STINode newchild2 = ((STINode<Integer>)peerParent2).createChild();
+							newchild2.adoptChild((TMutableNode)peerChild2);
+							newchild2.createChild(leaf);
+							alltrees.add(newTree2);
+						}
+					}
+				}
+			}
+			temp.clear();
+		}
+
+		/*List<Tree> temp = new ArrayList<Tree>();
+		temp.addAll(alltrees);
+		alltrees.clear();
+		for(Tree unrootedTree: temp){
+			alltrees.addAll(((STITree)unrootedTree).getAllRootingTrees());
+		}
+		temp.clear();*/
+		return alltrees;
+	}
+	
+
+	public static List<String> generateAllBinaryTreeStrings(String[] leaves){
+		List<StringBuffer> alltrees = new ArrayList<StringBuffer>();
+		List<String> results = new ArrayList<String>();
+		System.err.print("Computing all possible resolutions ");
+		int index = 0;
+		//build a basic 3 leaf unrooted tree
+		StringBuffer threeLeafTree = new StringBuffer();
+		threeLeafTree.append("("+leaves[index++]+",("+leaves[index++]+","+leaves[index++]+"));");
+		alltrees.add(threeLeafTree);
+
+		for(;index<leaves.length; index++){
+			String leaf = leaves[index];
+			String insert = ","+leaf+")";
+			List<StringBuffer> temp = new ArrayList<StringBuffer>();
+			temp.addAll(alltrees);
+			alltrees.clear();
+			Stack<Integer> stacks = new Stack<Integer>();
+			Stack<Integer> stacke = new Stack<Integer>();
+			for(StringBuffer preTree: temp){
+				Matcher pattern = Pattern.compile(
+						"([(])|([)][^,:;)]*)|([;])|(:)|([^,);(:]*)").matcher(preTree);
+				while(!pattern.hitEnd()){
+					pattern.find();
+					String token = pattern.group();
+					while ("".equals(token)) {
+						pattern.find();
+						token = pattern.group();
+					}
+					if (")".equals(token)) {
+						Integer c1s = stacks.pop();
+						Integer c1e = stacke.pop();
+						Integer c2s = stacks.pop();
+						Integer c2e = stacke.pop();
+						stacks.push(c2s-1);
+						stacke.push(c1e+1);
+						StringBuffer newTree1 = new StringBuffer(preTree);
+						newTree1.insert(c2e, insert);
+						newTree1.insert(c2s, "(");
+						if (index == leaves.length - 1) {
+							results.add(newTree1.toString());
+						} else {
+							alltrees.add(newTree1);
+						}
+						StringBuffer newTree2 = new StringBuffer(preTree);
+						newTree2.insert(c1e, insert);
+						newTree2.insert(c1s, "(");
+						if (index == leaves.length - 1) {
+							results.add(newTree2.toString());
+						} else {
+							alltrees.add(newTree2);
+						}
+					} else if (";".equals(token)) {
+						if (index == leaves.length - 1) {
+							results.remove(results.size() - 1);
+						} else {
+							alltrees.remove(alltrees.size() - 1);
+						}
+					} else if (!"(".equals(token) && !",".equals(token)) {
+						stacks.push(pattern.start());
+						stacke.push(pattern.end());
+					} 
+				}
+				/*for (int i = preTree.indexOf(")", 0); i > 0; i = preTree.indexOf(")", i+1)) {
+					
+				}*/
+			}
+			temp.clear();
+			System.err.print(".");
+			System.err.flush();
+		}
+		System.err.println();
+
+		/*List<Tree> temp = new ArrayList<Tree>();
+		temp.addAll(alltrees);
+		alltrees.clear();
+		for(Tree unrootedTree: temp){
+			alltrees.addAll(((STITree)unrootedTree).getAllRootingTrees());
+		}
+		temp.clear();*/
+		return results;
+	}
+	
+	public static Integer increment(Integer i) {
+		return i == null? 1 : (i+1);
 	}
 }
