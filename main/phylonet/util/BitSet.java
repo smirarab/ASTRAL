@@ -3,6 +3,8 @@ package phylonet.util;
 import java.io.*;
 import java.util.Arrays;
 
+import phylonet.coalescent.GlobalMaps;
+
 public class BitSet implements Cloneable, Serializable {
 
     int hash = 0;
@@ -520,6 +522,18 @@ public class BitSet implements Cloneable, Serializable {
 		while (++i < endOfRun);
 	    }
 
+	}
+	b.append('}');
+	return b.toString();
+    }
+    
+    public String toString2() {
+	checkInvariants();
+	int numBits = wordsInUse <= 128 ? wordsInUse * 64 : cardinality();
+	StringBuilder b = new StringBuilder();
+	b.append('{');
+	for (int i = wordsInUse - 1 ; i>=0; i--) {
+		b.append(words[i]+" ");
 	}
 	b.append('}');
 	return b.toString();
