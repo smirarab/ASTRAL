@@ -276,7 +276,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 				
 				for (TNode node : tr.postTraverse()) {				
 					if (node.isLeaf()) {				
-						STITreeCluster cluster = Utils.getClusterForNodeName(node.getName());
+						STITreeCluster cluster =GlobalMaps.taxonIdentifier.getClusterForNodeName(node.getName());
 						stack.add(cluster);
 					} else {
 		
