@@ -2,18 +2,24 @@ package phylonet.coalescent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.Stack;
 
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TMutableNode;
+import phylonet.tree.model.TNode;
+import phylonet.tree.model.sti.STINode;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.util.BitSet;
 
+/**
+ * Maps the gene (i.e., taxon) IDs to species IDs. 
+ * @author smirarab
+ *
+ */
 public class SpeciesMapper {
 
     private int [] taxonIdToSpeciesId;
@@ -88,8 +94,15 @@ public class SpeciesMapper {
         }
     }
 
+    public String[] getAllSpeciesNames(){
+    	return this.speciesNameIdMap.getAllTaxonNames();
+    }
     public String getSpeciesName(int stId) {
-        return this.speciesNameIdMap.getTaxonName(stId);
+    	try {
+    		return this.speciesNameIdMap.getTaxonName(stId);
+    	} catch (ArrayIndexOutOfBoundsException e) {
+    		throw new RuntimeException(stId +" was not found as a species",e);
+    	}
     }
 
     public Integer speciesId(String name) {
@@ -133,6 +146,11 @@ public class SpeciesMapper {
         return this.getGeneClusterForSTCluster(stCluster.getBitSet());
     }
     
+    /***
+     * For a bitset in the gene ID universe, it will add all the other genes from all the
+     * species that are represented in the given bitset. 
+     * @param geneBS
+     */
     public void addMissingIndividuals(BitSet geneBS) {
         BitSet stBS = this.getSTBisetForGeneBitset(geneBS);
         for (int i = stBS.nextSetBit(0); i >=0 ; i = stBS.nextSetBit(i+1)) {
@@ -144,8 +162,8 @@ public class SpeciesMapper {
         }
     }
 
-    /*
-     * return whether bs has only taxa from one species.
+    /**
+     * return whether the input bitst has only individuals from one species.
      */
     public boolean isSingleSP(BitSet bs) {
         int i = bs.nextSetBit(0);
@@ -166,8 +184,13 @@ public class SpeciesMapper {
     
     public List<String> getGeneNamesForSpeciesName(String species) {
         ArrayList<String> ret = new ArrayList<String>();
-        for (Integer id: this.speciesIdtoTaxonId.get(this.speciesId(species))) {
-            ret.add(GlobalMaps.taxonIdentifier.getTaxonName(id));
+        try {
+	        for (Integer id: this.speciesIdtoTaxonId.get(this.speciesId(species))) {
+	            ret.add(GlobalMaps.taxonIdentifier.getTaxonName(id));
+	        }
+        } catch (IndexOutOfBoundsException e) {
+        	throw new RuntimeException("Mapping between gene tree and species tree taxon names "
+        			+ "doesn't seem right. We couldn't find species "+ species + " in gene trees.");
         }
         return ret;
     }
@@ -187,7 +210,13 @@ public class SpeciesMapper {
             }
         }
     }
-    
+
+    /**
+     * Computes a distance matrix on species labels given 
+     * a distance matrix on gene labels
+     * @param matrix A distance matrix with one row per individual
+     * @return A distance matrix with one row per species
+     */
     SimilarityMatrix convertToSpeciesDistance(SimilarityMatrix matrix) {
 		float [][] STsimMatrix = new float[this.getSpeciesCount()][this.getSpeciesCount()];
 		float[][] denum = new float[this.getSpeciesCount()][this.getSpeciesCount()];
@@ -216,4 +245,53 @@ public class SpeciesMapper {
 		
 		return ret;
 	}
+    
+    public void gtToSt(MutableTree st) {
+    	Stack<Integer> stack = new Stack<Integer>();
+    	HashSet<Integer> children;
+		List<List<TMutableNode>> spNodes = new ArrayList<List<TMutableNode>>();
+    	for (TNode node: st.postTraverse()) {
+    		if (node.isLeaf()) {
+    			int spID = this.getSpeciesIdForTaxon(
+						GlobalMaps.taxonIdentifier.taxonId(node.getName()));
+    			stack.push(spID);
+    			if (this.speciesIdtoTaxonId.get(spID).size() == 1) {
+    				if (!node.getName().equals(this.getSpeciesName(spID)))
+    					((TMutableNode)node).setName(this.getSpeciesName(spID));
+    			}
+    		} else {
+    			children = new HashSet<Integer>();
+    			List<TMutableNode> childnodes = new ArrayList<TMutableNode>();
+    			for (TNode c : node.getChildren()) {
+    				children.add(stack.pop());
+    				childnodes.add((TMutableNode) c);
+    			}
+    			if (children.size() == 1) {
+    				Integer spnode = children.iterator().next();
+    				if (spnode != -1) {
+	    				((TMutableNode) node).setName(this.getSpeciesName(spnode));
+	    				((STINode) node).setData(null);
+	    				spNodes.add(childnodes);
+    				}
+    				stack.push(spnode);
+    			} else {
+    				stack.push(-1);
+    			}
+    		}
+    	}
+     
+    	for (List<TMutableNode> nodes : spNodes) {
+    		for (TNode c : nodes) {
+    			((TMutableNode) c).removeNode();
+    		}
+    	}
+    }
+
+    /**
+     * return whether the dataset is single-individual
+     * @return
+     */
+    public boolean isSingleIndividual() {
+    	return taxonIdToSpeciesId.length == speciesIdtoTaxonId.size();
+    }
 }

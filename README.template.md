@@ -1,15 +1,27 @@
 DESCRIPTION:
 -----------
-ASTRAL is a Java program for estimating a species tree given a set of unrooted gene trees. ASTRAL is statistically consistent under multi-species coalescent model (and thus is useful for handling ILS). It finds the tree that maximizes the number of induced quartet trees in the set of gene trees that are shared by the species tree. The algorithm has an exact version that can run for small datasets (less than 18 taxa) and a more useful version (its default) that can handle large datasets (tested for up to 1000 taxa and 1000 genes).
+ASTRAL is a tool for estimating an unrooted species tree given a set of unrooted gene trees. ASTRAL is statistically consistent under the multi-species coalescent model (and thus is useful for handling ILS). ASTRAL finds the species tree that has the maximum number of shared induced quartet trees with the set of gene trees. 
+The original algorithm is described in:
 
-The algorithm used is described in:
+* Mirarab, Siavash, Rezwana Reaz, Md. Shamsuzzoha Bayzid, Theo Zimmermann, M Shel Swenson, and Tandy Warnow. “ASTRAL: Genome-Scale Coalescent-Based Species Tree.” Bioinformatics (ECCB special issue) 30 (17): i541–i548. 2014. [doi:10.1093/bioinformatics/btu462](doi.org/10.1093/bioinformatics/btu462).
 
-* Mirarab, Siavash, Rezwana Reaz, Md. Shamsuzzoha Bayzid, Theo Zimmermann, M Shel Swenson, and Tandy Warnow. “ASTRAL: Genome-Scale Coalescent-Based Species Tree.” Bioinformatics (ECCB special issue) 30, no. 17 (2014): i541–i548. [doi:10.1093/bioinformatics/btu462](doi.org/10.1093/bioinformatics/btu462).
-* Mirarab, Siavash, Tandy Warnow. “ASTRAL-II: Coalescent-Based Species Tree Estimation with Many Hundreds of Taxa and Thousands of Genes.”. Bioinformatics (ISMB special issue) 31, no. 12 (2015): i44–i52. [doi:10.1093/bioinformatics/btv234](http://bioinformatics.oxfordjournals.org/content/31/12/i44)
+Starting from version **4.7.4**, the code given here corresponds to ASTRAL-II, described in this paper: 
 
-The code given here corresponds to ASTRAL-II.
+* Mirarab, Siavash, Tandy Warnow. “ASTRAL-II: Coalescent-Based Species Tree Estimation with Many Hundreds of Taxa and Thousands of Genes.”. Bioinformatics (ISMB special issue) 31 (12): i44–i52. 2015. [doi:10.1093/bioinformatics/btv234](http://bioinformatics.oxfordjournals.org/content/31/12/i44)
 
+<<<<<<< HEAD
 See our [tutorial](astral-tutorial.md) in addition to the rest of this README file. Also, the chapter of my dissertation that describes ASTRAL in detail is provided [here](thesis-astral.pdf).
+=======
+Since version 4.10.0, ASTRAL can also compute branch length (in coalescent units) and a measure of support called “local posterior probability”, described here:
+
+* Sayyari, Erfan, and Siavash Mirarab. “Fast Coalescent-Based Computation of Local Branch Support from Quartet Frequencies.” Molecular Biology and Evolution 33 (7): 1654–68. 2016. [doi:10.1093/molbev/msw079](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1)
+
+
+The ASTRAL algorithm has an exact version that can run for small datasets (less than 18 taxa) and a more useful version (its default) that can handle large datasets (ASTRAL-II is tested for up to 1000 taxa and 1000 genes).
+
+
+**See our [tutorial](astral-tutorial.md)** in addition to the rest of this README file. Also, the chapter of Siavash Mirarab's dissertation that describes ASTRAL in detail is provided [here](thesis-astral.pdf).
+>>>>>>> master
 
 Email: `astral-users@googlegroups.com` for questions.
 
@@ -35,7 +47,7 @@ to move the `lib` directory as well.
 
 EXECUTION:
 -----------
-ASTRAL currently has no GUI. You need to run it through command-line. In a terminal, go the location where you have downloaded the software, and issue the following command:
+ASTRAL currently has no GUI. You need to run it through the command-line. In a terminal, go the location where you have downloaded the software, and issue the following command:
 
 ```
   java -jar __astral.jar__
@@ -55,16 +67,23 @@ The results will be outputted to the standard output. To save the results in a f
 java -jar __astral.jar__ -i in.tree -o out.tre
 ```
 
-The input gene trees can have missing taxa, polytommies (unresolved branches), and also multiple individuals per species. When multiple individuals from the same species are available, a mapping file needs to be provided using a `-a` option. This mapping file should have one line per species, and each line needs to be in one of two formats:
+The input gene trees can have missing taxa, polytomies (unresolved branches), and also multiple individuals per species. 
+Taxon names cannot have quotation marks in their names (sorry!). This means you also cannot have weird characters like ? in the name (underscore is fine).
+The output gives the species tree topology, branch lengths in coalescent units
+for internal branches, and branch supports measured as local posterior probabilities. It can also output other quantities per branch, 
+as described in the [tutorial](astral-tutorial.md).
+
+
+As of July, 2015, we **strongly** recommend that you use the code available at [multiind branch](https://github.com/smirarab/ASTRAL/tree/multiind) for multi individuals. When multiple individuals from the same species are available, a mapping file needs to be provided using a `-a` option. This mapping file should have one line per species, and each line needs to be in one of two formats:
 
 ```
 species_name [number of individuals] individual_1 individual_2 ...
 
 species_name:individual_1,individual_2,...
 ```
+Note that when multiple individuals exist for the same species, your species name should be different from the individual names.
 
-The code for handling multiple individuals is in its infancy and might not work well yet. Keep posted for improvements to this feature. As of July, 2015, we *strongly* recommend
-that you use the evolving code in the [multiind](https://github.com/smirarab/ASTRAL/tree/multiind) branch for multi individuals.
+The code for handling multiple individuals is in its infancy and might not work well yet. Keep posted for improvements to this feature. 
 
 ### Bootstrapping:
 
@@ -74,7 +93,8 @@ To perform 100 replicates of multi-locus bootstrapping ([Seo 2008](http://www.nc
 java -jar __astral.jar__ -i best_ml -b bs_paths -r 100
 ```
 
-In this command, `bs_paths` is a file that gives the location of gene tree bootstrap files, one line per gene. 
+In this command, `bs_paths` is a file that gives the location (file path) of gene tree bootstrap files, one line per gene. See the [tutorial](astral-tutorial.md)
+fore more details.
 `best_ml` has all the "main" trees (e.g. best ML trees) in one file. 
 
 ##### Bootstrap Output: 

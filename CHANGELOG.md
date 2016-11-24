@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 -version 4.8.0:
   - BugFix: greedy consensus with bootstrapping was failing
   
@@ -5,6 +6,110 @@
   - First pass at handling multi-individuals with a sampling strategy for forming X
   - Check for gene trees with <4 taxa
   - add an option --samplingrounds to enable more rounds of individual sampling
+=======
+- version 4.10.11:
+    - A bug fixed where number of taxa = 64*X was throwing an error
+    
+- version 4.10.10:
+	- Very significant improvement in the running time for datasets with many polytomies in input gene trees
+	- Some running time improvement for datasets without polytomies 
+	- A little bit of simplifying code refactoring
+	 
+- version 4.10.9:
+	- A bug introduced in 4.10.8 is fixed. Version 4.10.8 simply did not run
+	- Added `--gene-only` for gene-only bootstrapping
+	 
+- version 4.10.8:
+	- Output taxon occupancy
+	- Don't error out on gene trees with dummy degree 2 nodes
+	- Check the species name against gene names for identity. 
+	 
+- version 4.10.7:
+	- Small bug fix: with `-a` scoring using `-q` didn't work. Also, output both gene tree labels and the species tree labels. 
+	- Bug fix: effective N and quartet scores were not correctly printed out with -t X options if gene trees had polytomies. posterior values were correctly computed.
+	- Warning for low `EN` values.
+	- Some spell checking on prompts
+	
+- version 4.10.6:
+    - Small bug fix: with `-a` scoring didn't work
+    - Print tree topology to stderr before scoring it. 
+    - Warn for multi-individual datasets that this is not the right branch
+    - Update tutorial
+
+- version 4.10.5:
+	- Hide `-y` option for now. Not ready for prime time yet. 
+	
+- version 4.10.4:
+	- New option `-y` to score all possible trees; when used with `-t 12` outputs only the tree(s) with the best sum log local posterior
+	- Change handling the scoring of root nodes
+	- Add a bunch of for-test-only `-t` options
+	 
+- version 4.10.3:
+	- *Important change:* change calculation of local PP for trees with missing data. Avoid up-weighting genes with fewer missing leaves. 
+	- New feature: `-t 10` tests for polytomies. 
+	
+- version 4.10.2:
+	- Bug fix: when in rome do as the americans do. For people using European machines, the support values were printed with a comma, wreaking havoc in the newick format. Has to use US format for those to fix this.
+
+
+- version 4.10.1:
+	- BUG FIX: Branch lengths could be negative in rare situations (few genes). This was because checks were for ML instead of MAP. 
+	- Some extra stuff were outputted to the log. Removed. 
+	- BUG FIX: For scoring a tree, the output was written to stdout instead of `-o`
+
+- version 4.10.0:
+	- Merge branch length and support calculation with the main branch
+	- Update documentation.
+	 
+- version 4.9.9:
+	- New Feature: ability to set lambda (the prior parameter) using `-c`
+	- Some internal code refactoring
+	 
+- version 4.9.8:
+	- BUG Fix: There was a small bug in branch length computation (akin to using wrong priors). This affected mostly long branches, where prior became important. Fixed the bug. 
+
+- version 4.9.7:
+	- BUG Fix: for very large n (>30000), posterior probability could under or overflow. Fixed the issue. 
+	
+- version 4.9.6
+	- BUG Fix: 0.3 instead of 1/3 was used for branch length 
+	
+- version 4.9.5
+	- BUG Fix: fix branch length again. For q<1/3, return 0. Also, return MAP instead of ML. 
+	 
+- version 4.9.4: 
+	- BUG Fix: branch length for short branches should be using -ln(3p)
+	 
+- version 4.9.3:
+	- Add `-t 4`
+	 
+- version 4.9.2:
+	- first attempt at fixing numerical bugs for corner cases (not necessarily fixed)
+	 
+- version 4.9.1:
+	- Improve handling of missing data for posterior calculation. Use effective n
+	
+- version 4.9.0:
+	- Now compute posterior probabilities as will (calculations to be published)
+	
+- version 4.8.5:
+	- Ignore species tree polytomies when scoring
+	 
+- version 4.8.4:
+	- multifurcating input gene trees are accepted now. 
+	 
+- version 4.8.3:
+	- use semicolon instead of `,` in branch length labels. Also output the total number of quartets around each branch in the species tree
+	 
+- version 4.8.2:
+  - add options to control the amount of branch annotation
+   
+- version 4.8.1:
+  - Major improvement: ASTRAL now computes branch lengths in coalescent units and also computes a quartet support for each branch 
+
+- version 4.7.12:
+  - Added an option (-c) so that ties are broken randomly
+>>>>>>> master
 
 - version 4.7.8:
   - Fixed a bug in normalization of quartet scores. For very large datasets, the normalization of the quartet scores was incorrect. 
