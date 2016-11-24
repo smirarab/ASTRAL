@@ -373,7 +373,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 		
 		Posterior post = new Posterior(
 				f1,f2,f3,(double)effni, options.getLambda());
-		
+		System.err.println("the computed localpp is:" + post + " " + f1 + " " + f2 + " " + f3 + " " + effni);
 		nd.postQ1 = post;
 		nd.post = post.getPost();
 		
