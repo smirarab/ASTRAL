@@ -90,7 +90,7 @@ java -jar __astral.jar__ -i best_ml -b bs_paths -r 100
 ```
 
 In this command, `bs_paths` is a file that gives the location (file path) of gene tree bootstrap files, one line per gene. See the [tutorial](astral-tutorial.md)
-fore more details.
+for more details.
 `best_ml` has all the "main" trees (e.g. best ML trees) in one file. 
 
 ##### Bootstrap Output: 
@@ -109,7 +109,7 @@ Also related to bootstrapping are `-g` (to enable gene/site resampling) and `-s`
 
 
 ### Memory:
-For big datasets (say more than 100 taxon) increasing the memory available to Java can result in speed ups. Note that you should give Java only as much free memory as you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke ASTRAL using the following command to make all the 3GB available to Java:
+For big datasets (say more than 100 taxa) increasing the memory available to Java can result in speedups. Note that you should give Java only as much free memory as you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke ASTRAL using the following command to make all the 3GB available to Java:
 
 ```
 java -Xmx3000M -jar __astral.jar__ -i in.tree

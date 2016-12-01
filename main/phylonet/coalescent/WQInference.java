@@ -230,6 +230,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 		WQDataCollection wqDataCollection = (WQDataCollection) this.dataCollection;
 		//wqDataCollection.initializeWeightCalculator(this);
 		
+		/**
+		 * Add bitsets to each node for all taxa under it. 
+		 * Bitsets are saved in nodes "data" field
+		 */
 		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
@@ -263,12 +267,21 @@ public class WQInference extends AbstractInference<Tripartition> {
 		stack = new Stack<STITreeCluster>();
 		
 		
+		/**
+		 * For each node,
+		 *   1. create three quadripartitoins for the edge above it
+		 *   2. score the quadripartition
+		 *   3. save the scores in a list for annotations in the next loop
+		 */
 		Queue<NodeData> nodeDataList = new LinkedList<NodeData>();
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
 			if (node.isLeaf()) {
 				stack.push((STITreeCluster) node.getData());
 			} else {
+				/**
+				 * 1. Create quadripartion
+				 */
 				NodeData nd = new NodeData();
 				nodeDataList.add(nd);
 				
@@ -280,6 +293,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 					stack.push(cluster);
 					continue;
 				}
+				
 				
 				STITreeCluster c1 = stack.pop();
 				STITreeCluster c2 = stack.pop();
@@ -308,6 +322,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 						System.err.print(c1.toString()+c2.toString()+"|"+sister.toString()+remaining.toString()+"\n");
 					}
 				}
+				
+				/**
+				 * 2. Scores all three quadripartitoins
+				 */
 				Results s = weightCalculator2.getWeight(quad);
 				nd.mainfreq = s.qs;
 				nd.effn = s.effn;
@@ -360,6 +378,11 @@ public class WQInference extends AbstractInference<Tripartition> {
 				
 			}
 		}
+		
+		/**
+		 * Annotate each branch by updating its data field
+		 * according to scores and user's annotation preferences. 
+		 */
 		NodeData nd = null;
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
