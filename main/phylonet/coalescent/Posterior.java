@@ -2,6 +2,11 @@ package phylonet.coalescent;
 
 import cern.jet.stat.*;
 
+/***
+ * Computes branch length and posterior support
+ * @author smirarab
+ *
+ */
 public class Posterior extends cern.jet.math.Constants{
 	private double f1;
 	private double f2;
@@ -21,11 +26,6 @@ public class Posterior extends cern.jet.math.Constants{
 	 	this.f2 = ft2;
 		this.f3 = ft3;
 		this.n  = nt;
-		if (this.f1+this.f2+this.f3 != this.n) {
-			if (DEBUG)
-				System.err.println("Is there a polytomy in a gene tree? "+ (this.f1+this.f2+this.f3)/ this.n);
-			this.n = (this.f1+this.f2+this.f3);
-		}
 		this.lambda = lambda;
 		//posterior=post();
 	}
