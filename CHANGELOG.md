@@ -1,3 +1,26 @@
+- version 4.10.11:
+    - A bug fixed where number of taxa = 64*X was throwing an error
+    
+- version 4.10.10:
+	- Very significant improvement in the running time for datasets with many polytomies in input gene trees
+	- Some running time improvement for datasets without polytomies 
+	- A little bit of simplifying code refactoring
+	 
+- version 4.10.9:
+	- A bug introduced in 4.10.8 is fixed. Version 4.10.8 simply did not run
+	- Added `--gene-only` for gene-only bootstrapping
+	 
+- version 4.10.8:
+	- Output taxon occupancy
+	- Don't error out on gene trees with dummy degree 2 nodes
+	- Check the species name against gene names for identity. 
+	 
+- version 4.10.7:
+	- Small bug fix: with `-a` scoring using `-q` didn't work. Also, output both gene tree labels and the species tree labels. 
+	- Bug fix: effective N and quartet scores were not correctly printed out with -t X options if gene trees had polytomies. posterior values were correctly computed.
+	- Warning for low `EN` values.
+	- Some spell checking on prompts
+	
 - version 4.10.6:
     - Small bug fix: with `-a` scoring didn't work
     - Print tree topology to stderr before scoring it. 
