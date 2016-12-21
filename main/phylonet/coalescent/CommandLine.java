@@ -868,7 +868,7 @@ public class CommandLine {
     		int treeheight = ((WQDataCollection)inference.dataCollection).maxHeight;
     		System.out.println("TREE HEIGHT IS: " + treeheight);
     		// Program Setup
-    		String source = readFile("calculateWeight.cl");
+    		String source = readFile("lib/calculateWeight.cl");
     		source = source.replaceAll("SPECIES_WORD_LENGTH - 1", Long.toString(SPECIES_WORD_LENGTH - 1));
     		source = source.replaceAll("SPECIES_WORD_LENGTH", Long.toString(SPECIES_WORD_LENGTH));
     		source = source.replaceAll("LONG_BIT_LENGTH", "64");
