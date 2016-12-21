@@ -9,15 +9,19 @@ import java.util.List;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 
+// TODO: why extend the abstract? It doesn't seem to follow the same pattern exactly
 class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 	WQInference inference;
 	private WQDataCollection dataCollection;
+	private int[] geneTreesAsInts;
 
-	public BipartitionWeightCalculator(AbstractInference<Tripartition> inference) {
+	public BipartitionWeightCalculator(AbstractInference<Tripartition> inference,
+			int[] geneAsInts) {
 		super(false, null);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
 		this.inference = (WQInference) inference;
+		this.geneTreesAsInts = geneAsInts;
 	}
 
 	
@@ -120,6 +124,13 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 		}
 	}
 
+	@Override
+	Long calculateWeight(Tripartition t,
+			AbstractComputeMinCostTask<Tripartition> minCostTask) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	public Results getWeight(Quadrapartition quad) {
 		long fi = 0l;
 		long mi = 0l;
@@ -132,7 +143,7 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 		Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
 		Deque<Intersects> stack = new ArrayDeque<Intersects>();
 
-		for (Integer gtb: dataCollection.geneTreesAsInts){
+		for (Integer gtb: geneTreesAsInts){
 			//n++;
 			if (newTree) {
 				STITreeCluster all = tit.next();
@@ -333,20 +344,6 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 
 	}
 
-	@Override
-	protected void prepareWeightTask(
-			ICalculateWeightTask<Tripartition> weigthWork,
-			AbstractComputeMinCostTask<Tripartition> task) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public ICalculateWeightTask<Tripartition> getWeightCalculateTask(
-			Tripartition t) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
 	@Override
 	public void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees) {

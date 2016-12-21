@@ -1,7 +1,6 @@
 package phylonet.coalescent;
 
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Stack;
 
@@ -9,7 +8,6 @@ import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITree;
-import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
 public class DLInference extends AbstractInference<STBipartition> {
@@ -79,7 +77,7 @@ public class DLInference extends AbstractInference<STBipartition> {
 	    return Math.max(ret-1,0);
 	}
 	
-	public double scoreGeneTree(Tree st, boolean init) {
+	public double scoreSpeciesTreeWithGTLabels(Tree st, boolean init) {
 		// first calculated duplication cost by looking at gene trees. 
 		
 		SchieberVishkinLCA lcaLookup = new SchieberVishkinLCA(st);
@@ -108,6 +106,12 @@ public class DLInference extends AbstractInference<STBipartition> {
 		return (lossesstd+duplications);
 	}
 
+	@Override
+	AbstractComputeMinCostTask<STBipartition> newComputeMinCostTask(AbstractInference<STBipartition> dlInference,
+				Vertex all, IClusterCollection clusters, boolean isWriteToQueue) {
+		return new DLComputeMinCostTask( (DLInference) dlInference, all,  clusters);
+	}
+
 
 	Long getTotalCost(Vertex all) {
 		return (long) (((DLDataCollection)this.dataCollection).sigmaNs - all._max_score);
@@ -116,22 +120,25 @@ public class DLInference extends AbstractInference<STBipartition> {
 	DLClusterCollection newClusterCollection() {
 		return new DLClusterCollection(GlobalMaps.taxonIdentifier.taxonCount());
 	}
-	
+
 	DLDataCollection newCounter(IClusterCollection clusters) {
 		return new DLDataCollection(options.isRooted(), (DLClusterCollection)clusters);
 	}
 
 	@Override
-	AbstractWeightCalculator<STBipartition> newWeightCalculator() {
-		return new DLWeightCalculator(this);
-	}
+		AbstractWeightCalculator<STBipartition> newWeightCalculator() {
+			return new DLWeightCalculator(this);
+		}
 
 	@Override
-	AbstractComputeMinCostTask<STBipartition> newComputeMinCostTask(
-			AbstractInference<STBipartition> dlInference, Vertex all,
-			IClusterCollection clusters, boolean isWriteToQueue) {
-		// TODO Auto-generated method stub
-		return new DLComputeMinCostTask( (DLInference) dlInference, all,  clusters);
-	}
+		void setupMisc() {
+			// TODO Auto-generated method stub
+
+		}
+
+	@Override
+		void initializeWeightCalculator() {
+			// TODO Auto-generated method stub
+		}
 
 }
