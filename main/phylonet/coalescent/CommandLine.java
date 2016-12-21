@@ -691,7 +691,7 @@ public class CommandLine {
 		public boolean done = false;
 		public GPUCall gpu;
 		
-		public final boolean p = true;
+		public final boolean pjohng23 = false;
 		public TurnTaskToScores(AbstractInference inf, ConcurrentLinkedQueue<ICalculateWeightTask<Tripartition>> queue1, ConcurrentLinkedQueue<Long> queue2, int[] geneTreeAsInts, long[] all) {
 			this.inference = inf;
 			this.queue1 = queue1;
@@ -701,7 +701,7 @@ public class CommandLine {
 			tripartition2 = new long[(int)(SPECIES_WORD_LENGTH * workGroupSize)];
 			tripartition3 = new long[(int)(SPECIES_WORD_LENGTH * workGroupSize)];
 			
-			gpu = new GPUCall(geneTreeAsInts, all, tripartition1, tripartition2, tripartition3, inference, p);
+			gpu = new GPUCall(geneTreeAsInts, all, tripartition1, tripartition2, tripartition3, inference, pjohng23);
 		}
 
 		public void run() {
@@ -741,16 +741,16 @@ public class CommandLine {
 				queue2.add(gpu.weightArray[i]);
 			}
 			
-			if(p) {
+			if(pjohng23) {
     				clEnqueueReadBuffer(gpu.commandQueue, gpu.d_profile, CL_TRUE, 0L, Sizeof.cl_long * gpu.profile.length, Pointer.to(gpu.profile), 0, null, null);
 				long total = 0;	
 				for(int i = 0; i < 4; i++) {
 					total += gpu.profile[i];
 				}
-				System.out.println("intersecting with the all arrays takes: " + (double)gpu.profile[0]/total);
-				System.out.println("adding numbers to the stack takes: " + (double)gpu.profile[1]/total);
-				System.out.println("calculating weight of a tripartition takes: " + (double)gpu.profile[2]/total);
-				System.out.println("calculating weight of a polytomy takes: " + (double)gpu.profile[3]/total);
+				System.out.println("intersecting with the all arrays takes: " + 4*(double)gpu.profile[0]/1000000000);
+				System.out.println("adding numbers to the stack takes: " + 4*(double)gpu.profile[1]/1000000000);
+				System.out.println("calculating weight of a tripartition takes: " + 4*(double)gpu.profile[2]/1000000000);
+				System.out.println("calculating weight of a polytomy takes: " + 4*(double)gpu.profile[3]/1000000000);
 			}
 			inference.weightCalculator.done = true;
 			
@@ -905,8 +905,7 @@ public class CommandLine {
     		// Create the memory object which will be filled with the
     		// pixel data
     		
-    		d_geneTreesAsInts = clCreateImage2D(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, new cl_image_format[] {geneTreesImageFormat}, geneTreesImageDesc.image_width, geneTreesImageDesc.image_height, 0L, 
-    				Pointer.to(geneTreesAsShorts), null);
+    		d_geneTreesAsInts = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, Sizeof.cl_short * geneTreesAsInts.length, Pointer.to(geneTreesAsShorts), null);
     		d_allArray = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY, Sizeof.cl_long * allArray.length,
     				Pointer.to(allArray), null);
     		d_tripartitions1 = clCreateBuffer(context, CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY, Sizeof.cl_long * tripartitions1.length,
