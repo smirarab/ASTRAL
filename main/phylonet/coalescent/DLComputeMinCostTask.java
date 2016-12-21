@@ -4,7 +4,6 @@ import java.util.List;
 
 import phylonet.coalescent.IClusterCollection;
 import phylonet.coalescent.AbstractComputeMinCostTask;
-import phylonet.coalescent.DLWeightCalculator.DPWeightTask;
 import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
