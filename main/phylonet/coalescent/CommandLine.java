@@ -1,12 +1,18 @@
 package phylonet.coalescent;
 
 import static org.jocl.CL.CL_CONTEXT_PLATFORM;
+import static org.jocl.CL.CL_DEVICE_LOCAL_MEM_SIZE;
+import static org.jocl.CL.CL_DEVICE_MAX_CONSTANT_BUFFER_SIZE;
+import static org.jocl.CL.CL_DEVICE_NAME;
 import static org.jocl.CL.CL_DEVICE_TYPE_ALL;
 import static org.jocl.CL.CL_MEM_COPY_HOST_PTR;
+import static org.jocl.CL.CL_MEM_OBJECT_IMAGE2D;
 import static org.jocl.CL.CL_MEM_READ_ONLY;
+import static org.jocl.CL.CL_MEM_READ_WRITE;
 import static org.jocl.CL.CL_MEM_WRITE_ONLY;
+import static org.jocl.CL.CL_RGBA;
+import static org.jocl.CL.CL_SIGNED_INT16;
 import static org.jocl.CL.CL_TRUE;
-import static org.jocl.CL.*;
 import static org.jocl.CL.clBuildProgram;
 import static org.jocl.CL.clCreateBuffer;
 import static org.jocl.CL.clCreateCommandQueue;
@@ -17,6 +23,7 @@ import static org.jocl.CL.clEnqueueNDRangeKernel;
 import static org.jocl.CL.clEnqueueReadBuffer;
 import static org.jocl.CL.clEnqueueWriteBuffer;
 import static org.jocl.CL.clGetDeviceIDs;
+import static org.jocl.CL.clGetDeviceInfo;
 import static org.jocl.CL.clGetPlatformIDs;
 import static org.jocl.CL.clSetKernelArg;
 
@@ -28,6 +35,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
@@ -36,7 +44,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -46,14 +53,12 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.jocl.CL;
-import org.jocl.EventCallbackFunction;
 import org.jocl.Pointer;
 import org.jocl.Sizeof;
 import org.jocl.cl_command_queue;
 import org.jocl.cl_context;
 import org.jocl.cl_context_properties;
 import org.jocl.cl_device_id;
-import org.jocl.cl_event;
 import org.jocl.cl_image_desc;
 import org.jocl.cl_image_format;
 import org.jocl.cl_kernel;
@@ -61,7 +66,6 @@ import org.jocl.cl_mem;
 import org.jocl.cl_platform_id;
 import org.jocl.cl_program;
 
-import phylonet.coalescent.WQWeightCalculatorNoCalculations.QuartetWeightTask;
 import phylonet.tree.io.NewickReader;
 import phylonet.tree.io.ParseException;
 import phylonet.tree.model.MutableTree;
@@ -80,14 +84,15 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.10.8";
 
-    public static ConcurrentLinkedQueue<ICalculateWeightTask<Tripartition>> queue1 = new ConcurrentLinkedQueue<ICalculateWeightTask<Tripartition>>();
+    protected static String _versinon = "4.11.0";
+
+    public static ConcurrentLinkedQueue<Tripartition> queue1 = new ConcurrentLinkedQueue<Tripartition>();
     public static ConcurrentLinkedQueue<Long> queue2 = new ConcurrentLinkedQueue<Long>();
     
     public static long workGroupSize = 1L<<13;
     
-    public static int SPECIES_WORD_LENGTH;
+    //public static int SPECIES_WORD_LENGTH;
     
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
         System.err.println();
@@ -157,6 +162,10 @@ public class CommandLine {
 	                new Switch("gene-sampling",
 	                        'g', "gene-resampling",
 	                        "perform gene tree resampling in addition to site resampling. Useful only with the -b option."),
+
+	                new Switch("gene-only",
+	                        JSAP.NO_SHORTFLAG, "gene-only",
+	                        "perform bootstrapping but only with gene tree resampling. Should not be used with the -b option."),    
 
 	                new FlaggedOption("keep", 
 	                        JSAP.STRING_PARSER, null, JSAP.NOT_REQUIRED, 
@@ -249,7 +258,7 @@ public class CommandLine {
 		String pattern = null;
 		List<Tree> mainTrees;
 		List<List<String>> bstrees = new ArrayList<List<String>>();
-		List<List<String>> inputSets = new ArrayList<List<String>>();
+		List<List<String>> bootstrapInputSets = new ArrayList<List<String>>();
 		List<Tree> extraTrees = new ArrayList<Tree>();
 		double wh = 1.0D;
 		//int addExtra;
@@ -258,6 +267,8 @@ public class CommandLine {
 		Integer minleaves = null;
         BufferedWriter outbuffer;
         Set<String> keepOptions = new HashSet<String>();
+        String outfileName = null;
+        
 		
         jsap = getJSAP();     
         config = jsap.parse(args);  
@@ -265,12 +276,17 @@ public class CommandLine {
             exitWithErr("",jsap);
         }
         
+        if (config.getBoolean("gene-only") && config.getFile("bootstraps") != null) {
+        	exitWithErr("--gene-only and -b cannot be used together",jsap);
+        }
+        
         File outfile = config.getFile("output file");  
         if (outfile == null) {
             outbuffer = new BufferedWriter(new OutputStreamWriter(System.out));
         } else {
             outbuffer = new BufferedWriter(new FileWriter(outfile));
-            GlobalMaps.outputfilename = config.getFile("output file").getCanonicalPath();
+			outfileName = config.getFile("output file") == null? 
+					null: config.getFile("output file").getCanonicalPath();
         }
         
         
@@ -321,10 +337,13 @@ public class CommandLine {
 
             taxonMap = new HashMap<String, String>();
             String s;
+            try {
             while ((s = br.readLine()) != null) {
                 s = s.trim();
                 String species;
                 String[] alleles;
+                if ("".equals(s.trim()))  
+                	continue;
                 if (s.indexOf(":") != -1) {
                     species = s.substring(0, s.indexOf(":")).trim();
                     s = s.substring(s.indexOf(":") + 1);
@@ -351,6 +370,10 @@ public class CommandLine {
                     //System.err.println("Mapping '"+allele+"' to '"+species+"'");
                     taxonMap.put(allele, species);
                 }
+            }
+
+            } catch (Exception e) {
+            	throw new RuntimeException("\n** Error **: Your name mapping file looks incorrect.\n   Carefully check its format. ", e);
             }
             br.close();
         }
@@ -430,7 +453,7 @@ public class CommandLine {
         }
         
         Options options = newOptions(criterion, rooted, extrarooted, 
-        		1.0D, 1.0D, wh, keepOptions, config);
+        		1.0D, 1.0D, wh, keepOptions, config, outfileName);
         
         /*Options bsoptions = newOptions(criterion, rooted, extrarooted, 
         		1.0D, 1.0D, wh, keepOptions, config);
@@ -452,6 +475,25 @@ public class CommandLine {
         }
         
         if (toScore != null ) {	
+            runScore(criterion, rooted, mainTrees, extraTrees, outbuffer,
+					options, outgroup, toScore);
+        } else {
+        
+	        runInference(jsap, config, criterion, rooted, extrarooted,
+					mainTrees, bstrees, bootstrapInputSets, extraTrees, k,
+					minleaves, outbuffer, keepOptions, outfile, options,
+					outgroup);
+        }
+		
+	    System.err.println("ASTRAL finished in "  + 
+	            (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
+	}
+
+
+	private static void runScore(int criterion, boolean rooted,
+			List<Tree> mainTrees, List<Tree> extraTrees,
+			BufferedWriter outbuffer, Options options, String outgroup,
+			List<String> toScore) throws FileNotFoundException, IOException {
             System.err.println("Scoring: " + toScore.size() +" trees");
             
             AbstractInference inference =
@@ -463,7 +505,8 @@ public class CommandLine {
                          rooted, true, true, null, 1, false? //config.getBoolean("scoreall")? 
                         		 outgroup: null).get(0);
 
-				double nscore = inference.scoreGeneTree(tr, true);
+			double nscore = inference.scoreSpeciesTreeWithGTLabels(tr, true);
+			
 				if (nscore > score) {
 					score = nscore;
 					bestTree.clear();
@@ -472,6 +515,10 @@ public class CommandLine {
 					bestTree.add(tr);
 				}
 				
+			if (!GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleIndividual()) {
+				System.err.println("Scored tree with gene names:\n"+tr.toNewickWD());
+			}
+			
 				GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) tr);
 				
 				if (options.getBranchannotation() != 12) {
@@ -484,14 +531,22 @@ public class CommandLine {
 			}
         	
         	outbuffer.close();
-        	System.exit(0);
         }
         
-        System.err.println("All outputted trees will be *arbitrarily* rooted at "+outgroup);
-        SPECIES_WORD_LENGTH = GlobalMaps.taxonIdentifier.taxonCount()/64 + 1;
+
+	private static void runInference(SimpleJSAP jsap, JSAPResult config,
+			int criterion, boolean rooted, boolean extrarooted,
+			List<Tree> mainTrees, List<List<String>> bstrees,
+			List<List<String>> bootstrapInputSets, List<Tree> extraTrees,
+			int k, Integer minleaves, BufferedWriter outbuffer,
+			Set<String> keepOptions, File outfile, Options options,
+			String outgroup) throws JSAPException, IOException,
+			FileNotFoundException {
+		System.err.println("All output trees will be *arbitrarily* rooted at "+outgroup);
+        //SPECIES_WORD_LENGTH = GlobalMaps.taxonIdentifier.taxonCount()/64 + 1;
 
         if (config.getStringArray("keep") != null && config.getStringArray("keep").length != 0) {
-        	if (GlobalMaps.outputfilename == null) {
+			if (options.getOutputFile() == null) {
         		throw new JSAPException("When -k option is used, -o is also needed.");
         	}
         	for (String koption : config.getStringArray("keep")) {
@@ -529,11 +584,10 @@ public class CommandLine {
             System.err.println("Error when reading extra trees.");
             System.err.println(e.getMessage());
             e.printStackTrace();
-            return;
+		    System.exit(1);
         } 
         
         try {           
-
             if (config.getFile("bootstraps") != null) {
                 String line;
                 BufferedReader rebuff = new BufferedReader(new FileReader(config.getFile("bootstraps")));
@@ -549,30 +603,35 @@ public class CommandLine {
             System.err.println("Error when reading bootstrap trees.");
             System.err.println(e.getMessage());
             e.printStackTrace();
-            return;
+		    System.exit(1);
         } 
 
 	
-		if (config.getFile("bootstraps") != null) {
+		if (config.getFile("bootstraps") != null || config.getBoolean("gene-only")) {
 	        System.err.println("Bootstrapping with seed "+config.getLong("seed"));
 		    for (int i = 0; i < config.getInt("replicates"); i++) {
 		        List<String> input = new ArrayList<String>();
-		        inputSets.add(input);   
+		        bootstrapInputSets.add(input);   
 		        try {
     		        if (config.getBoolean("gene-sampling")) {
     		            for (int j = 0; j < k; j++) {
                             input.add(bstrees.get(GlobalMaps.random.nextInt(k)).remove(0));                 
                         }
-    		        } else {   		        
+			        } else if (config.getBoolean("gene-only")) { 
+			            for (int j = 0; j < k; j++) {
+		                    input.add(mainTrees.get(GlobalMaps.random.nextInt(k)).toString());                 
+		                }	
+			        }
+			        else {   		        
     		            for (List<String> gene : bstrees) {
     		                input.add(gene.get(i));
     		            }
     		        }
 		        } catch (IndexOutOfBoundsException e) {
 		            exitWithErr("Error: You seem to have asked for "+config.getInt("replicates")+
-		                    " but only "+ i +" replicaes could be created.\n" + 
+		                    " but only "+ i +" replicates could be created.\n" + 
 		                    " Note that for gene resampling, you need more input bootstrap" +
-		                    " replicates than the number of species tee replicates.", jsap);
+		                    " replicates than the number of species tree replicates.", jsap);
 		        }
 			    if (keepOptions.contains("bootstraps_norun") ||
 				    	keepOptions.contains("bootstraps")) {
@@ -597,7 +656,7 @@ public class CommandLine {
 
         int j = 0;
         List<Tree> bootstraps = new ArrayList<Tree>();
-		for ( List<String> input : inputSets) {  
+		for ( List<String> input : bootstrapInputSets) {  
 	        System.err.println("\n======== Running bootstrap replicate " + j++);
 	        bootstraps.add(runOnOneInput(criterion, 
 	                 extraTrees, outbuffer, 
@@ -619,12 +678,12 @@ public class CommandLine {
                 outgroup, options);
            
 		outbuffer.close();
-		
-	    System.err.println("ASTRAL finished in "  + 
-	            (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 	}
 
 
+	private static int getSpeciesWordLength(){
+		return (GlobalMaps.taxonIdentifier.taxonCount()/64 + 1);
+	}
     private static Tree runOnOneInput(int criterion, List<Tree> extraTrees,
     		BufferedWriter outbuffer, List<Tree> input, 
             Iterable<Tree> bootstraps, String outgroup, Options options) {
@@ -633,32 +692,45 @@ public class CommandLine {
         
         AbstractInference inference = initializeInference(criterion, input, extraTrees, options, true);
         inference.queue2 = queue2;
-
-        inference.setupSearchSpace();
+        
+        inference.setup(); 
         
         AbstractInferenceNoCalculations inferenceNoCalc = new WQInferenceNoCalculations((AbstractInference) inference.semiDeepCopy());
 
         inferenceNoCalc.queue1 = queue1;
         int counter = 0;
-        long[] allArray = new long[ ((WQDataCollection)inference.dataCollection).treeAllClusters.size()*SPECIES_WORD_LENGTH];
+        long[] allArray = new long[ ((WQDataCollection)inference.dataCollection).treeAllClusters.size()*getSpeciesWordLength()];
         for(int i = 0; i < ((WQDataCollection)inference.dataCollection).treeAllClusters.size(); i++) {
-        	for(int j = SPECIES_WORD_LENGTH - 1; j >= 0; j--)
+        	for(int j = getSpeciesWordLength() - 1 ; j >= 0; j--)
         		allArray[counter++] = ((WQDataCollection)inference.dataCollection).treeAllClusters.get(i).getBitSet().words[j];
         }
-        int[] geneTreesAsInts = new int[((WQDataCollection)inference.dataCollection).geneTreesAsInts.length];
+        /*int[] geneTreesAsInts = new int[((WQDataCollection)inference.dataCollection).geneTreesAsInts.length];
         for(int i = 0; i < geneTreesAsInts.length; i++) {
         	geneTreesAsInts[i] = ((WQDataCollection)inference.dataCollection).geneTreesAsInts[i];
-        }
-        TurnTaskToScores threadgpu = new TurnTaskToScores(inference, queue1, queue2, geneTreesAsInts, allArray);
+        }*/
+        TurnTaskToScores threadgpu = new TurnTaskToScores(inference, queue1, queue2, ((WQWeightCalculator)inference.weightCalculator).geneTreesAsInts(), allArray);
 		WriteTaskToQueue thread1 = new WriteTaskToQueue(inferenceNoCalc, threadgpu);
 
 		(new Thread(thread1)).start();
 		(new Thread(threadgpu)).start();
+
         List<Solution> solutions = inference.inferSpeciesTree();
         
         System.err.println("Optimal tree inferred in "
         		+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs.");
         
+        Tree st = processSolution(outbuffer, bootstraps, outgroup, inference, solutions);
+        
+        return st;
+    }
+
+    private static boolean isGeneResamplign(JSAPResult config) {
+    	return config.getBoolean("gene-sampling") || config.getBoolean("gene-only") ;
+    }
+
+	private static Tree processSolution(BufferedWriter outbuffer,
+			Iterable<Tree> bootstraps, String outgroup,
+			AbstractInference inference, List<Solution> solutions) {
         Tree st = solutions.get(0)._st;
         
         System.err.println(st.toNewick());
@@ -667,7 +739,11 @@ public class CommandLine {
         
 		Trees.removeBinaryNodes((MutableTree) st);
 
-		inference.scoreGeneTree(st, false);
+		GlobalMaps.taxonNameMap.getSpeciesIdMapper().stToGt((MutableTree) st);
+		
+		inference.scoreSpeciesTreeWithGTLabels(st, false);
+		
+		GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) st);
 		
         if ((bootstraps != null) && (bootstraps.iterator().hasNext())) {
             for (Solution solution : solutions) {
@@ -680,7 +756,7 @@ public class CommandLine {
     }
     public static class TurnTaskToScores implements Runnable {
 		public ConcurrentLinkedQueue<Long> queue2;
-		public ConcurrentLinkedQueue<ICalculateWeightTask<Tripartition>> queue1;
+		public ConcurrentLinkedQueue<Tripartition> queue1;
 		public AbstractInference inference;
 		public long[] tripartition1;
 		public long[] tripartition2;
@@ -692,36 +768,36 @@ public class CommandLine {
 		public GPUCall gpu;
 		
 		public final boolean pjohng23 = false;
-		public TurnTaskToScores(AbstractInference inf, ConcurrentLinkedQueue<ICalculateWeightTask<Tripartition>> queue1, ConcurrentLinkedQueue<Long> queue2, int[] geneTreeAsInts, long[] all) {
+		public TurnTaskToScores(AbstractInference inf, ConcurrentLinkedQueue<Tripartition> queue1, ConcurrentLinkedQueue<Long> queue2, int[] geneTreeAsInts, long[] all) {
 			this.inference = inf;
 			this.queue1 = queue1;
 			this.queue2 = queue2;
 			this.all = all;
-			tripartition1 = new long[(int)(SPECIES_WORD_LENGTH * workGroupSize)];
-			tripartition2 = new long[(int)(SPECIES_WORD_LENGTH * workGroupSize)];
-			tripartition3 = new long[(int)(SPECIES_WORD_LENGTH * workGroupSize)];
+			tripartition1 = new long[(int)(getSpeciesWordLength() * workGroupSize)];
+			tripartition2 = new long[(int)(getSpeciesWordLength() * workGroupSize)];
+			tripartition3 = new long[(int)(getSpeciesWordLength() * workGroupSize)];
 			
 			gpu = new GPUCall(geneTreeAsInts, all, tripartition1, tripartition2, tripartition3, inference, pjohng23);
 		}
 
 		public void run() {
 			
-			QuartetWeightTask task = null;
+			Tripartition task = null;
 			((WQWeightCalculator)inference.weightCalculator).lastTime = System.currentTimeMillis();
 			while(!done || !queue1.isEmpty()) {
 				if(!queue1.isEmpty()) {
 
-					task = (QuartetWeightTask)queue1.remove();
+					task = queue1.remove();
 					
-					for(int i = SPECIES_WORD_LENGTH - 1; i >= 0; i--)
+					for(int i = getSpeciesWordLength() - 1; i >= 0; i--)
 						//tripartition1[tripCounter * SPECIES_WORD_LENGTH + SPECIES_WORD_LENGTH - i - 1] = task.trip.cluster1.getBitSet().words[i];
-						tripartition1[(SPECIES_WORD_LENGTH - i - 1) * (int)workGroupSize + tripCounter]=task.trip.cluster1.getBitSet().words[i];
-					for(int i = SPECIES_WORD_LENGTH - 1; i >= 0; i--)
+						tripartition1[(getSpeciesWordLength() - i - 1) * (int)workGroupSize + tripCounter]=task.cluster1.getBitSet().words[i];
+					for(int i = getSpeciesWordLength() - 1; i >= 0; i--)
 						//tripartition2[tripCounter * SPECIES_WORD_LENGTH + SPECIES_WORD_LENGTH - i - 1] = task.trip.cluster2.getBitSet().words[i];
-						tripartition2[(SPECIES_WORD_LENGTH - i - 1) * (int)workGroupSize + tripCounter]=task.trip.cluster2.getBitSet().words[i];
-					for(int i = SPECIES_WORD_LENGTH - 1; i >= 0; i--)
+						tripartition2[(getSpeciesWordLength() - i - 1) * (int)workGroupSize + tripCounter]=task.cluster2.getBitSet().words[i];
+					for(int i = getSpeciesWordLength() - 1; i >= 0; i--)
 						//tripartition3[tripCounter * SPECIES_WORD_LENGTH + SPECIES_WORD_LENGTH - i - 1] = task.trip.cluster3.getBitSet().words[i];
-						tripartition3[(SPECIES_WORD_LENGTH - i - 1) * (int)workGroupSize + tripCounter]=task.trip.cluster3.getBitSet().words[i];
+						tripartition3[(getSpeciesWordLength() - i - 1) * (int)workGroupSize + tripCounter]=task.cluster3.getBitSet().words[i];
 					tripCounter++;
 					if(tripCounter == workGroupSize) {
 						gpu.compute(workGroupSize);
@@ -797,7 +873,7 @@ public class CommandLine {
     		tripartitions1 = trip1;
     		tripartitions2 = trip2;
     		tripartitions3 = trip3;
-    		weightArray = new long[trip1.length / SPECIES_WORD_LENGTH];
+    		weightArray = new long[trip1.length / getSpeciesWordLength()];
     		this.inference = inference;
     		initCL();
 
@@ -865,12 +941,12 @@ public class CommandLine {
     		geneTreesImageDesc.buffer = null;
     		
     		// getting the tree height
-    		int treeheight = ((WQDataCollection)inference.dataCollection).maxHeight;
+    		int treeheight = ((WQWeightCalculator)inference.weightCalculator).maxHeight();
     		System.out.println("TREE HEIGHT IS: " + treeheight);
     		// Program Setup
-    		String source = readFile("lib/calculateWeight.cl");
-    		source = source.replaceAll("SPECIES_WORD_LENGTH - 1", Long.toString(SPECIES_WORD_LENGTH - 1));
-    		source = source.replaceAll("SPECIES_WORD_LENGTH", Long.toString(SPECIES_WORD_LENGTH));
+    		String source = readFile(getClass().getResourceAsStream("/phylonet/coalescent/calculateWeight.cl"));
+    		source = source.replaceAll("SPECIES_WORD_LENGTH - 1", Long.toString(getSpeciesWordLength() - 1));
+    		source = source.replaceAll("SPECIES_WORD_LENGTH", Long.toString(getSpeciesWordLength()));
     		source = source.replaceAll("LONG_BIT_LENGTH", "64");
 //    		source = source.replaceAll("(STACK_SIZE + 1) * 3", Integer.toString((treeheight + 1) * 3));
 //    		source = source.replaceAll("(STACK_SIZE + 2) * 3", Integer.toString((treeheight + 2) * 3));
@@ -931,9 +1007,9 @@ public class CommandLine {
     	}
 
 
-    	private String readFile(String fileName) {
+    	private String readFile(InputStream inputStream) {
     		try {
-    			BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(fileName)));
+    			BufferedReader br = new BufferedReader(new InputStreamReader(inputStream));
     			StringBuffer sb = new StringBuffer();
     			String line = null;
     			while (true) {
@@ -1044,7 +1120,7 @@ public class CommandLine {
     static private Options newOptions(int criterion, boolean rooted,
             boolean extrarooted, 
             double cs, double cd, double wh, 
-            Set<String> keepOptions, JSAPResult config) {
+            Set<String> keepOptions, JSAPResult config, String outfileName) {
     	Options options = new Options(
     			rooted, extrarooted, 
     			config.getBoolean("exact"), 
@@ -1054,10 +1130,12 @@ public class CommandLine {
     			keepOptions.contains("searchspace_norun") || keepOptions.contains("searchspace"), 
     			!keepOptions.contains("searchspace_norun"),
     			config.getInt("branch annotation level"), 
-    			config.getDouble("lambda"));
+    			config.getDouble("lambda"),
+    			outfileName);
     	options.setDLbdWeigth(wh); 
     	options.setCS(cs);
     	options.setCD(cd);
+    	
     	
     	return options;
     }
