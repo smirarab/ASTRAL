@@ -19,6 +19,13 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.tree.util.Collapse;
 
+
+/***
+ * Type T corresponds to a tripartition in ASTRAL
+ * @author smirarab
+ *
+ * @param <T>
+ */
 public abstract class AbstractInference<T> implements Cloneable{
 
 	//protected boolean rooted = true;
@@ -87,6 +94,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 		return total;
 	}
 
+	//TODO: Check whether this is in the right class
 	public void mapNames() {
 		HashMap<String, Integer> taxonOccupancy = new HashMap<String, Integer>();
 		if ((trees == null) || (trees.size() == 0)) {
@@ -109,8 +117,19 @@ public abstract class AbstractInference<T> implements Cloneable{
 		System.err.println("Taxon occupancy: " + taxonOccupancy.toString());
 	}
 
-	public abstract double scoreGeneTree(Tree scorest, boolean initialize) ;
+	/***
+	 * Scores a given tree. 
+	 * @param scorest
+	 * @param initialize
+	 * @return
+	 */
+	public abstract double scoreSpeciesTreeWithGTLabels(Tree scorest, boolean initialize) ;
 
+	/***
+	 * This implements the dynamic programming algorithm
+	 * @param clusters
+	 * @return
+	 */
 	List<Solution> findTreesByDP(IClusterCollection clusters) {
 		List<Solution> solutions = new ArrayList<Solution>();
 		/*
@@ -248,7 +267,24 @@ public abstract class AbstractInference<T> implements Cloneable{
 
 		return (List<Solution>) (List<Solution>) solutions;
 	}
-	public void setupSearchSpace() {
+	
+	/**
+	 * Sets up data structures before starting DP
+	 */
+	void setup() {
+		this.setupSearchSpace();
+		this.initializeWeightCalculator();
+		this.setupMisc();
+	}
+	
+	abstract void initializeWeightCalculator();
+
+	
+
+	/***
+	 * Creates the set X 
+	 */
+	private void setupSearchSpace() {
 		long startTime = System.currentTimeMillis();
 
 		mapNames();
@@ -256,8 +292,12 @@ public abstract class AbstractInference<T> implements Cloneable{
 		dataCollection = newCounter(newClusterCollection());
 		weightCalculator = newWeightCalculator();
 
+		// Compute bipartitions from the input gene trees
 		dataCollection.computeTreePartitions(this);
 
+		/***
+		 * Adds new bipartitions using heuristics
+		 */
 		if (this.getAddExtra() != 0) {
 		    System.err.println("calculating extra bipartitions to be added at level " + this.getAddExtra() +" ...");
 		    dataCollection.addExtraBipartitionByExtension(this);
@@ -293,17 +333,21 @@ public abstract class AbstractInference<T> implements Cloneable{
 		System.err.println("partitions formed in "
 			+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 		
+		if (! this.options.isRunSearch() ) {
+			System.exit(0);
+		}
+		
+		// Obsolete 
 		weightCalculator.preCalculateWeights(trees, extraTrees);
 
 		System.err.println("Dynamic Programming starting after "
 				+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 		
 	}
-	public List<Solution> inferSpeciesTree() {
+	
+	abstract void setupMisc();
 
-		if (! this.options.isRunSearch() ) {
-			System.exit(0);
-		}
+	public List<Solution> inferSpeciesTree() {
 		
 		List<Solution> solutions;		
 
