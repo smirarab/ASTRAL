@@ -17,3 +17,9 @@ astralcpu.4.10.8.jar
 newick-utils*
 main/gputest/*
 *.md
+ASTRAL_RESULTS/
+astralVersions/
+calculateWeightVersions/
+*.trees
+*.tre
+
