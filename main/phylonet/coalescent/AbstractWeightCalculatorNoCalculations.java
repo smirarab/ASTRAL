@@ -11,9 +11,9 @@ public abstract class AbstractWeightCalculatorNoCalculations<T> {
 	protected HashMap<T, Long> weights;
 	boolean save;
 	long lastTime;
-	ConcurrentLinkedQueue<ICalculateWeightTask<T>> queue;
+	ConcurrentLinkedQueue<T> queue;
 	
-	public AbstractWeightCalculatorNoCalculations(boolean save, ConcurrentLinkedQueue<ICalculateWeightTask<T>> queue1) {
+	public AbstractWeightCalculatorNoCalculations(boolean save, ConcurrentLinkedQueue<T> queue1) {
 		this.save = save;
 		this.queue = queue1;
 		this.lastTime = System.currentTimeMillis();
@@ -38,10 +38,8 @@ public abstract class AbstractWeightCalculatorNoCalculations<T> {
 		
 	public Long getWeight(T t, AbstractComputeMinCostTask<T> minCostTask) {
 		this.callcounter ++;
-			ICalculateWeightTask<T> weigthWork = getWeightCalculateTask(t);
-			prepareWeightTask(weigthWork, minCostTask);
-			// MP_VERSION: smallWork.fork();
-			queue.add(weigthWork);
+			
+			queue.add(t);
 			
 			
 /*			if (weights.size() == 75318) {
@@ -50,9 +48,6 @@ public abstract class AbstractWeightCalculatorNoCalculations<T> {
 			//System.out.println(t.toString());
 		return 0L;
 	}
-	protected abstract void prepareWeightTask(ICalculateWeightTask<T> weigthWork,AbstractComputeMinCostTask<T> task);
-	
-	public abstract ICalculateWeightTask<T> getWeightCalculateTask(T t);
 	
 	public abstract void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees);
 }
