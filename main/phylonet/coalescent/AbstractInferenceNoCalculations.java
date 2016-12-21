@@ -21,7 +21,7 @@ import phylonet.tree.util.Collapse;
 
 public abstract class AbstractInferenceNoCalculations<T> extends AbstractInference<T> {
 	
-	ConcurrentLinkedQueue<ICalculateWeightTask<Tripartition>> queue1;
+	ConcurrentLinkedQueue<Tripartition> queue1;
 	
 	public AbstractInferenceNoCalculations(Options options, List<Tree> trees,
 			List<Tree> extraTrees) {
