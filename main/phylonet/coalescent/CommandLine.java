@@ -30,7 +30,6 @@ import static org.jocl.CL.clSetKernelArg;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -82,10 +81,9 @@ import com.martiansoftware.jsap.SimpleJSAP;
 import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
-public class CommandLine {
-
-
-    protected static String _versinon = "4.11.0";
+public class CommandLine{
+	
+	protected static String _version = "4.11.0";
 
     public static ConcurrentLinkedQueue<Tripartition> queue1 = new ConcurrentLinkedQueue<Tripartition>();
     public static ConcurrentLinkedQueue<Long> queue2 = new ConcurrentLinkedQueue<Long>();
@@ -98,7 +96,7 @@ public class CommandLine {
         System.err.println();
         System.err.println(extraMessage);
         System.err.println();
-        System.err.println("Usage: java -jar astral."+_versinon+".jar "+ jsap.getUsage());
+        System.err.println("Usage: java -jar astral."+_version+".jar "+ jsap.getUsage());
         System.err.println();
         System.err.println(jsap.getHelp());
         System.exit( 1 );
@@ -107,7 +105,7 @@ public class CommandLine {
     
     private static SimpleJSAP getJSAP() throws JSAPException {
         return new SimpleJSAP(
-                "ASTRAL (version" + _versinon + ")",
+                "ASTRAL (version" + _version + ")",
                 "species tree inference from unrooted gene trees. "
                 + "The ASTRAL algorithm maximizes the number of shared quartet trees with"
                 + " the collection of all gene trees. The result of this optimization problem"
@@ -317,7 +315,7 @@ public class CommandLine {
         }
         
         System.err.println("\n================== ASTRAL ===================== \n" );
-        System.err.println("This is ASTRAL version " + _versinon);
+        System.err.println("This is ASTRAL version " + _version);
 
         System.err.println("Gene trees are treated as " + (rooted ? "rooted" : "unrooted"));
 
