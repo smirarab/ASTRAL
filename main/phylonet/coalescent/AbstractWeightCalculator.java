@@ -7,11 +7,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import phylonet.tree.model.Tree;
 
 public abstract class AbstractWeightCalculator<T> implements Cloneable {
-	@Override
-	protected Object clone() throws CloneNotSupportedException {
-		// TODO Auto-generated method stub
-		return super.clone();
-	}
+	
 	
 	private static final boolean TESTRUN = false;
 	private int callcounter = 0;
@@ -54,10 +50,11 @@ public abstract class AbstractWeightCalculator<T> implements Cloneable {
 						if(!done)
 							Thread.sleep(100);
 						else {
-							ICalculateWeightTask<T> weigthWork = getWeightCalculateTask(t);
-							prepareWeightTask(weigthWork, minCostTask);
+							//ICalculateWeightTask<T> weigthWork = getWeightCalculateTask(t);
+							//prepareWeightTask(weigthWork, minCostTask);
+
 							// MP_VERSION: smallWork.fork();
-							weight = TESTRUN ? 0 : weigthWork.calculateWeight();
+							weight = TESTRUN ? 0 : calculateWeight(t, minCostTask);
 							int count;
 							if (save && !TESTRUN ) {
 								weights.put(t, weight);
@@ -119,10 +116,15 @@ public abstract class AbstractWeightCalculator<T> implements Cloneable {
 
 	}
 	
-	
-	protected abstract void prepareWeightTask(ICalculateWeightTask<T> weigthWork,AbstractComputeMinCostTask<T> task);
-	
-	public abstract ICalculateWeightTask<T> getWeightCalculateTask(T t);
+
+	abstract Long calculateWeight(T t, AbstractComputeMinCostTask<T> minCostTask);
 	
 	public abstract void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees);
+	
+		@Override
+	protected Object clone() throws CloneNotSupportedException {
+		// TODO Auto-generated method stub
+		return super.clone();
+	}
+	
 }
