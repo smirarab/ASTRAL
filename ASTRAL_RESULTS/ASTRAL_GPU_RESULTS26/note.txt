@@ -1,1 +1,0 @@
-this one profiles the code with tripartitions arrays coalescing as well

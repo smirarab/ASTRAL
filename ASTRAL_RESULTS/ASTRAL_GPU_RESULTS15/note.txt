@@ -1,1 +1,0 @@
-This tests putting tripartition on local memory.
