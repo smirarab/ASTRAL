@@ -19,6 +19,11 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.util.Trees;
 import phylonet.util.BitSet;
 
+/**
+ * Maps the gene (i.e., taxon) IDs to species IDs. 
+ * @author smirarab
+ *
+ */
 public class SpeciesMapper {
 
     private int [] taxonIdToSpeciesId;
@@ -141,6 +146,11 @@ public class SpeciesMapper {
         return this.getGeneClusterForSTCluster(stCluster.getBitSet());
     }
     
+    /***
+     * For a bitset in the gene ID universe, it will add all the other genes from all the
+     * species that are represented in the given bitset. 
+     * @param geneBS
+     */
     public void addMissingIndividuals(BitSet geneBS) {
         BitSet stBS = this.getSTBisetForGeneBitset(geneBS);
         for (int i = stBS.nextSetBit(0); i >=0 ; i = stBS.nextSetBit(i+1)) {
@@ -172,8 +182,8 @@ public class SpeciesMapper {
 	            ret.add(GlobalMaps.taxonIdentifier.getTaxonName(id));
 	        }
         } catch (IndexOutOfBoundsException e) {
-        	throw new RuntimeException("Mapping between gene and species taxon names"
-        			+ "doesn't seem right. We couldn't find "+ species + " in gene trees.");
+        	throw new RuntimeException("Mapping between gene tree and species tree taxon names "
+        			+ "doesn't seem right. We couldn't find species "+ species + " in gene trees.");
         }
         return ret;
     }
@@ -235,4 +245,7 @@ public class SpeciesMapper {
     	}
     }
 
+    public boolean isSingleIndividual() {
+    	return taxonIdToSpeciesId.length == speciesIdtoTaxonId.size();
+    }
 }
