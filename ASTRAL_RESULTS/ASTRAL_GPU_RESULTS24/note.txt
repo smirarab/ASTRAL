@@ -1,1 +1,0 @@
-this one has no opencl optimizations for profiling. there should be the relative time usage printed in the astral-gpu.log.

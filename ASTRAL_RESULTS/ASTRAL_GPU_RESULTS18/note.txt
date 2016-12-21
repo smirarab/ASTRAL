@@ -1,1 +1,0 @@
-this data set uses 2^13 group size and reroots trees at midpoint. it also sets a size 32 for local work group size
