@@ -236,7 +236,7 @@ public class Utils {
         int treecount = 0;
         for (Tree tree : trees) {
         	treecount++;
-            List<STITreeCluster> geneClusters = Utils.getGeneClusters(tree, taxonIdentifier);
+            List<STITreeCluster> geneClusters = Utils.getGeneClusters(tree, taxonIdentifier); //taxoncount changes
             for (STITreeCluster cluster: geneClusters) {
 
                 if (count.containsKey(cluster)) {
@@ -260,7 +260,7 @@ public class Utils {
 	        
 	        int ti = thresholds.length - 1;
 	        double threshold = thresholds[ti];
-	        List<STITreeCluster> clusters = new ArrayList<STITreeCluster>();   
+	        List<STITreeCluster> clusters = new ArrayList<STITreeCluster>(); 
 	        for (Entry<STITreeCluster, Integer> entry : countSorted) {
 	        	if (threshold > (entry.getValue()+.0d)/treecount) {	
 	        		outTrees.add(0,Utils.buildTreeFromClusters(clusters, taxonIdentifier, keepclusters));
@@ -298,6 +298,7 @@ public class Utils {
             BitSet bs = new BitSet(leaves.length);
             if (node.isLeaf()) {
                 // Find the index of this leaf.
+            	System.err.println("name"+node.getName());
                 int i = taxonIdentifier.taxonId(node.getName());                
                 bs.set(i);              
                 stack.add(bs);
@@ -314,7 +315,7 @@ public class Utils {
                 stack.add(bs);
             }
                           
-            if(bs.cardinality()<leaves.length && bs.cardinality()>1){
+            if(bs.cardinality() < leaves.length && bs.cardinality() > 1){
                 STITreeCluster tb = taxonIdentifier.newCluster();
                 tb.setCluster((BitSet)bs.clone());
                 //if(!biClusters.contains(tb)){
