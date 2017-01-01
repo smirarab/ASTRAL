@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
+import phylonet.tree.model.sti.STINode;
 import phylonet.tree.model.sti.STITree;
 import phylonet.tree.util.Trees;
 import phylonet.util.BitSet;
@@ -35,7 +36,7 @@ public class SingleIndividualSample {
 	 * A taxon identifier specifc to this subsample. This 
 	 * taxon identifer will only include the individuals sampled. 
 	 */
-	private TaxonIdentifier sampleSpecificTaxonIdentifier;
+	//private TaxonIdentifier sampleSpecificTaxonIdentifier;
 	// TODO: maybe we should take the distanc matrix out of this class.
 	//       not sure why it's here. 
 	private SimilarityMatrix similarityMatrix;
@@ -47,13 +48,17 @@ public class SingleIndividualSample {
 	public SingleIndividualSample(SpeciesMapper spm, SimilarityMatrix matrix) {
 		sampleGlobalIDs = new ArrayList<Integer>();
 		sampleNames = new ArrayList<String>();
-		sampleSpecificTaxonIdentifier = new TaxonIdentifier();
+		//sampleSpecificTaxonIdentifier = new TaxonIdentifier();
+		//sampleSpecificTaxonIdentifier = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier();
+		/*
+		 * TODO: check if other parts of code need any changes
+		 */
     	for (int s = 0; s< spm.getSpeciesCount(); s++){
     		List<Integer> stTaxa = spm.getTaxaForSpecies(s);
     		int tid = stTaxa.get(GlobalMaps.random.nextInt(stTaxa.size()));
     		sampleGlobalIDs.add(tid);
 			sampleNames.add(GlobalMaps.taxonIdentifier.getTaxonName(tid));
-			sampleSpecificTaxonIdentifier.taxonId(sampleNames.get(sampleNames.size()-1));
+			//sampleSpecificTaxonIdentifier.taxonId(sampleNames.get(sampleNames.size()-1));
     	}
 		setSampleSize(sampleGlobalIDs.size());
 		
@@ -71,10 +76,29 @@ public class SingleIndividualSample {
 		}
 		return outtrees;
 	}
-
-	public TaxonIdentifier getTaxonIdentifier() {
-		return this.sampleSpecificTaxonIdentifier;
+	
+	public Tree contractTree(Tree intree){	
+		
+		STITree ntr = new STITree(intree);
+		ntr.constrainByLeaves(sampleNames); // sampleNames : GlobalMaps.taxonIdentifier.getTaxonName: gene tree names
+		//convert gene tree to species tree label
+//		System.err.println("before: "+ntr.getNode(0).getName());
+		Tree s = ntr;
+		GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree)s);
+		//System.err.println("after: "+ntr.getNode(0).getName());
+//		int i = 0;
+//		for (STINode node : (MutableTree))ntr.postTraverse()) {
+//            BitSet bs = new BitSet(leaves.length);
+//            if (node.isLeaf()) {
+//                // Find the index of this leaf.
+//            	System.err.println("name"+node.getName());
+		return ntr;
 	}
+	
+
+//	public TaxonIdentifier getTaxonIdentifier() {
+//		return this.sampleSpecificTaxonIdentifier;
+//	}
 
 
 
