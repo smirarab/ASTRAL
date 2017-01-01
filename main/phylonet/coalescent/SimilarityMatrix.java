@@ -294,6 +294,7 @@ public class SimilarityMatrix {
 			
 			final float[] is = new float[size];// this.similarityMatrix[i].clone();
 			BitSet bsI = bsList.get(i);
+
 			weights.add(bsI.cardinality());
 			sims.add(is);
 			
@@ -307,6 +308,7 @@ public class SimilarityMatrix {
 				}
 				for (int k = bsI.nextSetBit(0); k >= 0; k = bsI.nextSetBit(k + 1)) {
 					for (int l = bsJ.nextSetBit(0); l >= 0; l = bsJ.nextSetBit(l + 1)) {
+//						System.err.println("k :"+k+" l : "+l);
 						is[j] += this.similarityMatrix[k][l];
 						c++;
 					}

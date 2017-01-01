@@ -23,6 +23,11 @@ public class TaxonIdentifier {
     public void lock() {
         this.locked = true;
     }
+    /**
+     * Returns the ID corresponding to the taxon name , if the taxon name is new it adds it unless the taxonidentifier is locked
+     * @param name
+     * @return
+     */
     public Integer taxonId(String name) {
         Integer a = nameToId.get(name);
         if (a ==  null){ 
