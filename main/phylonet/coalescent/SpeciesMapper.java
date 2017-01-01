@@ -138,7 +138,7 @@ public class SpeciesMapper {
     }
 
     public STITreeCluster getGeneClusterForSTCluster(BitSet stBitset) {
-        STITreeCluster geneCluster = GlobalMaps.taxonIdentifier.newCluster();
+        STITreeCluster geneCluster = GlobalMaps.taxonIdentifier.newCluster();    	
         geneCluster.setCluster(this.getGeneBisetForSTBitset(stBitset));
         return geneCluster;
     }
@@ -256,8 +256,11 @@ public class SpeciesMapper {
 						GlobalMaps.taxonIdentifier.taxonId(node.getName()));
     			stack.push(spID);
     			if (this.speciesIdtoTaxonId.get(spID).size() == 1) {
-    				if (!node.getName().equals(this.getSpeciesName(spID)))
+    				if (!node.getName().equals(this.getSpeciesName(spID))){
+    					System.err.println("b"+node.getName());
     					((TMutableNode)node).setName(this.getSpeciesName(spID));
+    					System.err.println("a"+node.getName());
+    				}
     			}
     		} else {
     			children = new HashSet<Integer>();
@@ -272,6 +275,7 @@ public class SpeciesMapper {
 	    				((TMutableNode) node).setName(this.getSpeciesName(spnode));
 	    				((STINode) node).setData(null);
 	    				spNodes.add(childnodes);
+	    				System.err.println("2");
     				}
     				stack.push(spnode);
     			} else {
