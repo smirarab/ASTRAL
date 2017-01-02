@@ -294,11 +294,14 @@ public class Utils {
         List<STITreeCluster> biClusters = new LinkedList<STITreeCluster>();
         Stack<BitSet> stack = new Stack<BitSet>();
         String[] leaves = taxonIdentifier.getAllTaxonNames();
+        int ii=0;
         for (TNode node : tree.postTraverse()) {
             BitSet bs = new BitSet(leaves.length);
             if (node.isLeaf()) {
                 // Find the index of this leaf.
-            	//System.err.println("name"+node.getName());
+            	if(ii<2)
+            	System.err.println("name"+node.getName());
+            	ii++;
                 int i = taxonIdentifier.taxonId(node.getName());                
                 bs.set(i);              
                 stack.add(bs);
