@@ -100,16 +100,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 
 		// SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
 
-		/**
-		 * Get two randomly resolved greedy consensus of gene trees, further
-		 * resolved by UPGMA. These two consensus trees are used for handling
-		 * polytomies in gene trees.
-		 */
 
-		resolveByUPGMA((MutableTree) allGenesGreedy, id,
-				speciesSimilarityMatrix);
-
-
+		
 		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
 
 		for (TNode node : tr.postTraverse()) {
@@ -557,7 +549,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 				|| size == 0) {
 			return false;
 		}
-		//System.err.println("size:" + size);
+		// System.err.println("size:" + size);
 		added |= addToClusters(c1, size);
 		size = c2.getClusterSize();
 		added |= addToClusters(c2, size);
@@ -674,17 +666,6 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 			this.completedGeeneTrees = this.originalInompleteGeneTrees;
 		}
 
-		/*
-		 * Calculate gene tree clusters and bipartitions for X
-		 */
-		STITreeCluster all = GlobalMaps.taxonNameMap.getSpeciesIdMapper()
-				.getSTTaxonIdentifier().newCluster();
-		all.getBitSet().set(
-				0,
-				GlobalMaps.taxonNameMap.getSpeciesIdMapper()
-						.getSTTaxonIdentifier().taxonCount());
-		addToClusters(all, GlobalMaps.taxonNameMap.getSpeciesIdMapper()
-				.getSTTaxonIdentifier().taxonCount());
 
 		System.err.println("Building set of clusters (X) from gene trees ");
 
@@ -769,6 +750,10 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		Tree allGenesGreedy = Utils.greedyConsensus(greedyCandidates, false,
 				GlobalMaps.taxonNameMap.getSpeciesIdMapper()
 						.getSTTaxonIdentifier(), true);
+		resolveByUPGMA((MutableTree) allGenesGreedy, GlobalMaps.taxonNameMap.getSpeciesIdMapper()
+				.getSTTaxonIdentifier(),
+				this.speciesSimilarityMatrix);
+
 		calculateDistances();
 		for (List<Tree> l : allGreedies) {
 			for (Tree gr : l) {
