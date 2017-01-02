@@ -81,8 +81,7 @@ public class SingleIndividualSample {
 		
 		STITree ntr = new STITree(intree);
 		ntr.constrainByLeaves(sampleNames); // sampleNames : GlobalMaps.taxonIdentifier.getTaxonName: gene tree names
-		Tree s = ntr;
-		GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree)s);
+		GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree)ntr);
 //		int i = 0;
 //		for (STINode node : (MutableTree))ntr.postTraverse()) {
 //            BitSet bs = new BitSet(leaves.length);
