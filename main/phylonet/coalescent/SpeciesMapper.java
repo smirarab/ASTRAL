@@ -257,9 +257,7 @@ public class SpeciesMapper {
     			stack.push(spID);
     			if (this.speciesIdtoTaxonId.get(spID).size() == 1) {
     				if (!node.getName().equals(this.getSpeciesName(spID))){
-    					System.err.println("b"+node.getName());
     					((TMutableNode)node).setName(this.getSpeciesName(spID));
-    					System.err.println("a"+node.getName());
     				}
     			}
     		} else {
