@@ -298,7 +298,7 @@ public class Utils {
             BitSet bs = new BitSet(leaves.length);
             if (node.isLeaf()) {
                 // Find the index of this leaf.
-            	System.err.println("name"+node.getName());
+            	//System.err.println("name"+node.getName());
                 int i = taxonIdentifier.taxonId(node.getName());                
                 bs.set(i);              
                 stack.add(bs);
