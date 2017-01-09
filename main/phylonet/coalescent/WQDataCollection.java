@@ -464,10 +464,11 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	// return this.addSingleIndividualBipartitionToX(cluster);
 	// }
 	private boolean addSpeciesBitSetToX(final BitSet bs) {
-		STITreeCluster cluster = GlobalMaps.taxonIdentifier.newCluster();
-		BitSet sBS = GlobalMaps.taxonNameMap.getSpeciesIdMapper()
-				.getGeneBisetForSTBitset(bs);
-		cluster.setCluster(sBS);
+		STITreeCluster cluster = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier().newCluster();
+//		BitSet sBS = GlobalMaps.taxonNameMap.getSpeciesIdMapper()
+//				.getGeneBisetForSTBitset(bs);
+//		cluster.setCluster(sBS);
+		cluster.setCluster(bs);
 		return this.addSpeciesBipartitionToX(cluster);
 	}
 
@@ -700,11 +701,6 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 
 		int i = 1;
 		for (Tree gt : this.completedGeeneTrees) {
-			System.err.println("taxon count *: "
-					+ i
-					+ " "
-					+ GlobalMaps.taxonNameMap.getSpeciesIdMapper()
-							.getSTTaxonIdentifier().taxonCount());
 			System.err.println("gene tree number " + i + " is processing..");
 			ArrayList<Tree> firstRoundSampleTrees = new ArrayList<Tree>();
 
@@ -725,16 +721,11 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 				// TIME CONSUMING
 				greedies.add(Utils.greedyConsensus(sample, false,
 						GlobalMaps.taxonNameMap.getSpeciesIdMapper()
-								.getSTTaxonIdentifier(), true)); // taxoncount
-																	// changes
+								.getSTTaxonIdentifier(), true));
 			}
 
 			allGreedies.add(greedies);
-			System.err.println("taxon count : "
-					+ GlobalMaps.taxonNameMap.getSpeciesIdMapper()
-							.getSTTaxonIdentifier().taxonCount());
 			i++;
-
 			// System.err.println("Number of clusters after simple addition from gene trees: "
 			// + clusters.getClusterCount());
 
@@ -754,11 +745,10 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 				.getSTTaxonIdentifier(),
 				this.speciesSimilarityMatrix);
 
-		calculateDistances();
 		for (List<Tree> l : allGreedies) {
 			for (Tree gr : l) {
-				// addBipartitionsFromSignleIndTreesToX(gr, allGenesGreedy,
-				// GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
+				addBipartitionsFromSignleIndTreesToX(gr, allGenesGreedy,
+				GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
 				System.err
 						.println("Number of clusters after simple addition from gene tree "
 								+ clusters.getClusterCount());
