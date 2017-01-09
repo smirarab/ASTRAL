@@ -105,7 +105,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 	}
 	
 	/**
-	 * This metho first computes the quartet scors and then calls
+	 * This method first computes the quartet scores and then calls
 	 * scoreBranches to annotate branches (if needed).
 	 * The method assumes the input tree st has labels of individuals (not species). 
 	 */
