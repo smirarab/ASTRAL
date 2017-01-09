@@ -246,6 +246,49 @@ public class SpeciesMapper {
 		return ret;
 	}
     
+    public void gtToSt2(MutableTree st) {
+    	Stack<Integer> stack = new Stack<Integer>();
+    	HashSet<Integer> children;
+		List<List<TMutableNode>> spNodes = new ArrayList<List<TMutableNode>>();
+    	for (TNode node: st.postTraverse()) {
+    		if (node.isLeaf()) {
+    			int spID = this.getSpeciesIdForTaxon(
+						GlobalMaps.taxonIdentifier.taxonId(node.getName()));
+    			stack.push(spID);
+    			//if (this.speciesIdtoTaxonId.get(spID).size() == 1) {
+    				if (!node.getName().equals(this.getSpeciesName(spID))){
+    					((TMutableNode)node).setName(this.getSpeciesName(spID));
+    				}
+    			//}
+    		} else {
+    			children = new HashSet<Integer>();
+    			List<TMutableNode> childnodes = new ArrayList<TMutableNode>();
+    			for (TNode c : node.getChildren()) {
+    				children.add(stack.pop());
+    				childnodes.add((TMutableNode) c);
+    			}
+    			if (children.size() == 1) {
+    				Integer spnode = children.iterator().next();
+    				if (spnode != -1) {
+	    				((TMutableNode) node).setName(this.getSpeciesName(spnode));
+	    				((STINode) node).setData(null);
+	    				spNodes.add(childnodes);
+	    				System.err.println("2");
+    				}
+    				stack.push(spnode);
+    			} else {
+    				stack.push(-1);
+    			}
+    		}
+    	}
+     
+    	for (List<TMutableNode> nodes : spNodes) {
+    		for (TNode c : nodes) {
+    			((TMutableNode) c).removeNode();
+    		}
+    	}
+    }
+    
     public void gtToSt(MutableTree st) {
     	Stack<Integer> stack = new Stack<Integer>();
     	HashSet<Integer> children;

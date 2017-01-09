@@ -6,5 +6,6 @@
 	<classpathentry kind="lib" path="lib/main.jar"/>
 	<classpathentry kind="lib" path="lib/colt.jar"/>
 	<classpathentry kind="lib" path="lib/JSAP-2.1.jar"/>
+	<classpathentry kind="lib" path="astral.5.0.1.jar"/>
 	<classpathentry kind="output" path="main"/>
 </classpath>
