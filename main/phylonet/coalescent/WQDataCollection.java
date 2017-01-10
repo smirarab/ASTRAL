@@ -455,7 +455,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	 * will be on the same side of the bipartition. These additions are done on
 	 * a copy of the input bitset not the instance passed in.
 	 * 
-	 * @param bs
+	 * @param stBitSet
 	 * @return was the cluster new?
 	 */
 	// private boolean addSingleIndividualBitSetToX(final BitSet bs) {
@@ -463,12 +463,12 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	// cluster.setCluster(bs);
 	// return this.addSingleIndividualBipartitionToX(cluster);
 	// }
-	private boolean addSpeciesBitSetToX(final BitSet bs) {
+	private boolean addSpeciesBitSetToX(final BitSet stBitSet) {
 		STITreeCluster cluster = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier().newCluster();
 //		BitSet sBS = GlobalMaps.taxonNameMap.getSpeciesIdMapper()
 //				.getGeneBisetForSTBitset(bs);
 //		cluster.setCluster(sBS);
-		cluster.setCluster(bs);
+		cluster.setCluster(stBitSet);
 		return this.addSpeciesBipartitionToX(cluster);
 	}
 
@@ -478,29 +478,11 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	 * cluster as well, but note that these additions are done on a copy of c1
 	 * not c1 itself.
 	 */
-	// private boolean addSingleIndividualBipartitionToX(final STITreeCluster
-	// c1) {
-	//
-	// boolean added = false;
-	//
-	// STITreeCluster c1copy = new STITreeCluster (c1);
-	// BitSet b1copy = c1copy.getBitSet();
-	//
-	// GlobalMaps.taxonNameMap.getSpeciesIdMapper().addMissingIndividuals(b1copy);
-	//
-	// added |= this.addCompletedSpeciesFixedBipartionToX(c1copy,
-	// c1copy.complementaryCluster());
-	// // if (added) { System.err.print(".");}
-	//
-	// return added;
-	//
-	// }
-
-	private boolean addSpeciesBipartitionToX(final STITreeCluster c1) {
+	private boolean addSpeciesBipartitionToX(final STITreeCluster stCluster) {
 		boolean added = false;
 
 		STITreeCluster c1GT = GlobalMaps.taxonNameMap.getSpeciesIdMapper()
-				.getGeneClusterForSTCluster(c1);
+				.getGeneClusterForSTCluster(stCluster);
 
 		added |= this.addCompletedSpeciesFixedBipartionToX(c1GT,
 				c1GT.complementaryCluster());
@@ -674,7 +656,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		 * This is where we randomly sample one individual per species before
 		 * performing the next steps in construction of the set X.
 		 */
-		int firstRoundSampling = 10;
+		int firstRoundSampling = 200;
 		int secondRoundSampling = 2;
 		System.err.println("In the first round of  sampling "
 				+ firstRoundSampling + " samples will be taken");
@@ -694,7 +676,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 
 		}
 
-		int K = 5;
+		int K =100;
 
 		int arraySize = this.completedGeeneTrees.size();
 		List<List<Tree>> allGreedies = new ArrayList<List<Tree>>(arraySize);
@@ -970,7 +952,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		allGreedies = Utils.greedyConsensus(contractedTrees,
 				this.GREEDY_ADDITION_THRESHOLDS, true, 1, tid, true);
 
-		int th = 0; // Doesn't matter. Only for logging.
+		int th = 0; 
 		/**
 		 * For each greedy consensus tree, use it to add extra bipartitions to
 		 * the tree.
@@ -978,7 +960,6 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		for (Tree cons : allGreedies) {
 			double thresh = this.GREEDY_ADDITION_THRESHOLDS[th];
 			System.err.println("Threshold " + thresh + ":");
-			th = (th + 1) % this.GREEDY_ADDITION_THRESHOLDS.length;
 
 			for (TNode greedyNode : cons.postTraverse()) {
 
@@ -1036,7 +1017,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 				for (int j = 0; j < this.GREEDY_ADDITION_DEFAULT_RUNS + k; j++) {
 
 					boolean quadratic = this.SLOW
-							|| (th <= this.GREEDY_DIST_ADDITTION_LAST_THRESHOLD_INDX && j < this.GREEDY_ADDITION_DEFAULT_RUNS);
+							|| (th < this.GREEDY_DIST_ADDITTION_LAST_THRESHOLD_INDX && j < this.GREEDY_ADDITION_DEFAULT_RUNS);
 
 					if (this.sampleAndResolve(childbs, quadratic, sm, tid)) {
 						k += this.GREEDY_ADDITION_IMPROVEMENT_REWARD;
@@ -1047,6 +1028,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 						/ this.GREEDY_ADDITION_IMPROVEMENT_REWARD
 						+ "; clusters: " + clusters.getClusterCount());
 			}
+			
+			th = (th + 1) % this.GREEDY_ADDITION_THRESHOLDS.length;
 		}
 	}
 
@@ -1290,8 +1273,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 
 	private boolean addDoubleSubSampledBitSetToX(BitSet[] childbs,
 			BitSet restrictedBitSet, TaxonIdentifier tid) {
-		BitSet newbs = addbackAfterSampling(childbs, restrictedBitSet, tid);
-		return this.addSpeciesBitSetToX(newbs);
+		BitSet stnewBS = addbackAfterSampling(childbs, restrictedBitSet, tid);
+		return this.addSpeciesBitSetToX(stnewBS);
 	}
 
 	private boolean addSubSampledBitSetToX(

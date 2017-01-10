@@ -246,11 +246,11 @@ public class SpeciesMapper {
 		return ret;
 	}
     
-    public void gtToSt2(MutableTree st) {
+    public void gtToSt2(MutableTree gt) {
     	Stack<Integer> stack = new Stack<Integer>();
     	HashSet<Integer> children;
 		List<List<TMutableNode>> spNodes = new ArrayList<List<TMutableNode>>();
-    	for (TNode node: st.postTraverse()) {
+    	for (TNode node: gt.postTraverse()) {
     		if (node.isLeaf()) {
     			int spID = this.getSpeciesIdForTaxon(
 						GlobalMaps.taxonIdentifier.taxonId(node.getName()));
@@ -316,7 +316,6 @@ public class SpeciesMapper {
 	    				((TMutableNode) node).setName(this.getSpeciesName(spnode));
 	    				((STINode) node).setData(null);
 	    				spNodes.add(childnodes);
-	    				System.err.println("2");
     				}
     				stack.push(spnode);
     			} else {
