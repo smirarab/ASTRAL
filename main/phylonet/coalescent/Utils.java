@@ -410,15 +410,15 @@ public class Utils {
 	 * Given a tree with one sample from each side of a polytomy, 
 	 *   this method returns a resolution of the original tree
 	 * @param randomSample
-	 * @param restrictedTree
+	 * @param fullTree
 	 * @return The resolution is returned as a set of bitsets
 	 */
-	public static List<BitSet> getBitsets(HashMap<String,Integer> randomSample, Tree restrictedTree) {
+	public static List<BitSet> getBitsets(HashMap<String,Integer> randomSample, Tree fullTree) {
 		
 		ArrayList<BitSet> ret = new ArrayList<BitSet>();
 
 		Stack<BitSet> stack = new Stack<BitSet>();
-		for (TNode rgtn : restrictedTree.postTraverse()) {
+		for (TNode rgtn : fullTree.postTraverse()) {
 
 			if (rgtn.isRoot() && rgtn.getChildCount() == 2) {
 				continue;
@@ -431,7 +431,7 @@ public class Utils {
 					bs = new BitSet(randomSample.size());
 					int i =  randomSample.get(rgtn.getName());               
 					bs.set(i); 
-				}
+				} 
 			}
 			else {
 				int childCount = rgtn.getChildCount();
