@@ -486,15 +486,6 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	 */
 	private boolean addSpeciesBipartitionToX(final STITreeCluster stCluster) {
 		boolean added = false;
-
-		BitSet test = new BitSet(stCluster.getClusterSize());
-		test.set(GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier().taxonId("61"));
-		test.set(GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier().taxonId("182"));
-		test.set(GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier().taxonId("121"));
-		
-		if (stCluster.getBitSet().equals(test) || stCluster.complementaryCluster().getBitSet().equals(test)) {
-			System.err.println("here");
-		}
 		
 		STITreeCluster c1GT = GlobalMaps.taxonNameMap.getSpeciesIdMapper()
 				.getGeneClusterForSTCluster(stCluster);
@@ -694,7 +685,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 
 		}
 
-		int K =50;
+		int K =100;
 
 		int arraySize = this.completedGeeneTrees.size();
 		List<List<Tree>> allGreedies = new ArrayList<List<Tree>>(arraySize);
