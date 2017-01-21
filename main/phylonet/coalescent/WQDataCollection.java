@@ -775,14 +775,14 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 			 gradiant = clusters.getClusterCount() - prev;
 			 System.err.println("gradient"+ii +": "+ gradiant);
 			 prev = clusters.getClusterCount();
-			 if(firstgradiant == -1)
-				 firstgradiant = gradiant;
-			 else{
-				//System.err.println("First gradiant: " + firstgradiant+ " current gradiant: " + gradiant);
-					if (gradiant < firstgradiant / 3) { 
-						break;
-					} 
-			 }
+//			 if(firstgradiant == -1)
+//				 firstgradiant = gradiant;
+//			 else{
+//				//System.err.println("First gradiant: " + firstgradiant+ " current gradiant: " + gradiant);
+//					if (gradiant < firstgradiant / 3) { 
+//						break;
+//					} 
+//			 }
 
 		}
 		prev = 0;
@@ -810,14 +810,14 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 				 gradiant = clusters.getClusterCount() - prev;
 				 System.err.println("gradient"+l+" in heuristiic: "+ gradiant);
 				 prev = clusters.getClusterCount();
-				 if(firstgradiant == -1)
-					 firstgradiant = gradiant;
-				 else{
-					//System.err.println("First gradiant: " + firstgradiant+ " current gradiant: " + gradiant);
-						if (gradiant < firstgradiant / 10) { 
-							break;
-						} 
-				 }
+//				 if(firstgradiant == -1)
+//					 firstgradiant = gradiant;
+//				 else{
+//					//System.err.println("First gradiant: " + firstgradiant+ " current gradiant: " + gradiant);
+//						if (gradiant < firstgradiant / 10) { 
+//							break;
+//						} 
+//				 }
 
 			}
 		}
