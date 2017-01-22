@@ -288,8 +288,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 				STITreeCluster cluster = (STITreeCluster) node.getData();				
 				if (node.isRoot() || node.getChildCount() > 2 || 
 						(node.getParent().getChildCount() >3) ||
-						(node.getParent().getChildCount() >2 && !node.getParent().isRoot()) ||
-						((node.getParent().isRoot() && node.getParent().getChildCount() == 2)) || 
+						(node.getParent().getChildCount() >2 && !node.getParent().isRoot())  || 
+						//(node.getParent().isRoot() && node.getParent().getChildCount() == 2) ||
 						GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleSP(((STITreeCluster) ((STINode)node).getData()).getBitSet())) {
 					for (int i =0; i< node.getChildCount(); i++) {
 						stack.pop();
@@ -297,6 +297,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 					stack.push(cluster);
 					skippedNodes.add(node);
 					continue;
+				}
+				
+				if ((node.getParent().isRoot() && node.getParent().getChildCount() == 2)) {
+					System.err.println(".");
 				}
 				
 				nodeDataList.add(nd);
@@ -308,17 +312,21 @@ public class WQInference extends AbstractInference<Tripartition> {
 				STITreeCluster sister;
 				STITreeCluster remaining;
 				Iterator<STINode> pcit = node.getParent().getChildren().iterator();
-				STINode pc = pcit.next();
-				if ( pc == n ) pc = pcit.next(); 
-				sister = (STITreeCluster)pc.getData();
+				STINode sisterNode = pcit.next();
+				if ( sisterNode == n ) sisterNode = pcit.next(); 
+				sister = (STITreeCluster)sisterNode.getData();
 				if (node.getParent().isRoot() && node.getParent().getChildCount() == 3) {
-					pc = pcit.next();
-					if (pc == n) pc = pcit.next(); 
-					remaining = (STITreeCluster)pc.getData();;					
-				} /* else if (node.getParent().isRoot() && node.getParent().getChildCount() == 2) {
-					continue;
-				} */ 
-				else {
+					sisterNode = pcit.next();
+					if (sisterNode == n) sisterNode = pcit.next(); 
+					remaining = (STITreeCluster)sisterNode.getData();;					
+				}  else if (node.getParent().isRoot() && node.getParent().getChildCount() == 2) {
+					if (sisterNode.isLeaf()) {
+						continue;
+					}
+					Iterator<STINode> nieceIt = sisterNode.getChildren().iterator();
+					sister = (STITreeCluster) nieceIt.next().getData();
+					remaining = (STITreeCluster) nieceIt.next().getData();
+				} else {
 					remaining = ((STITreeCluster)node.getParent().getData()).complementaryCluster();
 				}
 				Quadrapartition quad = weightCalculator2.new Quadrapartition
