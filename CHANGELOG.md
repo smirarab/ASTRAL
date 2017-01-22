@@ -1,3 +1,6 @@
+- version 5.0.2: 
+	- Bug fix: root branch was not scored if it had degree two
+	
 - version 5.0.1: 
 	- Improved documentation of the multi-ind branch
 	- Some code refactoring impacting greedy consensus. May have changed speed a bit.

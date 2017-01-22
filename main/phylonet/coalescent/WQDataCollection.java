@@ -190,31 +190,31 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 					}
 
 					// TODO: do multiple samples
-//					HashMap<String, Integer> randomSample = this
-//							.randomSampleAroundPolytomy(polytomy,
-//									GlobalMaps.taxonNameMap
-//											.getSpeciesIdMapper()
-//											.getSTTaxonIdentifier());
-					int sampleAndResolveRounds = 2;
-					for (int j = 0; j < sampleAndResolveRounds; j++) {
-						sampleAndResolve(polytomy,inputTrees, false, speciesSimilarityMatrix, GlobalMaps.taxonNameMap
-								.getSpeciesIdMapper()
-								.getSTTaxonIdentifier(), false);
-					}
-
-//					for (BitSet restrictedBitSet : Utils.getBitsets(
-//							randomSample, allGenesGreedy)) {
-//						/**
-//						 * Before adding bipartitions from the greedy consensus
-//						 * to the set X we need to add the species we didn't
-//						 * sample to the bitset.
-//						 */
-//						restrictedBitSet = this.addbackAfterSampling(polytomy,
-//								restrictedBitSet, GlobalMaps.taxonNameMap
-//										.getSpeciesIdMapper()
-//										.getSTTaxonIdentifier());
-//						this.addSpeciesBitSetToX(restrictedBitSet);
+					HashMap<String, Integer> randomSample = this
+							.randomSampleAroundPolytomy(polytomy,
+									GlobalMaps.taxonNameMap
+											.getSpeciesIdMapper()
+											.getSTTaxonIdentifier());
+//					int sampleAndResolveRounds = 2;
+//					for (int j = 0; j < sampleAndResolveRounds; j++) {
+//						sampleAndResolve(polytomy,inputTrees, false, speciesSimilarityMatrix, GlobalMaps.taxonNameMap
+//								.getSpeciesIdMapper()
+//								.getSTTaxonIdentifier(), false);
 //					}
+
+					for (BitSet restrictedBitSet : Utils.getBitsets(
+							randomSample, allGenesGreedy)) {
+						/**
+						 * Before adding bipartitions from the greedy consensus
+						 * to the set X we need to add the species we didn't
+						 * sample to the bitset.
+						 */
+						restrictedBitSet = this.addbackAfterSampling(polytomy,
+								restrictedBitSet, GlobalMaps.taxonNameMap
+										.getSpeciesIdMapper()
+										.getSTTaxonIdentifier());
+						this.addSpeciesBitSetToX(restrictedBitSet);
+					}
 
 				}
 
