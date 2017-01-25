@@ -458,10 +458,9 @@ public class Utils {
 		return ret;
 	}
 	
-	/*public static void randomlyResolve(MutableTree tree) {
-		for (TNode node : tree.postTraverse()) {
+	public static void randomlyResolve(TNode node) {
 			if (node.getChildCount() < 3) {
-				continue;
+				return;
 			}
 			TNode first = node.getChildren().iterator().next();
 			List<TNode> children = first.getSiblings();
@@ -475,8 +474,7 @@ public class Utils {
 				newChild.adoptChild((TMutableNode) c2);
 				children.add(newChild);
 			}
-		}
-	}*/
+	}
 
 	
 	
