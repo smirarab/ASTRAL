@@ -171,7 +171,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 						continue;
 					}
 				}
-				
+				((WQWeightCalculator)weightCalculator).setPolytomies(100000);
 				for (int i = 0; i < childbslist.size(); i++) {
 					for (int j = i+1; j < childbslist.size(); j++) {
 						for (int k = j+1; k < childbslist.size(); k++) {
@@ -509,7 +509,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	@Override
 	AbstractWeightCalculator<Tripartition> newWeightCalculator() {
-		return new WQWeightCalculator(this);
+		return new WQWeightCalculator(this, 8);
 	}
 
 
