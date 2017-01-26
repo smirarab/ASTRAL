@@ -185,8 +185,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 		}
 		
 
-		System.err.println("Quartet score is: " + sum/4l);
-		System.err.println("Normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
+		System.err.println("Final quartet score is: " + sum/4l);
+		System.err.println("Final normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
 		//System.out.println(st.toNewickWD());
 
 		if (this.getBranchAnnotation() == 0){
@@ -286,9 +286,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 				NodeData nd = new NodeData();
 				
 				STITreeCluster cluster = (STITreeCluster) node.getData();				
-				if (node.isRoot() || node.getChildCount() > 2 || 
-						(node.getParent().getChildCount() >3) ||
-						(node.getParent().getChildCount() >2 && !node.getParent().isRoot())  || 
+				if (cluster.complementaryCluster().getClusterSize() <2 || node.getChildCount() > 2 || 
+						(node.getParent().getChildCount() > 3) ||
+						(node.getParent().getChildCount() > 2 && !node.getParent().isRoot())  || 
 						//(node.getParent().isRoot() && node.getParent().getChildCount() == 2) ||
 						GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleSP(((STITreeCluster) ((STINode)node).getData()).getBitSet())) {
 					for (int i =0; i< node.getChildCount(); i++) {
@@ -299,9 +299,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 					continue;
 				}
 				
-				if ((node.getParent().isRoot() && node.getParent().getChildCount() == 2)) {
+				/*if ((node.getParent().isRoot() && node.getParent().getChildCount() == 2)) {
 					System.err.println(".");
-				}
+				}*/
 				
 				nodeDataList.add(nd);
 				
@@ -321,7 +321,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 					remaining = (STITreeCluster)sisterNode.getData();;					
 				}  else if (node.getParent().isRoot() && node.getParent().getChildCount() == 2) {
 					if (sisterNode.isLeaf()) {
-						continue;
+						throw new RuntimeException("this shouldn't happen");
 					}
 					Iterator<STINode> nieceIt = sisterNode.getChildren().iterator();
 					sister = (STITreeCluster) nieceIt.next().getData();
@@ -403,6 +403,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 			
 			if (skippedNodes.contains(n)) {
 				node.setData(null);
+				node.setParentDistance(STINode.NO_DISTANCE);
 				continue;
 			} 
 				
@@ -485,7 +486,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	@Override
 	Long getTotalCost(Vertex all) {
-		System.err.println("Normalized score (portion of input quartet trees satisfied): " + 
+		System.err.println("Normalized score (portion of input quartet trees satisfied before correcting for multiple individuals): " + 
 				all._max_score/4./this.maxpossible);
 		return (long) (all._max_score/4l);
 	}
