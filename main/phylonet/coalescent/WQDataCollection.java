@@ -663,6 +663,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		 * performing the next steps in construction of the set X.
 		 */
 		int firstRoundSampling = 400;
+		double sampling = GlobalMaps.taxonNameMap.getSpeciesIdMapper().meanSampling();
+		//int secondRoundSampling = (int) Math.ceil(Math.log(2*sampling)/Math.log(2));
 		int secondRoundSampling = getSamplingRepeationFactor(inference.options.getSamplingrounds());;
 		System.err.println("In the first round of  sampling "
 				+ firstRoundSampling + " samples will be taken");
@@ -676,7 +678,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		/*
 		 * instantiate k random samples
 		 */
-		for (int r = 0; r < firstRoundSampling; r++) {
+		for (int r = 0; r < secondRoundSampling*100; r++) {
 
 			System.err.println("------------\n" + "sample " + (r+1)
 					+ " of individual  sampling ...");
@@ -710,16 +712,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 			ArrayList<Tree> greedies = new ArrayList<Tree>();
 			for (int r = 0; r < secondRoundSampling; r++) {
 				List<Tree> sample;
-				if(secondRoundSampling == 4){
+				
 				//Collections.shuffle(firstRoundSampleTrees, GlobalMaps.random);
-				sample = firstRoundSampleTrees.subList(r*K, K*r+99);
-				// System.err.println("starting computing greedy consensus...");
-				// TIME CONSUMING
-				}
-				else{
-					Collections.shuffle(firstRoundSampleTrees, GlobalMaps.random);
-					sample = firstRoundSampleTrees.subList(0, K);
-				}
+				sample = firstRoundSampleTrees.subList(r*K, K*r+99);			
 				greedies.add(Utils.greedyConsensus(sample, false,
 						GlobalMaps.taxonNameMap.getSpeciesIdMapper()
 								.getSTTaxonIdentifier(), true));
