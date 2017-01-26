@@ -257,7 +257,7 @@ public abstract class AbstractInference<T> {
 		Long cost = getTotalCost(all);
 		sol._totalCoals = cost;
 		solutions.add(sol);
-        System.err.println("Final optimization score: " + cost);
+        System.err.println("Optimization score: " + cost);
 
 		return (List<Solution>) (List<Solution>) solutions;
 	}
