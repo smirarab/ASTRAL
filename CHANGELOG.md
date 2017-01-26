@@ -1,3 +1,8 @@
+- version 5.0.3:
+	- Bug fix: 5.0.2 has created a bug, which is fixed
+	- Error messages changed to emphasize that quartet score for multi individuals needs adjustment and the first value printed is just for internal use
+	- `-q` option now removes branch lengths that it does not compute (e.g., terminal ones and those close to polytomies)
+	 
 - version 5.0.2: 
 	- Bug fix: root branch was not scored if it had degree two
 	
