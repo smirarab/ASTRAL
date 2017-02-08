@@ -135,11 +135,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 				// STITreeCluster remaining = cluster.complementaryCluster();
 
 				if (addSpeciesBipartitionToX(cluster)) {
-					// if (! addTripartition) {
-					// System.err.println(t+ " Extra bipartition added: " +
-					// spm.getSTClusterForGeneCluster(cluster)
-					// +" | "+spm.getSTClusterForGeneCluster(remaining));
-					// }
+
 				}
 
 
@@ -203,131 +199,6 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		}
 	}
 
-	// private void addBipartitionsFromSignleIndTreesToX(List<Tree> trees,
-	// SingleIndividualSample taxonSample) {
-	//
-	// Tree[] greedies = new Tree[POLYTOMY_RESOLUTIONS];
-	//
-	// SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
-	//
-	// /**
-	// * Get two randomly resolved greedy consensus of gene trees, further
-	// * resolved by UPGMA.
-	// * These two consensus trees are used for handling polytomies in gene
-	// trees.
-	// */
-	// for (int i = 0; i < greedies.length; i++ ) {
-	//
-	// greedies[i] = Utils.greedyConsensus(trees, true,
-	// taxonSample.getTaxonIdentifier(), false);
-	// //Utils.randomlyResolve((MutableTree) greedies[i]);
-	// resolveByUPGMA((MutableTree) greedies[i], taxonSample);
-	// //System.err.println(greedies[i]);
-	// }
-	//
-	// for (Tree tr : trees) {
-	//
-	// Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
-	//
-	// for (TNode node : tr.postTraverse()) {
-	// // System.err.println("Node is:" + node);
-	// if (node.isLeaf()) {
-	// STITreeCluster cluster
-	// =GlobalMaps.taxonIdentifier.getClusterForNodeName(node.getName());
-	// stack.add(cluster);
-	// addSingleIndividualBipartitionToX(cluster);
-	// } else {
-	// ArrayList<BitSet> childbslist = new ArrayList<BitSet>();
-	//
-	// BitSet bs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
-	// for (TNode child: node.getChildren()) {
-	// STITreeCluster pop = stack.pop();
-	// childbslist.add(pop.getBitSet());
-	// bs.or(pop.getBitSet());
-	// }
-	//
-	// /**
-	// * Note that clusters added to the stack are currently using the global
-	// * taxon identifier that has all individuals
-	// */
-	// STITreeCluster cluster = GlobalMaps.taxonIdentifier.newCluster();
-	// cluster.setCluster(bs);
-	// stack.add(cluster);
-	// //STITreeCluster remaining = cluster.complementaryCluster();
-	//
-	// if (addSingleIndividualBipartitionToX(cluster)) {
-	// //if (! addTripartition) {
-	// //System.err.println(t+ " Extra bipartition added: " +
-	// spm.getSTClusterForGeneCluster(cluster)
-	// +" | "+spm.getSTClusterForGeneCluster(remaining));
-	// //}
-	// }
-	//
-	// /**
-	// * For polytomies, if we don't do anything extra,
-	// * the cluster associated with the polytomy may
-	// * not have any resolutions in X. We don't want that.
-	// * We use the greedy consensus trees and random
-	// * sampling to add extra bipartitions to the input
-	// * set when we have polytomies.
-	// */
-	//
-	//
-	// /*while (childbslist.size() > 2) {
-	// STITreeCluster c1 =
-	// childbslist.remove(GlobalMaps.random.nextInt(childbslist.size()));
-	// STITreeCluster c2 =
-	// childbslist.remove(GlobalMaps.random.nextInt(childbslist.size()));
-	//
-	// STITreeCluster newcl = new STITreeCluster(c1);
-	// newcl.getBitSet().or(c2.getBitSet());
-	// STITreeCluster remm = newcl.complementaryCluster();
-	// addBipartitionToX(newcl, remm);
-	//
-	// childbslist.add(newcl);
-	// }*/
-	//
-	// if (childbslist.size() > 2) {
-	// //sampleAndResolve(childbslist.toArray(new BitSet[]{}), false);
-	// BitSet remaining = (BitSet) bs.clone();
-	// spm.addMissingIndividuals(remaining);
-	// remaining.flip(0,GlobalMaps.taxonIdentifier.taxonCount());
-	//
-	// boolean isRoot = remaining.isEmpty();
-	// int d = childbslist.size() + (isRoot ? 0 : 1);
-	// BitSet[] polytomy = new BitSet[d];
-	// int i = 0;
-	// for (BitSet child : childbslist) {
-	// polytomy[i++] = child;
-	// }
-	// if (!isRoot) {
-	// polytomy[i] = remaining;
-	// }
-	//
-	// //TODO: do multiple samples
-	// HashMap<String, Integer> randomSample =
-	// this.randomSampleAroundPolytomy(polytomy,GlobalMaps.taxonIdentifier);
-	//
-	//
-	// //** for (int j = 0; j < greedies.length; j++) {
-	// for (BitSet restrictedBitSet : Utils.getBitsets(randomSample,
-	// greedies[j])) {
-	// /**
-	// * Before adding bipartitions from the greedy consensus to the set X
-	// * we need to add the species we didn't sample to the bitset.
-	// */
-	// restrictedBitSet = this.addbackAfterSampling(polytomy, restrictedBitSet);
-	// this.addSingleIndividualBitSetToX(restrictedBitSet);
-	// }
-	// //** }
-	//
-	// //System.err.print(".");
-	// }
-	// }
-	// }
-	// //System.err.println("+");
-	// }
-	// }
 
 	/**
 	 * How many rounds of sampling should we do? Completely arbitrarily at this
@@ -769,7 +640,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		firstgradiant = -1;
 		gradiant = 0;
 		if (inference.getAddExtra() != 0) {
-
+			this.addExtraBipartitionByDistance();
 			for (int l = 0; l < secondRoundSampling; l++) {
 				ArrayList<Tree> genes = new ArrayList<Tree>();
 				for (int j = 0; j < allGreedies.size(); j++) {
@@ -967,7 +838,6 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		// Greedy trees. These will be based on sis taxon identifier
 		Collection<Tree> allGreedies;
 
-		this.addExtraBipartitionByDistance(); ////////////
 		System.err
 				.println("Adding to X using resolutions of greedy consensus ...");
 		for (Tree tree : contractedTrees) {
