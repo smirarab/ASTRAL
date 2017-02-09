@@ -51,9 +51,10 @@ public class WQInferenceNoCalculations extends AbstractInferenceNoCalculations<T
 
 
 	@Override
-	AbstractComputeMinCostTask<Tripartition> newComputeMinCostTask(AbstractInference<Tripartition> dlInference,
-			Vertex all, IClusterCollection clusters, boolean isWriteToQueue) {
-		return new WQComputeMinCostTask( (WQInferenceNoCalculations) dlInference, all,  clusters, isWriteToQueue);
+	
+	AbstractComputeMinCostTaskNoCalculations<Tripartition> newComputeMinCostTaskNoCalculations(AbstractInferenceNoCalculations<Tripartition> dlInference,
+			Vertex all, IClusterCollection clusters) {
+		return new WQComputeMinCostTaskNoCalculations( (WQInferenceNoCalculations) dlInference, all, clusters);
 	}
 
 	IClusterCollection newClusterCollection() {
@@ -99,6 +100,14 @@ public class WQInferenceNoCalculations extends AbstractInferenceNoCalculations<T
 	void setupMisc() {
 		// TODO Auto-generated method stub
 		
+	}
+
+
+	@Override
+	AbstractComputeMinCostTask<Tripartition> newComputeMinCostTask(AbstractInference<Tripartition> dlInference,
+			Vertex all) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
