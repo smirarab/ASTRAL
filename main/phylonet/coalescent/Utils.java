@@ -7,10 +7,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
@@ -22,6 +24,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
+import java.util.concurrent.CountDownLatch;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -213,29 +216,31 @@ public class Utils {
     public static final Collection<Tree> greedyConsensus(Iterable<Tree> trees, 
     		double[] thresholds, boolean randomzie, int repeat, 
     		TaxonIdentifier taxonIdentifier) {
-    
+    	if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE Utils 219-222: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
     	List<Tree> outTrees = new ArrayList<Tree>();
 
         HashMap<STITreeCluster, Integer> count = new HashMap<STITreeCluster, Integer>();
         int treecount = 0;
         for (Tree tree : trees) {
         	treecount++;
-            List<STITreeCluster> geneClusters = Utils.getGeneClusters(tree, taxonIdentifier);
-            for (STITreeCluster cluster: geneClusters) {
-
-                if (count.containsKey(cluster)) {
-                    count.put(cluster, count.get(cluster) + 1);
-                    continue;
-                }
-            	STITreeCluster comp = cluster.complementaryCluster();
-                if (count.containsKey(comp)) {
-                    count.put(comp, count.get(comp) + 1);
-                    continue;
-                }
-                count.put(cluster, 1);
-            }
         }
-        
+        CountDownLatch latch = new CountDownLatch(treecount);
+        for (Tree tree : trees) {
+        	CommandLine.eService.execute(new greedyConsensusLoop(count, tree, taxonIdentifier, latch));
+        }
+        try {
+			latch.await();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+        if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE Utils 240-243: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
         for (int gi = 0; gi < repeat; gi++) {
         	TreeSet<Entry<STITreeCluster,Integer>> countSorted = new 
         			TreeSet<Entry<STITreeCluster,Integer>>(new ClusterComparator(randomzie, taxonIdentifier.taxonCount()));
@@ -261,10 +266,45 @@ public class Utils {
 	    		ti--;
 	        }
         }
-        
+        if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE Utils 269-272: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
         return outTrees;
     }
+    public static class greedyConsensusLoop implements Runnable{
+		CountDownLatch latch;
+		HashMap<STITreeCluster, Integer> count;
+		TaxonIdentifier taxonIdentifier;
+		Tree tree;
+		public greedyConsensusLoop(HashMap<STITreeCluster, Integer> count, Tree trees, TaxonIdentifier taxonIdentifier, CountDownLatch latch) {
+			this.count = count;
+			this.tree = trees;
+			this.taxonIdentifier = taxonIdentifier;
+			this.latch = latch;
+		}
+		public void run() {
+			List<STITreeCluster> geneClusters = Utils.getGeneClusters(tree, taxonIdentifier);
+            for (STITreeCluster cluster: geneClusters) {
+            	synchronized(count) {
+	                if (count.containsKey(cluster)) {
+	                    count.put(cluster, count.get(cluster) + 1);
+	                    continue;
+	                }
+            	}
+            	STITreeCluster comp = cluster.complementaryCluster();
+            	synchronized(count) {
+	            	if (count.containsKey(comp)) {
+	                    count.put(comp, count.get(comp) + 1);
+	                    continue;
+	                }
+	                count.put(cluster, 1);
+            	}
+            }
+			latch.countDown();
 
+		}
+	}
     
     public static List<STITreeCluster> getGeneClusters(Tree tree, 
     		TaxonIdentifier taxonIdentifier ){

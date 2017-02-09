@@ -2,7 +2,7 @@ package phylonet.coalescent;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import phylonet.tree.model.Tree;
 
@@ -14,10 +14,10 @@ public abstract class AbstractWeightCalculator<T> implements Cloneable {
 	protected HashMap<T, Long> weights;
 	boolean save;
 	long lastTime;
-	ConcurrentLinkedQueue<Long> queue;
+	LinkedBlockingQueue<Long> queue;
 	boolean done = false;
 	
-	public AbstractWeightCalculator(boolean save, ConcurrentLinkedQueue<Long> queue) {
+	public AbstractWeightCalculator(boolean save, LinkedBlockingQueue<Long> queue) {
 		this.save = save;
 		this.queue = queue;
 		this.lastTime = System.currentTimeMillis();
@@ -44,57 +44,48 @@ public abstract class AbstractWeightCalculator<T> implements Cloneable {
 		this.callcounter ++;
 		Long weight = getCalculatedWeight(t);
 		if (weight == null) {
-			if(!TESTRUN){
-				while(queue.isEmpty()) {	
-					try {
-						if(!done)
-							Thread.sleep(100);
-						else {
-							//ICalculateWeightTask<T> weigthWork = getWeightCalculateTask(t);
-							//prepareWeightTask(weigthWork, minCostTask);
 
-							// MP_VERSION: smallWork.fork();
-							weight = TESTRUN ? 0 : calculateWeight(t, minCostTask);
-							int count;
-							if (save && !TESTRUN ) {
-								weights.put(t, weight);
-								count = weights.size();
-							} else {
-								count = this.callcounter;
-							}
-							if (count % 100000 == 0) {
-								System.err.println("Calculated "+ count +" weights; time (seconds): " + (System.currentTimeMillis() - lastTime)/1000);
-								lastTime = System.currentTimeMillis();
-							}
-							return weight;
-						}
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-				}
+			if(!TESTRUN){
+				if(done) {
 					
-				weight = queue.remove();
-					//System.out.println(t.toString());
-	
-				
-				/*
-				ICalculateWeightTask<T> weigthWork = getWeightCalculateTask(t);
-				prepareWeightTask(weigthWork, minCostTask);
-				Long a = weigthWork.calculateWeight();
-				if(!weight.equals(a)) {
+					weight = TESTRUN ? 0 : calculateWeight(t, minCostTask);
+					int count;
+					if (save && !TESTRUN ) {
+						weights.put(t, weight);
+						count = weights.size();
+					} else {
+						count = this.callcounter;
+					}
+					if (count % 100000 == 0) {
+						System.err.println("Calculated "+ count +" weights; time (seconds): " + (System.currentTimeMillis() - lastTime)/1000);
+						lastTime = System.currentTimeMillis();
+					}
+					return weight;
+				}
+				else {
 					try {
-						throw new Exception(weight + " " + a);
-					} catch (Exception e) {
-						// TODO Auto-generated catch block
-						System.err.println("");
+						weight = queue.take();
+					}
+					catch(Exception e) {
 						e.printStackTrace();
 					}
+					if(weight == -23) {//random number from CommandLine used as a "poison pill"
+						done = true;
+						weight = TESTRUN ? 0 : calculateWeight(t, minCostTask);
+						int count;
+						if (save && !TESTRUN ) {
+							weights.put(t, weight);
+							count = weights.size();
+						} else {
+							count = this.callcounter;
+						}
+						if (count % 100000 == 0) {
+							System.err.println("Calculated "+ count +" weights; time (seconds): " + (System.currentTimeMillis() - lastTime)/1000);
+							lastTime = System.currentTimeMillis();
+						}
+						return weight;
+					}
 				}
-				*/
 			}
 			int count;
 			if (save && !TESTRUN ) {
