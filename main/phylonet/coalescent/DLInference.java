@@ -108,8 +108,8 @@ public class DLInference extends AbstractInference<STBipartition> {
 
 	@Override
 	AbstractComputeMinCostTask<STBipartition> newComputeMinCostTask(AbstractInference<STBipartition> dlInference,
-				Vertex all, IClusterCollection clusters, boolean isWriteToQueue) {
-		return new DLComputeMinCostTask( (DLInference) dlInference, all,  clusters);
+				Vertex all) {
+		return new DLComputeMinCostTask( (DLInference) dlInference, all, null);
 	}
 
 
