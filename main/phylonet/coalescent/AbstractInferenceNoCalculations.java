@@ -8,8 +8,9 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
+import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
@@ -21,8 +22,8 @@ import phylonet.tree.util.Collapse;
 
 public abstract class AbstractInferenceNoCalculations<T> extends AbstractInference<T> {
 	
-	ConcurrentLinkedQueue<Tripartition> queue1;
-	
+	LinkedBlockingQueue<Tripartition> queue1;
+	LinkedBlockingQueue<Iterable<VertexPair>> queue4;
 	public AbstractInferenceNoCalculations(Options options, List<Tree> trees,
 			List<Tree> extraTrees) {
 		super(options, trees, extraTrees);
@@ -128,7 +129,7 @@ public abstract class AbstractInferenceNoCalculations<T> extends AbstractInferen
 		try {
 			//vertexStack.push(all);
 			
-			AbstractComputeMinCostTask<T> allTask = newComputeMinCostTask(this,all,clusters,true);
+			AbstractComputeMinCostTaskNoCalculations<T> allTask = newComputeMinCostTaskNoCalculations(this,all,clusters);
 			//ForkJoinPool pool = new ForkJoinPool(1);
 
 			allTask.compute();
@@ -247,6 +248,7 @@ public abstract class AbstractInferenceNoCalculations<T> extends AbstractInferen
 		mapNames();
 
 		dataCollection = newCounter(newClusterCollection());
+
 		weightCalculator = newWeightCalculator();
 		weightCalculatorNoCalculations = newWeightCalculatorNoCalculations();
 		dataCollection.computeTreePartitions(this);
@@ -318,7 +320,9 @@ public abstract class AbstractInferenceNoCalculations<T> extends AbstractInferen
 	abstract AbstractWeightCalculatorNoCalculations<T> newWeightCalculatorNoCalculations();
 
 	abstract AbstractComputeMinCostTask<T> newComputeMinCostTask(AbstractInference<T> dlInference,
-			Vertex all, IClusterCollection clusters, boolean isWriteToQueue);
+			Vertex all);
+	abstract AbstractComputeMinCostTaskNoCalculations<T> newComputeMinCostTaskNoCalculations(AbstractInferenceNoCalculations<T> dlInference,
+			Vertex all, IClusterCollection clusters);
 	
 	abstract Long getTotalCost(Vertex all);
 	
