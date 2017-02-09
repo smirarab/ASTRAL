@@ -1,7 +1,7 @@
 package phylonet.coalescent;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import phylonet.tree.model.Tree;
 
@@ -11,7 +11,7 @@ class WQWeightCalculatorNoCalculations extends AbstractWeightCalculatorNoCalcula
 	AbstractInference<Tripartition> inference;
 	private WQDataCollection dataCollection;
 
-	public WQWeightCalculatorNoCalculations(AbstractInference<Tripartition> inference, ConcurrentLinkedQueue<Tripartition> queue1) {
+	public WQWeightCalculatorNoCalculations(AbstractInference<Tripartition> inference, LinkedBlockingQueue<Tripartition> queue1) {
 		super(false, queue1);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
 		if(inference instanceof AbstractInferenceNoCalculations) {
