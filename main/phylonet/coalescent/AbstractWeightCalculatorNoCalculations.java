@@ -2,7 +2,7 @@ package phylonet.coalescent;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import phylonet.tree.model.Tree;
 
@@ -11,9 +11,9 @@ public abstract class AbstractWeightCalculatorNoCalculations<T> {
 	protected HashMap<T, Long> weights;
 	boolean save;
 	long lastTime;
-	ConcurrentLinkedQueue<T> queue;
+	LinkedBlockingQueue<T> queue;
 	
-	public AbstractWeightCalculatorNoCalculations(boolean save, ConcurrentLinkedQueue<T> queue1) {
+	public AbstractWeightCalculatorNoCalculations(boolean save, LinkedBlockingQueue<T> queue1) {
 		this.save = save;
 		this.queue = queue1;
 		this.lastTime = System.currentTimeMillis();
@@ -36,11 +36,15 @@ public abstract class AbstractWeightCalculatorNoCalculations<T> {
 	}
 	
 		
-	public Long getWeight(T t, AbstractComputeMinCostTask<T> minCostTask) {
+	public Long getWeight(T t, AbstractComputeMinCostTaskNoCalculations<T> minCostTask) {
 		this.callcounter ++;
 			
-			queue.add(t);
-			
+			try {
+				queue.put(t);
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+			}
 			
 /*			if (weights.size() == 75318) {
 				System.err.println("here");
