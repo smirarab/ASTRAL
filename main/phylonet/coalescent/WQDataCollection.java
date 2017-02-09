@@ -3,23 +3,24 @@ package phylonet.coalescent;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.CharBuffer;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
+import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TMutableNode;
@@ -86,13 +87,45 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		 * Get two randomly resolved greedy consensus of gene trees, further
 		 * resolved by UPGMA. Used for gene trees with polytomies. 
 		 */
+		if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE WQDataCollection 90-94: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
 		for (int i = 0; i < greedies.length; i++) {
 			greedies[i] = Utils.greedyConsensus(trees, true, GlobalMaps.taxonIdentifier);
 			resolveByUPGMA((MutableTree) greedies[i]);
+			if(CommandLine.timerOn) {
+				System.err.println("TIME TOOK FROM LAST NOTICE WQDataCollection 97-100: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+				CommandLine.timer = System.nanoTime();
+			}
 		}
+		CountDownLatch latch = new CountDownLatch(trees.size());
 
 		for (Tree tr : trees) {
+			CommandLine.eService.execute(new populateByQuartetDistanceLoop(tr, greedies, latch));
+		}
+		try {
+			latch.await();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE WQDataCollection 113-116: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
 
+	}
+	public class populateByQuartetDistanceLoop implements Runnable{
+		Tree tr;
+		Tree[] greedies;
+		CountDownLatch latch;
+		public populateByQuartetDistanceLoop(Tree tr, Tree[] greedies, CountDownLatch latch) {
+			this.tr = tr;
+			this.greedies = greedies;
+			this.latch = latch;
+		}
+		public void run() {
 			Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
 
 			for (TNode node : tr.postTraverse()) {
@@ -163,7 +196,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 						}
 
 						// TODO: do multiple samples
-						HashMap<String, Integer> randomSample = this.randomSampleAroundPolytomy(polytomy);
+						HashMap<String, Integer> randomSample = randomSampleAroundPolytomy(polytomy);
 
 						// STITree<Boolean> restrictedTree = new
 						// STITree(greedy);
@@ -171,7 +204,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 						// Utils.randomlyResolve(restrictedTree);
 						for (int j = 0; j < greedies.length; j++) {
 							for (BitSet restrictedBitSet : Utils.getBitsets(randomSample, greedies[j])) {
-								this.addSubSampledBitSetToX(polytomy, restrictedBitSet);
+								addSubSampledBitSetToX(polytomy, restrictedBitSet);
 							}
 						}
 
@@ -179,12 +212,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 					}
 				}
 			}
-			// System.err.println("+");
-
+			latch.countDown();
 		}
-
 	}
-
 	/**
 	 * Completes an incomplete tree for the purpose of adding to set X
 	 * Otherwise, bipartitions are meaningless. 
@@ -388,24 +418,51 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		STITreeCluster all = new STITreeCluster();
 		all.getBitSet().set(0, n);
 		addToClusters(all, GlobalMaps.taxonIdentifier.taxonCount());
+		//johng23
+		if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
 		System.err.println("Building set of clusters (X) from gene trees ");
 		addTreeBipartitionsToX(this.completedGeeneTrees);
 
-
+		//johng23
+		if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
 		System.err.println("Number of Default Clusters: " + clusters.getClusterCount());
 		
 	}
 
 
 	private void calculateDistances() {
+		//johng23
+		if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
 		System.err.println("Calculating quartet distance matrix (for completion of X)");
 
 		this.similarityMatrix = new SimilarityMatrix(n);
 		this.similarityMatrix.populateByQuartetDistance(treeAllClusters, this.geneTrees);
+		if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE WQDataCollection 449-452: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
 		this.speciesSimilarityMatrix = this.similarityMatrix.convertToSpeciesDistance(spm);
+		if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE WQDataCollection 454-457: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
 	}
 
 	int preProcess(AbstractInference<Tripartition> inference) {
+		//johng23
+		if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
 		System.err.println("Number of gene trees: " + this.geneTrees.size());
 		n = GlobalMaps.taxonIdentifier.taxonCount();
 
@@ -526,13 +583,26 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 	public void addExtraBipartitionByExtension(AbstractInference<Tripartition> inference) {
 
 		this.addExtraBipartitionByDistance();
-
-		System.err.println("Adding to X using resolutions of greedy consensus ...");
-		for (Tree tree : this.completedGeeneTrees) {
-			tree.rerootTreeAtEdge(GlobalMaps.taxonIdentifier.getTaxonName(0));
-			Trees.removeBinaryNodes((MutableTree) tree);
+		//johng23
+		if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
 		}
-
+		System.err.println("Adding to X using resolutions of greedy consensus ...");
+		CountDownLatch latch = new CountDownLatch(this.completedGeeneTrees.size());
+		for (Tree tree : this.completedGeeneTrees) {
+			CommandLine.eService.execute(new addExtraBipartitionByExtensionLoop(tree, latch));
+		}
+		try {
+			latch.await();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE1: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
 		/*
 		 * if (completeTrees.size() < 2) { System.err.println("Only "
 		 * +completeTrees.size() +
@@ -542,12 +612,53 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 
 		Collection<Tree> allGreedies = Utils.greedyConsensus(this.completedGeeneTrees, GREEDY_ADDITION_THRESHOLDS, true,
 				1, GlobalMaps.taxonIdentifier);
+		if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE2: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
+		Integer th = 0;
+		latch = new CountDownLatch(allGreedies.size());
 
-		int th = 0;
+		Future<String>[] futures = new Future[allGreedies.size()];
+		int counter = 0;
 		for (Tree cons : allGreedies) {
-			double thresh = GREEDY_ADDITION_THRESHOLDS[th];
-			System.err.println("Threshold " + thresh + ":");
+			futures[counter++] = CommandLine.eService.submit(new addExtraBipartitionByExtensionLoop2(th, cons));
 			th = (th + 1) % GREEDY_ADDITION_THRESHOLDS.length;
+
+		}
+		for(int i = 0; i < futures.length; i++) {
+			try {
+				String partialRet = futures[i].get();
+				if(partialRet != null)
+					System.err.print(partialRet);
+			} catch (InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		//johng23
+		if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
+		System.err.println("Number of Clusters after addition by greedy: " + clusters.getClusterCount());
+	}
+	public class addExtraBipartitionByExtensionLoop2 implements Callable{
+		int th;
+		Tree cons;
+
+		public addExtraBipartitionByExtensionLoop2(int th, Tree cons) {
+			this.th = th;
+			this.cons = cons;
+		}
+		public String call() {
+			String ret = "";
+			double thresh;
+			thresh = GREEDY_ADDITION_THRESHOLDS[th];
+			th = (th + 1) % GREEDY_ADDITION_THRESHOLDS.length;
+			
+			ret += "Threshold " + thresh + ":\n";
+			
 			// System.err.println(cons);
 			Stack<BitSet> greedyNodeStack = new Stack<BitSet>();
 			for (TNode greedyNode : cons.postTraverse()) {
@@ -568,17 +679,17 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 				}
 				greedyNodeStack.push(greedyBS);
 
-				if (greedyNode.getChildCount() > 2 && greedyNode.getChildCount() < this.getRoundCount()) {
+				if (greedyNode.getChildCount() > 2 && greedyNode.getChildCount() < getRoundCount()) {
 
 					BitSet comp = (BitSet) greedyBS.clone();
 					comp.flip(0, n);
 					childbs[greedyNode.getChildCount()] = comp;
 
-					System.err.print("polytomy of size " + greedyNode.getChildCount());
+					ret += "polytomy of size " + greedyNode.getChildCount();
 
 					int k = 0;
 
-					this.resolveByUPGMA(childbs);
+					resolveByUPGMA(childbs);
 
 					for (int j = 0; j < GREEDY_ADDITION_DEFAULT_RUNS + k; j++) {
 
@@ -589,15 +700,27 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 							k += GREEDY_ADDITION_IMPROVEMENT_REWARD;
 						}
 					}
-					System.err.println("; rounds with additions with at least " + GREEDY_ADDITION_MIN_FREQ
+					ret += "; rounds with additions with at least " + GREEDY_ADDITION_MIN_FREQ
 							+ " support: " + k / GREEDY_ADDITION_IMPROVEMENT_REWARD + "; clusters: "
-							+ clusters.getClusterCount());
+							+ clusters.getClusterCount() + "\n";
 				}
 			}
+			return ret;
 		}
-		System.err.println("Number of Clusters after addition by greedy: " + clusters.getClusterCount());
 	}
-
+	public class addExtraBipartitionByExtensionLoop implements Runnable{
+		Tree tree;
+		CountDownLatch latch;
+		public addExtraBipartitionByExtensionLoop(Tree tr, CountDownLatch latch) {
+			this.tree = tr;
+			this.latch = latch;
+		}
+		public void run() {
+			tree.rerootTreeAtEdge(GlobalMaps.taxonIdentifier.getTaxonName(0));
+			Trees.removeBinaryNodes((MutableTree) tree);
+			latch.countDown();
+		}
+	}
 	private long getRoundCount() {
 		return this.GREEDY_ADDITION_MAX_POLYTOMY_MIN
 				+ Math.round(Math.sqrt(n * this.GREEDY_ADDITION_MAX_POLYTOMY_MULT));
