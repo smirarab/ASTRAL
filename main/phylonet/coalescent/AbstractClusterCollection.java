@@ -6,16 +6,27 @@ import java.util.TreeSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
 public abstract class AbstractClusterCollection implements IClusterCollection, Cloneable {
-
+	static int countResolutions = 0;
+	static int countContained = 0; 
+	static long timeResolutions;
+	static long timeContained;
+	
 	protected ArrayList<Set<Vertex>> clusters;
 	protected int topClusterLength;
 	int totalcount = 0;
-
+	
 	protected void initialize(int len) {
 		this.topClusterLength = len;
 		clusters = new ArrayList<Set<Vertex>>(len);
@@ -40,8 +51,10 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 
 	@Override
 	public boolean addCluster(Vertex vertex, int size) {
-		
-		boolean added = clusters.get(size).add(vertex);
+		boolean added;
+		synchronized(clusters.get(size)) {
+			added = clusters.get(size).add(vertex);
+		}
 		if (added) {
 			totalcount++;
 		}
@@ -53,31 +66,87 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 		return clusters.get(vertex.getCluster().getClusterSize()).contains(vertex);
 	}
 
+/*	public IClusterCollection getContainedClusters2(Vertex v) {
+		if(!queue3done) {
+			AbstractClusterCollection ret;
+			try{
+				ret = queue3.take();
+				if(ret == CommandLine.POISON_PILL_queue3) {
+					queue3done = true;
+				}
+				else {
+					return ret;
+				}
+			}
+			catch (Exception e) {
+				
+			}
+				
+		}
+		return getContainedClusters(v);
+	}*/
 	@Override
 	public IClusterCollection getContainedClusters(Vertex v) {
+		long start = System.nanoTime();
 		STITreeCluster cluster = v.getCluster();
 		int size = cluster.getClusterSize();
 		AbstractClusterCollection ret = newInstance(size);
 		addClusterToRet(v, size, ret);
-		
+		CountDownLatch latch = new CountDownLatch(size - 1);
 		for (int i = size - 1 ; i > 0; i--) {
+			CommandLine.eService.execute(new getContainedClustersLoop(ret, cluster, i, latch));
+		}
+		try {
+			latch.await();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		/*
+		timeContained += System.nanoTime() - start;
+		countContained++;
+		if(countContained >= 10000) {
+			countContained -= 10000;
+			System.out.println("The time for this round of 10000 getContainedClusters is: " + (double)timeContained/1000000000);
+			timeContained = 0;
+		}
+		*/
+
+		return ret;
+	}
+	public class getContainedClustersLoop implements Runnable{
+		AbstractClusterCollection ret;
+		int i;
+		STITreeCluster cluster;
+		CountDownLatch latch;
+		public getContainedClustersLoop(AbstractClusterCollection ret, STITreeCluster cluster, int i, CountDownLatch latch) {
+			this.ret = ret;
+			this.i = i;
+			this.cluster = cluster;
+			this.latch = latch;
+		}
+		public void run() {
 			Set<Vertex> sizeClusters = clusters.get(i);
-			if (sizeClusters == null) continue;
+			if (sizeClusters == null) {
+				latch.countDown();
+				return;
+			}
 			for (Vertex vertex : sizeClusters) {
 				if (cluster.containsCluster(vertex.getCluster())) {
 					addClusterToRet(vertex, i, ret);
 				}
 			}
+			latch.countDown();
 		}
-		return ret;
 	}
-	
 	protected void addClusterToRet(Vertex vertex, int size, IClusterCollection ret) {
 		ret.addCluster(vertex, size);	
 	}
 
 	@Override
 	public Iterable<VertexPair> getClusterResolutions() {
+		long start = System.nanoTime();
 		//System.out.println(topClusterLength+ " "+getTopVertex());
 		//TODO: return an iterator directly instead of building a collection.
 		ArrayList<VertexPair> ret = new ArrayList<VertexPair>();
@@ -110,14 +179,53 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 		
 		int clusterSize = topClusterLength;
 		Vertex v = this.getTopVertex();
+		Future<ArrayList<VertexPair>>[] futures = new Future[clusterSize / 2];
 		for (int i = 1; i <= (clusterSize / 2); i++) {
+			futures[i - 1] = CommandLine.eService.submit(new getClusterResolutionsLoop(this.clusters, i, v, clusterSize));
+		}
+		for(int i = 0; i < futures.length; i++) {
+			try {
+				ArrayList<VertexPair> partialRet = (ArrayList<VertexPair>) futures[i].get();
+				if(partialRet != null)
+					ret.addAll(partialRet);
+			} catch (InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		/*
+		timeResolutions += System.nanoTime() - start;
+		countResolutions++;
+		if(countResolutions >= 10000) {
+			countResolutions -= 10000;
+			System.err.println("The time for this round of 10000 getClusterResolutions is: " + (double)timeResolutions/1000000000);
+			timeResolutions = 0;
+		}
+		*/
+
+		return ret;
+	}
+	public class getClusterResolutionsLoop implements Callable{
+		int i;
+		ArrayList<Set<Vertex>> clusters;
+		Vertex v;
+		int clusterSize;
+		public getClusterResolutionsLoop(ArrayList<Set<Vertex>> cluster, int i, Vertex v, int clusterSize) {
+			this.i = i;
+			this.clusters = cluster;
+			this.v = v;
+			this.clusterSize = clusterSize;
+		}
+		public ArrayList<VertexPair> call() {
+			ArrayList<VertexPair> ret = new ArrayList<VertexPair>();
+
 			Set<Vertex> left = this.clusters.get(i);
 			if (left == null || left.size() == 0) {
-				continue;
+				return null;
 			}
 			Set<Vertex> right = this.clusters.get(clusterSize - i);
 			if (right == null || right.size() == 0) {
-				continue;
+				return null;
 			}
 			for (Vertex smallV : left) {
 				
@@ -130,8 +238,8 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 					ret.add(bi);
 				}
 			}
+			return ret;
 		}
-		return ret;
 	}
 	
 	public abstract AbstractClusterCollection newInstance(int size);
