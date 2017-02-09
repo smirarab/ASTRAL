@@ -479,8 +479,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	@Override
 	AbstractComputeMinCostTask<Tripartition> newComputeMinCostTask(AbstractInference<Tripartition> dlInference,
-			Vertex all, IClusterCollection clusters, boolean isWriteToQueue) {
-		return new WQComputeMinCostTask( (WQInference) dlInference, all,  clusters, isWriteToQueue);
+			Vertex all) {
+		return new WQComputeMinCostTask( (WQInference) dlInference, all);
 	}
 
 	IClusterCollection newClusterCollection() {

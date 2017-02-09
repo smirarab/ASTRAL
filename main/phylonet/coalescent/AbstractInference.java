@@ -8,8 +8,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
+import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
@@ -27,7 +28,7 @@ import phylonet.tree.util.Collapse;
  * @param <T>
  */
 public abstract class AbstractInference<T> implements Cloneable{
-
+	
 	//protected boolean rooted = true;
 	//protected boolean extrarooted = true;
 	protected List<Tree> trees;
@@ -50,8 +51,8 @@ public abstract class AbstractInference<T> implements Cloneable{
 	protected Options options;
 	DecimalFormat df;
 	
-	ConcurrentLinkedQueue<Long> queue2;
-	
+	LinkedBlockingQueue<Long> queue2;
+	public LinkedBlockingQueue<Iterable<VertexPair>> queue4;
 	public AbstractInference(Options options, List<Tree> trees,
 			List<Tree> extraTrees) {
 		super();
@@ -69,6 +70,17 @@ public abstract class AbstractInference<T> implements Cloneable{
 
 	public boolean isRooted() {
 		return options.isRooted();
+	}
+	
+	public Iterable<VertexPair> getClusterResolutions2() {
+			Iterable<VertexPair> ret = null;
+			try{
+				ret = queue4.take();
+			}
+			catch (Exception e) {
+			}
+			return ret;
+
 	}
 	
 	protected Collapse.CollapseDescriptor doCollapse(List<Tree> trees) {
@@ -156,7 +168,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 		
 		try {
 			//vertexStack.push(all);
-			AbstractComputeMinCostTask<T> allTask = newComputeMinCostTask(this,all,clusters,false);
+			AbstractComputeMinCostTask<T> allTask = newComputeMinCostTask(this,all);
 			//ForkJoinPool pool = new ForkJoinPool(1);
 			allTask.compute();
 			double v = all._max_score;
@@ -290,6 +302,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 		mapNames();
 
 		dataCollection = newCounter(newClusterCollection());
+		
 		weightCalculator = newWeightCalculator();
 
 		// Compute bipartitions from the input gene trees
@@ -330,6 +343,11 @@ public abstract class AbstractInference<T> implements Cloneable{
 
 		//counter.addExtraBipartitionsByHeuristics(clusters);
 
+		    //johng23
+		    if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		    }
 		System.err.println("partitions formed in "
 			+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 		
@@ -350,7 +368,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 	public List<Solution> inferSpeciesTree() {
 		
 		List<Solution> solutions;		
-
+		
 		solutions = findTreesByDP(this.dataCollection.clusters);
 
 /*		if (GlobalMaps.taxonNameMap == null && rooted && extraTrees == null && false) {
@@ -367,7 +385,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 	abstract AbstractWeightCalculator<T> newWeightCalculator();
 
 	abstract AbstractComputeMinCostTask<T> newComputeMinCostTask(AbstractInference<T> dlInference,
-			Vertex all, IClusterCollection clusters, boolean isWriteToQueue);
+			Vertex all);
 	
 	abstract Long getTotalCost(Vertex all);
 	

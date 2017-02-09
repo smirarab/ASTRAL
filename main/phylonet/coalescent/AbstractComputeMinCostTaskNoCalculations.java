@@ -10,23 +10,14 @@ import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
-import phylonet.util.BitSet;
 
-/**
- * This class implements the dynamic programming
- * @author smirarab
- *
- * @param <T>
- */
-public abstract class AbstractComputeMinCostTask<T> {
-
-	AbstractInference<T> inference;
+public abstract class AbstractComputeMinCostTaskNoCalculations<T> {
+	AbstractInferenceNoCalculations<T> inference;
 	Vertex v;
-	//IClusterCollection clusters;
+	IClusterCollection clusters;
 
-	//IClusterCollection containedVertecies;
+	IClusterCollection containedVertecies;
 	
-	//boolean isWriteToQueue;
     private SpeciesMapper spm;
 
 	protected Double compute() {
@@ -37,9 +28,11 @@ public abstract class AbstractComputeMinCostTask<T> {
 		}
 	}
 
-	public AbstractComputeMinCostTask(AbstractInference<T> inference, Vertex v) {
+	public AbstractComputeMinCostTaskNoCalculations(AbstractInferenceNoCalculations<T> inference, Vertex v, 
+			IClusterCollection clusters) {
 		this.inference = inference;
 		this.v = v;
+		this.clusters = clusters;
 		this.spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
 	}
 
@@ -57,7 +50,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 			throw new CannotResolveException(v.getCluster().toString());
 		}
 		// Already calculated. Don't re-calculate.
-		if ((v._done == 1 || v._done == 4)) {
+		if (v._done == 3 || v._done == 4) {
 			return v._max_score;
 		}
 		//
@@ -70,41 +63,85 @@ public abstract class AbstractComputeMinCostTask<T> {
 			v._max_score = scoreBaseCase(inference.isRooted(), inference.trees);
 			
 			v._min_lc = (v._min_rc = null);
-			if(v._done == 3)
+
+			if(v._done == 1)
 				v._done = 4;
 			else
-				v._done = 1;
-		
+				v._done = 3;
 			return v._max_score;
 		}
 
+		IClusterCollection containedVertecies = clusters.getContainedClusters(v);
 
-		Iterable<VertexPair> clusterResolutions = this.inference.getClusterResolutions2();
-		
+		Iterable<VertexPair> clusterResolutions;
+					
+		if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) {
+			clusterResolutions = new ArrayList<VertexPair>();
+			Vertex v1 = null;
+			int smallestSize = 1;
+			while (v1 == null) {
+				Set<Vertex> cs = containedVertecies.getSubClusters(smallestSize);
+				if (cs.size() != 0) {
+					for(Vertex csi : cs) {
+						if(csi.getCluster().getBitSet().nextSetBit(0) == 0) {
+							v1 = csi;
+							break;
+						}
+					}				
+				}
+				else 
+					smallestSize++;
+			}
+			for (Vertex v2: containedVertecies.getSubClusters(GlobalMaps.taxonIdentifier.taxonCount()-smallestSize))
+			{
+				if (v1.getCluster().isDisjoint(v2.getCluster())) {
+					VertexPair vp = new VertexPair(v1, v2, v);
+					((ArrayList<VertexPair>) clusterResolutions).add(vp);
+					break;
+				}
+				//System.out.println(v2.toString());
+			}
+			
+			try {
+				inference.queue4.put(clusterResolutions);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		} else {
+			clusterResolutions = containedVertecies.getClusterResolutions();
+			try {
+				inference.queue4.put(clusterResolutions);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		long clusterLevelCost = 0;
+		
+		
 		if (clusterResolutions.iterator().hasNext()) { // Not relevant to ASTRAL
 			clusterLevelCost = calculateClusterLevelCost();
 		}
+		
 		/*
 		 * System.out.println("xL: "+this.v.getCluster() + " "+xl + " "+
 		 * DeepCoalescencesCounter
 		 * .getClusterCoalNum(this.inference.trees, this.v.getCluster(),
 		 * taxonNameMap, true));
 		 */
+		
 		for (VertexPair bi : clusterResolutions) {
 			try {
-//					if(isWriteToQueue)
-//						System.out.println(bi.cluster1.toString() + " " + bi.cluster2.toString());
-//					else
-//						System.err.println(bi.cluster1.toString() + " " + bi.cluster2.toString());
 
 				Vertex smallV = bi.cluster1;
 				Vertex bigv = bi.cluster2;
 				
-				AbstractComputeMinCostTask<T> smallWork = newMinCostTask(
-						smallV);
-				AbstractComputeMinCostTask<T> bigWork = newMinCostTask(
-						bigv);
+				AbstractComputeMinCostTaskNoCalculations<T> smallWork = newMinCostTaskNoCalculations(
+						smallV, containedVertecies);
+				AbstractComputeMinCostTaskNoCalculations<T> bigWork = newMinCostTaskNoCalculations(
+						bigv, containedVertecies);
 				
 				//System.out.println(bigWork.v.toString());
 				// MP_VERSION: smallWork.fork();
@@ -136,8 +173,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 				
 				if (weight == null) {
 					T t = STB2T(bi);					
-					weight =  inference.weightCalculator.getWeight(t, this);
-					
+					weight =  inference.weightCalculatorNoCalculations.getWeight(t, this);
 					//System.out.print(weight/Integer.MAX_VALUE);
 				}					
 				
@@ -160,10 +196,9 @@ public abstract class AbstractComputeMinCostTask<T> {
 				v._c = c;
 				
 			} catch (CannotResolveException c) {
-				c.printStackTrace();
-				throw new RuntimeException("cannot resolve");
 				// System.err.println("Warn: cannot resolve: " +
 				// c.getMessage());
+				throw new RuntimeException("cannot resolve: " + c.getMessage());
 			}
 		}
 
@@ -186,19 +221,18 @@ public abstract class AbstractComputeMinCostTask<T> {
 			 */
 		//johng23
 		//if it's the consumer thread
-			//if the producer thread calculated it
-		if(v._done == 3)
-			//then make it 4 to represent that both consumer thread and producer thread calculated it
+		
+		if(v._done == 1)
 			v._done = 4;
 		else
-			v._done = 1;
-		
+			v._done = 3;
 		return v._max_score;
 	}
 
 	abstract Long defaultWeightForFullClusters();
 
-	protected abstract AbstractComputeMinCostTask<T> newMinCostTask(Vertex v);
+	protected abstract AbstractComputeMinCostTaskNoCalculations<T> newMinCostTaskNoCalculations(Vertex v, 
+	IClusterCollection clusters);
 
 	abstract protected double adjustWeight(long clusterLevelCost, Vertex smallV,
 			Vertex bigv, Long Wdom);
@@ -237,5 +271,4 @@ public abstract class AbstractComputeMinCostTask<T> {
 		Vertex reverse = revcluster.new Vertex();
 		return reverse;
 	}
-
 }
