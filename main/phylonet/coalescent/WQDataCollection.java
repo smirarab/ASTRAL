@@ -153,7 +153,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 					System.err.println(childbslist.size());
 					System.err.println(childbslist);
 					System.err.println("bs : "+bs);
-					throw e;
+					e.printStackTrace(); 
 				}
 				
 
@@ -654,7 +654,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 							GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
 				} catch (Exception e) {
 					System.err.println(allGreedies.get(j).get(ii));
-					throw e;
+					e.printStackTrace(); 
 				}
 				
 				System.err
