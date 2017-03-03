@@ -40,6 +40,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 
 	
 
+	
+
 	/**
 	 * A list that includes the cluster associated with the set of all taxa
 	 * included in each gene tree
@@ -65,6 +67,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	private final int GREEDY_ADDITION_DEFAULT_RUNS = 10;
 	private final int GREEDY_ADDITION_MIN_FREQ = 5;
 	private final double GREEDY_ADDITION_MIN_RATIO = 0.01;
+	private final int GREEDY_ADDITION_MAX = 100;
 	private final int GREEDY_ADDITION_IMPROVEMENT_REWARD = 2;
 	private final int POLYTOMY_RESOLUTIONS = 2;
 
@@ -960,7 +963,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 					boolean quadratic = this.SLOW
 							|| (th < this.GREEDY_DIST_ADDITTION_LAST_THRESHOLD_INDX && j < this.GREEDY_ADDITION_DEFAULT_RUNS);
 
-					if (this.sampleAndResolve(childbs, contractedTrees, quadratic, sm, tid,true, false)) {
+					if (this.sampleAndResolve(childbs, contractedTrees, quadratic, sm, tid,true, false) && k < GREEDY_ADDITION_MAX) {
 						k += this.GREEDY_ADDITION_IMPROVEMENT_REWARD;
 
 						if(k > max)
