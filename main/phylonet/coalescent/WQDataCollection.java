@@ -141,18 +141,18 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 				cluster.setCluster(bs);
 				stack.add(cluster);
 				
-				boolean bug = false;
+				//boolean bug = false;
 				try {
 					if (addSpeciesBipartitionToX(cluster)) {
 
 					}
 				} catch (Exception e) {
-					bug = true;
-					System.err.println("node : "+node.toString());
-					System.err.println("cluster : "+cluster);
-					System.err.println(childbslist.size());
-					System.err.println(childbslist);
-					System.err.println("bs : "+bs);
+					//bug = true;
+//					System.err.println("node : "+node.toString());
+//					System.err.println("cluster : "+cluster);
+//					System.err.println(childbslist.size());
+//					System.err.println(childbslist);
+//					System.err.println("bs : "+bs);
 					e.printStackTrace(); 
 				}
 				
@@ -171,10 +171,10 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 					remaining.flip(0, GlobalMaps.taxonNameMap
 							.getSpeciesIdMapper().getSTTaxonIdentifier()
 							.taxonCount());
-					if (bug) {
-						System.err.println(remaining);
-					}
-					
+//					if (bug) {
+//						System.err.println(remaining);
+//					}
+//					
 					boolean isRoot = remaining.isEmpty();
 					int d = childbslist.size() + (isRoot ? 0 : 1);
 					BitSet[] polytomy = new BitSet[d];
@@ -194,14 +194,14 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 //											.getSTTaxonIdentifier());
 					//clone
 					AbstractClusterCollection backup=null;
-					if (bug) {
-						try {
-							backup = ((WQClusterCollection)this.clusters).clone();
-						} catch (CloneNotSupportedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-					}
+//					if (bug) {
+//						try {
+//							backup = ((WQClusterCollection)this.clusters).clone();
+//						} catch (CloneNotSupportedException e) {
+//							// TODO Auto-generated catch block
+//							e.printStackTrace();
+//						}
+//					}
 					int sampleAndResolveRounds = 2;
 					for (int j = 0; j < sampleAndResolveRounds; j++) {
 						sampleAndResolve(polytomy,inputTrees, false, speciesSimilarityMatrix, GlobalMaps.taxonNameMap
@@ -209,10 +209,10 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 								.getSTTaxonIdentifier(), false, true);
 					}
 					
-					if(bug){
-						((WQClusterCollection)this.clusters).printDiff((WQClusterCollection) backup);
-					}
-					bug = false;
+//					if(bug){
+//						((WQClusterCollection)this.clusters).printDiff((WQClusterCollection) backup);
+//					}
+					//bug = false;
 //					for (BitSet restrictedBitSet : Utils.getBitsets(
 //							randomSample, allGenesGreedy)) {
 //						/**
@@ -637,7 +637,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		 */
 		ArrayList<Tree> greedyCandidates = new ArrayList<Tree>();
 		for (List<Tree> l : allGreedies) {
-			greedyCandidates.add(l.get(GlobalMaps.random.nextInt(l.size())));
+			int rand = GlobalMaps.random.nextInt(l.size());
+			resolveByUPGMA((MutableTree) l.get(rand), GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), this.speciesSimilarityMatrix);
+			greedyCandidates.add(l.get(rand));
 		}
 //		Tree allGenesGreedy = Utils.greedyConsensus(greedyCandidates, false,
 //				GlobalMaps.taxonNameMap.getSpeciesIdMapper()
