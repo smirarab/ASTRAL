@@ -25,7 +25,6 @@ import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STINode;
 import phylonet.tree.model.sti.STITree;
 import phylonet.tree.model.sti.STITreeCluster;
-import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.tree.util.Trees;
 import phylonet.util.BitSet;
 
@@ -63,13 +62,15 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 			1 / 100., 1 / 50., 1 / 20., 1 / 10., 1 / 5., 1 / 3. };
 	private final int GREEDY_DIST_ADDITTION_LAST_THRESHOLD_INDX = 3;
 	private final int GREEDY_ADDITION_MAX_POLYTOMY_MIN = 50;
-	private final int GREEDY_ADDITION_MAX_POLYTOMY_MULT = 10;
+	private final int GREEDY_ADDITION_MAX_POLYTOMY_MULT = 20;
 	private final int GREEDY_ADDITION_DEFAULT_RUNS = 10;
 	private final int GREEDY_ADDITION_MIN_FREQ = 5;
 	private final double GREEDY_ADDITION_MIN_RATIO = 0.01;
 	private final int GREEDY_ADDITION_MAX = 100;
 	private final int GREEDY_ADDITION_IMPROVEMENT_REWARD = 2;
 	private final int POLYTOMY_RESOLUTIONS = 2;
+	private final int POLYTOMY_SIZE_LIMIT_MAX = 100000;
+	private int polytomySizeLimit = POLYTOMY_SIZE_LIMIT_MAX;
 
 	// Just a reference to gene trees from inference (for convinience).
 	private List<Tree> originalInompleteGeneTrees;
@@ -206,7 +207,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 					for (int j = 0; j < sampleAndResolveRounds; j++) {
 						sampleAndResolve(polytomy,inputTrees, false, speciesSimilarityMatrix, GlobalMaps.taxonNameMap
 								.getSpeciesIdMapper()
-								.getSTTaxonIdentifier(), false, true);
+								.getSTTaxonIdentifier(), false, false);
 					}
 					
 //					if(bug){
@@ -560,7 +561,6 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 			this.completedGeeneTrees = this.originalInompleteGeneTrees;
 		}
 
-
 		System.err.println("Building set of clusters (X) from gene trees ");
 
 		/**
@@ -575,7 +575,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 				+ firstRoundSampling + " samples will be taken");
 
 		ArrayList<SingleIndividualSample> firstRoundSamples = new ArrayList<SingleIndividualSample>();
-
+		int K =100;
 		STITreeCluster all = GlobalMaps.taxonIdentifier.newCluster();
 		all.getBitSet().set(0, GlobalMaps.taxonIdentifier.taxonCount());
 		addToClusters(all, GlobalMaps.taxonIdentifier.taxonCount());
@@ -583,7 +583,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		/*
 		 * instantiate k random samples
 		 */
-		for (int r = 0; r < secondRoundSampling*100; r++) {
+		for (int r = 0; r < secondRoundSampling*K; r++) {
 
 			System.err.println("------------\n" + "sample " + (r+1)
 					+ " of individual  sampling ...");
@@ -593,7 +593,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 
 		}
 
-		int K =100;
+		
 		int prev = 0, firstgradiant = -1, gradiant = 0;
 		int arraySize = this.completedGeeneTrees.size();
 		List<List<Tree>> allGreedies = new ArrayList<List<Tree>>(arraySize);
@@ -895,7 +895,46 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		 */
 		allGreedies = Utils.greedyConsensus(contractedTrees,
 				this.GREEDY_ADDITION_THRESHOLDS, true, 1, tid, true);
-
+		int sumDegrees = 0;
+		ArrayList<Integer> deg = new ArrayList<Integer>();
+		for (Tree cons : allGreedies) {			
+			for (TNode greedyNode : cons.postTraverse()) {
+				if (greedyNode.getChildCount() > 2){
+					deg.add(greedyNode.getChildCount());
+				}
+			}
+		}	
+		Collections.sort(deg);
+		//System.err.println(deg);
+		int N = this.GREEDY_ADDITION_MAX_POLYTOMY_MIN+ GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount()* this.GREEDY_ADDITION_MAX_POLYTOMY_MULT;
+		System.err.println("Limit for sigma of degrees:"+ N);
+		int i = 0;
+		while(sumDegrees < N && i < deg.size()){
+			sumDegrees += Math.pow(deg.get(i),2);
+			i++;
+		}
+		polytomySizeLimit = deg.get(i-1);
+		
+//			if(i==deg.size())
+//				allDegVisitedMaxDegrees.add(deg.get(i-1));
+//			else
+//				allDegNotVisitedMaxDegrees.add(deg.get(i-1));
+//
+////			System.err.println("max degree: "+ maxDegrees[j]+" i: "+i+ "  deg size: "+ deg.size());
+////			if((maxDegree < polytomySizeLimit && i != deg.size()) || polytomySizeLimit == POLYTOMY_SIZE_LIMIT_MAX)
+////				polytomySizeLimit = maxDegree;
+//		
+//		System.err.println(allDegNotVisitedMaxDegrees);
+//		System.err.println(allDegVisitedMaxDegrees);
+//		polytomySizeLimit = Math.max(arrayListMax(allDegVisitedMaxDegrees), arrayListMin(allDegNotVisitedMaxDegrees));
+		
+		System.err.println("polytomy size limit : "+ polytomySizeLimit);
+		System.err.print("discarded polytomies: ");
+		for(int d: deg){
+			if(d > polytomySizeLimit)
+				System.err.print(d+" ");
+		}
+		System.err.println(" "+deg);
 		int th = 0;
 		int max= 0;
 		/**
@@ -915,11 +954,13 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 				// bipartitions to the set X. Will just become too many.
 				// TODO MULTIND: is this new in multiind branch? If so, is it
 				// needed?
-				long maxSize = this.GREEDY_ADDITION_MAX_POLYTOMY_MIN
-						+ Math.round(Math.sqrt(tid.taxonCount()
-								* this.GREEDY_ADDITION_MAX_POLYTOMY_MULT));
+//				long maxSize = this.GREEDY_ADDITION_MAX_POLYTOMY_MIN
+//						+ Math.round(Math.sqrt(tid.taxonCount()
+//								* this.GREEDY_ADDITION_MAX_POLYTOMY_MULT));
 				if (greedyNode.getChildCount() <= 2
-						|| greedyNode.getChildCount() > maxSize) {
+						|| greedyNode.getChildCount() > polytomySizeLimit) {
+					if(greedyNode.getChildCount() > polytomySizeLimit)
+						System.err.println("polytomy of size "+greedyNode.getChildCount()+" discarded ");
 					continue;
 				}
 
@@ -927,12 +968,11 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 						.getData()).getBitSet();
 
 				BitSet[] childbs = new BitSet[greedyNode.getChildCount() + 1];
-				int i = 0;
+				int i1 = 0;
 				for (TNode c : greedyNode.getChildren()) {
-					childbs[i] = (BitSet) ((STITreeCluster) ((STINode) c)
+					childbs[i1] = (BitSet) ((STITreeCluster) ((STINode) c)
 							.getData()).getBitSet();
-					;
-					i++;
+					i1++;
 				}
 				// Compute the complementary cluster of the cluster for this
 				// node
@@ -942,7 +982,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 				// in effect makes the tree unrooted again
 				BitSet comp = (BitSet) greedyBS.clone();
 				comp.flip(0, tid.taxonCount());
-				childbs[i] = comp;
+				childbs[i1] = comp;
 
 				System.err.print("polytomy of size "
 						+ greedyNode.getChildCount());
@@ -982,6 +1022,19 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 			th = (th + 1) % this.GREEDY_ADDITION_THRESHOLDS.length;
 		}
 		System.err.println("max k is :"+ max);
+	}
+	
+	int arrayListMax(ArrayList<Integer> input){
+		if(input.size()==0)
+			return 0;
+		else
+			return Collections.max(input);
+	}
+	int arrayListMin(ArrayList<Integer> input){
+		if(input.size()==0)
+			return 0;
+		else
+			return Collections.min(input);
 	}
 
 	/**
