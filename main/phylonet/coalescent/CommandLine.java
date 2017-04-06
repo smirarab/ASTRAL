@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -24,6 +25,7 @@ import java.util.TreeSet;
 import phylonet.tree.io.NewickReader;
 import phylonet.tree.io.ParseException;
 import phylonet.tree.model.MutableTree;
+import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITree;
 import phylonet.tree.util.Trees;
@@ -601,10 +603,20 @@ public class CommandLine {
             Iterable<Tree> bootstraps, String outgroup, Options options) {
         long startTime;
         startTime = System.currentTimeMillis();
-        
+        int removedTrees = 0;
+        Iterator<Tree> it = input.iterator();
+        while(it.hasNext()){
+        	Tree tr = it.next();
+        	int branchCount = tr.getNodeCount() - GlobalMaps.taxonIdentifier.taxonCount();
+        	if(branchCount <= (GlobalMaps.taxonIdentifier.taxonCount() -3)/2){
+        		removedTrees++;
+        		it.remove();
+        	}
+        }
+        System.err.println("removed trees"+ removedTrees);	
         AbstractInference inference =
-            initializeInference(criterion, input, extraTrees, options);
-              
+                initializeInference(criterion, input, extraTrees, options);
+        
         inference.setup(); 
         
         List<Solution> solutions = inference.inferSpeciesTree();
