@@ -91,13 +91,27 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 			System.err.println("TIME TOOK FROM LAST NOTICE WQDataCollection 90-94: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
 			CommandLine.timer = System.nanoTime();
 		}
+		Future<Tree>[] futureGreedies = new Future[greedies.length];
 		for (int i = 0; i < greedies.length; i++) {
-			greedies[i] = Utils.greedyConsensus(trees, true, GlobalMaps.taxonIdentifier);
-			resolveByUPGMA((MutableTree) greedies[i]);
-			if(CommandLine.timerOn) {
-				System.err.println("TIME TOOK FROM LAST NOTICE WQDataCollection 97-100: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
-				CommandLine.timer = System.nanoTime();
+			
+			futureGreedies[i] = CommandLine.eService.submit(new Callable<Tree>() {
+				public Tree call() {
+					return Utils.greedyConsensus(trees, true, GlobalMaps.taxonIdentifier);
+				}
+			});
+		}
+		for (int i = 0; i < greedies.length; i++) {
+			try {
+				greedies[i] = (Tree) futureGreedies[i].get();
+			} catch (InterruptedException | ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+			resolveByUPGMA((MutableTree) greedies[i]);
+		}
+		if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE WQDataCollection 97-100: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
 		}
 		CountDownLatch latch = new CountDownLatch(trees.size());
 
