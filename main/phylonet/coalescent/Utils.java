@@ -227,16 +227,23 @@ public class Utils {
         for (Tree tree : trees) {
         	treecount++;
         }
-        CountDownLatch latch = new CountDownLatch(treecount);
         for (Tree tree : trees) {
-        	CommandLine.eService.execute(new greedyConsensusLoop(count, tree, taxonIdentifier, latch));
-        }
-        try {
-			latch.await();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+			List<STITreeCluster> geneClusters = Utils.getGeneClusters(tree, taxonIdentifier);
+            for (STITreeCluster cluster: geneClusters) {
+                if (count.containsKey(cluster)) {
+                    count.put(cluster, count.get(cluster) + 1);
+                    continue;
+                }
+            	
+            	STITreeCluster comp = cluster.complementaryCluster();
+            	if (count.containsKey(comp)) {
+                    count.put(comp, count.get(comp) + 1);
+                    continue;
+                }
+                count.put(cluster, 1);
+            }
+        }        
+       
         if(CommandLine.timerOn) {
 			System.err.println("TIME TOOK FROM LAST NOTICE Utils 240-243: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
 			CommandLine.timer = System.nanoTime();
