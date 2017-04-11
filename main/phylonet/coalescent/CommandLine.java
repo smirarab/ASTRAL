@@ -603,17 +603,19 @@ public class CommandLine {
             Iterable<Tree> bootstraps, String outgroup, Options options) {
         long startTime;
         startTime = System.currentTimeMillis();
-        int removedTrees = 0;
-        Iterator<Tree> it = input.iterator();
-        while(it.hasNext()){
-        	Tree tr = it.next();
-        	int branchCount = tr.getNodeCount() - GlobalMaps.taxonIdentifier.taxonCount();
-        	if(branchCount <= (GlobalMaps.taxonIdentifier.taxonCount() -3)/2){
-        		removedTrees++;
-        		it.remove();
-        	}
-        }
-        System.err.println("removed trees"+ removedTrees);	
+//        int removedTrees = 0;
+//        Iterator<Tree> it = input.iterator();
+//        while(it.hasNext()){
+//        	Tree tr = it.next();
+//        	
+//        	int branchCount = tr.getNodeCount() - GlobalMaps.taxonIdentifier.taxonCount()-1;// if has missing*********
+//        	System.out.println(branchCount);
+//        	if(branchCount <= (GlobalMaps.taxonIdentifier.taxonCount() -3)/2){
+//        		removedTrees++;
+//        		it.remove();
+//        	}
+//        }
+//        System.err.println("removed trees"+ removedTrees);	
         AbstractInference inference =
                 initializeInference(criterion, input, extraTrees, options);
         
