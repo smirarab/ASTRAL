@@ -12,7 +12,7 @@ cd main
 
 rm -f phylonet/coalescent/*.class phylonet/util/BitSet.class phylonet/tree/model/sti/STITreeCluster*.class phylonet/tree/io/NewickWriter.class
 
-javac -source 1.7 -target 1.7 -classpath ../lib/main.jar:../lib/colt.jar:../lib/JSAP-2.1.jar:../lib/jocl-2.0.0.jar phylonet/util/BitSet.java phylonet/coalescent/*.java phylonet/tree/model/sti/STITreeCluster.java phylonet/tree/io/NewickWriter.java
+javac -g -source 1.8 -target 1.8 -classpath ../lib/main.jar:../lib/colt.jar:../lib/JSAP-2.1.jar:../lib/jocl-2.0.0.jar phylonet/util/BitSet.java phylonet/coalescent/*.java phylonet/tree/model/sti/STITreeCluster.java phylonet/tree/io/NewickWriter.java
 
 jar cvfm ../astral.$version.jar ../manifest.text phylonet/util/BitSet.* phylonet/coalescent/*.* phylonet/tree/model/sti/STITreeCluster*.* phylonet/tree/io/NewickWriter.*
 
