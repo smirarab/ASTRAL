@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 
 import phylonet.tree.model.TMutableNode;
 import phylonet.tree.model.TNode;
@@ -30,8 +31,8 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	private WQDataCollection dataCollection;
 	private WeightCalculatorAlgorithm algorithm;
 
-	public WQWeightCalculator(AbstractInference<Tripartition> inference, LinkedBlockingQueue<Long> queue) {
-		super(false, queue);
+	public WQWeightCalculator(AbstractInference<Tripartition> inference, LinkedBlockingQueue<Long> queue2) {
+		super(false, queue2);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
 		if(inference instanceof AbstractInferenceNoCalculations) {
 			this.inference = (WQInferenceNoCalculations) inference;
