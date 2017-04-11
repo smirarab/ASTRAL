@@ -12,7 +12,6 @@ public abstract class AbstractWeightCalculatorNoCalculations<T> {
 	boolean save;
 	long lastTime;
 	LinkedBlockingQueue<T> queue;
-	
 	public AbstractWeightCalculatorNoCalculations(boolean save, LinkedBlockingQueue<T> queue1) {
 		this.save = save;
 		this.queue = queue1;
@@ -46,9 +45,9 @@ public abstract class AbstractWeightCalculatorNoCalculations<T> {
 				e.printStackTrace();
 			}
 			
-/*			if (weights.size() == 75318) {
-				System.err.println("here");
-			}*/
+			if (this.callcounter % 100000 == 0) {
+				System.err.println(callcounter + " weights produced : " + (double)(System.currentTimeMillis() - lastTime)/1000 + " seconds");
+			}
 			//System.out.println(t.toString());
 		return 0L;
 	}

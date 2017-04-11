@@ -1,5 +1,13 @@
 package phylonet.coalescent;
 
+import static org.jocl.CL.CL_CONTEXT_PLATFORM;
+import static org.jocl.CL.CL_DEVICE_NAME;
+import static org.jocl.CL.CL_DEVICE_TYPE_ALL;
+import static org.jocl.CL.clCreateContext;
+import static org.jocl.CL.clGetDeviceIDs;
+import static org.jocl.CL.clGetDeviceInfo;
+import static org.jocl.CL.clGetPlatformIDs;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -17,12 +25,31 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
+
+import javafx.util.Pair;
+
+import org.jocl.CL;
+import org.jocl.Pointer;
+import org.jocl.cl_context;
+import org.jocl.cl_context_properties;
+import org.jocl.cl_device_id;
+import org.jocl.cl_platform_id;
+
+import phylonet.coalescent.IClusterCollection.VertexPair;
+import phylonet.tree.io.NewickReader;
+import phylonet.tree.io.ParseException;
+import phylonet.tree.model.MutableTree;
+import phylonet.tree.model.Tree;
+import phylonet.tree.model.sti.STITree;
+import phylonet.tree.util.Trees;
 
 import com.martiansoftware.jsap.FlaggedOption;
 import com.martiansoftware.jsap.JSAP;
@@ -33,14 +60,6 @@ import com.martiansoftware.jsap.SimpleJSAP;
 import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
-import phylonet.coalescent.IClusterCollection.VertexPair;
-import phylonet.tree.io.NewickReader;
-import phylonet.tree.io.ParseException;
-import phylonet.tree.model.MutableTree;
-import phylonet.tree.model.Tree;
-import phylonet.tree.model.sti.STITree;
-import phylonet.tree.util.Trees;
-
 public class CommandLine {
 
 	protected static String _version = "4.11.0";
@@ -48,7 +67,10 @@ public class CommandLine {
 	public static final boolean timerOn = true;
 	public static long timer;
 	static int numThreads = Runtime.getRuntime().availableProcessors();
-	static ExecutorService eService = Executors.newFixedThreadPool(numThreads);
+	static ExecutorService eService;
+	static cl_device_id[] usedDevices;
+	static cl_context context;
+	static cl_context_properties contextProperties;
 	
 	private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
 		System.err.println();
@@ -69,7 +91,10 @@ public class CommandLine {
 						+ " This software can also solve MGD and MGDL problems (see options) instead of ASTRAL.",
 
 				new Parameter[] {
+						new Switch("cpu only", 'C', "cpu-only"),
 
+						new FlaggedOption("cpu threads", JSAP.INTEGER_PARSER, "-1", JSAP.NOT_REQUIRED, 'T', "cpu-threads"),
+						
 						new FlaggedOption("input file", FileStringParser.getParser().setMustExist(true), null,
 								JSAP.REQUIRED, 'i', "input",
 								"a file containing input gene trees in newick format. (required)"),
@@ -171,7 +196,6 @@ public class CommandLine {
 	}
 
 	public static void main(String[] args) throws Exception {
-
 		long startTime = System.currentTimeMillis();
 
 		SimpleJSAP jsap;
@@ -197,6 +221,7 @@ public class CommandLine {
 
 		jsap = getJSAP();
 		config = jsap.parse(args);
+		
 		if (jsap.messagePrinted()) {
 			exitWithErr("", jsap);
 		}
@@ -239,6 +264,63 @@ public class CommandLine {
 			}
 			System.err.println("Using DynaDup application, minimizing MGDL (not ASTRAL).");
 		}
+		//johng23
+		if(!config.getBoolean("cpu only")){
+			final int platformIndex = 0;
+			final long deviceType = CL_DEVICE_TYPE_ALL;
+			final int deviceIndex = 0;
+	
+			// Enable exceptions and subsequently omit error checks in this sample
+			CL.setExceptionsEnabled(true);
+	
+			// Obtain the number of platforms
+			int numPlatformsArray[] = new int[1];
+			clGetPlatformIDs(0, null, numPlatformsArray);
+			int numPlatforms = numPlatformsArray[0];
+	
+			// Obtain a platform ID
+			cl_platform_id platforms[] = new cl_platform_id[numPlatforms];
+			clGetPlatformIDs(platforms.length, platforms, null);
+			cl_platform_id platform = platforms[platformIndex];
+	
+			// Initialize the context properties
+			contextProperties = new cl_context_properties();
+			contextProperties.addProperty(CL_CONTEXT_PLATFORM, platform);
+	
+			// Obtain the number of devices for the platform
+			int numDevicesArray[] = new int[1];
+			clGetDeviceIDs(platform, deviceType, 0, null, numDevicesArray);
+			int numDevices = numDevicesArray[0];
+	
+			// Obtain a device ID
+			cl_device_id devices[] = new cl_device_id[numDevices];
+			clGetDeviceIDs(platform, deviceType, numDevices, devices, null);
+			for (int i=0; i<numDevices; i++)
+	        {
+	            String deviceName = getString(devices[i], CL_DEVICE_NAME);
+	            System.out.println("Device "+(i+1)+" of "+numDevices+": "+deviceName + " " + devices[i]);
+	        }
+			System.out.println("Please enter the devices you'd like this program to use separated by spaces: ");
+			Scanner in = new Scanner(System.in);
+			ArrayList<cl_device_id> usedDevicesAL = new ArrayList<cl_device_id>();
+			//while(in.hasNext()) {
+//				usedDevicesAL.add(devices[in.nextInt()-1]);
+		//	}
+			//testing only	
+			usedDevicesAL.add(devices[0]);
+			usedDevices = new cl_device_id[usedDevicesAL.size()];
+			usedDevices = usedDevicesAL.toArray(usedDevices);
+//			cl_device_id device = devices[deviceIndex];
+//			context = clCreateContext(contextProperties, 1, new cl_device_id[]{device}, null, null, null);
+//			System.out.println(usedDevices.length + " " + usedDevices[0].toString());
+			context = clCreateContext(contextProperties, usedDevices.length, usedDevices, null, null, null);
+			//johng23 end
+		}
+		numThreads = config.getInt("cpu threads");
+		if(numThreads == -1) {
+			numThreads = Runtime.getRuntime().availableProcessors();
+		}
+		eService = Executors.newFixedThreadPool(numThreads);
 		// johng23
 		if (timerOn) {
 			System.err.println("Timer starts here");
@@ -564,7 +646,6 @@ public class CommandLine {
 		inference.queue2 = queue2;
 		inference.queue4 = queue4;
 		inference.setup();
-
 		AbstractInferenceNoCalculations inferenceNoCalc = new WQInferenceNoCalculations(
 				(AbstractInference) inference.semiDeepCopy());
 
@@ -587,14 +668,17 @@ public class CommandLine {
 		 * ((WQDataCollection)inference.dataCollection).geneTreesAsInts[i]; }
 		 */
 		TurnTaskToScores threadgpu = new TurnTaskToScores(inference, queue1, queue2,
-				((WQWeightCalculator) inference.weightCalculator).geneTreesAsInts(), allArray, getSpeciesWordLength());
+				((WQWeightCalculator) inference.weightCalculator).geneTreesAsInts(), allArray, getSpeciesWordLength(), usedDevices, context, contextProperties);
 		WriteTaskToQueue thread1 = new WriteTaskToQueue(inferenceNoCalc, threadgpu);
 
 		(new Thread(thread1)).start();
 		(new Thread(threadgpu)).start();
 
 		List<Solution> solutions = inference.inferSpeciesTree();
-
+		if(CommandLine.timerOn) {
+	       	System.err.println("TIME TOOK FROM LAST NOTICE CommandLine 667: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
 		System.err.println("Optimal tree inferred in " + (System.currentTimeMillis() - startTime) / 1000.0D + " secs.");
 
 		Tree st = processSolution(outbuffer, bootstraps, outgroup, inference, solutions);
@@ -608,8 +692,16 @@ public class CommandLine {
 
 	private static Tree processSolution(BufferedWriter outbuffer, Iterable<Tree> bootstraps, String outgroup,
 			AbstractInference inference, List<Solution> solutions) {
+		if(CommandLine.timerOn) {
+	       	System.err.println("TIME TOOK FROM LAST NOTICE CommandLine 684: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
+		
 		Tree st = solutions.get(0)._st;
-
+		if(CommandLine.timerOn) {
+	       	System.err.println("TIME TOOK FROM LAST NOTICE CommandLine 690: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
 		System.err.println(st.toNewick());
 
 		st.rerootTreeAtNode(st.getNode(outgroup));
@@ -786,5 +878,13 @@ public class CommandLine {
 			e.printStackTrace();
 		}
 	}
-
+	private static String getString(cl_device_id device, int paramName)
+	{
+	    long size[] = new long[1];
+	    clGetDeviceInfo(device, paramName, 0, null, size);
+	    byte buffer[] = new byte[(int)size[0]];
+	    clGetDeviceInfo(device, paramName, 
+	        buffer.length, Pointer.to(buffer), null);
+	    return new String(buffer, 0, buffer.length-1);
+	}	
 }
