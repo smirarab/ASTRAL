@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.PriorityBlockingQueue;
 
 import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.MutableTree;
@@ -188,7 +189,10 @@ public abstract class AbstractInference<T> implements Cloneable{
 				//	+ counter.weights);
 		//}
 		//System.out.println("domination calcs:" + counter.cnt);
-		
+		if(CommandLine.timerOn) {
+	       	System.err.println("TIME TOOK FROM LAST NOTICE AbstractInference 193: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
 		System.err.println("Total Number of elements weighted: "+ weightCalculator.getCalculatedWeightCount());
 
 		List<STITreeCluster> minClusters = new LinkedList<STITreeCluster>();
@@ -275,8 +279,12 @@ public abstract class AbstractInference<T> implements Cloneable{
 		Long cost = getTotalCost(all);
 		sol._totalCoals = cost;
 		solutions.add(sol);
+		if(CommandLine.timerOn) {
+	       	System.err.println("TIME TOOK FROM LAST NOTICE AbstractInference 283: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
         System.err.println("Final optimization score: " + cost);
-
+        
 		return (List<Solution>) (List<Solution>) solutions;
 	}
 	
