@@ -16,7 +16,7 @@ public abstract class AbstractWeightCalculator<T> implements Cloneable {
 	long lastTime;
 	LinkedBlockingQueue<Long> queue;
 	boolean done = false;
-	
+	int counter;
 	public AbstractWeightCalculator(boolean save, LinkedBlockingQueue<Long> queue) {
 		this.save = save;
 		this.queue = queue;
