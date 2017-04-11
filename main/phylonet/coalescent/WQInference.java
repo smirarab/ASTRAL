@@ -176,7 +176,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 			}
 		}
 		
-
+		if(CommandLine.timerOn) {
+	       	System.err.println("TIME TOOK FROM LAST NOTICE WQInference 180: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
 		System.err.println("Quartet score is: " + sum/4l);
 		System.err.println("Normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
 		//System.out.println(st.toNewickWD());
@@ -471,6 +474,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	@Override
 	Long getTotalCost(Vertex all) {
+		if(CommandLine.timerOn) {
+	       	System.err.println("TIME TOOK FROM LAST NOTICE WQInference 475: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
 		System.err.println("Normalized score (portion of input quartet trees satisfied): " + 
 				all._max_score/4./this.maxpossible);
 		return (long) (all._max_score/4l);
