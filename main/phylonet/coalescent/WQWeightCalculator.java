@@ -50,9 +50,10 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			return ret;
 		}
 
+
 		abstract Long calculateWeight(Tripartition trip);
 
-		abstract void setupGeneTrees(WQInference inference);
+		abstract void setupGeneTrees(WQInference inference, boolean randomResolve);
 	}
 
 	@Override
@@ -185,7 +186,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		}
 
 		@Override
-		void setupGeneTrees(WQInference inference) {
+		void setupGeneTrees(WQInference inference, boolean randomResolve) {
 			System.err.println("Using tree-based weight calculation.");
 			List<Integer> temp = new ArrayList<Integer>();
 
@@ -208,8 +209,10 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 							children.addAll(stack.pop());
 						}
 						stack.push(children);
-						if (children.size() == 1 && node.getChildCount() > 2) {
-							Utils.randomlyResolve(node);
+						if(randomResolve){
+							if (children.size() == 1 && node.getChildCount() > 2) {
+								Utils.randomlyResolve(node);
+							}
 						}
 					}
 				}
@@ -280,7 +283,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 					: 1);
 		}
 
-		void setupGeneTrees(WQInference inference) {
+		void setupGeneTrees(WQInference inference,boolean randomResolve) {
 
 			List<STITreeCluster> treeCompteleClusters = ((WQDataCollection) inference.dataCollection).treeAllClusters;
 			List<Tree> geneTrees = inference.trees;
@@ -401,8 +404,8 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	 * 
 	 * @param wqInference
 	 */
-	public void setupGeneTrees(WQInference wqInference) {
-		this.algorithm.setupGeneTrees(wqInference);
+	public void setupGeneTrees(WQInference wqInference, boolean randomResolve) {
+		this.algorithm.setupGeneTrees(wqInference,randomResolve);
 	}
 
 	// TODO: this is algorithm-specific should not be exposed. Fix.
