@@ -95,7 +95,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 	}
 	
 	void initializeWeightCalculator() {
-		((WQWeightCalculator)this.weightCalculator).setupGeneTrees(this);
+		((WQWeightCalculator)this.weightCalculator).setupGeneTrees(this,true);
 		if (this.forceAlg == 2) {
 			((WQWeightCalculator)this.weightCalculator).useSetWeightsAlgorithm();
 		} 
@@ -128,6 +128,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 	
 			//System.err.println(this.maxpossible);
 		}
+		((WQWeightCalculator)this.weightCalculator).setupGeneTrees(this,false);
 		
 		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
 		long sum = 0l;
