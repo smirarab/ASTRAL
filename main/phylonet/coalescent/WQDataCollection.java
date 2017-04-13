@@ -17,6 +17,8 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
 
+import com.sun.org.apache.bcel.internal.generic.NEW;
+
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TMutableNode;
@@ -636,11 +638,15 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		 * generate a list of sampled gene trees selecting each one randomly
 		 */
 		ArrayList<Tree> greedyCandidates = new ArrayList<Tree>();
+		
 		for (List<Tree> l : allGreedies) {
 			int rand = GlobalMaps.random.nextInt(l.size());
-			resolveByUPGMA((MutableTree) l.get(rand), GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), this.speciesSimilarityMatrix);
-			greedyCandidates.add(l.get(rand));
+			STITree temp = new STITree(l.get(rand));
+			resolveByUPGMA((MutableTree) temp, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), this.speciesSimilarityMatrix);
+			greedyCandidates.add(temp);
+
 		}
+
 //		Tree allGenesGreedy = Utils.greedyConsensus(greedyCandidates, false,
 //				GlobalMaps.taxonNameMap.getSpeciesIdMapper()
 //						.getSTTaxonIdentifier(), true);
