@@ -209,7 +209,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 					for (int j = 0; j < sampleAndResolveRounds; j++) {
 						sampleAndResolve(polytomy,inputTrees, false, speciesSimilarityMatrix, GlobalMaps.taxonNameMap
 								.getSpeciesIdMapper()
-								.getSTTaxonIdentifier(), false, false);
+								.getSTTaxonIdentifier(), false, true);
 					}
 					
 //					if(bug){
