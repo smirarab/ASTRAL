@@ -511,7 +511,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	@Override
 	AbstractWeightCalculator<Tripartition> newWeightCalculator() {
-		return new WQWeightCalculator(this, 8);
+		return new WQWeightCalculator(this, 9);
 	}
 
 
