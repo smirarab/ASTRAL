@@ -16,9 +16,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
-
-import com.sun.org.apache.bcel.internal.generic.NEW;
-
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TMutableNode;
@@ -64,7 +61,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 			1 / 100., 1 / 50., 1 / 20., 1 / 10., 1 / 5., 1 / 3. };
 	private final int GREEDY_DIST_ADDITTION_LAST_THRESHOLD_INDX = 3;
 	private final int GREEDY_ADDITION_MAX_POLYTOMY_MIN = 50;
-	private final int GREEDY_ADDITION_MAX_POLYTOMY_MULT = 20;
+	private final int GREEDY_ADDITION_MAX_POLYTOMY_MULT = 25;
 	private final int GREEDY_ADDITION_DEFAULT_RUNS = 10;
 	private final int GREEDY_ADDITION_MIN_FREQ = 5;
 	private final double GREEDY_ADDITION_MIN_RATIO = 0.01;
