@@ -29,8 +29,8 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		super(false);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
 		this.inference = (WQInference) inference;
-		//this.algorithm = new TraversalWeightCalculator();
-		this.algorithm = new CondensedTraversalWeightCalculator();
+		this.algorithm = new TraversalWeightCalculator();
+		//this.algorithm = new CondensedTraversalWeightCalculator();
 		tmpalgorithm = new TraversalWeightCalculator();
 		//tmpalgorithm.setupGeneTrees((WQInference) inference);
 	}
