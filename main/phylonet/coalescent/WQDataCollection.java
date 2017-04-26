@@ -202,7 +202,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 //							e.printStackTrace();
 //						}
 //					}
-					int sampleAndResolveRounds = 2;
+					int sampleAndResolveRounds = 4;
 					for (int j = 0; j < sampleAndResolveRounds; j++) {
 						sampleAndResolve(polytomy,inputTrees, false, speciesSimilarityMatrix, GlobalMaps.taxonNameMap
 								.getSpeciesIdMapper()
@@ -245,7 +245,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		if (userProvidedRounds < 1) {
 			double sampling = GlobalMaps.taxonNameMap.getSpeciesIdMapper()
 					.meanSampling();
-			int repeat = (int) (Math.ceil(sampling - 1) * 2 + 1);
+			int repeat = (int) (int) Math.ceil(Math.log(2*sampling)/Math.log(2));
 			return repeat;
 		} else {
 			return userProvidedRounds;
