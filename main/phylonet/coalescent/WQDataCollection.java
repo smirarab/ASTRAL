@@ -614,16 +614,41 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 			}
 
 			ArrayList<Tree> greedies = new ArrayList<Tree>();
-			for (int r = 0; r < secondRoundSampling; r++) {
+//			for (int r = 0; r < secondRoundSampling; r++) {
+//				List<Tree> sample;
+//				
+//				//Collections.shuffle(firstRoundSampleTrees, GlobalMaps.random);
+//				sample = firstRoundSampleTrees.subList(r*K, K*r+99);			
+//				greedies.add(Utils.greedyConsensus(sample, false,
+//						GlobalMaps.taxonNameMap.getSpeciesIdMapper()
+//								.getSTTaxonIdentifier(), true));
+//			}
+
+			int M = secondRoundSampling * 2;
+			ArrayList<Tree> candidates = new ArrayList<Tree>();
+			ArrayList<Integer> polytomies = new ArrayList<Integer>();
+			for (int r = 0; r < M; r++) {
 				List<Tree> sample;
 				
-				//Collections.shuffle(firstRoundSampleTrees, GlobalMaps.random);
-				sample = firstRoundSampleTrees.subList(r*K, K*r+99);			
-				greedies.add(Utils.greedyConsensus(sample, false,
+				Collections.shuffle(firstRoundSampleTrees, GlobalMaps.random);
+				sample = firstRoundSampleTrees.subList(0,K - 1);			
+				candidates.add(Utils.greedyConsensus(sample, false,
 						GlobalMaps.taxonNameMap.getSpeciesIdMapper()
 								.getSTTaxonIdentifier(), true));
+				polytomies.add(0);
+				for(TNode node: candidates.get(r).postTraverse()){
+					if(node.getChildCount() > 2)
+						polytomies.set(r, (int) (polytomies.get(r) + Math.pow(node.getChildCount()+1 ,2)));
+				}
 			}
-
+			
+			ArrayList<Integer> polytomyCopy = new ArrayList<Integer>(polytomies);
+			Collections.sort(polytomies);
+			//System.out.println(polytomies);
+			for(int j =0; j < secondRoundSampling ; j++){
+				int index = polytomyCopy.indexOf(polytomies.get(j));
+				greedies.add(candidates.get(index));				
+			}
 			allGreedies.add(greedies);
 			i++;
 			// System.err.println("Number of clusters after simple addition from gene trees: "
@@ -671,14 +696,6 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 			 gradiant = clusters.getClusterCount() - prev;
 			 System.err.println("gradient"+ii +": "+ gradiant);
 			 prev = clusters.getClusterCount();
-//			 if(firstgradiant == -1)
-//				 firstgradiant = gradiant;
-//			 else{
-//				//System.err.println("First gradiant: " + firstgradiant+ " current gradiant: " + gradiant);
-//					if (gradiant < firstgradiant / 3) { 
-//						break;
-//					} 
-//			 }
 
 		}
 		prev = 0;
@@ -706,14 +723,6 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 				 gradiant = clusters.getClusterCount() - prev;
 				 System.err.println("gradient"+l+" in heuristiic: "+ gradiant);
 				 prev = clusters.getClusterCount();
-//				 if(firstgradiant == -1)
-//					 firstgradiant = gradiant;
-//				 else{
-//					//System.err.println("First gradiant: " + firstgradiant+ " current gradiant: " + gradiant);
-//						if (gradiant < firstgradiant / 10) { 
-//							break;
-//						} 
-//				 }
 
 			}
 		}
