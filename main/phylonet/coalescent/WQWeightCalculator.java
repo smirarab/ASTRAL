@@ -3,6 +3,7 @@ package phylonet.coalescent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -30,16 +31,20 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	AbstractInference<Tripartition> inference;
 	private WQDataCollection dataCollection;
 	private WeightCalculatorAlgorithm algorithm;
+	private int polytomies;
 
-	public WQWeightCalculator(AbstractInference<Tripartition> inference, LinkedBlockingQueue<Long> queue2) {
+	public WQWeightCalculator(AbstractInference<Tripartition> inference,
+			LinkedBlockingQueue<Long> queue2, int polytomies) {
 		super(false, queue2);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
 		if(inference instanceof AbstractInferenceNoCalculations) {
 			this.inference = (WQInferenceNoCalculations) inference;
 		}
-		else
+		else {
 			this.inference = (WQInference) inference;
+		}
 		this.algorithm = new TraversalWeightCalculator();
+		this.setPolytomies(polytomies);
 	}
 
 	abstract class WeightCalculatorAlgorithm {
@@ -54,7 +59,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		}
 
 		abstract Long calculateWeight(Tripartition trip);
-		abstract void setupGeneTrees(WQInference inference);
+		abstract void setupGeneTrees(WQInference inference, boolean randomResolve);
 	}
 
 	@Override
@@ -159,25 +164,27 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 						}
 						stack[top + gtb][side] = newSides[side];
 					}
+					if (gtb >= -getPolytomies() + 1) {
 
 
-					for (int i = nzc[0] - 1; i >= 0; i--) {
-						for (int j = nzc[1] - 1; j >= 0; j--) {
-							if (overlapind[i][0] != overlapind[j][1])
-								for (int k = nzc[2] - 1; k >= 0; k--) {
-									if ((overlapind[i][0] != overlapind[k][2]) &&
-											(overlapind[j][1] != overlapind[k][2]))
-										weight += F(overlap[i][0], overlap[j][1], overlap[k][2]);
-								}
+						for (int i = nzc[0] - 1; i >= 0; i--) {
+							for (int j = nzc[1] - 1; j >= 0; j--) {
+								if (overlapind[i][0] != overlapind[j][1])
+									for (int k = nzc[2] - 1; k >= 0; k--) {
+										if ((overlapind[i][0] != overlapind[k][2]) 
+												&& (overlapind[j][1] != overlapind[k][2]))
+											weight += F(overlap[i][0], overlap[j][1], overlap[k][2]);
+									}
+							}
 						}
-					}
-					top = top + gtb + 1;
+						top = top + gtb + 1;
 
-				} // End of polytomy section
+					} // End of polytomy section
 
+				}
 			}
 
-			return weight;
+			return (weight);
 		}
 
 		/***
@@ -187,9 +194,15 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		 * Minus infinity is used for separating different genes. 
 		 */
 		@Override
-		void setupGeneTrees(WQInference inference) {
+		void setupGeneTrees(WQInference inference, boolean randomResolve) {
 			System.err.println("Using tree-based weight calculation.");
 			List<Integer> temp = new ArrayList<Integer>(); 
+
+			// This for loop resolves arbitrarily any polytomies entirely made up
+			// of individuals of one species. 
+			
+			randomResolveSingleSpecies(inference, randomResolve);
+			
 			Stack<Integer> stackHeight = new Stack<Integer>();
 			/**
 			 * Reroot to minimize root to tip distance (number of nodes)
@@ -252,7 +265,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 						maxHeight = stackHeight.size();
 					}
 				}
-				
+
 				//System.err.println(tr);
 			}
 			geneTreesAsInts = new int[temp.size()];
@@ -260,7 +273,38 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			for (int v : temp) {
 				geneTreesAsInts[i++] = v;
 			}
-			
+
+		}
+
+		private void randomResolveSingleSpecies(WQInference inference,
+				boolean randomResolve) {
+			Stack<HashSet<Integer>> stack = new Stack<HashSet<Integer>>();
+			HashSet<Integer> children;
+			for (Tree tr : inference.trees) {
+				for (TNode node : tr.postTraverse()) {
+					if (node.isLeaf()) {
+						int spID = GlobalMaps.taxonNameMap.getSpeciesIdMapper()
+								.getSpeciesIdForTaxon(
+										GlobalMaps.taxonIdentifier.taxonId(node
+												.getName()));
+						// System.out.println(spID);
+						children = new HashSet<Integer>();
+						children.add(spID);
+						stack.push(children);
+					} else {
+						children = new HashSet<Integer>();
+						for (TNode c : node.getChildren()) {
+							children.addAll(stack.pop());
+						}
+						stack.push(children);
+						if(randomResolve){
+							if (children.size() == 1 && node.getChildCount() > 2) {
+								Utils.randomlyResolve(node);
+							}
+						}
+					}
+				}
+			}
 		}
 
 
@@ -297,7 +341,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 							geneTreeTripartitonCount.get(trip) + 1 : 1);
 		}
 
-		void setupGeneTrees(WQInference inference) {
+		void setupGeneTrees(WQInference inference, boolean randomResolve) {
 
 			List<STITreeCluster> treeCompteleClusters = 
 					((WQDataCollection)inference.dataCollection).treeAllClusters;
@@ -319,7 +363,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 				for (TNode node : tr.postTraverse()) {				
 					if (node.isLeaf()) {				
-						STITreeCluster cluster = Utils.getClusterForNodeName(node.getName());
+						STITreeCluster cluster = GlobalMaps.taxonIdentifier.getClusterForNodeName(node.getName());
 						stack.add(cluster);
 					} else {
 
@@ -331,7 +375,9 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 							bs.or(pop.getBitSet());
 						}
 
-						STITreeCluster cluster = new STITreeCluster();
+						STITreeCluster cluster = GlobalMaps.taxonIdentifier
+								.newCluster();
+						;
 						cluster.setCluster((BitSet) bs.clone());
 						stack.add(cluster);
 
@@ -411,8 +457,8 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	 * Each algorithm will have its own data structure for gene trees
 	 * @param wqInference
 	 */
-	public void setupGeneTrees(WQInference wqInference) {
-		this.algorithm.setupGeneTrees(wqInference);		
+	public void setupGeneTrees(WQInference wqInference, boolean randomResolve) {
+		this.algorithm.setupGeneTrees(wqInference,randomResolve);
 	}
 
 	//TODO: this is algorithm-specific should not be exposed. Fix. 
@@ -424,5 +470,12 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		return ((TraversalWeightCalculator)algorithm).maxHeight;
 	}
 
+	public int getPolytomies() {
+		return polytomies;
+	}
+
+	public void setPolytomies(int polytomies) {
+		this.polytomies = polytomies;
+	}
 
 }
