@@ -1,5 +1,8 @@
 This document will be used to document the code. Algorithms are given in the papers and will not be repeated here. 
 
+The project comes with an .project file that can be imported to Eclipse. 
+Make sure you select at least Java 1.6 for this to compile fine in your Eclipse. 
+
 ## Design
 
 The code is designed such that various phylogeny reconstruction methods
