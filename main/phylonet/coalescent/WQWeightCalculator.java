@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
 
+
 import phylonet.tree.model.TMutableNode;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
@@ -27,20 +28,23 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 	WQInference inference;
 	private WQDataCollection dataCollection;
-	private WeightCalculatorAlgorithm algorithm;
+	private WeightCalculatorAlgorithm algorithm, tmpalgorithm;
 	private int polytomies;
-
+	
 	public WQWeightCalculator(AbstractInference<Tripartition> inference,
-			int polytomies) {
+			int polytomie) {
 		super(false);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
 		this.inference = (WQInference) inference;
-		this.algorithm = new TraversalWeightCalculator();
+		//this.algorithm = new TraversalWeightCalculator();
 		this.setPolytomies(polytomies);
+		this.algorithm = new CondensedTraversalWeightCalculator();
+		tmpalgorithm = new TraversalWeightCalculator();
+		//tmpalgorithm.setupGeneTrees((WQInference) inference);
 	}
 
 	abstract class WeightCalculatorAlgorithm {
-		long F(int a, int b, int c) {
+		long F(long a, long b, long c) {
 			if (a < 0 || b < 0 || c < 0) {
 				throw new RuntimeException("negative side not expected: " + a
 						+ " " + b + " " + c);
@@ -49,7 +53,13 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			ret *= a * b * c;
 			return ret;
 		}
-
+		
+		long F(int[] x, int[] y, int[] z){
+			long a = x[0], b = x[1], c = x[2], d = y[0], e = y[1], f = y[2], g = z[0], h = z[1], i = z[2];
+			return (a + e + i - 3) * a * e * i + (a + f + h - 3) * a * f * h
+				 + (b + d + i - 3) * b * d * i + (b + f + g - 3) * b * f * g
+				 + (c + d + h - 3) * c * d * h + (c + e + g - 3) * c * e * g;
+		}
 
 		abstract Long calculateWeight(Tripartition trip);
 
@@ -63,8 +73,33 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	}
 
 	/**
-	 * ASTRAL-II way of calculating weights
-	 * 
+	 * one of ASTRAL-IV way of calculating weights
+	 * Should be memory efficient
+	 * @author chaoszhang
+	 *
+	 */
+	class CondensedTraversalWeightCalculator extends WeightCalculatorAlgorithm {
+		Polytree polytree;
+		
+		Long calculateWeight(Tripartition trip) {
+			return polytree.WQWeightByTraversal(trip, this);
+		}
+
+		/***
+		* Each gene tree is represented as a list of integers, using positive numbers
+		* for leaves, where the number gives the index of the leaf. 
+		* We use negative numbers for internal nodes, where the value gives the number of children. 
+		* Minus infinity is used for separating different genes. 
+		*/
+		@Override
+		void setupGeneTrees(WQInference inference, boolean randomResolve) {
+			polytree = new Polytree(inference.trees, polytomies, randomResolve);
+		}
+	}
+	
+	
+	/**
+	 * ASTRAL-II way of calculating weights 
 	 * @author smirarab
 	 * 
 	 */
@@ -185,6 +220,13 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			return weight;
 		}
 
+
+		/***
+		* Each gene tree is represented as a list of integers, using positive numbers
+		* for leaves, where the number gives the index of the leaf. 
+		* We use negative numbers for internal nodes, where the value gives the number of children. 
+		* Minus infinity is used for separating different genes. 
+		*/
 		@Override
 		void setupGeneTrees(WQInference inference, boolean randomResolve) {
 			System.err.println("Using tree-based weight calculation.");
@@ -406,11 +448,13 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	 */
 	public void setupGeneTrees(WQInference wqInference, boolean randomResolve) {
 		this.algorithm.setupGeneTrees(wqInference,randomResolve);
+		tmpalgorithm.setupGeneTrees(wqInference,randomResolve);
 	}
 
 	// TODO: this is algorithm-specific should not be exposed. Fix.
 	public Integer[] geneTreesAsInts() {
-		return ((TraversalWeightCalculator) algorithm).geneTreesAsInts;
+		return ((TraversalWeightCalculator)tmpalgorithm).geneTreesAsInts;
+
 	}
 
 	public int getPolytomies() {
