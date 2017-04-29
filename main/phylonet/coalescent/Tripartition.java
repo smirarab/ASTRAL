@@ -2,7 +2,7 @@ package phylonet.coalescent;
 
 import phylonet.tree.model.sti.STITreeCluster;
 
-public class Tripartition {
+public class Tripartition extends AbstractPartition {
 	
 	STITreeCluster cluster1;
 	STITreeCluster cluster2;	
@@ -49,15 +49,20 @@ public class Tripartition {
 			cluster3 = c2;
 		} else if (n3 > n2 & n2 > n1)  {
 			cluster1 = c3;
-			cluster2 = c1;	
-			cluster3 = c2;
+			cluster2 = c2;	
+			cluster3 = c1;
 		} else {
 			throw new RuntimeException("taxa appear multiple times?\n"+c1+"\n"+c2+"\n"+c3);
 		}
 	}
-
+	
+	public STITreeCluster[] getClusters(){
+		return new STITreeCluster[]{cluster1, cluster2, cluster3};
+	}
+	
 	@Override
 	public boolean equals(Object obj) {
+		if ((obj instanceof Tripartition) == false) return false;
 		Tripartition trip = (Tripartition) obj; 
 		
 		return this == obj ||
@@ -66,7 +71,7 @@ public class Tripartition {
 	@Override
 	public int hashCode() {
 		if (_hash == 0) {
-			_hash = cluster1.hashCode() * cluster2.hashCode() * cluster3.hashCode();
+			_hash = cluster1.hashCode() + cluster2.hashCode() + cluster3.hashCode();
 		}
 		return _hash;
 	}
