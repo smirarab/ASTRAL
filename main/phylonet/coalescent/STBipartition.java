@@ -75,15 +75,15 @@ public class STBipartition {
 	}
 	
 	public STBipartition getInducedSTB(STITreeCluster cluster) {
-		STITreeCluster lf = new STITreeCluster();
+		STITreeCluster lf = new STITreeCluster(GlobalMaps.taxonIdentifier);
 		lf.setCluster((BitSet) this.cluster1.getBitSet().clone());
 		lf.getBitSet().and(cluster.getBitSet());
 		
-		STITreeCluster rf = new STITreeCluster();
+		STITreeCluster rf = new STITreeCluster(GlobalMaps.taxonIdentifier);
 		rf.setCluster((BitSet) this.cluster2.getBitSet().clone());
 		rf.getBitSet().and(cluster.getBitSet());
 
-		STITreeCluster cf = new STITreeCluster();
+		STITreeCluster cf = new STITreeCluster(GlobalMaps.taxonIdentifier);
 		cf.setCluster((BitSet) this.c.getBitSet().clone());
 		cf.getBitSet().and(cluster.getBitSet());
 		
