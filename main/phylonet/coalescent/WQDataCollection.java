@@ -606,8 +606,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		if (GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleIndividual()) {
 			for (Tree gt : this.completedGeeneTrees) {
 				ArrayList<Tree> tmp = new ArrayList<Tree>();
-				GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) gt);
-				tmp.add(gt);
+				STITree temp = new STITree(gt);
+				GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree)temp);
+				tmp.add(temp);
 				allGreedies.add(tmp);
 				
 			}
