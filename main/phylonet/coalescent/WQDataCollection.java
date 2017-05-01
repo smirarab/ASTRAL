@@ -567,8 +567,10 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		 * performing the next steps in construction of the set X.
 		 */
 		int firstRoundSampling = 400;
-		double sampling = GlobalMaps.taxonNameMap.getSpeciesIdMapper().meanSampling();
+		//double sampling = GlobalMaps.taxonNameMap.getSpeciesIdMapper().meanSampling();
 		//int secondRoundSampling = (int) Math.ceil(Math.log(2*sampling)/Math.log(2));
+		
+		
 		int secondRoundSampling = getSamplingRepeationFactor(inference.options.getSamplingrounds());;
 		System.err.println("In the first round of  sampling "
 				+ firstRoundSampling + " samples will be taken");
@@ -578,6 +580,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		STITreeCluster all = GlobalMaps.taxonIdentifier.newCluster();
 		all.getBitSet().set(0, GlobalMaps.taxonIdentifier.taxonCount());
 		addToClusters(all, GlobalMaps.taxonIdentifier.taxonCount());
+
 		
 		/*
 		 * instantiate k random samples
@@ -599,6 +602,16 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 
 		int i = 1;
 		System.err.println("In second round sampling "+secondRoundSampling+" rounds will be done");
+		
+		if (GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleIndividual()) {
+			for (Tree gt : this.completedGeeneTrees) {
+				ArrayList<Tree> tmp = new ArrayList<Tree>();
+				GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) gt);
+				tmp.add(gt);
+				allGreedies.add(tmp);
+				
+			}
+		} else {
 		for (Tree gt : this.completedGeeneTrees) {
 			System.err.println("gene tree number " + i + " is processing..");
 			ArrayList<Tree> firstRoundSampleTrees = new ArrayList<Tree>();
@@ -614,48 +627,50 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 			}
 
 			ArrayList<Tree> greedies = new ArrayList<Tree>();
-//			for (int r = 0; r < secondRoundSampling; r++) {
-//				List<Tree> sample;
-//				
-//				//Collections.shuffle(firstRoundSampleTrees, GlobalMaps.random);
-//				sample = firstRoundSampleTrees.subList(r*K, K*r+99);			
-//				greedies.add(Utils.greedyConsensus(sample, false,
-//						GlobalMaps.taxonNameMap.getSpeciesIdMapper()
-//								.getSTTaxonIdentifier(), true));
-//			}
-
-			int M = secondRoundSampling * 2;
-			ArrayList<Tree> candidates = new ArrayList<Tree>();
-			ArrayList<Integer> polytomies = new ArrayList<Integer>();
-			for (int r = 0; r < M; r++) {
+			for (int r = 0; r < secondRoundSampling; r++) {
 				List<Tree> sample;
 				
-				Collections.shuffle(firstRoundSampleTrees, GlobalMaps.random);
-				sample = firstRoundSampleTrees.subList(0,K - 1);			
-				candidates.add(Utils.greedyConsensus(sample, false,
+				//Collections.shuffle(firstRoundSampleTrees, GlobalMaps.random);
+				sample = firstRoundSampleTrees.subList(r*K, K*r+99);			
+				greedies.add(Utils.greedyConsensus(sample, false,
 						GlobalMaps.taxonNameMap.getSpeciesIdMapper()
 								.getSTTaxonIdentifier(), true));
-				polytomies.add(0);
-				for(TNode node: candidates.get(r).postTraverse()){
-					if(node.getChildCount() > 2)
-						polytomies.set(r, (int) (polytomies.get(r) + Math.pow(node.getChildCount()+1 ,2)));
-				}
 			}
+
+//			int M = secondRoundSampling * 2;
+//			ArrayList<Tree> candidates = new ArrayList<Tree>();
+//			ArrayList<Integer> polytomies = new ArrayList<Integer>();
+//			for (int r = 0; r < M; r++) {
+//				List<Tree> sample;
+//				
+//				Collections.shuffle(firstRoundSampleTrees, GlobalMaps.random);
+//				sample = firstRoundSampleTrees.subList(0,K - 1);			
+//				candidates.add(Utils.greedyConsensus(sample, false,
+//						GlobalMaps.taxonNameMap.getSpeciesIdMapper()
+//								.getSTTaxonIdentifier(), true));
+//				polytomies.add(0);
+//				for(TNode node: candidates.get(r).postTraverse()){
+//					if(node.getChildCount() > 2)
+//						polytomies.set(r, (int) (polytomies.get(r) + Math.pow(node.getChildCount()+1 ,2)));
+//				}
+//			}
 			
-			ArrayList<Integer> polytomyCopy = new ArrayList<Integer>(polytomies);
-			Collections.sort(polytomies);
-			//System.out.println(polytomies);
-			for(int j =0; j < secondRoundSampling ; j++){
-				int index = polytomyCopy.indexOf(polytomies.get(j));
-				greedies.add(candidates.get(index));				
-			}
+//			ArrayList<Integer> polytomyCopy = new ArrayList<Integer>(polytomies);
+//			Collections.sort(polytomies);
+//			//System.out.println(polytomies);
+//			for(int j =0; j < secondRoundSampling ; j++){
+//				int index = polytomyCopy.indexOf(polytomies.get(j));
+//				greedies.add(candidates.get(index));				
+//			}
+			
 			allGreedies.add(greedies);
 			i++;
 			// System.err.println("Number of clusters after simple addition from gene trees: "
 			// + clusters.getClusterCount());
 
 		}
-
+		}
+		
 		/**
 		 * generate a list of sampled gene trees selecting each one randomly
 		 */
