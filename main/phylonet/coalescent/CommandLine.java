@@ -59,7 +59,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-	protected static String _version = "4.11.0";
+	protected static String _version = "5.1.0";
 
 	public static final boolean timerOn = true;
 	public static long timer;
