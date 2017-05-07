@@ -32,9 +32,6 @@ import java.util.TreeSet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.PriorityBlockingQueue;
-
-import javafx.util.Pair;
 
 import org.jocl.CL;
 import org.jocl.Pointer;
@@ -62,7 +59,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-	protected static String _version = "4.11.0";
+	protected static String _version = "5.1.0";
 
 	public static final boolean timerOn = true;
 	public static long timer;
@@ -160,6 +157,13 @@ public class CommandLine {
 						new FlaggedOption("minleaves", JSAP.INTEGER_PARSER, null, JSAP.NOT_REQUIRED, 'm', "minleaves",
 								"Remove genes with less than specified number of leaves "),
 
+                    new FlaggedOption("samplingrounds", 
+                            JSAP.INTEGER_PARSER, null, JSAP.NOT_REQUIRED, 
+                            JSAP.NO_SHORTFLAG, "samplingrounds",
+                            "For mult-individual datasets, perform these many rounds of individual sampling for"
+                            + " building the set X. Leave empty or give a < 1 number and the program"
+                            + " automatically picks this parameter."),
+                            
 						new Switch("duplication", 'd', "dup",
 								"Solves MGD problem. Minimizes the number duplications required to explain "
 										+ "gene trees using DynaDup algorithm (Bayzid, 2011). Note that with this option, "
@@ -215,6 +219,7 @@ public class CommandLine {
 		int k = 0;
 		// int annotate = 1;
 		Integer minleaves = null;
+		Integer samplingrounds = null;
 		BufferedWriter outbuffer;
 		Set<String> keepOptions = new HashSet<String>();
 		String outfileName = null;
@@ -335,10 +340,6 @@ public class CommandLine {
 
 		if (config.getFile("mapping file") != null) {
 
-			System.err.println("****** WARNNING ******\n" + "		For multi-individual data, please use the code\n"
-					+ "		available at the multiind branch of the ASTRAL github.\n"
-					+ "		This branch does not yet include our improvements for the\n"
-					+ "		multi-individual inputs.\n" + "****** END OF WARNNING ******\n");
 			BufferedReader br = new BufferedReader(new FileReader(config.getFile("mapping file")));
 
 			taxonMap = new HashMap<String, String>();
@@ -346,6 +347,9 @@ public class CommandLine {
 			try {
 				while ((s = br.readLine()) != null) {
 					s = s.trim();
+					if ("".equals(s)) {
+                		continue;
+                	}
 					String species;
 					String[] alleles;
 					if ("".equals(s.trim()))
@@ -422,7 +426,7 @@ public class CommandLine {
 			GlobalMaps.taxonNameMap = new TaxonNameMap();
 		}
 
-		Options options = newOptions(criterion, rooted, extrarooted, 1.0D, 1.0D, wh, keepOptions, config, outfileName);
+		Options options = newOptions(criterion, rooted, extrarooted, 1.0D, 1.0D, wh, keepOptions, config, outfileName, samplingrounds);
 
 		/*
 		 * Options bsoptions = newOptions(criterion, rooted, extrarooted, 1.0D,
@@ -611,7 +615,7 @@ public class CommandLine {
 
 		if (bootstraps != null && bootstraps.size() != 0) {
 			STITree<Double> cons = (STITree<Double>) Utils.greedyConsensus(bootstraps, false,
-					GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
+					GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), false);
 			cons.rerootTreeAtNode(cons.getNode(outgroup));
 			Trees.removeBinaryNodes(cons);
 			Utils.computeEdgeSupports(cons, bootstraps);
@@ -708,6 +712,7 @@ public class CommandLine {
 
 		Trees.removeBinaryNodes((MutableTree) st);
 
+		// TODO: MULTIND.
 		GlobalMaps.taxonNameMap.getSpeciesIdMapper().stToGt((MutableTree) st);
 
 		inference.scoreSpeciesTreeWithGTLabels(st, false);
@@ -724,41 +729,30 @@ public class CommandLine {
 
 		return st;
 	}
-
-	/*
-	 * private static Tree processSolution(BufferedWriter outbuffer,
-	 * Iterable<Tree> bootstraps, String outgroup, AbstractInference inference,
-	 * List<Solution> solutions) { Tree st = solutions.get(0)._st;
-	 * 
-	 * System.err.println(st.toNewick());
-	 * 
-	 * st.rerootTreeAtNode(st.getNode(outgroup));
-	 * Trees.removeBinaryNodes((MutableTree) st);
-	 * 
-	 * GlobalMaps.taxonNameMap.getSpeciesIdMapper().stToGt((MutableTree) st);
-	 * 
-	 * inference.scoreSpeciesTree(st, false);
-	 * 
-	 * GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) st);
-	 * 
-	 * if ((bootstraps != null) && (bootstraps.iterator().hasNext())) { for
-	 * (Solution solution : solutions) {
-	 * Utils.computeEdgeSupports((STITree<Double>) solution._st, bootstraps); }
-	 * } writeTreeToFile(outbuffer, solutions.get(0)._st); return st; }
-	 */
-	static private Options newOptions(int criterion, boolean rooted, boolean extrarooted, double cs, double cd,
-			double wh, Set<String> keepOptions, JSAPResult config, String outfileName) {
-		Options options = new Options(rooted, extrarooted, config.getBoolean("exact"), criterion > 0, 1,
-				config.getInt("extraLevel"), keepOptions.contains("completed"),
-				keepOptions.contains("searchspace_norun") || keepOptions.contains("searchspace"),
-				!keepOptions.contains("searchspace_norun"), config.getInt("branch annotation level"),
-				config.getDouble("lambda"), outfileName);
-		options.setDLbdWeigth(wh);
-		options.setCS(cs);
-		options.setCD(cd);
-
-		return options;
-	}
+	
+    static private Options newOptions(int criterion, boolean rooted,
+            boolean extrarooted, 
+            double cs, double cd, double wh, 
+            Set<String> keepOptions, JSAPResult config, 
+            String outfileName, Integer samplingrounds) {
+    	Options options = new Options(
+    			rooted, extrarooted, 
+    			config.getBoolean("exact"), 
+    			criterion > 0, 1, 
+    			config.getInt("extraLevel"),
+    			keepOptions.contains("completed"), 
+    			keepOptions.contains("searchspace_norun") || keepOptions.contains("searchspace"), 
+    			!keepOptions.contains("searchspace_norun"),
+    			config.getInt("branch annotation level"), 
+    			config.getDouble("lambda"),
+    			outfileName, samplingrounds == null ? -1 : samplingrounds);
+    	options.setDLbdWeigth(wh); 
+    	options.setCS(cs);
+    	options.setCD(cd);
+ 
+    	
+    	return options;
+    }
 
 	private static AbstractInference initializeInference(int criterion, List<Tree> trees, List<Tree> extraTrees,
 			Options options, boolean calculations) {
