@@ -1,6 +1,5 @@
 package phylonet.coalescent;
 
-import javafx.util.Pair;
 
 public class ComparablePair<K, V extends Comparable<V>>implements Comparable{
 	public K key;
