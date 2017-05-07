@@ -17,12 +17,9 @@ import java.util.concurrent.CountDownLatch;
 
 import java.util.TreeSet;
 
-import phylonet.coalescent.AbstractClusterCollection.getContainedClustersLoop;
-import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
-import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.util.BitSet;
 
 /**
@@ -145,7 +142,11 @@ public class SimilarityMatrix {
 				denom[i][j] = 0L;
 			}
 		}
-
+		if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE SimilarityMatrix 145-148: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+			System.out.println(n);
+		}
 		int k = 0;
 		CountDownLatch latch = new CountDownLatch(geneTrees.size());
 
