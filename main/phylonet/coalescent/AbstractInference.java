@@ -246,7 +246,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 			}
 			sol._st = tr;
 		} else {
-			sol._st = Utils.buildTreeFromClusters(minClusters, spm.getSTTaxonIdentifier());
+			sol._st = Utils.buildTreeFromClusters(minClusters, spm.getSTTaxonIdentifier(), false);
 		}
 
 		/* HashMap<TNode,BitSet> map = new HashMap<TNode,BitSet>();
@@ -310,19 +310,14 @@ public abstract class AbstractInference<T> implements Cloneable{
 		mapNames();
 
 		dataCollection = newCounter(newClusterCollection());
-		
 		weightCalculator = newWeightCalculator();
-
-		// Compute bipartitions from the input gene trees
-		dataCollection.computeTreePartitions(this);
-
-		/***
-		 * Adds new bipartitions using heuristics
+		
+		/**
+		 * Fors the set X by adding from gene trees and
+		 * by adding using ASTRAL-II hueristics
 		 */
-		if (this.getAddExtra() != 0) {
-		    System.err.println("calculating extra bipartitions to be added at level " + this.getAddExtra() +" ...");
-		    dataCollection.addExtraBipartitionByExtension(this);
-		}
+		dataCollection.formSetX(this); //TODO: is this necessary. 
+
 		
 		if (options.isExactSolution()) {
 	          System.err.println("calculating all possible bipartitions ...");
@@ -352,7 +347,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 		//counter.addExtraBipartitionsByHeuristics(clusters);
 
 		    //johng23
-		    if(CommandLine.timerOn) {
+	   if(CommandLine.timerOn) {
 			System.err.println("TIME TOOK FROM LAST NOTICE: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
 			CommandLine.timer = System.nanoTime();
 		    }

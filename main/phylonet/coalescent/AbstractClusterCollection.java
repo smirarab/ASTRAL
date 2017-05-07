@@ -188,10 +188,14 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 				ArrayList<VertexPair> partialRet = (ArrayList<VertexPair>) futures[i].get();
 				if(partialRet != null)
 					ret.addAll(partialRet);
-			} catch (InterruptedException | ExecutionException e) {
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ExecutionException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		
 		}
 		/*
 		timeResolutions += System.nanoTime() - start;
