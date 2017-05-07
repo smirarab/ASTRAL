@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Stack;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import phylonet.coalescent.BipartitionWeightCalculator.Quadrapartition;
 import phylonet.coalescent.BipartitionWeightCalculator.Results;
@@ -223,8 +224,12 @@ public class WQInference extends AbstractInference<Tripartition> {
 	 * @return
 	 */
 	private double scoreBranches(Tree st) {
-
+		if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE WQInference 227: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
 		double ret = 0;
+		int[] geneTreesAsInts = ((WQWeightCalculator)this.weightCalculator).geneTreesAsInts();
 		
 		weightCalculator = new BipartitionWeightCalculator(this,((WQWeightCalculator)this.weightCalculator).geneTreesAsInts());
 		
@@ -267,7 +272,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 			}
 		}
 		stack = new Stack<STITreeCluster>();
-		
+		if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE WQInference 274: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
 		
 		/**
 		 * For each node,
@@ -275,6 +283,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 		 *   2. score the quadripartition
 		 *   3. save the scores in a list for annotations in the next loop
 		 */
+		AtomicInteger processCount = new AtomicInteger();
+		Object lock = new Object();
 		Queue<NodeData> nodeDataList = new LinkedList<NodeData>();
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
@@ -317,50 +327,50 @@ public class WQInference extends AbstractInference<Tripartition> {
 				else {
 					remaining = ((STITreeCluster)node.getParent().getData()).complementaryCluster();
 				}
-				Quadrapartition quad = weightCalculator2.new Quadrapartition
-						(c1,  c2, sister, remaining);
-				if (this.getBranchAnnotation() == 7){
-					if (remaining.getClusterSize() != 0 && sister.getClusterSize() != 0 && c2.getClusterSize() != 0 && c1.getClusterSize() != 0 ){
-						System.err.print(c1.toString()+c2.toString()+"|"+sister.toString()+remaining.toString()+"\n");
-					}
-				}
-				
-				/**
-				 * 2. Scores all three quadripartitoins
-				 */
-				Results s = weightCalculator2.getWeight(quad);
-				nd.mainfreq = s.qs;
-				nd.effn = s.effn;
-				
-				
-				if (nd.effn < 20) {
-					if (!GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleSP(cluster.getBitSet()))
-						System.err.println("You may want to ignore posterior probabilities and other statistics related to the following "
-								+ "branch branch because the effective number of genes impacting it is only "+ nd.effn +
-							":\n\t" +
-							GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTClusterForGeneCluster(cluster));
-				}
-				
-				Quadrapartition[] threequads = new Quadrapartition [] {quad, null,null};
-				
-				quad = weightCalculator2.new Quadrapartition
-						(c1, sister, c2, remaining);
-				s = weightCalculator2.getWeight(quad);
-				nd.alt1freqs=s.qs;
-				threequads[1] = quad;
-				
-				quad = weightCalculator2.new Quadrapartition
-						(c1, remaining, c2, sister);
-				s = weightCalculator2.getWeight(quad);
-				nd.alt2freqs=s.qs;
-				threequads[2] = quad;
-			
-				nd.quartcount= (c1.getClusterSize()+0l)
-						* (c2.getClusterSize()+0l)
-						* (sister.getClusterSize()+0l)
-						* (remaining.getClusterSize()+0l);
-
-					
+//				Quadrapartition quad = weightCalculator2.new Quadrapartition
+//						(c1,  c2, sister, remaining);
+//				if (this.getBranchAnnotation() == 7){
+//					if (remaining.getClusterSize() != 0 && sister.getClusterSize() != 0 && c2.getClusterSize() != 0 && c1.getClusterSize() != 0 ){
+//						System.err.print(c1.toString()+c2.toString()+"|"+sister.toString()+remaining.toString()+"\n");
+//					}
+//				}
+//				
+//				/**
+//				 * 2. Scores all three quadripartitoins
+//				 */
+//				Results s = weightCalculator2.getWeight(quad);
+//				nd.mainfreq = s.qs;
+//				nd.effn = s.effn;
+//				
+//				
+//				if (nd.effn < 20) {
+//					if (!GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleSP(cluster.getBitSet()))
+//						System.err.println("You may want to ignore posterior probabilities and other statistics related to the following "
+//								+ "branch branch because the effective number of genes impacting it is only "+ nd.effn +
+//							":\n\t" +
+//							GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTClusterForGeneCluster(cluster));
+//				}
+//				
+//				Quadrapartition[] threequads = new Quadrapartition [] {quad, null,null};
+//				
+//				quad = weightCalculator2.new Quadrapartition
+//						(c1, sister, c2, remaining);
+//				s = weightCalculator2.getWeight(quad);
+//				nd.alt1freqs=s.qs;
+//				threequads[1] = quad;
+//				
+//				quad = weightCalculator2.new Quadrapartition
+//						(c1, remaining, c2, sister);
+//				s = weightCalculator2.getWeight(quad);
+//				nd.alt2freqs=s.qs;
+//				threequads[2] = quad;
+//			
+//				nd.quartcount= (c1.getClusterSize()+0l)
+//						* (c2.getClusterSize()+0l)
+//						* (sister.getClusterSize()+0l)
+//						* (remaining.getClusterSize()+0l);
+				CommandLine.eService.execute(new scoreBranchesLoop(c1, c2, sister, remaining, cluster, nd, this, processCount, lock, geneTreesAsInts));
+				processCount.incrementAndGet();
 				if (this.getBranchAnnotation() == 6) {
 					STITreeCluster c1plussis = new STITreeCluster();
 					c1plussis.setCluster((BitSet) c1.getBitSet().clone());
@@ -374,13 +384,26 @@ public class WQInference extends AbstractInference<Tripartition> {
 					STBipartition b3 = new STBipartition(c1plusrem, c1plusrem.complementaryCluster());
 	
 					STBipartition[] biparts = new STBipartition[] {bmain, b2, b3};
-					nd.quads = threequads;
+					nd.quad = threequads;
 					nd.bipartitions = biparts;
 				}
 				
 			}
 		}
-		
+		try {
+			synchronized(lock) {
+				while(processCount.get() != 0) {
+					lock.wait();
+				}
+			}
+		}
+		catch(InterruptedException e) {
+			e.printStackTrace();
+		}
+		if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE WQInference 390: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
 		/**
 		 * Annotate each branch by updating its data field
 		 * according to scores and user's annotation preferences. 
@@ -465,12 +488,85 @@ public class WQInference extends AbstractInference<Tripartition> {
 				//i++;
 			} 
 		}
+		if(CommandLine.timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE WQInference 478: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			CommandLine.timer = System.nanoTime();
+		}
 		if (!nodeDataList.isEmpty())
 			throw new RuntimeException("Hmm, this shouldn't happen; "+nodeDataList);
 		
 		return ret;
 	}
-
+	public class scoreBranchesLoop implements Runnable {
+		STITreeCluster c1, c2, sister, remaining, cluster;
+		NodeData nd;
+		WQInference inference;
+		AtomicInteger processCount;
+		Object lock;
+		int[] geneTreesAsInts;
+		public scoreBranchesLoop(STITreeCluster c1, STITreeCluster c2, STITreeCluster sister, STITreeCluster remaining, STITreeCluster cluster, NodeData nd, WQInference inference, AtomicInteger processCount, Object lock, int[] geneTreesAsInts) {
+			this.c1 = c1;
+			this.c2 = c2;
+			this.sister = sister;
+			this.remaining = remaining;
+			this.cluster = cluster;
+			this.nd = nd;
+			this.inference = inference;
+			this.processCount = processCount;
+			this.lock = lock;
+			this.geneTreesAsInts = geneTreesAsInts;
+		}
+		public void run() {
+			BipartitionWeightCalculator weightCalculator2 = new BipartitionWeightCalculator(inference,geneTreesAsInts);
+			Quadrapartition quad = weightCalculator2.new Quadrapartition
+					(c1,  c2, sister, remaining);
+			if (getBranchAnnotation() == 7){
+				if (remaining.getClusterSize() != 0 && sister.getClusterSize() != 0 && c2.getClusterSize() != 0 && c1.getClusterSize() != 0 ){
+					System.err.print(c1.toString()+c2.toString()+"|"+sister.toString()+remaining.toString()+"\n");
+				}
+			}
+			
+			/**
+			 * 2. Scores all three quadripartitoins
+			 */
+			Results s = weightCalculator2.getWeight(quad);
+			nd.mainfreq = s.qs;
+			nd.effn = s.effn;
+			
+			
+			if (nd.effn < 20) {
+				if (!GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleSP(cluster.getBitSet()))
+					System.err.println("You may want to ignore posterior probabilities and other statistics related to the following "
+							+ "branch branch because the effective number of genes impacting it is only "+ nd.effn +
+						":\n\t" +
+						GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTClusterForGeneCluster(cluster));
+			}
+			
+			Quadrapartition[] threequads = new Quadrapartition [] {quad, null,null};
+			
+			quad = weightCalculator2.new Quadrapartition
+					(c1, sister, c2, remaining);
+			s = weightCalculator2.getWeight(quad);
+			nd.alt1freqs=s.qs;
+			threequads[1] = quad;
+			
+			quad = weightCalculator2.new Quadrapartition
+					(c1, remaining, c2, sister);
+			s = weightCalculator2.getWeight(quad);
+			nd.alt2freqs=s.qs;
+			threequads[2] = quad;
+		
+			nd.quartcount= (c1.getClusterSize()+0l)
+					* (c2.getClusterSize()+0l)
+					* (sister.getClusterSize()+0l)
+					* (remaining.getClusterSize()+0l);
+			nd.quads = threequads;
+			processCount.decrementAndGet();
+			synchronized(lock) {
+				lock.notify();
+			}
+		}
+	}
 
 	@Override
 	Long getTotalCost(Vertex all) {
