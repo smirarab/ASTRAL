@@ -79,7 +79,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		this.outfileName = inference.options.getOutputFile();
 	}
 
-	void addTreeBipartitionsToX(List<Tree> trees) {
+	void addTreeBipartitionsToX(final List<Tree> trees) {
 
 		Tree[] greedies = new Tree[POLYTOMY_RESOLUTIONS];
 		
