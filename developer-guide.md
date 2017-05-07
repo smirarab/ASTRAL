@@ -92,11 +92,17 @@ Classes relevant to the command-line GUI, including handling of input and output
 	* Handles bootstrapping options (to be refactored out)
 	* Handles creation of some singletons, such as taxon identifier, name maps, etc.  
 * [Options](main/phylonet/coalescent/Options.java): Saves user input options. Inference class has an instance, which is created by the CommandLine. 
+
+### Relevant to species names, individual names, etc.
+
 * [TaxonIdentifier](main/phylonet/coalescent/TaxonIdentifier.java):
  Maps taxon names to taxon IDs.  
 * [TaxonNameMap](main/phylonet/coalescent/TaxonNameMap.java):
 Maps the names in the gene trees to the names in the species tree 
 * [SpeciesMapper](main/phylonet/coalescent/SpeciesMapper.java): Maps IDs between gene trees and the species tree
+* [SingleIndividualSample.java](main/phylonet/coalescent/SingleIndividualSample.java):  This class keeps track of a single-individual sample
+ of a multi-individual dataset. For each species, 
+we will include only one of its individuals in any instance of this class. 
 * [Solution](main/phylonet/coalescent/Solution.java): Used for building and keeping the output (not important; to be removed maybe)
 * [phylonet.tree.io.NewickWriter](main/phylonet/tree/io/NewickWriter.java): simple modifications to phylonet's newick writer
 
