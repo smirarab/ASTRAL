@@ -204,7 +204,7 @@ public abstract class AbstractInferenceNoCalculations<T> extends AbstractInferen
 			}
 			sol._st = tr;
 		} else {
-			sol._st = Utils.buildTreeFromClusters(minClusters, spm.getSTTaxonIdentifier());
+			sol._st = Utils.buildTreeFromClusters(minClusters, spm.getSTTaxonIdentifier(), false);
 		}
 
 		/* HashMap<TNode,BitSet> map = new HashMap<TNode,BitSet>();
@@ -251,12 +251,12 @@ public abstract class AbstractInferenceNoCalculations<T> extends AbstractInferen
 
 		weightCalculator = newWeightCalculator();
 		weightCalculatorNoCalculations = newWeightCalculatorNoCalculations();
-		dataCollection.computeTreePartitions(this);
+		/**
+		 * Fors the set X by adding from gene trees and
+		 * by adding using ASTRAL-II hueristics
+		 */
+		dataCollection.formSetX(this);
 
-		if (this.getAddExtra() != 0) {
-		    System.err.println("calculating extra bipartitions to be added at level " + this.getAddExtra() +" ...");
-		    dataCollection.addExtraBipartitionByExtension(this);
-		}
 		
 		if (options.isExactSolution()) {
 	          System.err.println("calculating all possible bipartitions ...");
