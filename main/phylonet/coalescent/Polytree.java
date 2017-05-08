@@ -25,13 +25,10 @@ public class Polytree {
 	
 	int[] dependerID, dependeeID, dependingFactor;
 	int[] partitionMultiplicity, partitionNumClusters, partitionClusterID;
-	private int plytomyMaxSize; //TODO: Change code to take this into account. 
 	private boolean randomResolveMultiInd; //TODO: Arbitrarily resolve a polytomy when this is true
 											//       but all the children of the polytomy map to the same species. 
 	
-	public Polytree(List<Tree> trees, int plytomyMaxSize, boolean randomResolve){
-		
-		this.plytomyMaxSize = plytomyMaxSize; 
+	public Polytree(List<Tree> trees, int polytomyMaxSize, boolean randomResolve){
 		this.randomResolveMultiInd  = randomResolve;
 		
 		for (int i = 0; i < GlobalMaps.taxonIdentifier.taxonCount(); i++){
@@ -46,6 +43,7 @@ public class Polytree {
 		}
 		for (Entry<AbstractPartition, Integer> entry : partitionCount.entrySet()){
 			STITreeCluster[] cs = entry.getKey().getClusters();
+			if (cs.length > polytomyMaxSize) continue;
 			aPartitionMultiplicity.add(entry.getValue());
 			aPartitionNumClusters.add(cs.length);
 			for (STITreeCluster c: cs){
