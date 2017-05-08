@@ -229,9 +229,17 @@ public class CommandLine {
         }
         
         File outfile = config.getFile("output file");  
+        String freqPath = null;
         if (outfile == null) {
             outbuffer = new BufferedWriter(new OutputStreamWriter(System.out));
+            if (config.getInt("branch annotation level") == 16) {
+            	File extraTreeFile = config.getFile("extra species trees");
+            	freqPath = extraTreeFile.getAbsoluteFile().getParentFile().getAbsolutePath();
+            }
         } else {
+        	if (config.getInt("branch annotation level") == 16) {
+        		freqPath = outfile.getAbsoluteFile().getParentFile().getAbsolutePath();
+        	}
             outbuffer = new BufferedWriter(new FileWriter(outfile));
 			outfileName = config.getFile("output file") == null? 
 					null: config.getFile("output file").getCanonicalPath();
@@ -361,7 +369,7 @@ public class CommandLine {
         }
         
         Options options = newOptions(criterion, rooted, extrarooted, 
-        		1.0D, 1.0D, wh, keepOptions, config, outfileName);
+        		1.0D, 1.0D, wh, keepOptions, config, outfileName, freqPath);
         
         /*Options bsoptions = newOptions(criterion, rooted, extrarooted, 
         		1.0D, 1.0D, wh, keepOptions, config);
@@ -641,7 +649,7 @@ public class CommandLine {
     static private Options newOptions(int criterion, boolean rooted,
             boolean extrarooted, 
             double cs, double cd, double wh, 
-            Set<String> keepOptions, JSAPResult config, String outfileName) {
+            Set<String> keepOptions, JSAPResult config, String outfileName, String freqPath) {
     	Options options = new Options(
     			rooted, extrarooted, 
     			config.getBoolean("exact"), 
@@ -652,7 +660,7 @@ public class CommandLine {
     			!keepOptions.contains("searchspace_norun"),
     			config.getInt("branch annotation level"), 
     			config.getDouble("lambda"),
-    			outfileName);
+    			outfileName, freqPath);
     	options.setDLbdWeigth(wh); 
     	options.setCS(cs);
     	options.setCD(cd);
