@@ -1,4 +1,10 @@
 package phylonet.coalescent;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -234,7 +240,18 @@ public class WQInference extends AbstractInference<Tripartition> {
 		 * Add bitsets to each node for all taxa under it. 
 		 * Bitsets are saved in nodes "data" field
 		 */
+		Path freqWriter = null;
+		Path Rscript = null;
+		List<String> freqWriterLines = new ArrayList<String>();
+		List<String> RscriptLines = new ArrayList<String>();;
+		if (this.getBranchAnnotation() == 16) {
+			String freqOutputPath = this.options.getFreqOutputPath();
+			freqWriter = Paths.get(freqOutputPath + "/freqQuad.csv");
+			Rscript = Paths.get(freqOutputPath + "/freqQuadVisualization.R");
+		}
+		
 		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
+		int numNodes = 0;
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
 			if (node.isLeaf()) {
@@ -262,6 +279,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 				//((STINode)node).setData(new GeneTreeBitset(node.isRoot()? -2: -1));
 				stack.add(cluster);
 				node.setData(cluster);
+				String ndName = "N" + Integer.toString(numNodes);
+				numNodes += 1;
+				node.setName(ndName);
 			}
 		}
 		stack = new Stack<STITreeCluster>();
@@ -359,7 +379,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 						* (remaining.getClusterSize()+0l);
 
 					
-				if (this.getBranchAnnotation() == 6) {
+				if (this.getBranchAnnotation() == 6 || this.getBranchAnnotation() == 16) {
 					STITreeCluster c1plussis = new STITreeCluster();
 					c1plussis.setCluster((BitSet) c1.getBitSet().clone());
 					c1plussis.getBitSet().or(sister.getBitSet());
@@ -427,6 +447,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 				if (this.getBranchAnnotation() == 3 || this.getBranchAnnotation() == 12) {
 					node.setData(df.format(postQ1));
 				} else if (this.getBranchAnnotation() % 2 == 0) {
+					
 					post = new Posterior(f2,f1,f3,(double)effni, options.getLambda());
 					double postQ2 = post.getPost();
 					post =  new Posterior(f3,f1,f2,(double)effni, options.getLambda());
@@ -458,6 +479,27 @@ public class WQInference extends AbstractInference<Tripartition> {
 								"'[q1="+df.format((f1)/effni)+
 								 ";q2="+df.format((f2)/effni)+
 								 ";q3="+df.format((f3)/effni)+"]'");
+					} else if (this.getBranchAnnotation() == 16) {
+						node.setData(df.format(postQ1));
+						Quadrapartition[] threequads = nd.quads;
+						STBipartition[] biparts = nd.bipartitions;
+						
+						String lineTmp = node.getName() + "\t" + "t1" + "\t" + biparts[0].toString() + "\t" + 
+										 Double.toString(postQ1) + "\t" + Double.toString(f1) +
+										 "\t" + Double.toString(effni);
+						
+						freqWriterLines.add(lineTmp);
+						
+						lineTmp = node.getName() + "\t" + "t2" + "\t" + biparts[1].toString() + "\t" + 
+								  Double.toString(postQ2) + "\t" + Double.toString(f2) + 
+								  "\t" + Double.toString(effni);
+						
+						freqWriterLines.add(lineTmp);
+						
+						lineTmp = node.getName() + "\t" + "t3" + "\t" + biparts[2].toString() + "\t" +
+								  Double.toString(postQ3) + "\t" + Double.toString(f3) +
+								  "\t" + Double.toString(effni);
+						freqWriterLines.add(lineTmp);
 					}
 				}
 				//i++;
@@ -465,7 +507,39 @@ public class WQInference extends AbstractInference<Tripartition> {
 		}
 		if (!nodeDataList.isEmpty())
 			throw new RuntimeException("Hmm, this shouldn't happen; "+nodeDataList);
-		
+		if (this.getBranchAnnotation() == 16) {
+			try {
+				RscriptLines.add("#!/usr/bin/env Rscript");
+				RscriptLines.add("require(reshape2);require(ggplot2); sizes <- c(7.67,6.65); colormap='Set2'");
+				RscriptLines.add("dirPath = '"+options.getFreqOutputPath()+"'; filePath = paste(dirPath"
+						+ ",'/freqQuad.csv',sep=''); md<-read.csv(filePath,header=F,sep='\\t'); md$value = md$V5/md$V6;");
+				RscriptLines.add("ggplot(data=md)+aes(x=V2,y=value,fill=V2)+"
+						+ "geom_bar(stat='identity',color=1,width=0.8,position='dodge')+"
+						+ "theme_bw()+theme(axis.text.x=element_text(angle=90))+scale_fill_brewer"
+						+ "(palette=colormap,name='Topology')+geom_hline(yintercept=1/3,size=0.4,linetype=2)+"
+						+ "ylab('quartet score')+facet_wrap(~V1,scales='free_x')+scale_x_discrete(breaks=c())+"
+						+ "xlab('Topology')");
+				RscriptLines.add("pdfFile = paste(dirPath,'/relativeFreq.pdf',sep=''); ggsave(pdfFile,width = sizes[1], height= sizes[2]);");
+				RscriptLines.add("ggplot(data=md)+aes(x=V2,y=V4,fill=V2)+"
+						+ "geom_bar(stat='identity',color=1,position='dodge')+"
+						+ "theme_bw()+theme(axis.text.x=element_text(angle=90))+scale_fill_brewer"
+						+ "(palette=colormap,name='Topology')+geom_hline(yintercept=1/3,size=0.4,linetype=2)+"
+						+ "ylab('quartet score')+facet_wrap(~V1,scales='free_x')+scale_x_discrete(breaks=c())+"
+						+ "xlab('Topology')");
+				RscriptLines.add("pdfFile = paste(dirPath, '/quartetScore.pdf',sep=''); ggsave(pdfFile,width = sizes[1], height= sizes[2]);");
+				RscriptLines.add("ggplot(data=md)+aes(x=V2,y=V5,fill=V2)+"
+						+ "geom_bar(stat='identity',color=1,position='dodge')+"
+						+ "theme_bw()+theme(axis.text.x=element_text(angle=90))+scale_fill_brewer"
+						+ "(palette=colormap,name='Topology')+geom_hline(aes(yintercept=V6/3),size=0.4,linetype=2)+"
+						+ "ylab('quartet score')+facet_wrap(~V1,scales='free_x')+scale_x_discrete(breaks=c())+"
+						+ "xlab('Topology')");
+				RscriptLines.add("pdfFile = paste(dirPath, '/countTopology.pdf',sep=''); ggsave(pdfFile,width = sizes[1], height= sizes[2]);");
+				Files.write(freqWriter, freqWriterLines, Charset.forName("UTF-8"));
+				Files.write(Rscript, RscriptLines, Charset.forName("UTF-8"));
+			} catch (IOException e) {
+				throw new RuntimeException("Hmm, the Rscript and frequency of Quadripartition files cannot be created!");
+			}
+		}
 		return ret;
 	}
 
