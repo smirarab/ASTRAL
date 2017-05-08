@@ -36,8 +36,8 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		super(false);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
 		this.inference = (WQInference) inference;
-		//this.algorithm = new TraversalWeightCalculator();
 		this.setPolytomies(polytomies);
+		//this.algorithm = new TraversalWeightCalculator();
 		this.algorithm = new CondensedTraversalWeightCalculator();
 		tmpalgorithm = new TraversalWeightCalculator();
 		//tmpalgorithm.setupGeneTrees((WQInference) inference);
@@ -447,8 +447,11 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	 * @param wqInference
 	 */
 	public void setupGeneTrees(WQInference wqInference, boolean randomResolve) {
-		this.algorithm.setupGeneTrees(wqInference,randomResolve);
-		tmpalgorithm.setupGeneTrees(wqInference,randomResolve);
+		// TODO: change it back after testing
+		this.algorithm.setupGeneTrees(wqInference,false);
+		tmpalgorithm.setupGeneTrees(wqInference,false);
+		//this.algorithm.setupGeneTrees(wqInference,randomResolve);
+		//tmpalgorithm.setupGeneTrees(wqInference,randomResolve);
 	}
 
 	// TODO: this is algorithm-specific should not be exposed. Fix.
