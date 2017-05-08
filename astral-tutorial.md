@@ -168,7 +168,7 @@ Here is a description of various information that can be turned on by using `-t`
 
 
 * *no annotations* (`-t 0`): If you hate our posteriors and cannot stand seeing them, you can use this option turn them off. If our calculations are causing numerical errors you can use this to at least get the topology.  
-* *Quartet support* (`-t 1`): The local posterior probabilities are computed based on the percentage of quartets in gene trees that agree or disagree with a branch. If you want to know what percentage of quartets in your gene trees agree with a branch, use this option. We refer to this measure as the quartet support. 
+* *Quartet support* (`-t 1`): The local posterior probabilities are computed based on a transforation of the percentage of quartets in gene trees that agree or disagree with a branch. See Figure 2 of our MBE paper referenced above for the relationship. If you want to know what percentage of quartets in your gene trees agree with a branch, use this option. We refer to this measure as the quartet support.  Quartet score is a good way of measuring the amount of gene tree conflict around a branch.  
 * *Alternative posteriors* (`-t 4`): When this option is used, ASTRAL outputs three local posterior probabilities: one for the main topology, and one for each of the two alternatives (`RS|LO` and `RO|LS`, in that order). The posterior of the three topologies adds up to one. This is because of our locality assumption, which basically asserts that we assume the four groups around the branch (`L`, `R`, `S`, and  `O`) are each correct and therefore, there are only three possible alternatives. 
 * *Full annotation* (`-t 2`): When you use this option, for each branch you get a lot of different measurements:
    * `q1`,`q2`,`q3`: these three values show quartet support (as defined in the description of `-t 1`) for the main topology, the first alternative, and the second alternative, respectively. 
@@ -251,10 +251,8 @@ java -jar ../astral.4.10.12.jar -i song_mammals.424.gene.tre --gene-only
 
 Finally, since bootstrapping involves a random process, a seed number can be provided to ASTRAL to ensure reproducibility. The seed number can be set using the `-s` option (by default 692 is used). 
 
-**Output:** 
-ASTRAL first performs the bootstrapping, and for each replicate, it outputs the bootstrapped ASTRAL tree. So, if the number of replicates is set to 100, it outputs 100 trees. Then, it outputs a greedy consensus of all the 100 bootstrapped trees (with support drawn on branches). Finally, it performs the main analysis (i.e. on trees provided using `-i` option) and draws branch support on this main tree using the bootstrap replicates. Therefore, the tree outputted at the end is the ASTRAL tree on main input trees, with support values drawn based on bootstrap replicates. Support values are shown as branch length (i.e. after a colon sign) and
-are percentages. 
-
+#### Output:
+As ASTRAL performs bootstrapping, it outputs the bootstrapped ASTRAL tree for each replicate. So, if the number of replicates is set to 100, it first outputs 100 trees. Then, it outputs a greedy consensus of all the 100 bootstrapped trees (with support drawn on branches). Finally, it performs the main analysis (i.e. on trees provided using `-i` option) and draws branch support on this main tree using the bootstrap replicates. Therefore, in this example, the output file will include 102 trees. The most important tree is the tree outputted at the end; this is the ASTRAL tree on main input trees, with support values drawn based on bootstrap replicates. Support values are shown as branch length (i.e. after a colon sign) and are percentages (as opposed to local posterior probabilities that when present are shown as a number between 0 and 1). 
 
 
 

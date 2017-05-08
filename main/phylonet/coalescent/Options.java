@@ -13,16 +13,16 @@ public class Options {
 	private int branchannotation; 
 	private double lambda;
 	private String outputFile;
-	
+	private String freqOutputPath;
+
 	//OLD parameters
 	private double DLbdWeigth;
 	private double CS;
 	private double CD;
-
 	public Options(boolean rooted, boolean extrarooted, 
 			boolean exactSolution, boolean duploss, int alg, int addExtra,
 			boolean outputCompletedGenes, boolean outSearch, boolean run,
-			int branchannotation, double lambda, String outputFile) {
+			int branchannotation, double lambda, String outputFile, String freqOutputPath) {
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
 		this.exactSolution = exactSolution;
@@ -35,6 +35,7 @@ public class Options {
 		this.branchannotation = branchannotation;
 		this.setLambda(lambda);
 		this.setOutputFile(outputFile);
+		this.freqOutputPath = freqOutputPath;
 	}
 
 	public boolean isRooted() {
@@ -157,5 +158,13 @@ public class Options {
 
 	public void setOutputFile(String outputFile) {
 		this.outputFile = outputFile;
+	}
+	
+	public String getFreqOutputPath() {
+		return freqOutputPath;
+	}
+	
+	public void setFreqOutputPath(String freqOutputPath) {
+		this.freqOutputPath = freqOutputPath;
 	}
 }
