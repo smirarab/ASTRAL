@@ -28,9 +28,7 @@ public class Polytree {
 	private boolean randomResolveMultiInd; //TODO: Arbitrarily resolve a polytomy when this is true
 											//       but all the children of the polytomy map to the same species. 
 	
-	public Polytree(List<Tree> trees, int polytomyMaxSize, boolean randomResolve){
-		this.randomResolveMultiInd  = randomResolve;
-		
+	public Polytree(List<Tree> trees, int polytomyMaxSize, boolean randomResolve){	
 		for (int i = 0; i < GlobalMaps.taxonIdentifier.taxonCount(); i++){
 			STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
 			c.getBitSet().set(i);
@@ -43,32 +41,32 @@ public class Polytree {
 		}
 		for (Entry<AbstractPartition, Integer> entry : partitionCount.entrySet()){
 			STITreeCluster[] cs = entry.getKey().getClusters();
-			if (cs.length > polytomyMaxSize) continue;
+			if (polytomyMaxSize != 0 && cs.length > polytomyMaxSize) continue;
 			aPartitionMultiplicity.add(entry.getValue());
 			aPartitionNumClusters.add(cs.length);
 			for (STITreeCluster c: cs){
 				aPartitionClusterID.add(clusterID.get(c));
 			}
 		}
-		mapToInt(dependerID, aDependerID);
-		mapToInt(dependeeID, aDependeeID);
-		
-		mapToInt(dependingFactor, aDependingFactor);
+		dependerID = mapToInt(aDependerID);
+		dependeeID = mapToInt(aDependeeID);	
+		dependingFactor = mapToInt(aDependingFactor);
 		aDependerID = null;
 		aDependeeID = null;
 		aDependingFactor = null;
-		mapToInt(partitionMultiplicity , aPartitionMultiplicity);
-		mapToInt(partitionNumClusters , aPartitionNumClusters);
-		mapToInt(partitionClusterID , aPartitionClusterID);
+		partitionMultiplicity = mapToInt(aPartitionMultiplicity);
+		partitionNumClusters = mapToInt(aPartitionNumClusters);
+		partitionClusterID = mapToInt(aPartitionClusterID);
 		aPartitionMultiplicity = null;
 		aPartitionNumClusters = null;
 		aPartitionClusterID = null;
 	}
 	
-	private void mapToInt(int [] ret, List<Integer> list) {
-		ret = new int [list.size()]; 
-		for (int i = 0; i < ret.length; i++ )
+	private int[] mapToInt(List<Integer> list) {
+		int[] ret = new int [list.size()]; 
+		for (int i = 0; i < ret.length; i++)
 			ret[i] = list.get(i);
+		return ret;
 	}
 	
 	private STITreeCluster addSubtreeClusters(TNode node, STITreeCluster s){
@@ -144,6 +142,8 @@ public class Polytree {
 	public Long WQWeightByTraversal(Tripartition trip, CondensedTraversalWeightCalculator algorithm){
 		int[][] overlap = new int[clusterID.size()][3];
 		long weight = 0;
+		long[] sx = new long[3], sxy = new long[3];
+		int[] q;
 		for (int i = 0; i < GlobalMaps.taxonIdentifier.taxonCount(); i++){
 			overlap[i][0] = trip.cluster1.getBitSet().get(i) ? 1 : 0;
 			overlap[i][1] = trip.cluster2.getBitSet().get(i) ? 1 : 0;
@@ -160,51 +160,32 @@ public class Polytree {
 						* partitionMultiplicity[i];
 			}
 			else{
+				long tempWeight = 0;
+				sx[0] = 0;
+				sx[1] = 0;
+				sx[2] = 0;
+				sxy[0] = 0;
+				sxy[1] = 0;
+				sxy[2] = 0;
 				for (int p = j; p < j + partitionNumClusters[i]; p++){
-					for (int q = p + 1; q < j + partitionNumClusters[i]; q++){
-						for (int r = p + 1; r < j + partitionNumClusters[i]; r++){
-							weight += algorithm.F(overlap[partitionClusterID[p]], overlap[partitionClusterID[q]], overlap[partitionClusterID[r]])
-									* partitionMultiplicity[i];
-						}
-					}
+					q = overlap[partitionClusterID[p]];
+					sx[0] += q[0];
+					sx[1] += q[1];
+					sx[2] += q[2];
+					sxy[0] += q[1] * q[2];
+					sxy[1] += q[2] * q[0];
+					sxy[2] += q[0] * q[1];
 				}
+				for (int p = j; p < j + partitionNumClusters[i]; p++){
+					q = overlap[partitionClusterID[p]];
+					tempWeight += ((sx[1] - q[1]) * (sx[2] - q[2]) - sxy[0] + q[1] * q[2]) * q[0] * (q[0] - 1L)
+						+ ((sx[2] - q[2]) * (sx[0] - q[0]) - sxy[1] + q[2] * q[0]) * q[1] * (q[1] - 1L)
+						+ ((sx[0] - q[0]) * (sx[1] - q[1]) - sxy[2] + q[0] * q[1]) * q[2] * (q[2] - 1L);
+				}
+				weight += tempWeight * partitionMultiplicity[i];
 			}
 			j += partitionNumClusters[i];
 		}
-		
-		/*
-			// The following case is relevant only for polytomies.
-
-			int [] nzc = {0,0,0};
-			int [] newSides = {0,0,0};
-			for (int side = 0; side < 3; side++) {
-				for (int i = top - 1; i >= top + gtb; i--) {
-					if (stack[i][side] > 0) {
-						newSides[side] += stack[i][side];
-						overlap[nzc[side]][side] = stack[i][side]; 
-						overlapind[nzc[side]++][side] = i;
-					}
-				}
-				stack[top][side] = allsides[side] - newSides[side];
-
-				if (stack[top][side] > 0) {
-					overlap[nzc[side]][side] = stack[top][side]; 
-					overlapind[nzc[side]++][side] = top;
-				}
-				stack[top + gtb][side] = newSides[side];
-			}
-
-			for (int i = nzc[0] - 1; i >= 0; i--) {
-				for (int j = nzc[1] - 1; j >= 0; j--) {
-					if (overlapind[i][0] != overlapind[j][1])
-						for (int k = nzc[2] - 1; k >= 0; k--) {
-							if ((overlapind[i][0] != overlapind[k][2]) &&
-								(overlapind[j][1] != overlapind[k][2]))
-								weight += F(overlap[i][0], overlap[j][1], overlap[k][2]);
-						}
-				}
-			}
-		*/
 		return weight;
 	}
 }
