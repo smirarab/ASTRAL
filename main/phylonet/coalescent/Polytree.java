@@ -173,14 +173,14 @@ public class Polytree {
 			from = overlap[dependeeID[i]];
 			to = overlap[dependerID[i]];
 			if (dependingFactor[i] == 1){
-				from[0] += to[0];
-				from[1] += to[1];
-				from[2] += to[2];
+				to[0] += from[0];
+				to[1] += from[1];
+				to[2] += from[2];
 			}
 			else {
-				from[0] -= to[0];
-				from[1] -= to[1];
-				from[2] -= to[2];
+				to[0] -= from[0];
+				to[1] -= from[1];
+				to[2] -= from[2];
 			}
 		}
 		time2 += System.nanoTime() - t;
