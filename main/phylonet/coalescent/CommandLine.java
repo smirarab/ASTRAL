@@ -404,7 +404,9 @@ public class CommandLine {
 					outgroup);
         }
         // TODO: debug info
-        System.err.println("Weight calculation took "  +  Polytree.time / 1000000000.0D + " secs");
+        System.err.println("Weight calculation took " + Polytree.time / 1000000000.0D
+        		+ " secs; in which part 1 took " + Polytree.time1 / 1000000000.0D
+        		+ " secs and part 2 took " + (Polytree.time2 - Polytree.time1) / 1000000000.0D + " secs");
         
 	    System.err.println("ASTRAL finished in "  + 
 	            (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
