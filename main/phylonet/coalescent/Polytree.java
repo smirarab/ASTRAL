@@ -11,6 +11,7 @@ import phylonet.coalescent.WQWeightCalculator.CondensedTraversalWeightCalculator
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
+import phylonet.util.BitSet;
 
 public class Polytree {
 	static long time = 0;
@@ -29,6 +30,8 @@ public class Polytree {
 	private boolean randomResolveMultiInd; //TODO: Arbitrarily resolve a polytomy when this is true
 											//       but all the children of the polytomy map to the same species. 
 	
+	int[][] overlap;
+
 	public Polytree(List<Tree> trees, int polytomyMaxSize, boolean randomResolve){	
 		for (int i = 0; i < GlobalMaps.taxonIdentifier.taxonCount(); i++){
 			STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
@@ -61,6 +64,7 @@ public class Polytree {
 		aPartitionMultiplicity = null;
 		aPartitionNumClusters = null;
 		aPartitionClusterID = null;
+		overlap = new int[clusterID.size()][3];
 	}
 	
 	private int[] mapToInt(List<Integer> list) {
@@ -142,21 +146,26 @@ public class Polytree {
 	
 	public Long WQWeightByTraversal(Tripartition trip, CondensedTraversalWeightCalculator algorithm){
 		long t = System.nanoTime();
-		int[][] overlap = new int[clusterID.size()][3];
 		long weight = 0;
 		long[] sx = new long[3], sxy = new long[3];
 		int[] q;
-		for (int i = 0; i < GlobalMaps.taxonIdentifier.taxonCount(); i++){
-			overlap[i][0] = trip.cluster1.getBitSet().get(i) ? 1 : 0;
-			overlap[i][1] = trip.cluster2.getBitSet().get(i) ? 1 : 0;
-			overlap[i][2] = trip.cluster3.getBitSet().get(i) ? 1 : 0;
+		BitSet[] b = new BitSet[]{trip.cluster1.getBitSet(), trip.cluster2.getBitSet(), trip.cluster3.getBitSet()};
+		for (int i = 0, i_end = GlobalMaps.taxonIdentifier.taxonCount(); i < i_end; i++){
+			overlap[i][0] = b[0].get(i) ? 1 : 0;
+			overlap[i][1] = b[1].get(i) ? 1 : 0;
+			overlap[i][2] = b[2].get(i) ? 1 : 0;
 		}
-		for (int i = 0; i < dependerID.length; i++){
+		for (int i = GlobalMaps.taxonIdentifier.taxonCount(), i_end = overlap.length; i < i_end; i++){
+			overlap[i][0] = 0;
+			overlap[i][1] = 0;
+			overlap[i][2] = 0;
+		}
+		for (int i = 0, i_end = dependerID.length; i < i_end; i++){
 			overlap[dependerID[i]][0] += overlap[dependeeID[i]][0] * dependingFactor[i];
 			overlap[dependerID[i]][1] += overlap[dependeeID[i]][1] * dependingFactor[i];
 			overlap[dependerID[i]][2] += overlap[dependeeID[i]][2] * dependingFactor[i];
 		}
-		for (int i = 0, j = 0; i < partitionMultiplicity.length; i++){
+		for (int i = 0, j = 0, i_end = partitionMultiplicity.length; i < i_end; i++){
 			if (partitionNumClusters[i] == 3){
 				weight += algorithm.F(overlap[partitionClusterID[j]], overlap[partitionClusterID[j + 1]], overlap[partitionClusterID[j + 2]])
 						* partitionMultiplicity[i];
@@ -169,7 +178,7 @@ public class Polytree {
 				sxy[0] = 0;
 				sxy[1] = 0;
 				sxy[2] = 0;
-				for (int p = j; p < j + partitionNumClusters[i]; p++){
+				for (int p = j, p_end = j + partitionNumClusters[i]; p < p_end; p++){
 					q = overlap[partitionClusterID[p]];
 					sx[0] += q[0];
 					sx[1] += q[1];
@@ -178,7 +187,7 @@ public class Polytree {
 					sxy[1] += q[2] * q[0];
 					sxy[2] += q[0] * q[1];
 				}
-				for (int p = j; p < j + partitionNumClusters[i]; p++){
+				for (int p = j, p_end = j + partitionNumClusters[i]; p < p_end; p++){
 					q = overlap[partitionClusterID[p]];
 					tempWeight += ((sx[1] - q[1]) * (sx[2] - q[2]) - sxy[0] + q[1] * q[2]) * q[0] * (q[0] - 1L)
 						+ ((sx[2] - q[2]) * (sx[0] - q[0]) - sxy[1] + q[2] * q[0]) * q[1] * (q[1] - 1L)
