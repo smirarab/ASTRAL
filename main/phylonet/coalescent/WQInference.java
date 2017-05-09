@@ -403,7 +403,6 @@ public class WQInference extends AbstractInference<Tripartition> {
 					STBipartition b3 = new STBipartition(c1plusrem, c1plusrem.complementaryCluster());
 	
 					STBipartition[] biparts = new STBipartition[] {bmain, b2, b3};
-					nd.quad = threequads;
 					nd.bipartitions = biparts;
 				}
 				
