@@ -683,9 +683,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 					e.printStackTrace();
 				}
 
-				System.err.println("Number of clusters added from gene tree "
-						+ j + " in round" + ii + " "
-						+ clusters.getClusterCount());
+				//System.err.println("Number of clusters added from gene tree "
+				//		+ j + " in round" + ii + " "
+				//		+ clusters.getClusterCount());
 			}
 			System.err.println("------------------------------");
 			gradiant = clusters.getClusterCount() - prev;
