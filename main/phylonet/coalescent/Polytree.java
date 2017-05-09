@@ -13,6 +13,8 @@ import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 
 public class Polytree {
+	static long time = 0;
+	
 	HashMap<STITreeCluster, Integer> clusterID = new HashMap<STITreeCluster, Integer>();
 	ArrayList<Integer> aDependerID = new ArrayList<Integer>();
 	ArrayList<Integer> aDependeeID = new ArrayList<Integer>();
@@ -139,6 +141,7 @@ public class Polytree {
 	}
 	
 	public Long WQWeightByTraversal(Tripartition trip, CondensedTraversalWeightCalculator algorithm){
+		long t = System.nanoTime();
 		int[][] overlap = new int[clusterID.size()][3];
 		long weight = 0;
 		long[] sx = new long[3], sxy = new long[3];
@@ -185,6 +188,7 @@ public class Polytree {
 			}
 			j += partitionNumClusters[i];
 		}
+		time += System.nanoTime() - t;
 		return weight;
 	}
 }
