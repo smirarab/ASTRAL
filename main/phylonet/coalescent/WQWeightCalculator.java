@@ -56,9 +56,9 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		
 		long F(int[] x, int[] y, int[] z){
 			long a = x[0], b = x[1], c = x[2], d = y[0], e = y[1], f = y[2], g = z[0], h = z[1], i = z[2];
-			return (a + e + i - 3) * a * e * i + (a + f + h - 3) * a * f * h
-				 + (b + d + i - 3) * b * d * i + (b + f + g - 3) * b * f * g
-				 + (c + d + h - 3) * c * d * h + (c + e + g - 3) * c * e * g;
+			return a * ( (a + e + i - 3)  * e * i + (a + f + h - 3)  * f * h )
+				 + b * ((b + d + i - 3)  * d * i + (b + f + g - 3)  * f * g )
+				 + c * ((c + d + h - 3)  * d * h + (c + e + g - 3)  * e * g );
 		}
 
 		abstract Long calculateWeight(Tripartition trip);
