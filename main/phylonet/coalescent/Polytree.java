@@ -13,7 +13,6 @@ import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 
 public class Polytree {
-	
 	HashMap<STITreeCluster, Integer> clusterID = new HashMap<STITreeCluster, Integer>();
 	ArrayList<Integer> aDependerID = new ArrayList<Integer>();
 	ArrayList<Integer> aDependeeID = new ArrayList<Integer>();
