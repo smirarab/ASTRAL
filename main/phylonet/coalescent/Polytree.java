@@ -14,7 +14,14 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.util.BitSet;
 
 public class Polytree {
-	static long time = 0;
+	static long time = 0, time1 = 0, time2 = 0;
+	
+	static long F(int[] x, int[] y, int[] z){
+		long a = x[0], b = x[1], c = x[2], d = y[0], e = y[1], f = y[2], g = z[0], h = z[1], i = z[2];
+		return a * ( (a + e + i - 3)  * e * i + (a + f + h - 3)  * f * h )
+			 + b * ((b + d + i - 3)  * d * i + (b + f + g - 3)  * f * g )
+			 + c * ((c + d + h - 3)  * d * h + (c + e + g - 3)  * e * g );
+	}
 	
 	HashMap<STITreeCluster, Integer> clusterID = new HashMap<STITreeCluster, Integer>();
 	ArrayList<Integer> aDependerID = new ArrayList<Integer>();
@@ -149,6 +156,7 @@ public class Polytree {
 		long weight = 0;
 		long[] sx = new long[3], sxy = new long[3];
 		int[] q;
+		int[] from, to;
 		BitSet[] b = new BitSet[]{trip.cluster1.getBitSet(), trip.cluster2.getBitSet(), trip.cluster3.getBitSet()};
 		for (int i = 0, i_end = GlobalMaps.taxonIdentifier.taxonCount(); i < i_end; i++){
 			overlap[i][0] = b[0].get(i) ? 1 : 0;
@@ -160,14 +168,25 @@ public class Polytree {
 			overlap[i][1] = 0;
 			overlap[i][2] = 0;
 		}
+		time1 += System.nanoTime() - t;
 		for (int i = 0, i_end = dependerID.length; i < i_end; i++){
-			overlap[dependerID[i]][0] += overlap[dependeeID[i]][0] * dependingFactor[i];
-			overlap[dependerID[i]][1] += overlap[dependeeID[i]][1] * dependingFactor[i];
-			overlap[dependerID[i]][2] += overlap[dependeeID[i]][2] * dependingFactor[i];
+			from = overlap[dependeeID[i]];
+			to = overlap[dependerID[i]];
+			if (dependingFactor[i] == 1){
+				from[0] += to[0];
+				from[1] += to[1];
+				from[2] += to[2];
+			}
+			else {
+				from[0] -= to[0];
+				from[1] -= to[1];
+				from[2] -= to[2];
+			}
 		}
+		time2 += System.nanoTime() - t;
 		for (int i = 0, j = 0, i_end = partitionMultiplicity.length; i < i_end; i++){
 			if (partitionNumClusters[i] == 3){
-				weight += algorithm.F(overlap[partitionClusterID[j]], overlap[partitionClusterID[j + 1]], overlap[partitionClusterID[j + 2]])
+				weight += F(overlap[partitionClusterID[j]], overlap[partitionClusterID[j + 1]], overlap[partitionClusterID[j + 2]])
 						* partitionMultiplicity[i];
 			}
 			else{
