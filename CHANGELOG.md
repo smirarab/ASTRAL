@@ -1,3 +1,6 @@
+- version 5.1.0:
+        - Merge polytree and multiind
+
 - version 5.0.3:
 	- Bug fix: 5.0.2 has created a bug, which is fixed
 	- Error messages changed to emphasize that quartet score for multi individuals needs adjustment and the first value printed is just for internal use
