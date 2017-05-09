@@ -403,7 +403,8 @@ public class CommandLine {
 					minleaves, outbuffer, keepOptions, outfile, options,
 					outgroup);
         }
-		
+        System.err.println("Weight calculation took "  +  Polytree.time / 1000000000.0D + " secs");
+        
 	    System.err.println("ASTRAL finished in "  + 
 	            (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 	}
