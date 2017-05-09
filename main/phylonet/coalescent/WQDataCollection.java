@@ -36,9 +36,7 @@ import phylonet.util.BitSet;
 public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		implements Cloneable {
 
-	
 
-	
 
 	/**
 	 * A list that includes the cluster associated with the set of all taxa
@@ -395,7 +393,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	public void addExtraBipartitionsByInput(List<Tree> extraTrees,
 			boolean extraTreeRooted) {
 
-		List<Tree> completedExtraGeeneTrees = new ArrayList<Tree>();
+		//List<Tree> completedExtraGeeneTrees = new ArrayList<Tree>();
 		for (Tree tr : extraTrees) {
 			String[] gtLeaves = tr.getLeaves();
 			STITreeCluster gtAll = GlobalMaps.taxonIdentifier.newCluster();
@@ -566,68 +564,84 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		 * This is where we randomly sample one individual per species before
 		 * performing the next steps in construction of the set X.
 		 */
-		int firstRoundSampling = 400;
-		double sampling = GlobalMaps.taxonNameMap.getSpeciesIdMapper().meanSampling();
+		//int firstRoundSampling = 400;
 		//int secondRoundSampling = (int) Math.ceil(Math.log(2*sampling)/Math.log(2));
-		int secondRoundSampling = getSamplingRepeationFactor(inference.options.getSamplingrounds());;
-		System.err.println("In the first round of  sampling "
-				+ firstRoundSampling + " samples will be taken");
+		int secondRoundSampling = getSamplingRepeationFactor(inference.options.getSamplingrounds());
 
 		ArrayList<SingleIndividualSample> firstRoundSamples = new ArrayList<SingleIndividualSample>();
-		int K =100;
+		int K = 100;
 		STITreeCluster all = GlobalMaps.taxonIdentifier.newCluster();
 		all.getBitSet().set(0, GlobalMaps.taxonIdentifier.taxonCount());
 		addToClusters(all, GlobalMaps.taxonIdentifier.taxonCount());
-		
-		/*
-		 * instantiate k random samples
-		 */
-		for (int r = 0; r < secondRoundSampling*K; r++) {
 
-			System.err.println("------------\n" + "sample " + (r+1)
-					+ " of individual  sampling ...");
-			SingleIndividualSample taxonSample = new SingleIndividualSample(
-					spm, this.similarityMatrix);
-			firstRoundSamples.add(taxonSample);
 
-		}
-
+		int arraySize = this.completedGeeneTrees.size();
+		List<Tree> [] allGreedies = new List [arraySize];
 		
 		int prev = 0, firstgradiant = -1, gradiant = 0;
-		int arraySize = this.completedGeeneTrees.size();
-		List<List<Tree>> allGreedies = new ArrayList<List<Tree>>(arraySize);
 
-		int i = 1;
-		System.err.println("In second round sampling "+secondRoundSampling+" rounds will be done");
-		for (Tree gt : this.completedGeeneTrees) {
-			System.err.println("gene tree number " + i + " is processing..");
-			ArrayList<Tree> firstRoundSampleTrees = new ArrayList<Tree>();
-
-			for (SingleIndividualSample sample : firstRoundSamples) {
-
-				Tree contractedTree = sample.contractTree(gt);
-				contractedTree.rerootTreeAtEdge(GlobalMaps.taxonNameMap.getSpeciesIdMapper()
-				.getSTTaxonIdentifier().getTaxonName(0));
-				Trees.removeBinaryNodes((MutableTree)contractedTree);
-				// returns a tree with species label
-				firstRoundSampleTrees.add(contractedTree);
-			}
-
-			ArrayList<Tree> greedies = new ArrayList<Tree>();
-			for (int r = 0; r < secondRoundSampling; r++) {
-				List<Tree> sample;
+		if (GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleIndividual()) {
+			int gtindex = 0;
+			for (Tree gt : this.completedGeeneTrees) {
+				ArrayList<Tree> tmp = new ArrayList<Tree>();
+				STITree gtrelabelled = new STITree( gt);
+				GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) gtrelabelled);
+				tmp.add(gtrelabelled);
+				allGreedies[gtindex++] = tmp;
 				
-				//Collections.shuffle(firstRoundSampleTrees, GlobalMaps.random);
-				sample = firstRoundSampleTrees.subList(r*K, K*r+99);			
-				greedies.add(Utils.greedyConsensus(sample, false,
-						GlobalMaps.taxonNameMap.getSpeciesIdMapper()
-								.getSTTaxonIdentifier(), true));
 			}
+		} else {
+			System.err.println("In the first round of  sampling "
+					+ (K*secondRoundSampling) + " samples will be taken");
+			/*
+			 * instantiate k random samples
+			 */
+			for (int r = 0; r < secondRoundSampling * K; r++) {
+	
+				System.err.println("------------\n" + "sample " + (r + 1)
+						+ " of individual  sampling ...");
+				SingleIndividualSample taxonSample = new SingleIndividualSample(
+						spm, this.similarityMatrix);
+				firstRoundSamples.add(taxonSample);
+	
+			}
+			int i = 1;
+			System.err.println("In second round sampling " + secondRoundSampling
+					+ " rounds will be done");
+			int gtindex = 0;
+			for (Tree gt : this.completedGeeneTrees) {
+				System.err.println("gene tree number " + i + " is processing..");
+				ArrayList<Tree> firstRoundSampleTrees = new ArrayList<Tree>();
+	
+				for (SingleIndividualSample sample : firstRoundSamples) {
+	
+					Tree contractedTree = sample.contractTree(gt);
+					contractedTree.rerootTreeAtEdge(GlobalMaps.taxonNameMap
+							.getSpeciesIdMapper().getSTTaxonIdentifier().
+							getTaxonName(0));
+					Trees.removeBinaryNodes((MutableTree) contractedTree);
+					// returns a tree with species label
+					firstRoundSampleTrees.add(contractedTree);
+				}
+	
+				ArrayList<Tree> greedies = new ArrayList<Tree>();
+				for (int r = 0; r < secondRoundSampling; r++) {
+					List<Tree> sample;
 
-			allGreedies.add(greedies);
-			i++;
-			// System.err.println("Number of clusters after simple addition from gene trees: "
-			// + clusters.getClusterCount());
+					// Collections.shuffle(firstRoundSampleTrees,
+					// GlobalMaps.random);
+					sample = firstRoundSampleTrees.subList(r * K, K * r + 99);
+					greedies.add(Utils.greedyConsensus(sample, false,
+							GlobalMaps.taxonNameMap.getSpeciesIdMapper()
+									.getSTTaxonIdentifier(), true));
+				}
+	
+				allGreedies[gtindex++] = greedies;
+				i++;
+				// System.err.println("Number of clusters after simple addition from gene trees: "
+				// + clusters.getClusterCount());
+	
+			}
 
 		}
 
@@ -639,7 +653,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		for (List<Tree> l : allGreedies) {
 			int rand = GlobalMaps.random.nextInt(l.size());
 			STITree temp = new STITree(l.get(rand));
-			resolveByUPGMA((MutableTree) temp, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), this.speciesSimilarityMatrix);
+			resolveByUPGMA((MutableTree) temp, GlobalMaps.taxonNameMap
+					.getSpeciesIdMapper().getSTTaxonIdentifier(),
+					this.speciesSimilarityMatrix);
 			greedyCandidates.add(temp);
 
 		}
@@ -652,25 +668,26 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 //				this.speciesSimilarityMatrix);
 //		System.err.println(allGenesGreedy);
 
-		for (int ii=0; ii < secondRoundSampling; ii++) {
-			for (int j=0 ; j< allGreedies.size() ; j++) {
+		for (int ii = 0; ii < secondRoundSampling; ii++) {
+			for (int j = 0; j < allGreedies.length; j++) {
 				try {
-					addBipartitionsFromSignleIndTreesToX(allGreedies.get(j).get(ii), null, greedyCandidates,
-							GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
+					addBipartitionsFromSignleIndTreesToX(allGreedies[j]
+							.get(ii), null, greedyCandidates,
+							GlobalMaps.taxonNameMap.getSpeciesIdMapper()
+									.getSTTaxonIdentifier());
 				} catch (Exception e) {
-					System.err.println(allGreedies.get(j).get(ii));
-					e.printStackTrace(); 
+					System.err.println(allGreedies[j].get(ii));
+					e.printStackTrace();
 				}
 				
-				System.err
-						.println("Number of clusters added from gene tree "+j+" in round"+ii+" "
-								+ clusters.getClusterCount());
+				System.err.println("Number of clusters added from gene tree "
+						+ j + " in round" + ii + " "
+						+ clusters.getClusterCount());
 			}
-			System.err
-			.println("------------------------------");
-			 gradiant = clusters.getClusterCount() - prev;
-			 System.err.println("gradient"+ii +": "+ gradiant);
-			 prev = clusters.getClusterCount();
+			System.err.println("------------------------------");
+			gradiant = clusters.getClusterCount() - prev;
+			System.err.println("gradient"+ii +": "+ gradiant);
+			prev = clusters.getClusterCount();
 //			 if(firstgradiant == -1)
 //				 firstgradiant = gradiant;
 //			 else{
@@ -688,8 +705,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 			this.addExtraBipartitionByDistance();
 			for (int l = 0; l < secondRoundSampling; l++) {
 				ArrayList<Tree> genes = new ArrayList<Tree>();
-				for (int j = 0; j < allGreedies.size(); j++) {
-					genes.add(allGreedies.get(j).get(l));
+				for (int j = 0; j < allGreedies.length; j++) {
+					genes.add(allGreedies[j].get(l));
 				}
 				System.err
 						.println("calculating extra bipartitions to be added at level "
@@ -702,10 +719,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 				System.err
 						.println("Number of Clusters after addition by greedy: "
 								+ clusters.getClusterCount());
-				
-				 gradiant = clusters.getClusterCount() - prev;
-				 System.err.println("gradient"+l+" in heuristiic: "+ gradiant);
-				 prev = clusters.getClusterCount();
+				gradiant = clusters.getClusterCount() - prev;
+				System.err.println("gradient" + l + " in heuristiic: "+ gradiant);
+				prev = clusters.getClusterCount();
 //				 if(firstgradiant == -1)
 //					 firstgradiant = gradiant;
 //				 else{
