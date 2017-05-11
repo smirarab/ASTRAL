@@ -15,7 +15,7 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.util.BitSet;
 
 public class Polytree {
-	static long time = 0, time1 = 0, time2 = 0;
+	static long time = 0;
 	
 	static long F(int[] x, int[] y, int[] z){
 		long a = x[0], b = x[1], c = x[2], d = y[0], e = y[1], f = y[2], g = z[0], h = z[1], i = z[2];
@@ -277,7 +277,6 @@ public class Polytree {
 				stack[stackEnd][2] = list[pos][2];
 				stackEnd++;
 			}
-			//System.err.print(cmd + ":" + stackEnd + "  ");
 		}
 		time += System.nanoTime() - t;
 		return weight;
