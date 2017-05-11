@@ -42,7 +42,7 @@ public class Polytree {
 	int[] sx = new int[3], sxy = new int[3], treeTotal = new int[3];
 	
 	private boolean randomResolveMultiInd; //TODO: Arbitrarily resolve a polytomy when this is true
-											//       but all the children of the polytomy map to the same species. 
+										//       but all the children of the polytomy map to the same species. 
 	
 	public Polytree(List<Tree> trees, int polytomyMaxSize, boolean randomResolve, WQDataCollection dataCollection){
 		this.dataCollection = dataCollection;
