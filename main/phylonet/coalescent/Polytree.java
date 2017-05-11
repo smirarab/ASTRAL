@@ -41,8 +41,6 @@ public class Polytree {
 	int nodeIDCounter = 0;
 	int[] sx = new int[3], sxy = new int[3], treeTotal = new int[3];
 	
-	int debug = 0;
-
 	private boolean randomResolveMultiInd; //TODO: Arbitrarily resolve a polytomy when this is true
 											//       but all the children of the polytomy map to the same species. 
 	
@@ -177,7 +175,6 @@ public class Polytree {
 				if (nodeCluster.get(nodeIDCounter) != -1 && clusterNode.get(nodeCluster.get(nodeIDCounter)) == nodeIDCounter
 					&& clusterUsage.get(nodeCluster.get(nodeIDCounter)) > 0){
 					cmd = cmd | 4;
-					debug++;
 				}
 				if (nodePartition.get(nodeIDCounter) != -1 && partitionUsage.get(nodePartition.get(nodeIDCounter)) > 1){
 					cmd = cmd | 8;
