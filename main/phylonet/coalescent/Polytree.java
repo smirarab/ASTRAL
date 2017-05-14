@@ -25,6 +25,7 @@ public class Polytree {
 	}
 	
 	WQDataCollection dataCollection;
+	HashMap<STITreeCluster, STITreeCluster> clusterRef = new HashMap<STITreeCluster, STITreeCluster>();
 	HashMap<STITreeCluster, Integer> clusterID = new HashMap<STITreeCluster, Integer>();
 	HashMap<AbstractPartition, Integer> partitionID = new HashMap<AbstractPartition, Integer>();
 	ArrayList<Integer> nodeParent = new ArrayList<Integer>();
@@ -113,10 +114,12 @@ public class Polytree {
 		    }
 			
 		    nodeParent.add(-1);
-		    if (clusterID.containsKey(c)){
+		    if (clusterRef.containsKey(c)){
+		    	c = clusterRef.get(c);
 		    	nodeCluster.add(clusterID.get(c));
 		    }
 		    else{
+		    	clusterRef.put(c, c);
 		    	clusterID.put(c, clusterID.size());
 		    	nodeCluster.add(clusterID.size() - 1);
 		    	clusterNode.add(nodeParent.size() - 1);
