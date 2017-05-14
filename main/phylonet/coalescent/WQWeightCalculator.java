@@ -8,7 +8,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
 
-import javafx.util.Pair;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
@@ -29,8 +28,8 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		super(false);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
 		this.inference = (WQInference) inference;
-		this.algorithm = new TraversalWeightCalculator();
-		//this.algorithm = new CondensedTraversalWeightCalculator();
+		//this.algorithm = new TraversalWeightCalculator();
+		this.algorithm = new CondensedTraversalWeightCalculator();
 		tmpalgorithm = new TraversalWeightCalculator();
 		//tmpalgorithm.setupGeneTrees((WQInference) inference);
 	}
@@ -84,7 +83,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		*/
 		@Override
 		void setupGeneTrees(WQInference inference) {
-			polytree = new Polytree(inference.trees);
+			polytree = new Polytree(inference.trees, dataCollection);
 		}
 	}
 	
