@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import phylonet.coalescent.WQWeightCalculator.CondensedTraversalWeightCalculator;
@@ -41,6 +42,7 @@ public class Polytree {
 	int[] queue;
 	int nodeIDCounter = 0;
 	int[] sx = new int[3], sxy = new int[3], treeTotal = new int[3];
+	long maxScore = 0;
 	
 	private boolean randomResolveMultiInd; //TODO: Arbitrarily resolve a polytomy when this is true
 										//       but all the children of the polytomy map to the same species. 
@@ -74,6 +76,10 @@ public class Polytree {
 		list = new int[listSize][3];
 		queue = mapToInt(queueBuilder);
 		
+		for (Map.Entry<AbstractPartition, Integer> entry : partitionID.entrySet()) {
+		    maxScore += entry.getKey().selfScore() * partitionUsage.get(entry.getValue());
+		}
+		
 		clusterID = null;
 		partitionID = null;
 		nodeParent = null;
@@ -85,7 +91,9 @@ public class Polytree {
 		partitionNode = null;
 		partitionUsage = null;
 		queueBuilder = null;
-		System.err.println("Polytree building time: " + (System.currentTimeMillis() - t) / 1000.0D);
+		
+		System.err.println("Polytree max score: " + maxScore / 4);
+		System.err.println("Polytree building time: " + (System.currentTimeMillis() - t) / 1000.0D + " seconds.");
 	}
 	
 	private int[] mapToInt(List<Integer> list) {
