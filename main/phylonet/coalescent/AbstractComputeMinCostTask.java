@@ -20,9 +20,12 @@ import phylonet.util.BitSet;
  */
 public abstract class AbstractComputeMinCostTask<T> {
 
+	static STITreeCluster all = null;
+	
 	AbstractInference<T> inference;
 	Vertex v;
 	IClusterCollection clusters;
+	Double target = 0.0;
 
 	IClusterCollection containedVertecies;
     private SpeciesMapper spm;
@@ -33,6 +36,17 @@ public abstract class AbstractComputeMinCostTask<T> {
 		} catch (CannotResolveException e) {
 			return null;
 		}
+	}
+	
+	Double computeUpperBound(Vertex v1){
+		if (v1._done == 1) return v1._max_score;
+		if (v1._done == 3) return v1._upper_bound;
+		STITreeCluster c = v1.getCluster();
+		if (all == null) all = (new STITreeCluster()).complementaryCluster();
+		v1._upper_bound = inference.weightCalculator.getWeight((T) new Tripartition(c, c, all, false), this) / 2.0
+				- inference.weightCalculator.getWeight((T) new Tripartition(c, c, c, false), this) / 3.0;
+		v1._done = 3;
+		return v1._upper_bound;
 	}
 
 	public AbstractComputeMinCostTask(AbstractInference<T> inference, Vertex v, 
@@ -67,6 +81,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 	 * @return
 	 * @throws CannotResolveException
 	 */
+	
 	private double computeMinCost() throws CannotResolveException {
 
 
@@ -79,6 +94,9 @@ public abstract class AbstractComputeMinCostTask<T> {
 			return v._max_score;
 		}
 		//
+		if (v._done == 3 && v._upper_bound < target) {
+			return v._upper_bound;
+		}
 		
 		int clusterSize = v.getCluster().getClusterSize();
 
@@ -89,12 +107,15 @@ public abstract class AbstractComputeMinCostTask<T> {
 			
 			v._min_lc = (v._min_rc = null);
 			v._done = 1;
+			
 			return v._max_score;
 		}
 
 		boolean tryAnotherTime = false;
 
 		containedVertecies = clusters.getContainedClusters(v);
+		
+		boolean canSaveWork = true;
 
 		do {
 			tryAnotherTime = false;
@@ -138,37 +159,11 @@ public abstract class AbstractComputeMinCostTask<T> {
 			 * .getClusterCoalNum(this.inference.trees, this.v.getCluster(),
 			 * taxonNameMap, true));
 			 */
+			
 			for (VertexPair bi : clusterResolutions) {
 				try {
 					Vertex smallV = bi.cluster1;
 					Vertex bigv = bi.cluster2;
-					AbstractComputeMinCostTask<T> smallWork = newMinCostTask(
-							smallV, containedVertecies);
-					AbstractComputeMinCostTask<T> bigWork = newMinCostTask(
-							bigv, containedVertecies);
-
-					// MP_VERSION: smallWork.fork();
-					Double rscore = bigWork.compute();
-
-					if (rscore == null) {
-						// MP_VERSION: weigthWork.cancel(false);
-						// MP_VERSION: smallWork.cancel(false);
-						throw new CannotResolveException(bigv.getCluster()
-								.toString());
-					}
-
-					Double lscore;
-					// MP_VERSION: lscore = smallWork.join();
-					lscore = smallWork.compute();
-
-					if (lscore == null) {
-						// MP_VERSION: weigthWork.cancel(false);
-						throw new CannotResolveException(smallV
-								.getCluster().toString());
-					}
-					// MP_VERSION: w = weigthWork.join();
-
-		
 					Long weight = null;
 					if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) {
 						weight = defaultWeightForFullClusters();
@@ -180,11 +175,18 @@ public abstract class AbstractComputeMinCostTask<T> {
 						//System.out.print(weight/Integer.MAX_VALUE);
 					}					
 					
-					double c = adjustWeight(clusterLevelCost, smallV, bigv, weight);	// Not relevant to ASTRAL				
-//					double l = 2.4;
-//					if (clusterSize > 5 && v._max_score > l*(lscore + rscore))
-//						if ((lscore + rscore + c)> v._max_score)
-					//System.err.println(clusterSize+"\tmissing " +(lscore + rscore + c)+"\t"+v._max_score+"\t"+(lscore + rscore + c)/v._max_score);
+					double c = adjustWeight(clusterLevelCost, smallV, bigv, weight);	// Not relevant to ASTRAL
+					
+					Double lscore = computeUpperBound(smallV), rscore = computeUpperBound(bigv);
+					AbstractComputeMinCostTask<T> smallWork = newMinCostTask(
+							smallV, containedVertecies, v._max_score - c - rscore);
+					lscore = smallWork.compute();
+					if (lscore == null) throw new CannotResolveException(smallV.getCluster().toString());
+					
+					AbstractComputeMinCostTask<T> bigWork = newMinCostTask(
+							bigv, containedVertecies, v._max_score - c - lscore);
+					rscore = bigWork.compute();
+					if (rscore == null) throw new CannotResolveException(bigv.getCluster().toString());
 					
 					if ((v._max_score != -1)
 							&& (lscore + rscore + c < v._max_score)) {
@@ -256,13 +258,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 			v._done = 2;
 			throw new CannotResolveException(v.getCluster().toString());
 		}
-		/*
-		 * if (clusterSize > 450){
-		 * System.out.println(v+" \nis scored "+(v._max_score ) +
-		 * " by \n"+v._min_lc + " \n"+v._min_rc); }
-		 *//*
-			 * if (clusterSize > 5){ counter.addGoodSTB(bestSTB, clusterSize); }
-			 */
+
 		v._done = 1;
 		return v._max_score;
 	}
@@ -272,6 +268,13 @@ public abstract class AbstractComputeMinCostTask<T> {
 	protected abstract AbstractComputeMinCostTask<T> newMinCostTask(Vertex v, 
 	IClusterCollection clusters);
 
+	protected AbstractComputeMinCostTask<T> newMinCostTask(Vertex v, 
+			IClusterCollection clusters, Double target){
+		AbstractComputeMinCostTask<T> task = newMinCostTask(v, clusters);
+		task.target = target;
+		return task;
+	}
+	
 	abstract protected double adjustWeight(long clusterLevelCost, Vertex smallV,
 			Vertex bigv, Long Wdom);
 

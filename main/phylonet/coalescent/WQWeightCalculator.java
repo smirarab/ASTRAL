@@ -22,7 +22,8 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 	WQInference inference;
 	private WQDataCollection dataCollection;
-	private WeightCalculatorAlgorithm algorithm, tmpalgorithm;
+	WeightCalculatorAlgorithm algorithm;
+	private WeightCalculatorAlgorithm tmpalgorithm;
 	
 	public WQWeightCalculator(AbstractInference<Tripartition> inference) {
 		super(false);
