@@ -34,6 +34,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 	 * @return
 	 */
 	long calculateMaxPossible() {
+		if (weightCalculator instanceof WQWeightCalculator
+				&& ((WQWeightCalculator)weightCalculator).algorithm instanceof WQWeightCalculator.CondensedTraversalWeightCalculator){
+			return ((WQWeightCalculator.CondensedTraversalWeightCalculator)((WQWeightCalculator)weightCalculator).algorithm).polytree.maxScore / 4L;
+		}
 		long weight = 0;
 		Integer  allsides = null;
 		Iterator<STITreeCluster> tit = ((WQDataCollection)this.dataCollection).treeAllClusters.iterator();
@@ -116,6 +120,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 			WQDataCollection wqDataCollection = (WQDataCollection) this.dataCollection;
 			wqDataCollection.preProcess(this);
 			this.initializeWeightCalculator();			
+			//ASTRAL IV SPECIFIC
 			this.maxpossible = this.calculateMaxPossible();
 			System.err.println("Number of quartet trees in the gene trees: "+this.maxpossible);
 	
