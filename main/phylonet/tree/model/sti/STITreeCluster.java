@@ -18,6 +18,8 @@ public class STITreeCluster implements Iterable<Integer>
   //protected String[] _taxa;
   protected BitSet _cluster;
   private int hashCode = 0;
+  private int cardinalityValue = -1;
+  
   /**
    * This identifies the meaning of the biset set. 
    * Bit number x in the bitset corresponds to taxon with ID x. 
@@ -47,6 +49,11 @@ public class STITreeCluster implements Iterable<Integer>
 //    return this._taxa;
 //  }
 
+  public int cardinality(){
+	  if (cardinalityValue == -1) cardinalityValue = _cluster.cardinality();
+	  return cardinalityValue;
+  }
+  
   public void setCluster(BitSet c)
   {
     if (c != null) {
