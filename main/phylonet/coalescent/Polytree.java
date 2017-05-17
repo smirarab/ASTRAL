@@ -73,10 +73,6 @@ public class Polytree {
 		list = new int[listSize][3];
 		queue = mapToInt(queueBuilder);
 		
-		for (Map.Entry<AbstractPartition, Integer> entry : partitionID.entrySet()) {
-		    maxScore += entry.getKey().selfScore() * partitionUsage.get(entry.getValue());
-		}
-		
 		clusterID = null;
 		partitionID = null;
 		nodeParent = null;
@@ -89,6 +85,8 @@ public class Polytree {
 		partitionUsage = null;
 		queueBuilder = null;
 		
+		STITreeCluster c = (new STITreeCluster()).complementaryCluster();
+		maxScore = WQWeightByTraversal(new Tripartition(c, c, c, false), null) / 6;
 		System.err.println("Polytree max score: " + maxScore / 4);
 		System.err.println("Polytree building time: " + (System.currentTimeMillis() - t) / 1000.0D + " seconds.");
 	}
