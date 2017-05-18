@@ -19,14 +19,14 @@ import phylonet.util.BitSet;
  * @param <T>
  */
 public abstract class AbstractComputeMinCostTask<T> {
-
-	static STITreeCluster all = null;
+	static double estimationFactor = 0.75;
+	static int enforceComputationThreshold = 3;
 	
 	AbstractInference<T> inference;
 	Vertex v;
 	IClusterCollection clusters;
-	Double target = 0.0;
-
+	double target = 0.0, outsizeMaxPossible = 0.0;
+	
 	IClusterCollection containedVertecies;
     private SpeciesMapper spm;
 
@@ -38,17 +38,32 @@ public abstract class AbstractComputeMinCostTask<T> {
 		}
 	}
 	
+	protected Double estimate() {
+		try {
+			return estimateMinCost();
+		} catch (CannotResolveException e) {
+			return null;
+		}
+	}
+	
 	Double computeUpperBound(Vertex v1){
 		if (v1._done == 1) return v1._max_score;
-		if (v1._done == 3) return v1._upper_bound;
+		if (v1._done == 3 || v1._done == 4 || v1._done == 5) return v1._upper_bound;
 		STITreeCluster c = v1.getCluster();
-		if (all == null) all = (new STITreeCluster()).complementaryCluster();
-		v1._upper_bound = inference.weightCalculator.getWeight((T) new Tripartition(c, c, all, false), this) / 2.0
-				- inference.weightCalculator.getWeight((T) new Tripartition(c, c, c, false), this) / 3.0;
+		v1._upper_bound = inference.weightCalculator.getWeight((T) new Tripartition(c, c, c, false), this);
 		v1._done = 3;
 		return v1._upper_bound;
 	}
 
+	Double estimateUpperBound(Vertex v1){
+		if (v1._done == 5) return v1._max_score;
+		if (v1._done == 3) return v1._upper_bound;
+		STITreeCluster c = v1.getCluster();
+		v1._upper_bound = inference.weightCalculator.getWeight((T) new Tripartition(c, c, c, false), this);
+		v1._done = 3;
+		return v1._upper_bound;
+	}
+	
 	public AbstractComputeMinCostTask(AbstractInference<T> inference, Vertex v, 
 			IClusterCollection clusters) {
 		this.inference = inference;
@@ -94,8 +109,18 @@ public abstract class AbstractComputeMinCostTask<T> {
 			return v._max_score;
 		}
 		//
-		if (v._done == 3 && v._upper_bound < target) {
+		if (( v._done == 3 || v._done == 4 || v._done == 5 ) && v._upper_bound <= target) {
+			v.trustworthyResult = true;
 			return v._upper_bound;
+		}
+		
+		if (( v._done == 3 || v._done == 5 ) && v._upper_bound + outsizeMaxPossible <= inference.bestSoFar) {
+			return (v._done == 5) ? v._max_score : 0;
+		}
+		
+		if (v._done == 0){
+			inference.bestSoFar = estimate();
+			System.err.println("Sub-optimal score: " + (long) inference.bestSoFar / 4);
 		}
 		
 		int clusterSize = v.getCluster().getClusterSize();
@@ -103,7 +128,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 		// SIA: base case for singelton clusters.
 		if (clusterSize <= 1 || spm.isSingleSP(v.getCluster().getBitSet())) {
 			
-			v._max_score = scoreBaseCase(inference.isRooted(), inference.trees);
+			v._max_score = 0;
 			
 			v._min_lc = (v._min_rc = null);
 			v._done = 1;
@@ -111,167 +136,198 @@ public abstract class AbstractComputeMinCostTask<T> {
 			return v._max_score;
 		}
 
-		boolean tryAnotherTime = false;
-
 		containedVertecies = clusters.getContainedClusters(v);
 		
 		boolean canSaveWork = true;
 
-		do {
-			tryAnotherTime = false;
-
-			Iterable<VertexPair> clusterResolutions;
+		Iterable<VertexPair> clusterResolutions;
+		
+		if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) {
+			clusterResolutions = new ArrayList<VertexPair>();
+			Vertex v1 = null;
+			int smallestSize = 1;
+			while (v1 == null) {
+				Set<Vertex> cs = containedVertecies.getSubClusters(smallestSize);
+				if (cs.size() != 0)
+					v1 = cs.iterator().next();
+				else 
+					smallestSize++;
+			}
+			for (Vertex v2: containedVertecies.getSubClusters(GlobalMaps.taxonIdentifier.taxonCount()-smallestSize))
+			{
+				if (v1.getCluster().isDisjoint(v2.getCluster())) {
+					VertexPair vp = new VertexPair(v1, v2, v);
+					((ArrayList<VertexPair>) clusterResolutions).add(vp);
+					break;
+				}
+			}
 			
-			if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) {
-				clusterResolutions = new ArrayList<VertexPair>();
-				Vertex v1 = null;
-				int smallestSize = 1;
-				while (v1 == null) {
-					Set<Vertex> cs = containedVertecies.getSubClusters(smallestSize);
-					if (cs.size() != 0)
-						v1 = cs.iterator().next();
-					else 
-						smallestSize++;
-				}
-				for (Vertex v2: containedVertecies.getSubClusters(GlobalMaps.taxonIdentifier.taxonCount()-smallestSize))
-				{
-					if (v1.getCluster().isDisjoint(v2.getCluster())) {
-						VertexPair vp = new VertexPair(v1, v2, v);
-						((ArrayList<VertexPair>) clusterResolutions).add(vp);
-						break;
-					}
-				}
+		} else {
+			if (clusterSize >= GlobalMaps.taxonIdentifier.taxonCount() * inference.getCS()) { //obsolete
+				addComplementaryClusters(clusterSize);
+			}
+			clusterResolutions = containedVertecies.getClusterResolutions();
+		}
+		
+		if (containedVertecies.getClusterCount() >= enforceComputationThreshold)  v._done = 4;
+		
+		for (VertexPair bi : clusterResolutions) {
+			try {
+				Vertex smallV = bi.cluster1;
+				Vertex bigv = bi.cluster2;
+				if ((smallV._done == 3 || smallV._done == 5) && v._done == 4) smallV._done = 4;
+				if ((bigv._done == 3 || bigv._done == 5) && v._done == 4) bigv._done = 4;
 				
-			} else {
-				if (clusterSize >= GlobalMaps.taxonIdentifier.taxonCount() * inference.getCS()) { //obsolete
-					addComplementaryClusters(clusterSize);
+				double c;
+				if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) c = defaultWeightForFullClusters();
+				else c = inference.weightCalculator.getWeight(STB2T(bi), this);
+				
+				Double lscore = computeUpperBound(smallV), rscore = computeUpperBound(bigv);
+				AbstractComputeMinCostTask<T> smallWork = newMinCostTask(
+						smallV, containedVertecies, v._max_score - c - rscore, outsizeMaxPossible + c + rscore);
+				lscore = smallWork.compute();
+				if (lscore == null) throw new CannotResolveException(smallV.getCluster().toString());
+				canSaveWork = (canSaveWork && (smallV._done == 1 || smallV.trustworthyResult));
+				smallV.trustworthyResult = false;
+				
+				AbstractComputeMinCostTask<T> bigWork = newMinCostTask(
+						bigv, containedVertecies, v._max_score - c - lscore, outsizeMaxPossible + c + lscore);
+				rscore = bigWork.compute();
+				if (rscore == null) throw new CannotResolveException(bigv.getCluster().toString());
+				canSaveWork = (canSaveWork && (bigv._done == 1 || bigv.trustworthyResult));
+				bigv.trustworthyResult = false;
+				
+				if ((v._max_score != -1)
+						&& (lscore + rscore + c < v._max_score)) {
+					continue;
 				}
-				clusterResolutions = containedVertecies.getClusterResolutions();
-			}
-			
-			long clusterLevelCost = 0;
-			if (clusterResolutions.iterator().hasNext()) { // Not relevant to ASTRAL
-				clusterLevelCost = calculateClusterLevelCost();
-			}
-			/*
-			 * System.out.println("xL: "+this.v.getCluster() + " "+xl + " "+
-			 * DeepCoalescencesCounter
-			 * .getClusterCoalNum(this.inference.trees, this.v.getCluster(),
-			 * taxonNameMap, true));
-			 */
-			
-			for (VertexPair bi : clusterResolutions) {
-				try {
-					Vertex smallV = bi.cluster1;
-					Vertex bigv = bi.cluster2;
-					Long weight = null;
-					if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) {
-						weight = defaultWeightForFullClusters();
-					}
-					
-					if (weight == null) {
-						T t = STB2T(bi);					
-						weight =  inference.weightCalculator.getWeight(t, this);
-						//System.out.print(weight/Integer.MAX_VALUE);
-					}					
-					
-					double c = adjustWeight(clusterLevelCost, smallV, bigv, weight);	// Not relevant to ASTRAL
-					
-					Double lscore = computeUpperBound(smallV), rscore = computeUpperBound(bigv);
-					AbstractComputeMinCostTask<T> smallWork = newMinCostTask(
-							smallV, containedVertecies, v._max_score - c - rscore);
-					lscore = smallWork.compute();
-					if (lscore == null) throw new CannotResolveException(smallV.getCluster().toString());
-					
-					AbstractComputeMinCostTask<T> bigWork = newMinCostTask(
-							bigv, containedVertecies, v._max_score - c - lscore);
-					rscore = bigWork.compute();
-					if (rscore == null) throw new CannotResolveException(bigv.getCluster().toString());
-					
-					if ((v._max_score != -1)
-							&& (lscore + rscore + c < v._max_score)) {
-						continue;
-					}
-					if (lscore + rscore + c == v._max_score && GlobalMaps.random.nextBoolean()) {
-						continue;
-					}
-					v._max_score = (lscore + rscore + c);
-					v._min_lc = smallV;
-					v._min_rc = bigv;
-					v._c = c;
-					
-				} catch (CannotResolveException c) {
-					// System.err.println("Warn: cannot resolve: " +
-					// c.getMessage());
-				}
-			}
-			/**
-			 * This should be irrelevant if everything in the set X has at least one resolution (which is our goal). 
-			 */
-			if (v._min_lc == null || v._min_rc == null) {
-				if (clusterSize <= 5) {
-					addAllPossibleSubClusters(v.getCluster(), containedVertecies);
-					tryAnotherTime = true;
-				} else if (clusterSize > 1) {
-					// System.err.println(maxSubClusters);
-					Iterator<Set<Vertex>> it = containedVertecies.getSubClusters().iterator();
-					if (it.hasNext()) {
-						Collection<Vertex> biggestSubClusters = new ArrayList<STITreeCluster.Vertex>(it.next());
-						//if (it.hasNext()) {biggestSubClusters = new ArrayList<STITreeCluster.Vertex>(it.next());}
-						int i = -1;
-						for (Vertex x : biggestSubClusters) {
-							i = i > 0 ? i : x.getCluster().getClusterSize();
-							int complementarySize = clusterSize - i;
-							if (complementarySize > 1) {
-								tryAnotherTime |= containedVertecies
-										.addCluster( getCompleteryVertx(x,v.getCluster()), complementarySize);
-							}
-						}
-						/*
-						 * if (tryAnotherTime && clusterSize > 10) {
-						 * System.err .println("Adding up to " +
-						 * biggestSubClusters.size()+" extra |"+i+
-						 * "| clusters (complementary of included clusters) for size "
-						 * + clusterSize + " : " + v.getCluster()+"\n" +
-						 * containedVertecies.getClusterCount()); }
-						 */
-					}
-
-				}
-			}
-			/**
-			 * We never want this to happen
-			 */
-			if (tryAnotherTime) {
-				System.err.println("... auto expanding: " + this.v.getCluster().getClusterSize()+" "+this.v.getCluster());
-			}
-		} while (tryAnotherTime);
-
-
-		/**
-		 * Should never happen
-		 */
-		if (v._min_lc == null || v._min_rc == null) {
-			System.err.println("WARN: No Resolution found for ( "
-					+ v.getCluster().getClusterSize() + " taxa ):\n"
-					+ v.getCluster());
-			v._done = 2;
-			throw new CannotResolveException(v.getCluster().toString());
+				v._max_score = (lscore + rscore + c);
+				v._min_lc = smallV;
+				v._min_rc = bigv;
+				v._c = c;
+				
+			} catch (CannotResolveException c) {}
 		}
 
-		v._done = 1;
+		if (canSaveWork) v._done = 1;
+		else v._done = 4;
 		return v._max_score;
 	}
 
+	private double estimateMinCost() throws CannotResolveException {
+
+
+		// -2 is used to indicate it cannot be resolved
+		if (v._done == 2) {
+			throw new CannotResolveException(v.getCluster().toString());
+		}
+		// Already calculated. Don't re-calculate.
+		if (v._done == 1 || v._done == 5) {
+			return v._max_score;
+		}
+		//
+		if (v._done == 3 && v._upper_bound * estimationFactor <= target) {
+			return v._upper_bound * estimationFactor;
+		}
+		
+		int clusterSize = v.getCluster().getClusterSize();
+
+		// SIA: base case for singelton clusters.
+		if (clusterSize <= 1 || spm.isSingleSP(v.getCluster().getBitSet())) {
+			
+			v._max_score = 0;
+			v._min_lc = (v._min_rc = null);
+			v._done = 1;
+			
+			return v._max_score;
+		}
+
+		containedVertecies = clusters.getContainedClusters(v);
+
+		boolean canSaveWork = true;
+		
+		Iterable<VertexPair> clusterResolutions;
+		
+		if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) {
+			clusterResolutions = new ArrayList<VertexPair>();
+			Vertex v1 = null;
+			int smallestSize = 1;
+			while (v1 == null) {
+				Set<Vertex> cs = containedVertecies.getSubClusters(smallestSize);
+				if (cs.size() != 0)
+					v1 = cs.iterator().next();
+				else 
+					smallestSize++;
+			}
+			for (Vertex v2: containedVertecies.getSubClusters(GlobalMaps.taxonIdentifier.taxonCount()-smallestSize))
+			{
+				if (v1.getCluster().isDisjoint(v2.getCluster())) {
+					VertexPair vp = new VertexPair(v1, v2, v);
+					((ArrayList<VertexPair>) clusterResolutions).add(vp);
+					break;
+				}
+			}
+			
+		} else {
+			if (clusterSize >= GlobalMaps.taxonIdentifier.taxonCount() * inference.getCS()) { //obsolete
+				addComplementaryClusters(clusterSize);
+			}
+			clusterResolutions = containedVertecies.getClusterResolutions();
+		}
+		
+		for (VertexPair bi : clusterResolutions) {
+			try {
+				Vertex smallV = bi.cluster1;
+				Vertex bigv = bi.cluster2;
+				double c;
+				if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) c = defaultWeightForFullClusters();
+				else c = inference.weightCalculator.getWeight(STB2T(bi), this);
+
+				Double lscore = estimateUpperBound(smallV), rscore = estimateUpperBound(bigv);
+				AbstractComputeMinCostTask<T> smallWork = newMinCostTask(
+						smallV, containedVertecies, v._max_score - c - rscore);
+				lscore = smallWork.estimate();
+				if (lscore == null) throw new CannotResolveException(smallV.getCluster().toString());
+				
+				AbstractComputeMinCostTask<T> bigWork = newMinCostTask(
+						bigv, containedVertecies, v._max_score - c - lscore);
+				rscore = bigWork.estimate();
+				if (rscore == null) throw new CannotResolveException(bigv.getCluster().toString());
+				
+				canSaveWork = (canSaveWork && smallV._done == 1 && bigv._done == 1);
+				if ((v._max_score != -1)
+						&& (lscore + rscore + c < v._max_score)) {
+					continue;
+				}
+				v._max_score = (lscore + rscore + c);
+				v._min_lc = smallV;
+				v._min_rc = bigv;
+				v._c = c;
+				
+			} catch (CannotResolveException c) {}
+		}
+		
+		if (canSaveWork) v._done = 1;
+		else v._done = 5;
+		return v._max_score;
+	}
 	abstract Long defaultWeightForFullClusters();
 
 	protected abstract AbstractComputeMinCostTask<T> newMinCostTask(Vertex v, 
 	IClusterCollection clusters);
 
 	protected AbstractComputeMinCostTask<T> newMinCostTask(Vertex v, 
-			IClusterCollection clusters, Double target){
+			IClusterCollection clusters, double target){
 		AbstractComputeMinCostTask<T> task = newMinCostTask(v, clusters);
 		task.target = target;
+		return task;
+	}
+	
+	protected AbstractComputeMinCostTask<T> newMinCostTask(Vertex v, 
+			IClusterCollection clusters, double target, double outsizeMaxPossible){
+		AbstractComputeMinCostTask<T> task = newMinCostTask(v, clusters);
+		task.target = target;
+		task.outsizeMaxPossible = outsizeMaxPossible;
 		return task;
 	}
 	
