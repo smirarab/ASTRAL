@@ -273,7 +273,8 @@ public class STITreeCluster implements Iterable<Integer>
 		public Vertex _min_lc = this._min_rc = null;
 		public Vertex _min_rc;
 		public List<Vertex> _subcl = null;	 // Don't matter	
-		public byte _done = 0; // 0 for not, 1 for yes, 2 for failed, 3 for upper bound estimated, 4 for shortcut used
+		public byte _done = 0; // 0 for not, 1 for yes, 2 for failed, 3 for upper bound estimated, 4 for no shortcut, 5 for estimate
+		public boolean trustworthyResult = false;
 		
 		public Vertex() {
 			super();
