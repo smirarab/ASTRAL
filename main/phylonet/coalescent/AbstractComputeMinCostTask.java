@@ -20,12 +20,11 @@ import phylonet.util.BitSet;
  */
 public abstract class AbstractComputeMinCostTask<T> {
 	static double estimationFactor = 0.75;
-	static int enforceComputationThreshold = 3;
 	
 	AbstractInference<T> inference;
 	Vertex v;
 	IClusterCollection clusters;
-	double target = 0.0, outsizeMaxPossible = 0.0;
+	double target = 0.0;
 	
 	IClusterCollection containedVertecies;
     private SpeciesMapper spm;
@@ -109,13 +108,8 @@ public abstract class AbstractComputeMinCostTask<T> {
 			return v._max_score;
 		}
 		//
-		if (( v._done == 3 || v._done == 4 || v._done == 5 ) && v._upper_bound <= target) {
-			v.trustworthyResult = true;
+		if (( v._done == 3 || v._done == 5 ) && v._upper_bound <= target) {
 			return v._upper_bound;
-		}
-		
-		if (( v._done == 3 || v._done == 5 ) && v._upper_bound + outsizeMaxPossible <= inference.bestSoFar) {
-			return (v._done == 5) ? v._max_score : 0;
 		}
 		
 		if (v._done == 0){
@@ -137,8 +131,6 @@ public abstract class AbstractComputeMinCostTask<T> {
 		}
 
 		containedVertecies = clusters.getContainedClusters(v);
-		
-		boolean canSaveWork = true;
 
 		Iterable<VertexPair> clusterResolutions;
 		
@@ -169,14 +161,10 @@ public abstract class AbstractComputeMinCostTask<T> {
 			clusterResolutions = containedVertecies.getClusterResolutions();
 		}
 		
-		if (containedVertecies.getClusterCount() >= enforceComputationThreshold)  v._done = 4;
-		
 		for (VertexPair bi : clusterResolutions) {
 			try {
 				Vertex smallV = bi.cluster1;
 				Vertex bigv = bi.cluster2;
-				if ((smallV._done == 3 || smallV._done == 5) && v._done == 4) smallV._done = 4;
-				if ((bigv._done == 3 || bigv._done == 5) && v._done == 4) bigv._done = 4;
 				
 				double c;
 				if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) c = defaultWeightForFullClusters();
@@ -184,18 +172,14 @@ public abstract class AbstractComputeMinCostTask<T> {
 				
 				Double lscore = computeUpperBound(smallV), rscore = computeUpperBound(bigv);
 				AbstractComputeMinCostTask<T> smallWork = newMinCostTask(
-						smallV, containedVertecies, v._max_score - c - rscore, outsizeMaxPossible + c + rscore);
+						smallV, containedVertecies, v._max_score - c - rscore);
 				lscore = smallWork.compute();
 				if (lscore == null) throw new CannotResolveException(smallV.getCluster().toString());
-				canSaveWork = (canSaveWork && (smallV._done == 1 || smallV.trustworthyResult));
-				smallV.trustworthyResult = false;
 				
 				AbstractComputeMinCostTask<T> bigWork = newMinCostTask(
-						bigv, containedVertecies, v._max_score - c - lscore, outsizeMaxPossible + c + lscore);
+						bigv, containedVertecies, v._max_score - c - lscore);
 				rscore = bigWork.compute();
 				if (rscore == null) throw new CannotResolveException(bigv.getCluster().toString());
-				canSaveWork = (canSaveWork && (bigv._done == 1 || bigv.trustworthyResult));
-				bigv.trustworthyResult = false;
 				
 				if ((v._max_score != -1)
 						&& (lscore + rscore + c < v._max_score)) {
@@ -209,8 +193,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 			} catch (CannotResolveException c) {}
 		}
 
-		if (canSaveWork) v._done = 1;
-		else v._done = 4;
+		v._done = 1;
 		return v._max_score;
 	}
 
@@ -307,6 +290,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 			} catch (CannotResolveException c) {}
 		}
 		
+		if (v._max_score / estimationFactor < v._upper_bound) v._upper_bound = v._max_score / estimationFactor;
 		if (canSaveWork) v._done = 1;
 		else v._done = 5;
 		return v._max_score;
@@ -320,14 +304,6 @@ public abstract class AbstractComputeMinCostTask<T> {
 			IClusterCollection clusters, double target){
 		AbstractComputeMinCostTask<T> task = newMinCostTask(v, clusters);
 		task.target = target;
-		return task;
-	}
-	
-	protected AbstractComputeMinCostTask<T> newMinCostTask(Vertex v, 
-			IClusterCollection clusters, double target, double outsizeMaxPossible){
-		AbstractComputeMinCostTask<T> task = newMinCostTask(v, clusters);
-		task.target = target;
-		task.outsizeMaxPossible = outsizeMaxPossible;
 		return task;
 	}
 	
