@@ -25,6 +25,11 @@ public class Polytree {
 			 + c * ((c + d + h - 3)  * d * h + (c + e + g - 3)  * e * g );
 	}
 	
+	static long U(int[] x, int[] y, int[] z){
+		long a = x[0], d = x[1], b = y[0], e = y[1], c = z[0], f = z[1], s = a + b + c - 3;
+		return ((s - c + f) * b * f + (s - b + e) * e * c) * a + ((s - a + d) * d - 2 * s * a) * b * c;
+	}
+	
 	WQDataCollection dataCollection;
 	HashMap<STITreeCluster, STITreeCluster> clusterRef = new HashMap<STITreeCluster, STITreeCluster>();
 	HashMap<STITreeCluster, Integer> clusterID = new HashMap<STITreeCluster, Integer>();
@@ -86,7 +91,7 @@ public class Polytree {
 		queueBuilder = null;
 		
 		STITreeCluster c = (new STITreeCluster()).complementaryCluster();
-		maxScore = WQWeightByTraversal(new Tripartition(c, c, c, false), null) / 6;
+		maxScore = WQWeightByTraversal(new Tripartition(c, c, c, false), null);
 		System.err.println("Polytree max score: " + maxScore / 4);
 		System.err.println("Polytree building time: " + (System.currentTimeMillis() - t) / 1000.0D + " seconds.");
 	}
@@ -199,6 +204,7 @@ public class Polytree {
 	}
 
 	public Long WQWeightByTraversal(Tripartition trip, CondensedTraversalWeightCalculator algorithm){
+		if (trip.cluster1 == trip.cluster2) return computeUpperbound(trip.cluster1.getBitSet());
 		long t = System.nanoTime();
 		long weight = 0;
 		int stackEnd = 0, listEnd = GlobalMaps.taxonIdentifier.taxonCount();
@@ -278,6 +284,80 @@ public class Polytree {
 				stack[stackEnd][0] = list[pos][0];
 				stack[stackEnd][1] = list[pos][1];
 				stack[stackEnd][2] = list[pos][2];
+				stackEnd++;
+			}
+		}
+		time += System.nanoTime() - t;
+		return weight;
+	}
+	
+	public Long computeUpperbound(BitSet b){
+		long t = System.nanoTime();
+		long weight = 0;
+		int stackEnd = 0, listEnd = GlobalMaps.taxonIdentifier.taxonCount();
+		Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
+		for (int i = 0, i_end = GlobalMaps.taxonIdentifier.taxonCount(); i < i_end; i++){
+			list[i][0] = b.get(i) ? 1 : 0;
+			list[i][1] = 1;
+		}
+		for (int i = 0, i_end = queue.length; i < i_end; i++){
+			int cmd = queue[i];
+			if (cmd == -1) {
+				BitSet all = tit.next().getBitSet();
+				treeTotal[0] = b.intersectionSize(all);
+				treeTotal[1] = all.cardinality();
+				continue;
+			}
+			if ((cmd & 1) != 0){
+				int numChildren = cmd >> 4;
+				long tempWeight = 0;
+				int[] p = stack[stackEnd], q;
+				p[0] = treeTotal[0];
+				p[1] = treeTotal[1];
+				for (int j = stackEnd - numChildren; j < stackEnd; j++){
+					q = stack[j];
+					p[0] -= q[0];
+					p[1] -= q[1];
+				}
+				if (numChildren == 2){
+					tempWeight = U(stack[stackEnd - 2], stack[stackEnd - 1], stack[stackEnd]);
+				}
+				else{
+					sx[0] = 0;
+					sx[1] = 0;
+					sxy[0] = 0;
+					sxy[1] = 0;
+					for (int j = stackEnd - numChildren; j <= stackEnd; j++){
+						q = stack[j];
+						sx[0] += q[0];
+						sx[1] += q[1];
+						sxy[0] += q[0] * q[0];
+						sxy[1] += q[0] * q[1];
+					}
+					for (int j = stackEnd - numChildren; j <= stackEnd; j++){
+						q = stack[j];
+						tempWeight += ((sx[0] - q[0]) * (sx[1] - q[1]) - sxy[1] + q[0] * q[1]) * q[0] * (q[0] - 1L)
+							+ ((sx[0] - q[0]) * (sx[0] - q[0]) - sxy[0] + q[0] * q[0]) * (q[1] * (q[1] - 1L) / 2 - q[0] * (q[0] - 1L));
+					}
+				}
+				stackEnd -= numChildren;
+				if ((cmd & 2) != 0){
+					q = stack[stackEnd++];
+					q[0] = treeTotal[0] - p[0];
+					q[1] = treeTotal[1] - p[1];
+				}
+				if ((cmd & 4) != 0){
+					q = list[listEnd++];
+					q[0] = treeTotal[0] - p[0];
+					q[1] = treeTotal[1] - p[1];
+				}
+				if ((cmd & 8) != 0) weight += tempWeight * queue[++i];
+				else weight += tempWeight;
+			}
+			else {
+				int pos = cmd >> 1;
+				stack[stackEnd][0] = list[pos][0];
+				stack[stackEnd][1] = list[pos][1];
 				stackEnd++;
 			}
 		}
