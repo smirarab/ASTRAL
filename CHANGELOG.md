@@ -1,3 +1,8 @@
+- version 5.2.0: ASTRAL-III - first version
+    - polytree
+    - better handling of polytomies
+    - A*
+
 - version 4.10.11:
     - A bug fixed where number of taxa = 64*X was throwing an error
     
