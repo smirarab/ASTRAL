@@ -480,7 +480,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 								 ";q2="+df.format((f2)/effni)+
 								 ";q3="+df.format((f3)/effni)+"]'");
 					} else if (this.getBranchAnnotation() == 16) {
-						node.setData(df.format(postQ1));
+						node.setData("'[pp1="+df.format(postQ1)+";pp2="+df.format(postQ2)+";pp3="+df.format(postQ3)+"]'");	
 						Quadrapartition[] threequads = nd.quads;
 						STBipartition[] biparts = nd.bipartitions;
 						
