@@ -219,7 +219,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 						temp.add(Integer.MIN_VALUE);
 					}
 				}
-				System.err.println(tr);
+				//System.err.println(tr);
 			}
 			geneTreesAsInts = temp.toArray(new Integer[]{});
 			
