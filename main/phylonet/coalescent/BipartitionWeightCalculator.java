@@ -340,6 +340,10 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 			return cluster1.getBitSet().toString2()+"|"+cluster2.getBitSet().toString2()+
 					"#"+cluster3.getBitSet().toString2()+"|"+cluster4.getBitSet().toString2();
 		}
+		public String toString2() {
+			return cluster1.toString()+"|"+cluster2.toString()+
+					"#"+cluster3.toString()+ "|"+cluster4.toString();
+		}
 
 
 	}

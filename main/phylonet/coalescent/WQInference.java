@@ -484,19 +484,19 @@ public class WQInference extends AbstractInference<Tripartition> {
 						Quadrapartition[] threequads = nd.quads;
 						STBipartition[] biparts = nd.bipartitions;
 						
-						String lineTmp = node.getName() + "\t" + "t1" + "\t" + biparts[0].toString() + "\t" + 
+						String lineTmp = node.getName() + "\t" + "t1" + "\t" + threequads[0].toString2() + "\t" + 
 										 Double.toString(postQ1) + "\t" + Double.toString(f1) +
 										 "\t" + Double.toString(effni);
 						
 						freqWriterLines.add(lineTmp);
 						
-						lineTmp = node.getName() + "\t" + "t2" + "\t" + biparts[1].toString() + "\t" + 
+						lineTmp = node.getName() + "\t" + "t2" + "\t" + threequads[1].toString2() + "\t" + 
 								  Double.toString(postQ2) + "\t" + Double.toString(f2) + 
 								  "\t" + Double.toString(effni);
 						
 						freqWriterLines.add(lineTmp);
 						
-						lineTmp = node.getName() + "\t" + "t3" + "\t" + biparts[2].toString() + "\t" +
+						lineTmp = node.getName() + "\t" + "t3" + "\t" + threequads[2].toString2() + "\t" +
 								  Double.toString(postQ3) + "\t" + Double.toString(f3) +
 								  "\t" + Double.toString(effni);
 						freqWriterLines.add(lineTmp);
@@ -510,29 +510,26 @@ public class WQInference extends AbstractInference<Tripartition> {
 		if (this.getBranchAnnotation() == 16) {
 			try {
 				RscriptLines.add("#!/usr/bin/env Rscript");
-				RscriptLines.add("require(reshape2);require(ggplot2); sizes <- c(7.67,6.65); colormap='Set2'");
+				RscriptLines.add("require(reshape2);require(ggplot2); sizes <- c(7.67,2.5); colormap='Set1'");
 				RscriptLines.add("dirPath = '"+options.getFreqOutputPath()+"'; filePath = paste(dirPath"
-						+ ",'/freqQuad.csv',sep=''); md<-read.csv(filePath,header=F,sep='\\t'); md$value = md$V5/md$V6;");
-				RscriptLines.add("ggplot(data=md)+aes(x=V2,y=value,fill=V2)+"
+						+ ",'/freqQuad.corrected.csv',sep=''); md<-read.csv(filePath,header=F,sep='\\t'); md$value = md$V5/md$V6;");
+				RscriptLines.add("ggplot(data=md)+aes(x=V8,y=value,fill=V8)+"
 						+ "geom_bar(stat='identity',color=1,width=0.8,position='dodge')+"
 						+ "theme_bw()+theme(axis.text.x=element_text(angle=90))+scale_fill_brewer"
 						+ "(palette=colormap,name='Topology')+geom_hline(yintercept=1/3,size=0.4,linetype=2)+"
-						+ "ylab('quartet score')+facet_wrap(~V1,scales='free_x')+scale_x_discrete(breaks=c())+"
-						+ "xlab('Topology')");
+						+ "ylab('quartet score')+facet_wrap(~V1,scales='free_x')+scale_x_discrete(breaks=c())+xlab('')");
 				RscriptLines.add("pdfFile = paste(dirPath,'/relativeFreq.pdf',sep=''); ggsave(pdfFile,width = sizes[1], height= sizes[2]);");
-				RscriptLines.add("ggplot(data=md)+aes(x=V2,y=V4,fill=V2)+"
+				RscriptLines.add("ggplot(data=md)+aes(x=V8,y=V4,fill=V8)+"
 						+ "geom_bar(stat='identity',color=1,position='dodge')+"
 						+ "theme_bw()+theme(axis.text.x=element_text(angle=90))+scale_fill_brewer"
 						+ "(palette=colormap,name='Topology')+geom_hline(yintercept=1/3,size=0.4,linetype=2)+"
-						+ "ylab('quartet score')+facet_wrap(~V1,scales='free_x')+scale_x_discrete(breaks=c())+"
-						+ "xlab('Topology')");
+						+ "ylab('quartet score')+facet_wrap(~V1,scales='free_x')+scale_x_discrete(breaks=c())+xlab('')");
 				RscriptLines.add("pdfFile = paste(dirPath, '/quartetScore.pdf',sep=''); ggsave(pdfFile,width = sizes[1], height= sizes[2]);");
-				RscriptLines.add("ggplot(data=md)+aes(x=V2,y=V5,fill=V2)+"
+				RscriptLines.add("ggplot(data=md)+aes(x=V8,y=V5,fill=V8)+"
 						+ "geom_bar(stat='identity',color=1,position='dodge')+"
 						+ "theme_bw()+theme(axis.text.x=element_text(angle=90))+scale_fill_brewer"
 						+ "(palette=colormap,name='Topology')+geom_hline(aes(yintercept=V6/3),size=0.4,linetype=2)+"
-						+ "ylab('quartet score')+facet_wrap(~V1,scales='free_x')+scale_x_discrete(breaks=c())+"
-						+ "xlab('Topology')");
+						+ "ylab('quartet score')+facet_wrap(~V1,scales='free_x')+scale_x_discrete(breaks=c())+xlab('')");
 				RscriptLines.add("pdfFile = paste(dirPath, '/countTopology.pdf',sep=''); ggsave(pdfFile,width = sizes[1], height= sizes[2]);");
 				Files.write(freqWriter, freqWriterLines, Charset.forName("UTF-8"));
 				Files.write(Rscript, RscriptLines, Charset.forName("UTF-8"));
