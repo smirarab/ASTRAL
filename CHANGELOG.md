@@ -1,3 +1,6 @@
+- version 4.10.13:
+   - A bug fixed where for input trees with polytomies, the distance matrix was not computed correctly. 
+
 - version 4.10.11:
     - A bug fixed where number of taxa = 64*X was throwing an error
     

@@ -194,7 +194,7 @@ public class SimilarityMatrix {
 				}
 				similarityMatrix[j][i] = similarityMatrix[i][j];
 			}
-			System.err.println(Arrays.toString(similarityMatrix[i]));
+			//System.err.println(Arrays.toString(similarityMatrix[i]));
 		}
 	}
 	
