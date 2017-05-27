@@ -117,6 +117,7 @@ public class SimilarityMatrix {
 		}
 	}
 	
+	
 	void populateByQuartetDistance(List<STITreeCluster> treeAllClusters, List<Tree> geneTrees) {
 		Deque<BitSet> stack = new ArrayDeque<BitSet>();
 		this.similarityMatrix = new float[n][n];
@@ -130,7 +131,7 @@ public class SimilarityMatrix {
 			
 			for (TNode node : tree.postTraverse()) {
 				if (node.isLeaf()) {
-					BitSet tmp = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
+					BitSet tmp = new BitSet(n);
 					tmp.set(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
 					stack.push(tmp);
 				} else if (node.isRoot() && node.getChildCount() == 3){
@@ -141,18 +142,34 @@ public class SimilarityMatrix {
 					updateQuartetDistanceForPair(treeall, left, middle, similarityMatrix);
 					updateQuartetDistanceForPair(treeall, middle, right, similarityMatrix);
 				} else {
-					BitSet left = stack.pop();
-					BitSet right = stack.pop();
-					BitSet both = new BitSet();
-					both.or(left);
-					both.or(right);
-					BitSet middle = new BitSet();
-					middle.or(treeallCL.getBitSet());
-					middle.andNot(both); 
-					updateQuartetDistanceForPair(treeall, left, right, similarityMatrix);
-					updateQuartetDistanceForPair(treeall, left, middle, similarityMatrix);
-					updateQuartetDistanceForPair(treeall, middle, right, similarityMatrix);
-					stack.push(both);
+					BitSet others = (BitSet) treeallCL.getBitSet().clone();
+					BitSet newbs = new BitSet(n);
+					ArrayList<BitSet> children = new ArrayList<BitSet>();
+					for (int j = 0; j < node.getChildCount(); j++ ) {
+						BitSet c = stack.pop();
+						children.add(c);	
+						others.xor(c);
+						newbs.or(c);
+					}
+					 
+					children.add(others);
+
+					for (int j = 0; j < children.size(); j++ ) {
+						BitSet left = children.get(j);
+						for (int i = j+1; i < children.size(); i++ ) {
+							BitSet right = children.get(i);
+							//BitSet both = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
+							//both.or(left);
+							//both.or(right);
+							// middle = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
+							//middle.or(treeallCL.getBitSet());
+							//middle.andNot(both); 
+							updateQuartetDistanceForPair(treeall, left, right, similarityMatrix);
+							//updateQuartetDistanceForPair(treeall, left, middle, similarityMatrix);
+							//updateQuartetDistanceForPair(treeall, middle, right, similarityMatrix);
+						}
+					}
+					stack.push(newbs);
 				}
 			}
 
@@ -177,6 +194,7 @@ public class SimilarityMatrix {
 				}
 				similarityMatrix[j][i] = similarityMatrix[i][j];
 			}
+			System.err.println(Arrays.toString(similarityMatrix[i]));
 		}
 	}
 	

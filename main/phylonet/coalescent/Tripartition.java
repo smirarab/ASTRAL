@@ -49,8 +49,8 @@ public class Tripartition {
 			cluster3 = c2;
 		} else if (n3 > n2 & n2 > n1)  {
 			cluster1 = c3;
-			cluster2 = c1;	
-			cluster3 = c2;
+			cluster2 = c2;	
+			cluster3 = c1;
 		} else {
 			throw new RuntimeException("taxa appear multiple times?\n"+c1+"\n"+c2+"\n"+c3);
 		}
