@@ -1,3 +1,6 @@
+- version 4.11.1:
+   - Change the calculation of the similarity matrix to count unresolved quartets as half
+
 - version 4.10.13:
    - A bug fixed where for input trees with polytomies, the distance matrix was not computed correctly. 
 
