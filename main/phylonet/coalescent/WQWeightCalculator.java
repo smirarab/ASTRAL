@@ -8,8 +8,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
 
+import phylonet.tree.model.TMutableNode;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
+import phylonet.tree.model.sti.STINode;
+import phylonet.tree.model.sti.STITree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.util.BitSet;
 
@@ -214,6 +217,35 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			List<Integer> temp = new ArrayList<Integer>(); 
 
 			for (Tree tr :  inference.trees) {
+				List<STINode> children = new ArrayList<STINode>();
+				int n = tr.getLeafCount()/2;
+				int dist = n;
+				TNode newroot = tr.getRoot();
+				for (TNode node : tr.postTraverse()) {
+					if (!node.isLeaf()) {                        
+						for (TNode child : node.getChildren()) {
+							if (child.isLeaf()) {
+								children.add((STINode) child);
+								break;
+							}
+						}
+						if (Math.abs(n - node.getLeafCount()) < dist) {
+							newroot = node;
+							dist = n - node.getLeafCount();
+						}
+					}
+				}
+				for (STINode child: children) {
+						STINode snode = child.getParent();
+						snode.removeChild((TMutableNode) child, false);
+						TMutableNode newChild = snode.createChild(child);
+						if (child == newroot) {
+							newroot = newChild;
+						}
+				}
+				if (newroot != tr.getRoot())
+					((STITree)(tr)).rerootTreeAtEdge(newroot);
+
 				for (TNode node : tr.postTraverse()) {
 					if (node.isLeaf()) {                        
 						temp.add(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
@@ -224,6 +256,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 						temp.add(Integer.MIN_VALUE);
 					}
 				}
+				//System.err.println(tr);
 			}
 			geneTreesAsInts = temp.toArray(new Integer[]{});
 			
