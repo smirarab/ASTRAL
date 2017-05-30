@@ -187,8 +187,10 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 					}
 
 					// TODO: do multiple samples
+
 					HashMap<String, Integer> randomSample = this.randomSampleAroundPolytomy(polytomy, GlobalMaps.taxonNameMap
 											.getSpeciesIdMapper().getSTTaxonIdentifier());
+
 		//			clone
 					AbstractClusterCollection backup=null;
 //					if (bug) {
@@ -677,24 +679,24 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		for (List<Tree> l : allGreedies) {
 			int rand = GlobalMaps.random.nextInt(l.size());
 			STITree temp = new STITree(l.get(rand));
+			//System.err.println(temp);
 			resolveByUPGMA((MutableTree) temp, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), this.speciesSimilarityMatrix);
 			greedyCandidates.add(temp);
 
 		}
 
-//		Tree allGenesGreedy = Utils.greedyConsensus(greedyCandidates, false,
-//				GlobalMaps.taxonNameMap.getSpeciesIdMapper()
-//						.getSTTaxonIdentifier(), true);
-//		resolveByUPGMA((MutableTree) allGenesGreedy, GlobalMaps.taxonNameMap.getSpeciesIdMapper()
-//				.getSTTaxonIdentifier(),
-//				this.speciesSimilarityMatrix);
-//		System.err.println(allGenesGreedy);
-		Tree allGenesGreedy = Utils.greedyConsensus(greedyCandidates, false,GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), true);
-		resolveByUPGMA((MutableTree) allGenesGreedy, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), this.speciesSimilarityMatrix);
+		Tree allGenesGreedy = Utils.greedyConsensus(greedyCandidates, false,
+				GlobalMaps.taxonNameMap.getSpeciesIdMapper()
+						.getSTTaxonIdentifier(), true);
+		resolveByUPGMA((MutableTree) allGenesGreedy, GlobalMaps.taxonNameMap.getSpeciesIdMapper()
+				.getSTTaxonIdentifier(),
+				this.speciesSimilarityMatrix);
 		for (int ii=0; ii < secondRoundSampling; ii++) {
 			for (int j=0 ; j< allGreedies.size() ; j++) {
 				try {
+
 					addBipartitionsFromSignleIndTreesToX(allGreedies.get(j).get(ii), allGenesGreedy,
+
 							GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
 				} catch (Exception e) {
 					System.err.println(allGreedies.get(j).get(ii));
@@ -1146,7 +1148,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	private boolean resolveLinearly(BitSet[] polytomyBSList, Collection<Tree> inputTrees,
 			HashMap<String, Integer> randomSample, TaxonIdentifier tid, boolean forceresolution) {
 		int sampleSize = randomSample.size();
-		// get bipartition counts in the induced trees
+		// get bipartition counts in the induced trees//******************************************		
 		HashMap<BitSet, Integer> counts = returnBitSetCounts(
 				inputTrees, randomSample);
 
