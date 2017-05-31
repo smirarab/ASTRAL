@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
 
-
 import phylonet.tree.model.TMutableNode;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
@@ -28,15 +27,13 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 	WQInference inference;
 	private WQDataCollection dataCollection;
-	private WeightCalculatorAlgorithm algorithm, tmpalgorithm;
-	private int polytomies;
+	WeightCalculatorAlgorithm algorithm;
+	private WeightCalculatorAlgorithm tmpalgorithm;
 	
-	public WQWeightCalculator(AbstractInference<Tripartition> inference,
-			int polytomie) {
+	public WQWeightCalculator(AbstractInference<Tripartition> inference) {
 		super(false);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
 		this.inference = (WQInference) inference;
-		this.setPolytomies(polytomies);
 		//this.algorithm = new TraversalWeightCalculator();
 		this.algorithm = new CondensedTraversalWeightCalculator();
 		tmpalgorithm = new TraversalWeightCalculator();
@@ -56,7 +53,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 		abstract Long calculateWeight(Tripartition trip);
 
-		abstract void setupGeneTrees(WQInference inference, boolean randomResolve);
+		abstract void setupGeneTrees(WQInference inference);
 	}
 
 	@Override
@@ -85,9 +82,8 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		* Minus infinity is used for separating different genes. 
 		*/
 		@Override
-		void setupGeneTrees(WQInference inference, boolean randomResolve) {
-			System.err.println("Using polytree-based weight calculation and please ignore any debug message saying it is tree-based.");
-			polytree = new Polytree(inference.trees, polytomies, randomResolve, dataCollection);
+		void setupGeneTrees(WQInference inference) {
+			polytree = new Polytree(inference.trees, dataCollection);
 		}
 	}
 	
@@ -190,21 +186,20 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 						}
 						stack[top + gtb][side] = newSides[side];
 					}
-					if (gtb >= -getPolytomies() + 1) {
 
-						for (int i = nzc[0] - 1; i >= 0; i--) {
-							for (int j = nzc[1] - 1; j >= 0; j--) {
-								if (overlapind[i][0] != overlapind[j][1])
-									for (int k = nzc[2] - 1; k >= 0; k--) {
-										if ((overlapind[i][0] != overlapind[k][2])
-												&& (overlapind[j][1] != overlapind[k][2]))
-											weight += F(overlap[i][0],
-													overlap[j][1],
-													overlap[k][2]);
-									}
-							}
+					for (int i = nzc[0] - 1; i >= 0; i--) {
+						for (int j = nzc[1] - 1; j >= 0; j--) {
+							if (overlapind[i][0] != overlapind[j][1])
+								for (int k = nzc[2] - 1; k >= 0; k--) {
+									if ((overlapind[i][0] != overlapind[k][2])
+											&& (overlapind[j][1] != overlapind[k][2]))
+										weight += F(overlap[i][0],
+												overlap[j][1],
+												overlap[k][2]);
+								}
 						}
 					}
+				
 					top = top + gtb + 1;
 
 				} // End of polytomy section
@@ -222,7 +217,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		* Minus infinity is used for separating different genes. 
 		*/
 		@Override
-		void setupGeneTrees(WQInference inference, boolean randomResolve) {
+		void setupGeneTrees(WQInference inference) {
 			System.err.println("Using tree-based weight calculation.");
 			List<Integer> temp = new ArrayList<Integer>();
 
@@ -245,11 +240,11 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 							children.addAll(stack.pop());
 						}
 						stack.push(children);
-						if(randomResolve){
+						/*if(randomResolve){
 							if (children.size() == 1 && node.getChildCount() > 2) {
 								Utils.randomlyResolve(node);
 							}
-						}
+						}*/
 					}
 				}
 			}
@@ -280,7 +275,6 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 						temp.add(Integer.MIN_VALUE);
 					}
 				}
-				// System.err.println(tr);
 			}
 			geneTreesAsInts = temp.toArray(new Integer[] {});
 
@@ -319,7 +313,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 					: 1);
 		}
 
-		void setupGeneTrees(WQInference inference,boolean randomResolve) {
+		void setupGeneTrees(WQInference inference) {
 
 			List<STITreeCluster> treeCompteleClusters = ((WQDataCollection) inference.dataCollection).treeAllClusters;
 			List<Tree> geneTrees = inference.trees;
@@ -440,10 +434,10 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	 * 
 	 * @param wqInference
 	 */
-	public void setupGeneTrees(WQInference wqInference, boolean randomResolve) {
+	public void setupGeneTrees(WQInference wqInference) {
 		// TODO: change it back after testing
-		this.algorithm.setupGeneTrees(wqInference,false);
-		tmpalgorithm.setupGeneTrees(wqInference,false);
+		this.algorithm.setupGeneTrees(wqInference);
+		tmpalgorithm.setupGeneTrees(wqInference);
 		//this.algorithm.setupGeneTrees(wqInference,randomResolve);
 		//tmpalgorithm.setupGeneTrees(wqInference,randomResolve);
 	}
@@ -454,12 +448,5 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 	}
 
-	public int getPolytomies() {
-		return polytomies;
-	}
-
-	public void setPolytomies(int polytomies) {
-		this.polytomies = polytomies;
-	}
 
 }
