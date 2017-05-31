@@ -22,26 +22,4 @@ public abstract class AbstractPartition {
 	}
 	
 	public abstract STITreeCluster[] getClusters();
-	
-	public int[] getCardinalities(){
-		STITreeCluster[] clusters = getClusters();
-		int[] cardialities = new int[clusters.length];
-		for (int i = 0; i < cardialities.length; i++){
-			cardialities[i] = clusters[i].cardinality();
-		}
-		return cardialities;
-	}
-	
-	public long selfScore(){
-		long sx = 0, sx2 = 0, score = 0;
-		int[] cardialities = getCardinalities();
-		for (int x: cardialities){
-			sx += x;
-			sx2 += x * x;
-		}
-		for (int x: cardialities){
-			score += x * (x - 1) * ((sx - x) * (sx - x) - sx2 + x * x);
-		}
-		return score / 2;
-	}
 }
