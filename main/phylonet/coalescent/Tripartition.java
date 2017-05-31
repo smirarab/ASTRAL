@@ -20,6 +20,16 @@ public class Tripartition extends AbstractPartition {
 		
 		initialize(c1, c2, c3);
 	}
+	
+	public Tripartition(STITreeCluster c1, STITreeCluster c2, STITreeCluster c3, boolean checkRepeats) {
+		if (checkRepeats) initialize(c1, c2, c3);
+		else {
+			cluster1 = c1;
+			cluster2 = c2;
+			cluster3 = c3;
+		}
+	}
+
 	private void initialize(STITreeCluster c1, STITreeCluster c2,
 			STITreeCluster c3) {
 		if (c1 == null || c2 == null || c3 == null) {
