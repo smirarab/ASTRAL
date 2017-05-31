@@ -1,12 +1,9 @@
 package phylonet.coalescent;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -14,6 +11,7 @@ import java.util.TreeSet;
 
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
+import phylonet.tree.model.sti.STINode;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.util.BitSet;
 
@@ -105,7 +103,7 @@ public class SimilarityMatrix {
 	}
 
 	
-	private void updateQuartetDistanceForPair (Integer treeall, BitSet left,
+	/*private void updateQuartetDistanceForPair (Integer treeall, BitSet left,
 			BitSet right, float[][] matrix) {
 		long c = treeall - left.cardinality() - right.cardinality();
 		c = c*(c-1)/2;
@@ -115,64 +113,134 @@ public class SimilarityMatrix {
 				matrix[r][l] = matrix[l][r];
 			}
 		}
+	}*/
+	
+	private void updateQuartetDistanceTri (BitSet left, BitSet right, float[][] matrix, double d) {
+		for (int l = left.nextSetBit(0); l >= 0; l=left.nextSetBit(l+1)) {
+			for (int r = right.nextSetBit(0); r >= 0; r=right.nextSetBit(r+1)) {
+				matrix[l][r] += d;
+				matrix[r][l] = matrix[l][r];
+			}
+		}
 	}
 	
-	
+	/*
+	void populateByQuartetDistance(List<STITreeCluster> treeAllClusters, SetWeightCalculator swc) {
+		this.similarityMatrix = new float[n][n];
+		long [][] denom = new long [n][n];
+		
+		for (Tripartition t : swc.finalTripartitions) {
+			updateQuartetDistanceForPair(t.cluster1.getBitSet(), t.cluster2.getBitSet(), t.cluster3.getBitSet(), similarityMatrix);
+			updateQuartetDistanceForPair(t.cluster2.getBitSet(), t.cluster1.getBitSet(), t.cluster3.getBitSet(), similarityMatrix);
+			updateQuartetDistanceForPair(t.cluster3.getBitSet(), t.cluster1.getBitSet(), t.cluster2.getBitSet(), similarityMatrix);
+			
+		}
+		int k = 0;
+		for (STITreeCluster treeallCL :  treeAllClusters) {
+			BitSet all = treeallCL.getBitSet();
+			int c = all.cardinality() - 2;
+			for (int l = all.nextSetBit(0); l >= 0; l=all.nextSetBit(l+1)) {
+				for (int r = all.nextSetBit(0); r >= 0; r=all.nextSetBit(r+1)) {
+					denom[l][r] += c*(c-1)/2;
+					denom[r][l] = denom[l][r];
+				}
+			}
+			
+		}
+		
+		for (int i = 0; i < n; i++) {
+			for (int j = i; j < n; j++) {
+				if (denom[i][j] == 0)
+					similarityMatrix[i][j] = 0;
+				else
+					similarityMatrix[i][j] = similarityMatrix[i][j] / (denom[i][j]/2);
+				if (i == j) {
+					similarityMatrix[i][j] = 1;
+				}
+				similarityMatrix[j][i] = similarityMatrix[i][j];
+			}
+			System.err.println(Arrays.toString(similarityMatrix[i]));
+		}
+	}
+	*/
 	void populateByQuartetDistance(List<STITreeCluster> treeAllClusters, List<Tree> geneTrees) {
-		Deque<BitSet> stack = new ArrayDeque<BitSet>();
+
 		this.similarityMatrix = new float[n][n];
 		long [][] denom = new long [n][n];
 
 		int k = 0;
+		for (Tree tree :  geneTrees) {
+			
+			for (TNode node : tree.postTraverse()) {
+				if (node.isLeaf()) {
+					BitSet tmp = new BitSet(n);
+					tmp.set(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
+					((STINode)node).setData(tmp);
+				} else {
+					
+					BitSet newbs = new BitSet(n);
+					for (TNode cn: node.getChildren()) {
+						BitSet c = (BitSet) ((STINode)cn).getData();
+						newbs.or(c);
+					}
+					 
+					((STINode)node).setData(newbs);
+					
+				}
+			}
+		}
+			
 		for (Tree tree :  geneTrees) {
 			STITreeCluster treeallCL = treeAllClusters.get(k++);
 			
 			Integer treeall = treeallCL.getClusterSize();
 			
 			for (TNode node : tree.postTraverse()) {
-				if (node.isLeaf()) {
-					BitSet tmp = new BitSet(n);
-					tmp.set(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
-					stack.push(tmp);
-				} else if (node.isRoot() && node.getChildCount() == 3){
-					BitSet left = stack.pop();
-					BitSet middle = stack.pop();
-					BitSet right = stack.pop();
-					updateQuartetDistanceForPair(treeall, left, right, similarityMatrix);
-					updateQuartetDistanceForPair(treeall, left, middle, similarityMatrix);
-					updateQuartetDistanceForPair(treeall, middle, right, similarityMatrix);
-				} else {
-					BitSet others = (BitSet) treeallCL.getBitSet().clone();
-					BitSet newbs = new BitSet(n);
-					ArrayList<BitSet> children = new ArrayList<BitSet>();
-					for (int j = 0; j < node.getChildCount(); j++ ) {
-						BitSet c = stack.pop();
-						children.add(c);	
-						others.xor(c);
-						newbs.or(c);
-					}
-					 
+				if (node.isLeaf()) { 
+					continue;
+				}
+				BitSet cluster = (BitSet) ((STINode)node).getData();
+				BitSet others = (BitSet) treeallCL.getBitSet().clone();
+				others.andNot(cluster);
+				ArrayList<BitSet> children = new ArrayList<BitSet>();
+				long totalPairs = 0;
+				long totalUnresolvedPairs = 0;
+				for (TNode cn: node.getChildren()) {
+					BitSet c = (BitSet) ((STINode)cn).getData();
+					children.add(c);
+					long cc = c.cardinality();
+					totalPairs += cc*(cc-1);
+					totalUnresolvedPairs += cc * (treeall - cc); 
+				}
+				if (others.cardinality() != 0) {
 					children.add(others);
-
-					for (int j = 0; j < children.size(); j++ ) {
-						BitSet left = children.get(j);
-						for (int i = j+1; i < children.size(); i++ ) {
-							BitSet right = children.get(i);
-							//BitSet both = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
-							//both.or(left);
-							//both.or(right);
-							// middle = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
-							//middle.or(treeallCL.getBitSet());
-							//middle.andNot(both); 
-							updateQuartetDistanceForPair(treeall, left, right, similarityMatrix);
-							//updateQuartetDistanceForPair(treeall, left, middle, similarityMatrix);
-							//updateQuartetDistanceForPair(treeall, middle, right, similarityMatrix);
-						}
+					long cc = others.cardinality();
+					totalPairs += cc*(cc-1);
+					totalUnresolvedPairs += cc * (treeall - cc);
+				}
+				totalPairs /= 2;
+				totalUnresolvedPairs /= 2;
+				
+				
+				for (int j = 0; j < children.size(); j++ ) {
+					BitSet left = children.get(j);
+					long lc = left.cardinality();
+					long lcu = lc * (treeall - lc);
+					long lcp = lc*(lc-1)/2;
+					for (int i = j+1; i < children.size(); i++ ) {
+						BitSet right = children.get(i);
+						long rc = right.cardinality();
+						long rcu = rc * (treeall - lc - rc);
+						long rcp = rc*(rc-1)/2;
+						double sim = (totalPairs - lcp - rcp) // the number of fully resolved quartets
+								+ (totalUnresolvedPairs - lcu - rcu) / 2.0 // we count partially resolved quartets
+								; 
+						updateQuartetDistanceTri( left, right, similarityMatrix, sim);
 					}
-					stack.push(newbs);
 				}
 			}
 
+			
 			BitSet all = treeallCL.getBitSet();
 			int c = all.cardinality() - 2;
 			for (int l = all.nextSetBit(0); l >= 0; l=all.nextSetBit(l+1)) {
