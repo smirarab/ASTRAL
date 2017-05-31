@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry including="phylonet/coalescent/*.java|phylonet/compatibility/TreeCompatibility.java|phylonet/tree/io/|phylonet/tree/model/sti/STITreeCluster.java|phylonet/tree/util/Trees.java|phylonet/util/BitSet.java" kind="src" path="main"/>
-	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry exported="true" kind="con" path="org.eclipse.jdt.USER_LIBRARY/JSAP"/>
-	<classpathentry exported="true" kind="lib" path="lib/main.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/colt.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/JSAP-2.1.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/main.jar"/>
+	<classpathentry kind="lib" path="lib/colt.jar"/>
+	<classpathentry kind="lib" path="lib/JSAP-2.1.jar"/>
 	<classpathentry kind="output" path="main"/>
 </classpath>
