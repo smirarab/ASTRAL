@@ -20,8 +20,6 @@ import phylonet.util.BitSet;
  * @param <T>
  */
 public abstract class AbstractComputeMinCostTask<T> {
-	static double estimationFactor = 0.8;
-	
 	AbstractInference<T> inference;
 	Vertex v;
 	IClusterCollection clusters;
@@ -95,7 +93,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 			return v._upper_bound;
 		}
 		
-		if (v._done == 0){
+		if (v._done == 0 && inference.options.getTrim() >= 0.33){
 			inference.bestSoFar = estimateMinCost();
 			System.err.println("Sub-optimal score: " + (long) inference.bestSoFar / 4);
 		}
@@ -187,8 +185,8 @@ public abstract class AbstractComputeMinCostTask<T> {
 			return v._max_score;
 		}
 		//
-		if (v._done == 3 && v._upper_bound * estimationFactor <= target) {
-			return v._upper_bound * estimationFactor;
+		if (v._done == 3 && v._upper_bound * inference.options.getTrim() <= target) {
+			return v._upper_bound * inference.options.getTrim();
 		}
 		
 		int clusterSize = v.getCluster().getClusterSize();
@@ -270,7 +268,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 			v._c = bi.weight;
 		}
 		
-		if (v._max_score / estimationFactor < v._upper_bound) v._upper_bound = v._max_score / estimationFactor;
+		if (v._max_score / inference.options.getTrim() < v._upper_bound) v._upper_bound = v._max_score / inference.options.getTrim();
 		if (canSaveWork) v._done = 1;
 		else v._done = 5;
 		return v._max_score;
