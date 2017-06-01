@@ -69,7 +69,7 @@ when the input gene trees have many high degree multifurcations.
 
 ### Viewing results of ASTRAL:
 
-The output of ASTRAL is a tree in Newick format. These trees can be viewed in many existing tools. Here are few that are used by many people:
+The output of ASTRAL is a tree in Newick format. These trees can be viewed in many existing tools. Here are some that are used by many people:
 
 1. [FigTree](http://tree.bio.ed.ac.uk/software/figtree/) is probably the most widely used tool. It produces nice looking figures and works under Linux, Windows, and MAC. 
 2. [Archaeopteryx](https://sites.google.com/site/cmzmasek/home/software/archaeopteryx) is very good for viewing large trees and also works under all three operating systems. 
@@ -101,13 +101,13 @@ java -jar __astral.jar__ -i test_data/song_mammals.424.gene.tre -o test_data/son
 
 Here are some of the important information captured in the log:
 
-* Number of taxa, and their name. Double check these to make sure they are correct
+* Number of taxa, and their names. Double check these to make sure they are correct
 * Number of genes. 
 * Version of ASTRAL used in your analysis
-* The normalized quartet score (portion of input gene tree quartet trees satisfied by the species tree). This is a number between zero and one; the higher this number, the *less* discordant your gene trees are. 
+* The normalized quartet score (proportion of input gene tree quartet trees satisfied by the species tree). This is a number between zero and one; the higher this number, the *less* discordant your gene trees are. 
 * The final optimization score is similar to the above number, but is not normalized (the number of gene tree quartets satisfied by the species tree)
 * Running time
-* More advanced logs show the size of the search space in terms of the number of clusters and number of tripartitions (i.e., elements weighted). Note that for challenging detests (not this mammalian dataset) the search space grows using heuristics implemented in ASTARL. We will get back to this.  
+* More advanced logs show the size of the search space in terms of the number of clusters and number of tripartitions (i.e., elements weighted). Note that for challenging datasets (not this mammalian dataset) the search space grows using heuristics implemented in ASTARL. We will get back to this.  
 
 ### Running on larger datasets:
 We will now run ASTRAL on a relatively large dataset. Run:
@@ -168,9 +168,9 @@ Here is a description of various information that can be turned on by using `-t`
 
 
 * *no annotations* (`-t 0`): If you hate our posteriors and cannot stand seeing them, you can use this option turn them off. If our calculations are causing numerical errors you can use this to at least get the topology.  
-* *Quartet support* (`-t 1`): The local posterior probabilities are computed based on the percentage of quartets in gene trees that agree or disagree with a branch. If you want to know what percentage of quartets in your gene trees agree with a branch, use this option. We refer to this measure as the quartet support. 
-* *Alternative posteriors* (`-t 4`): When this option is used, ASTRAL outputs three local posterior probabilities: one for the main topology, and one for each of the two alternatives (`RS|LO` and `RO|LS`, in that order). The posterior of the three topologies adds up to one. This is because of our locality assumption, which basically asserts that we assume the four groups around the branch (`L`, `R`, `S`, and  `O`) are each correct and therefore, the are only three possible alternatives. 
-* *Full annotation* (`-t 2`): When you use this option, for each branch you a get a lot of different measurements:
+* *Quartet support* (`-t 1`): The local posterior probabilities are computed based on a transforation of the percentage of quartets in gene trees that agree or disagree with a branch. See Figure 2 of our MBE paper referenced above for the relationship. If you want to know what percentage of quartets in your gene trees agree with a branch, use this option. We refer to this measure as the quartet support.  Quartet score is a good way of measuring the amount of gene tree conflict around a branch.  
+* *Alternative posteriors* (`-t 4`): When this option is used, ASTRAL outputs three local posterior probabilities: one for the main topology, and one for each of the two alternatives (`RS|LO` and `RO|LS`, in that order). The posterior of the three topologies adds up to one. This is because of our locality assumption, which basically asserts that we assume the four groups around the branch (`L`, `R`, `S`, and  `O`) are each correct and therefore, there are only three possible alternatives. 
+* *Full annotation* (`-t 2`): When you use this option, for each branch you get a lot of different measurements:
    * `q1`,`q2`,`q3`: these three values show quartet support (as defined in the description of `-t 1`) for the main topology, the first alternative, and the second alternative, respectively. 
    * `f1`, `f2`, `f3`: these three values show the total number of quartet trees in all the gene trees that support the main topology, the first alternative, and the second alternative, respectively.
    * `pp1`, `pp2`, `pp3`: these three show the local posterior probabilities (as defined in the description of `-t 4`) for the main topology, the first alternative, and the second alternative, respectively.
@@ -251,16 +251,14 @@ java -jar ../__astral.jar__ -i song_mammals.424.gene.tre --gene-only
 
 Finally, since bootstrapping involves a random process, a seed number can be provided to ASTRAL to ensure reproducibility. The seed number can be set using the `-s` option (by default 692 is used). 
 
-**Output:** 
-ASTRAL first performs the bootstrapping, and for each replicate, it outputs the bootstrapped ASTRAL tree. So, if the number of replicates is set to 100, it outputs 100 trees. Then, it outputs a greedy consensus of all the 100 bootstrapped trees (with support drawn on branches). Finally, it performs the main analysis (i.e. on trees provided using `-i` option) and draws branch support on this main tree using the bootstrap replicates. Therefore, the tree outputted at the end is the ASTRAL tree on main input trees, with support values drawn based on bootstrap replicates. Support values are shown as branch length (i.e. after a colon sign) and
-are percentages. 
-
+#### Output:
+As ASTRAL performs bootstrapping, it outputs the bootstrapped ASTRAL tree for each replicate. So, if the number of replicates is set to 100, it first outputs 100 trees. Then, it outputs a greedy consensus of all the 100 bootstrapped trees (with support drawn on branches). Finally, it performs the main analysis (i.e. on trees provided using `-i` option) and draws branch support on this main tree using the bootstrap replicates. Therefore, in this example, the output file will include 102 trees. The most important tree is the tree outputted at the end; this is the ASTRAL tree on main input trees, with support values drawn based on bootstrap replicates. Support values are shown as branch length (i.e. after a colon sign) and are percentages (as opposed to local posterior probabilities that when present are shown as a number between 0 and 1). 
 
 
 
 ### The exact version of ASTRAL
 
-ASTRAL has an exact and a heuristic version. The heuristic version solves the optimization problem exactly subject to the constraint that all the bipartitions in the species tree should be present in at least one of the input gene trees, or in a set of few other bipartitions that (since [version 4.5.1](CHANGELOG.md)) ASTRAL automatically infers from the set of input gene trees as likely bipartitions in the species tree. The constrained version of ASTRAL is the default. However, when you have a small number of taxa (typically 17 taxa or less), the exact version of ASTRAL can also run in reasonable time (see the figure below). 
+ASTRAL has an exact and a heuristic version. The heuristic version solves the optimization problem exactly subject to the constraint that all the bipartitions in the species tree should be present in at least one of the input gene trees, or in a set of some other bipartitions that (since [version 4.5.1](CHANGELOG.md)) ASTRAL automatically infers from the set of input gene trees as likely bipartitions in the species tree. The constrained version of ASTRAL is the default. However, when you have a small number of taxa (typically 17 taxa or less), the exact version of ASTRAL can also run in reasonable time (see the figure below). 
 
 ![Running time Figure](runningtime.png "ASTRAL running times for exact version as function of the number of taxa")
 
@@ -298,9 +296,9 @@ and then
 java -jar __astral.jar__ -i test_data/simulated_14taxon.gene.tre -o test_data/simulated_14taxon.exact.tre -x
 ```
 
-Now you see that the tree outputted by the exact version has a slightly higher score (4812=48.07% versus 4803=47.98%), and a slightly different topology compared to the heuristic version. Thus, in extreme cases (i.e. lots of ILS and/or gene tree estimation error and few available gene trees compared to the number of taxa), one could observe differences between exact and heuristic versions. Note that how many genes should be considered few depends on the number of taxa you have, and also how much missing data there is. 
+Now you see that the tree outputted by the exact version has a slightly higher score (4812=48.07% versus 4803=47.98%), and a slightly different topology compared to the heuristic version. Thus, in extreme cases (i.e. lots of ILS and/or gene tree estimation error and few available gene trees compared to the number of taxa), one could observe differences between the exact and heuristic versions. Note that how many genes should be considered few depends on the number of taxa you have, and also how much missing data there is. 
 
-The main point of our ASTRAL-II work is to make sure the heuristic and exact versions essentially work identically. We have tested the heuristic version and a condition similar to the exact condition in our ASTRAL-II paper and have observed no real differences. Thus, we believe the ASTRAL-II heuristics do a very good job of searching the tree space. But when exact version can be run, there is no reason not to. 
+The main point of our ASTRAL-II work is to make  the heuristic version as close to the exact version as possible. We have tested the heuristic version and a condition similar to the exact condition in our ASTRAL-II paper and have observed no real differences. Thus, we believe the ASTRAL-II heuristics do a very good job of searching the tree space. But when the exact version can be run, there is no reason not to. 
 
 
 ### Step 7: Providing ASTRAL with extra trees:
