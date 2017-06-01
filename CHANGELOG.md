@@ -1,3 +1,6 @@
+- version 5.1.0:
+        - Merge polytree and multiind
+
 - version 5.0.3:
 	- Bug fix: 5.0.2 has created a bug, which is fixed
 	- Error messages changed to emphasize that quartet score for multi individuals needs adjustment and the first value printed is just for internal use
@@ -15,9 +18,15 @@
       This version should have all the multi-ind features of 4.8.0 and
       local posterior probability features of 4.10.12 (plus all other misc changes on the master branch)
 
+- version 4.11.1:
+   - Change the calculation of the similarity matrix to count unresolved quartets as half
+
+- version 4.10.13:
+   - A bug fixed where for input trees with polytomies, the distance matrix was not computed correctly. 
+
 - version 4.10.12:
     - Update code documentation and some refactoring
-
+    
 - version 4.10.11:
     - A bug fixed where number of taxa = 64*X was throwing an error
     
