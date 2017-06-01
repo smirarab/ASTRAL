@@ -40,9 +40,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
-
-    protected static String _versinon = "5.0.3";
-
+    protected static String _versinon = "5.3.0";
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
         System.err.println();
@@ -157,7 +155,7 @@ public class CommandLine {
                             + " automatically picks this parameter."),
 	                                
 	                new Switch( "duplication",
-	                        'd', "dup",
+	                        JSAP.NO_SHORTFLAG, "dup",
 	                        "Solves MGD problem. Minimizes the number duplications required to explain "
 	                        + "gene trees using DynaDup algorithm (Bayzid, 2011). Note that with this option, "
 	                        + "DynaDyp would be used *instead of* ASTRAL."),
@@ -188,6 +186,11 @@ public class CommandLine {
                             'f', "extra-species",
                             "provide extra trees (with species labels) used to enrich the set of clusters searched"),
 
+                    new FlaggedOption("trimming threshold", 
+	                        JSAP.DOUBLE_PARSER, "0", JSAP.NOT_REQUIRED,
+	                        'd', "trimming",
+	                        "trimming threshold is user's estimate on normalized score; the closer user's estimate is, the faster astral runs."),
+                    
                     new FlaggedOption( "duploss weight",
                             JSAP.STRING_PARSER, null, JSAP.NOT_REQUIRED,
                             'l', "duploss",
@@ -403,7 +406,9 @@ public class CommandLine {
 					minleaves, outbuffer, keepOptions, outfile, options,
 					outgroup);
         }
-		
+        // TODO: debug info
+        System.err.println("Weight calculation took " + Polytree.time / 1000000000.0D + " secs");
+        
 	    System.err.println("ASTRAL finished in "  + 
 	            (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 	}
@@ -676,7 +681,8 @@ public class CommandLine {
     			!keepOptions.contains("searchspace_norun"),
     			config.getInt("branch annotation level"), 
     			config.getDouble("lambda"),
-    			outfileName, samplingrounds == null ? -1 : samplingrounds);
+    			outfileName, samplingrounds == null ? -1 : samplingrounds,
+    			config.getDouble("trimming threshold"));
     	options.setDLbdWeigth(wh); 
     	options.setCS(cs);
     	options.setCD(cd);

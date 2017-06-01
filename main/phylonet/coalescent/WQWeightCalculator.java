@@ -27,20 +27,21 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 	WQInference inference;
 	private WQDataCollection dataCollection;
-	private WeightCalculatorAlgorithm algorithm;
-	private int polytomies;
-
-	public WQWeightCalculator(AbstractInference<Tripartition> inference,
-			int polytomies) {
+	WeightCalculatorAlgorithm algorithm;
+	private WeightCalculatorAlgorithm tmpalgorithm;
+	
+	public WQWeightCalculator(AbstractInference<Tripartition> inference) {
 		super(false);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
 		this.inference = (WQInference) inference;
-		this.algorithm = new TraversalWeightCalculator();
-		this.setPolytomies(polytomies);
+		//this.algorithm = new TraversalWeightCalculator();
+		this.algorithm = new CondensedTraversalWeightCalculator();
+		tmpalgorithm = new TraversalWeightCalculator();
+		//tmpalgorithm.setupGeneTrees((WQInference) inference);
 	}
 
 	abstract class WeightCalculatorAlgorithm {
-		long F(int a, int b, int c) {
+		long F(long a, long b, long c) {
 			if (a < 0 || b < 0 || c < 0) {
 				throw new RuntimeException("negative side not expected: " + a
 						+ " " + b + " " + c);
@@ -50,10 +51,9 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			return ret;
 		}
 
-
 		abstract Long calculateWeight(Tripartition trip);
 
-		abstract void setupGeneTrees(WQInference inference, boolean randomResolve);
+		abstract void setupGeneTrees(WQInference inference);
 	}
 
 	@Override
@@ -63,8 +63,33 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	}
 
 	/**
-	 * ASTRAL-II way of calculating weights
-	 * 
+	 * one of ASTRAL-IV way of calculating weights
+	 * Should be memory efficient
+	 * @author chaoszhang
+	 *
+	 */
+	class CondensedTraversalWeightCalculator extends WeightCalculatorAlgorithm {
+		Polytree polytree;
+		
+		Long calculateWeight(Tripartition trip) {
+			return polytree.WQWeightByTraversal(trip, this);
+		}
+
+		/***
+		* Each gene tree is represented as a list of integers, using positive numbers
+		* for leaves, where the number gives the index of the leaf. 
+		* We use negative numbers for internal nodes, where the value gives the number of children. 
+		* Minus infinity is used for separating different genes. 
+		*/
+		@Override
+		void setupGeneTrees(WQInference inference) {
+			polytree = new Polytree(inference.trees, dataCollection);
+		}
+	}
+	
+	
+	/**
+	 * ASTRAL-II way of calculating weights 
 	 * @author smirarab
 	 * 
 	 */
@@ -161,21 +186,20 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 						}
 						stack[top + gtb][side] = newSides[side];
 					}
-					if (gtb >= -getPolytomies() + 1) {
 
-						for (int i = nzc[0] - 1; i >= 0; i--) {
-							for (int j = nzc[1] - 1; j >= 0; j--) {
-								if (overlapind[i][0] != overlapind[j][1])
-									for (int k = nzc[2] - 1; k >= 0; k--) {
-										if ((overlapind[i][0] != overlapind[k][2])
-												&& (overlapind[j][1] != overlapind[k][2]))
-											weight += F(overlap[i][0],
-													overlap[j][1],
-													overlap[k][2]);
-									}
-							}
+					for (int i = nzc[0] - 1; i >= 0; i--) {
+						for (int j = nzc[1] - 1; j >= 0; j--) {
+							if (overlapind[i][0] != overlapind[j][1])
+								for (int k = nzc[2] - 1; k >= 0; k--) {
+									if ((overlapind[i][0] != overlapind[k][2])
+											&& (overlapind[j][1] != overlapind[k][2]))
+										weight += F(overlap[i][0],
+												overlap[j][1],
+												overlap[k][2]);
+								}
 						}
 					}
+				
 					top = top + gtb + 1;
 
 				} // End of polytomy section
@@ -185,8 +209,15 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			return weight;
 		}
 
+
+		/***
+		* Each gene tree is represented as a list of integers, using positive numbers
+		* for leaves, where the number gives the index of the leaf. 
+		* We use negative numbers for internal nodes, where the value gives the number of children. 
+		* Minus infinity is used for separating different genes. 
+		*/
 		@Override
-		void setupGeneTrees(WQInference inference, boolean randomResolve) {
+		void setupGeneTrees(WQInference inference) {
 			System.err.println("Using tree-based weight calculation.");
 			List<Integer> temp = new ArrayList<Integer>();
 
@@ -208,11 +239,11 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 							children.addAll(stack.pop());
 						}
 						stack.push(children);
-						if(randomResolve){
+						/*if(randomResolve){
 							if (children.size() == 1 && node.getChildCount() > 2) {
 								Utils.randomlyResolve(node);
 							}
-						}
+						}*/
 					}
 				}
 			}
@@ -243,7 +274,6 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 						temp.add(Integer.MIN_VALUE);
 					}
 				}
-				// System.err.println(tr);
 			}
 			geneTreesAsInts = temp.toArray(new Integer[] {});
 
@@ -282,7 +312,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 					: 1);
 		}
 
-		void setupGeneTrees(WQInference inference,boolean randomResolve) {
+		void setupGeneTrees(WQInference inference) {
 
 			List<STITreeCluster> treeCompteleClusters = ((WQDataCollection) inference.dataCollection).treeAllClusters;
 			List<Tree> geneTrees = inference.trees;
@@ -403,21 +433,19 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	 * 
 	 * @param wqInference
 	 */
-	public void setupGeneTrees(WQInference wqInference, boolean randomResolve) {
-		this.algorithm.setupGeneTrees(wqInference,randomResolve);
+	public void setupGeneTrees(WQInference wqInference) {
+		// TODO: change it back after testing
+		this.algorithm.setupGeneTrees(wqInference);
+		tmpalgorithm.setupGeneTrees(wqInference);
+		//this.algorithm.setupGeneTrees(wqInference,randomResolve);
+		//tmpalgorithm.setupGeneTrees(wqInference,randomResolve);
 	}
 
 	// TODO: this is algorithm-specific should not be exposed. Fix.
 	public Integer[] geneTreesAsInts() {
-		return ((TraversalWeightCalculator) algorithm).geneTreesAsInts;
+		return ((TraversalWeightCalculator)tmpalgorithm).geneTreesAsInts;
+
 	}
 
-	public int getPolytomies() {
-		return polytomies;
-	}
-
-	public void setPolytomies(int polytomies) {
-		this.polytomies = polytomies;
-	}
 
 }
