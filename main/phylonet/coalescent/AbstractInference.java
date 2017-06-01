@@ -46,6 +46,8 @@ public abstract class AbstractInference<T> {
 	protected Options options;
 	DecimalFormat df;
 	
+	double bestSoFar = -1;
+	
 	public AbstractInference(Options options, List<Tree> trees,
 			List<Tree> extraTrees) {
 		super();
