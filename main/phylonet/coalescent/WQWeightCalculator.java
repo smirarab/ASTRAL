@@ -226,8 +226,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			for (Tree tr : inference.trees) {
 				for (TNode node : tr.postTraverse()) {
 					if (node.isLeaf()) {
-						int spID = GlobalMaps.taxonNameMap.getSpeciesIdMapper()
-								.getSpeciesIdForTaxon(
+						int spID = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesIdForTaxon(
 										GlobalMaps.taxonIdentifier.taxonId(node
 												.getName()));
 						// System.out.println(spID);
