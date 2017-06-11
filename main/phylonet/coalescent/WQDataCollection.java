@@ -556,7 +556,10 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		if (haveMissing > 0) {
 			completeGeneTrees();
 		} else {
-			this.completedGeeneTrees = this.originalInompleteGeneTrees;
+			this.completedGeeneTrees = new ArrayList<Tree>(this.originalInompleteGeneTrees.size()); 
+			for (Tree t: this.originalInompleteGeneTrees) {
+				this.completedGeeneTrees.add(new STITree(t));
+			}
 		}
 
 		System.err.println("Building set of clusters (X) from gene trees ");
