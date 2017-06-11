@@ -221,52 +221,41 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			System.err.println("Using tree-based weight calculation.");
 			List<Integer> temp = new ArrayList<Integer>();
 
-			Stack<HashSet<Integer>> stack = new Stack<HashSet<Integer>>();
-			HashSet<Integer> children;
 			for (Tree tr : inference.trees) {
+				List<STINode> children = new ArrayList<STINode>();
+				int n = tr.getLeafCount()/2;
+				int dist = n;
+				TNode newroot = tr.getRoot();
 				for (TNode node : tr.postTraverse()) {
-					if (node.isLeaf()) {
-						int spID = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesIdForTaxon(
-										GlobalMaps.taxonIdentifier.taxonId(node
-												.getName()));
-						// System.out.println(spID);
-						children = new HashSet<Integer>();
-						children.add(spID);
-						stack.push(children);
-					} else {
-						children = new HashSet<Integer>();
-						for (TNode c : node.getChildren()) {
-							children.addAll(stack.pop());
-						}
-						stack.push(children);
-						/*if(randomResolve){
-							if (children.size() == 1 && node.getChildCount() > 2) {
-								Utils.randomlyResolve(node);
+					if (!node.isLeaf()) {                        
+						for (TNode child : node.getChildren()) {
+							if (child.isLeaf()) {
+								children.add((STINode) child);
+								break;
 							}
-						}*/
+						}
+						if (Math.abs(n - node.getLeafCount()) < dist) {
+							newroot = node;
+							dist = n - node.getLeafCount();
+						}
 					}
 				}
-			}
-			for (Tree tr : inference.trees) {
-				/*
-				 * List<STINode> children = new ArrayList<STINode>(); int n =
-				 * tr.getLeafCount()/2; int dist = n; TNode newroot =
-				 * tr.getRoot(); for (TNode node : tr.postTraverse()) { if
-				 * (!node.isLeaf()) { for (TNode child : node.getChildren()) {
-				 * if (child.isLeaf()) { children.add((STINode) child); break; }
-				 * } if (Math.abs(n - node.getLeafCount()) < dist) { newroot =
-				 * node; dist = n - node.getLeafCount(); } } } for (STINode
-				 * child: children) { STINode snode = child.getParent();
-				 * snode.removeChild((TMutableNode) child, false); TMutableNode
-				 * newChild = snode.createChild(child); if (child == newroot) {
-				 * newroot = newChild; } } if (newroot != tr.getRoot())
-				 * ((STITree)(tr)).rerootTreeAtEdge(newroot);
-				 */
+				// Make the tree left-heavy so that the stack gets small
+				for (STINode child: children) {
+						STINode snode = child.getParent();
+						snode.removeChild((TMutableNode) child, false);
+						TMutableNode newChild = snode.createChild(child);
+						if (child == newroot) {
+							newroot = newChild;
+						}
+				}
+				if (newroot != tr.getRoot()){
+					((STITree)(tr)).rerootTreeAtEdge(newroot);
+				}
 
 				for (TNode node : tr.postTraverse()) {
 					if (node.isLeaf()) {
-						temp.add(GlobalMaps.taxonIdentifier.taxonId(node
-								.getName()));
+						temp.add(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
 					} else {
 						temp.add(-node.getChildCount());
 					}
@@ -434,11 +423,8 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	 * @param wqInference
 	 */
 	public void setupGeneTrees(WQInference wqInference) {
-		// TODO: change it back after testing
-		this.algorithm.setupGeneTrees(wqInference);
 		tmpalgorithm.setupGeneTrees(wqInference);
-		//this.algorithm.setupGeneTrees(wqInference,randomResolve);
-		//tmpalgorithm.setupGeneTrees(wqInference,randomResolve);
+		this.algorithm.setupGeneTrees(wqInference);
 	}
 
 	// TODO: this is algorithm-specific should not be exposed. Fix.
