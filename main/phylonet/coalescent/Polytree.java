@@ -30,18 +30,120 @@ public class Polytree {
 		return ((s - c + f) * b * f + (s - b + e) * e * c) * a + ((s - a + d) * d - 2 * s * a) * b * c;
 	}
 	
+	final class PTNode{
+		PTNode parent;
+		PTCluster cluster, complementCluster;
+		PTPartition partition;
+		
+		PTNode(PTNode p){
+			parent = p;
+		}
+		PTNode(PTNode p, TNode n, STITreeCluster s){
+			parent = p;
+			STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
+			STITreeCluster xc = new STITreeCluster(GlobalMaps.taxonIdentifier);
+			c.getBitSet().set(GlobalMaps.taxonIdentifier.taxonId(n.getName()));
+			xc.getBitSet().xor(s.getBitSet());
+			xc.getBitSet().xor(c.getBitSet());
+			cluster = Polytree.this.clusters.get(c);
+			if (Polytree.this.clusters.containsKey(xc)) complementCluster = Polytree.this.clusters.get(xc);
+			else complementCluster = new PTCluster(xc, this);
+			partition = null;
+		}
+		boolean needToComputeCluster(){
+			if (cluster == null) return false;
+			return (cluster.firstNode == this);
+		}
+		boolean needToComputeComplementCluster(){
+			if (complementCluster == null) return false;
+			return ((complementCluster.firstNode == this) && (complementCluster.used == true));
+		}
+		boolean needToComputePartition(){
+			if (partition == null) return false;
+			return (partition.firstNode == this);
+		}
+		boolean needToCompute(){
+			return needToComputeCluster() || needToComputeComplementCluster() || needToComputePartition();
+		}
+		boolean needChildInfo(){
+			return needToComputeCluster() || needToComputePartition();
+		}
+		boolean parentNeedChildInfo(){
+			if (parent == null) return false;
+			return parent.needChildInfo();
+		}
+		void addChidren(ArrayList<PTNode> children, STITreeCluster s){
+			STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
+			STITreeCluster xc = new STITreeCluster(GlobalMaps.taxonIdentifier);
+			ArrayList<STITreeCluster> cs = new ArrayList<STITreeCluster>();
+			for (PTNode ch: children){
+				STITreeCluster chc = ch.cluster.clusterRef;
+				c.getBitSet().xor(chc.getBitSet());
+				cs.add(chc);
+			}
+			if (Polytree.this.clusterRef.containsKey(c)) c = Polytree.this.clusterRef.get(c);
+			xc.getBitSet().xor(s.getBitSet());
+			xc.getBitSet().xor(c.getBitSet());
+			if (Polytree.this.clusters.containsKey(c)) cluster = Polytree.this.clusters.get(c);
+			else cluster = new PTCluster(c, this);
+			if (xc.getBitSet().cardinality() != 0){
+				if (Polytree.this.clusterRef.containsKey(xc)) xc = Polytree.this.clusterRef.get(xc);
+				cs.add(xc);
+				if (Polytree.this.clusters.containsKey(xc)) complementCluster = Polytree.this.clusters.get(xc);
+				else complementCluster = new PTCluster(xc, this);
+			}
+			if (cs.size() >= 3){
+				AbstractPartition p = AbstractPartition.createPartition(cs);
+				if (Polytree.this.partitions.containsKey(p)){
+					partition = Polytree.this.partitions.get(p);
+					partition.cnt++;
+				}
+				else partition = new PTPartition(p, this);
+			}
+			else partition = null;
+			if (needChildInfo()){
+				for (PTNode ch: children){
+					if (ch.needChildInfo() == false) ch.cluster.used = true;
+				}
+			}
+		}
+		void addComplementDependency(){
+			if (needChildInfo() == false && complementCluster != null && complementCluster.used) cluster.used = true;
+		}
+	}
+	
+	final class PTCluster{
+		STITreeCluster clusterRef;
+		PTNode firstNode;
+		boolean used = false;
+		int listPos = -1;
+		
+		PTCluster(STITreeCluster c, PTNode n){
+			clusterRef = c;
+			firstNode = n;
+			Polytree.this.clusters.put(c, this);
+			Polytree.this.clusterRef.put(c, c);
+			Polytree.this.clusterID.add(this);
+		}
+	}
+	
+	final class PTPartition{
+		AbstractPartition partitionRef;
+		PTNode firstNode;
+		int cnt = 1;
+		
+		PTPartition(AbstractPartition p, PTNode n){
+			partitionRef = p;
+			firstNode = n;
+		}
+	}
+	
 	WQDataCollection dataCollection;
 	HashMap<STITreeCluster, STITreeCluster> clusterRef = new HashMap<STITreeCluster, STITreeCluster>();
-	HashMap<STITreeCluster, Integer> clusterID = new HashMap<STITreeCluster, Integer>();
-	HashMap<AbstractPartition, Integer> partitionID = new HashMap<AbstractPartition, Integer>();
-	ArrayList<Integer> nodeParent = new ArrayList<Integer>();
-	ArrayList<Integer> nodeCluster = new ArrayList<Integer>();
-	ArrayList<Integer> nodePartition = new ArrayList<Integer>();
-	ArrayList<Integer> clusterNode = new ArrayList<Integer>();
-	ArrayList<Integer> clusterUsage = new ArrayList<Integer>();
-	ArrayList<Integer> clusterPos = new ArrayList<Integer>();
-	ArrayList<Integer> partitionNode = new ArrayList<Integer>();
-	ArrayList<Integer> partitionUsage = new ArrayList<Integer>();
+	HashMap<STITreeCluster, PTCluster> clusters = new HashMap<STITreeCluster, PTCluster>();	
+	HashMap<AbstractPartition, PTPartition> partitions = new HashMap<AbstractPartition, PTPartition>();
+	ArrayList<PTNode> nodes = new ArrayList<PTNode>();
+	ArrayList<PTCluster> clusterID = new ArrayList<PTCluster>();
 	ArrayList<Integer> queueBuilder = new ArrayList<Integer>();
 	int[][] stack, list;
 	int[] queue;
@@ -49,25 +151,29 @@ public class Polytree {
 	int[] sx = new int[3], sxy = new int[3], treeTotal = new int[3];
 	long maxScore = 0;
 	
+	int debugClusterPos = 0;
+	
 	public Polytree(List<Tree> trees, WQDataCollection dataCollection){
 		this.dataCollection = dataCollection;
 		long t = System.currentTimeMillis();
 		for (int i = 0; i < GlobalMaps.taxonIdentifier.taxonCount(); i++){
 			STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
 			c.getBitSet().set(i);
-			clusterID.put(c, i);
-			clusterNode.add(-1);
-			clusterUsage.add(1);
+			(new PTCluster(c, null)).used = true;
+			
+			debugClusterPos++;
 		}
 		Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
 		for (Tree tr: trees){
-			traversal1(tr.getRoot(), tit.next());
+			traversal1(tr.getRoot(), tit.next(), null);
 		}
 		int listSize = 0;
-		for (int usage: clusterUsage){
-			clusterPos.add((usage > 0) ? listSize++ : -1);
+		for (PTNode n: nodes){
+			n.addComplementDependency();
 		}
-		
+		for (PTCluster c: clusterID){
+			if (c.used) c.listPos = listSize++;
+		}
 		tit = dataCollection.treeAllClusters.iterator();
 		for (Tree tr: trees){
 			queueBuilder.add(-1);
@@ -78,19 +184,14 @@ public class Polytree {
 		list = new int[listSize][3];
 		queue = mapToInt(queueBuilder);
 		
+		nodes = null;
+		clusterRef = null;
+		clusters = null;
 		clusterID = null;
-		partitionID = null;
-		nodeParent = null;
-		nodeCluster = null;
-		nodePartition = null;
-		clusterNode = null;
-		clusterUsage = null;
-		clusterPos = null;
-		partitionNode = null;
-		partitionUsage = null;
+		partitions = null;
 		queueBuilder = null;
 		
-		STITreeCluster c = GlobalMaps.taxonIdentifier.newCluster().complementaryCluster();
+		STITreeCluster c = (new STITreeCluster(GlobalMaps.taxonIdentifier)).complementaryCluster();
 		maxScore = WQWeightByTraversal(new Tripartition(c, c, c, false), null);
 		System.err.println("Polytree max score: " + maxScore / 4);
 		System.err.println("Polytree building time: " + (System.currentTimeMillis() - t) / 1000.0D + " seconds.");
@@ -103,101 +204,63 @@ public class Polytree {
 		return ret;
 	}
 	
-	private STITreeCluster traversal1(TNode node, STITreeCluster s){
-		STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
+	private PTNode traversal1(TNode node, STITreeCluster s, PTNode parent){
+		PTNode n = null;
 		if (node.isLeaf()){
-			c.getBitSet().set(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
-			nodeParent.add(-1);
-			nodeCluster.add(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
-			nodePartition.add(-1);
+			n = new PTNode(parent, node, s);
 		}
 		else {
-			ArrayList<STITreeCluster> cs = new ArrayList<STITreeCluster>();
-			ArrayList<Integer> childrenID = new ArrayList<Integer>();
-			for (TNode child: node.getChildren()){
-		    	STITreeCluster ch = traversal1(child, s);
-		    	cs.add(ch);
-		    	c.getBitSet().or(ch.getBitSet());
-		    	childrenID.add(nodeParent.size() - 1);
-		    }
-			
-		    nodeParent.add(-1);
-		    if (clusterRef.containsKey(c)){
-		    	c = clusterRef.get(c);
-		    	nodeCluster.add(clusterID.get(c));
-		    }
-		    else{
-		    	clusterRef.put(c, c);
-		    	clusterID.put(c, clusterID.size());
-		    	nodeCluster.add(clusterID.size() - 1);
-		    	clusterNode.add(nodeParent.size() - 1);
-				clusterUsage.add(0);
-		    }
-		    if (c.equals(s) == false){
-		    	STITreeCluster xc = new STITreeCluster(GlobalMaps.taxonIdentifier);
-			    xc.getBitSet().xor(c.getBitSet());
-			    xc.getBitSet().xor(s.getBitSet());
-			    cs.add(xc);	
-		    }
-		    if (cs.size() >= 3){
-		    	AbstractPartition p = AbstractPartition.createPartition(cs);
-				if (partitionID.containsKey(p)){
-					Integer pID = partitionID.get(p);
-					nodePartition.add(pID);
-					partitionUsage.set(pID, partitionUsage.get(pID) + 1);
-				}
-				else{
-					partitionID.put(p, partitionID.size());
-					nodePartition.add(partitionID.size() - 1);
-			    	partitionNode.add(nodeParent.size() - 1);
-			    	partitionUsage.add(1);
-				}
-		    }
-		    else{
-		    	nodePartition.add(-1);
-		    }
-		    
-		    for (int childID: childrenID){
-		    	nodeParent.set(childID, nodeParent.size() - 1);
-		    	if ((nodePartition.get(nodeParent.size() - 1) != -1 && (partitionNode.get(nodePartition.get(nodeParent.size() - 1)) == nodeParent.size() - 1))
-		    		&& (nodePartition.get(childID) == -1 || partitionNode.get(nodePartition.get(childID)) != childID)){
-		    		Integer clusterID = nodeCluster.get(childID);
-		    		clusterUsage.set(clusterID, clusterUsage.get(clusterID) + 1);
-		    	}
-		    }
-		    
+			n = new PTNode(parent);
+			ArrayList<PTNode> cs = new ArrayList<PTNode>();
+			for (TNode ch: node.getChildren()){
+				cs.add(traversal1(ch, s, n));
+			}
+			n.addChidren(cs, s);
 		}
-		return c;
+		nodes.add(n);
+		return n;
 	}
 
 	private void traversal2(TNode node){
-		ArrayList<Integer> childrenID = new ArrayList<Integer>();
 		for (TNode child: node.getChildren()){
 		    traversal2(child);
-		    childrenID.add(nodeIDCounter - 1);
 		}
-		boolean pos0 = (nodePartition.get(nodeIDCounter) != -1 && partitionNode.get(nodePartition.get(nodeIDCounter)) == nodeIDCounter);
-		boolean pos1 = (nodeParent.get(nodeIDCounter) != -1 && nodePartition.get(nodeParent.get(nodeIDCounter)) != -1
-			&& partitionNode.get(nodePartition.get(nodeParent.get(nodeIDCounter))).intValue() == nodeParent.get(nodeIDCounter).intValue());
-		if (pos0 == true || pos1 == true){
-			if (pos0 == true){
-				int cmd = (node.getChildCount() << 4) | 1;
-				if (pos1 == true) cmd = cmd | 2;
-				if (nodeCluster.get(nodeIDCounter) != -1 && clusterNode.get(nodeCluster.get(nodeIDCounter)) == nodeIDCounter
-					&& clusterUsage.get(nodeCluster.get(nodeIDCounter)) > 0){
-					cmd = cmd | 4;
+		PTNode n = nodes.get(nodeIDCounter);
+		/*
+		 * 1 - true = compute based on stack; false = get from list
+		 * stack:
+		 * 2 - true = store on stack
+		 * 3 - true = store on list
+		 * 4 - true = store complement on list
+		 * 5 - true = compute partition
+		 * 6 - true = partition cnt>1
+		 * list:
+		 * 2 - true = store on stack
+		 * 3 - true = store complement on list 
+		 */
+		if (n.needToCompute() || n.parentNeedChildInfo()){
+			int cmd;
+			if (n.needChildInfo()){
+				cmd = ((node.getChildCount() << 6) | 1);
+				if (n.parentNeedChildInfo()) cmd = cmd | 2;
+				if (n.needToComputeCluster() && n.cluster.used) cmd = cmd | 4;
+				if (n.needToComputeComplementCluster() && n.complementCluster.used) cmd = cmd | 8;
+				if (n.needToComputePartition()){
+					cmd = cmd | 16;
+					if (n.partition.cnt > 1){
+						cmd = cmd | 32;
+						queueBuilder.add(cmd);
+						queueBuilder.add(n.partition.cnt);
+					}
+					else queueBuilder.add(cmd);
 				}
-				if (nodePartition.get(nodeIDCounter) != -1 && partitionUsage.get(nodePartition.get(nodeIDCounter)) > 1){
-					cmd = cmd | 8;
-					queueBuilder.add(cmd);
-					queueBuilder.add(partitionUsage.get(nodePartition.get(nodeIDCounter)));
-				}
-				else {
-					queueBuilder.add(cmd);
-				}
+				else queueBuilder.add(cmd);
 			}
 			else {
-				queueBuilder.add(clusterPos.get(nodeCluster.get(nodeIDCounter)) << 1);
+				cmd = n.cluster.listPos << 3;
+				if (n.parentNeedChildInfo()) cmd = cmd | 2;
+				if (n.needToComputeComplementCluster()) cmd = cmd | 4;
+				queueBuilder.add(cmd);
 			}
 		}
 		nodeIDCounter++;
@@ -225,7 +288,7 @@ public class Polytree {
 				continue;
 			}
 			if ((cmd & 1) != 0){
-				int numChildren = cmd >> 4;
+				int numChildren = cmd >> 6;
 				long tempWeight = 0;
 				int[] p = stack[stackEnd], q;
 				p[0] = treeTotal[0];
@@ -237,31 +300,35 @@ public class Polytree {
 					p[1] -= q[1];
 					p[2] -= q[2];
 				}
-				if (numChildren == 2){
-					tempWeight = F(stack[stackEnd - 2], stack[stackEnd - 1], stack[stackEnd]);
-				}
-				else{
-					sx[0] = 0;
-					sx[1] = 0;
-					sx[2] = 0;
-					sxy[0] = 0;
-					sxy[1] = 0;
-					sxy[2] = 0;
-					for (int j = stackEnd - numChildren; j <= stackEnd; j++){
-						q = stack[j];
-						sx[0] += q[0];
-						sx[1] += q[1];
-						sx[2] += q[2];
-						sxy[0] += q[1] * q[2];
-						sxy[1] += q[2] * q[0];
-						sxy[2] += q[0] * q[1];
+				if ((cmd & 16) != 0){
+					if (numChildren == 2){
+						tempWeight = F(stack[stackEnd - 2], stack[stackEnd - 1], stack[stackEnd]);
 					}
-					for (int j = stackEnd - numChildren; j <= stackEnd; j++){
-						q = stack[j];
-						tempWeight += ((sx[1] - q[1]) * (sx[2] - q[2]) - sxy[0] + q[1] * q[2]) * q[0] * (q[0] - 1L)
-							+ ((sx[2] - q[2]) * (sx[0] - q[0]) - sxy[1] + q[2] * q[0]) * q[1] * (q[1] - 1L)
-							+ ((sx[0] - q[0]) * (sx[1] - q[1]) - sxy[2] + q[0] * q[1]) * q[2] * (q[2] - 1L);
+					else{
+						sx[0] = 0;
+						sx[1] = 0;
+						sx[2] = 0;
+						sxy[0] = 0;
+						sxy[1] = 0;
+						sxy[2] = 0;
+						for (int j = stackEnd - numChildren; j <= stackEnd; j++){
+							q = stack[j];
+							sx[0] += q[0];
+							sx[1] += q[1];
+							sx[2] += q[2];
+							sxy[0] += q[1] * q[2];
+							sxy[1] += q[2] * q[0];
+							sxy[2] += q[0] * q[1];
+						}
+						for (int j = stackEnd - numChildren; j <= stackEnd; j++){
+							q = stack[j];
+							tempWeight += ((sx[1] - q[1]) * (sx[2] - q[2]) - sxy[0] + q[1] * q[2]) * q[0] * (q[0] - 1L)
+								+ ((sx[2] - q[2]) * (sx[0] - q[0]) - sxy[1] + q[2] * q[0]) * q[1] * (q[1] - 1L)
+								+ ((sx[0] - q[0]) * (sx[1] - q[1]) - sxy[2] + q[0] * q[1]) * q[2] * (q[2] - 1L);
+						}
 					}
+					if ((cmd & 32) != 0) weight += tempWeight * queue[++i];
+					else weight += tempWeight;
 				}
 				stackEnd -= numChildren;
 				if ((cmd & 2) != 0){
@@ -276,15 +343,27 @@ public class Polytree {
 					q[1] = treeTotal[1] - p[1];
 					q[2] = treeTotal[2] - p[2];
 				}
-				if ((cmd & 8) != 0) weight += tempWeight * queue[++i];
-				else weight += tempWeight;
+				if ((cmd & 8) != 0){
+					q = list[listEnd++];
+					q[0] = p[0];
+					q[1] = p[1];
+					q[2] = p[2];
+				}
 			}
 			else {
-				int pos = cmd >> 1;
-				stack[stackEnd][0] = list[pos][0];
-				stack[stackEnd][1] = list[pos][1];
-				stack[stackEnd][2] = list[pos][2];
-				stackEnd++;
+				int[] p = list[cmd >> 3], q;
+				if ((cmd & 2) != 0){
+					q = stack[stackEnd++];
+					q[0] = p[0];
+					q[1] = p[1];
+					q[2] = p[2];
+				}
+				if ((cmd & 4) != 0){
+					q = list[listEnd++];
+					q[0] = treeTotal[0] - p[0];
+					q[1] = treeTotal[1] - p[1];
+					q[2] = treeTotal[2] - p[2];
+				}
 			}
 		}
 		time += System.nanoTime() - t;
@@ -309,7 +388,7 @@ public class Polytree {
 				continue;
 			}
 			if ((cmd & 1) != 0){
-				int numChildren = cmd >> 4;
+				int numChildren = cmd >> 6;
 				long tempWeight = 0;
 				int[] p = stack[stackEnd], q;
 				p[0] = treeTotal[0];
@@ -319,26 +398,30 @@ public class Polytree {
 					p[0] -= q[0];
 					p[1] -= q[1];
 				}
-				if (numChildren == 2){
-					tempWeight = U(stack[stackEnd - 2], stack[stackEnd - 1], stack[stackEnd]);
-				}
-				else{
-					sx[0] = 0;
-					sx[1] = 0;
-					sxy[0] = 0;
-					sxy[1] = 0;
-					for (int j = stackEnd - numChildren; j <= stackEnd; j++){
-						q = stack[j];
-						sx[0] += q[0];
-						sx[1] += q[1];
-						sxy[0] += q[0] * q[0];
-						sxy[1] += q[0] * q[1];
+				if ((cmd & 16) != 0){
+					if (numChildren == 2){
+						tempWeight = U(stack[stackEnd - 2], stack[stackEnd - 1], stack[stackEnd]);
 					}
-					for (int j = stackEnd - numChildren; j <= stackEnd; j++){
-						q = stack[j];
-						tempWeight += ((sx[0] - q[0]) * (sx[1] - q[1]) - sxy[1] + q[0] * q[1]) * q[0] * (q[0] - 1L)
-							+ ((sx[0] - q[0]) * (sx[0] - q[0]) - sxy[0] + q[0] * q[0]) * (q[1] * (q[1] - 1L) / 2 - q[0] * (q[0] - 1L));
+					else{
+						sx[0] = 0;
+						sx[1] = 0;
+						sxy[0] = 0;
+						sxy[1] = 0;
+						for (int j = stackEnd - numChildren; j <= stackEnd; j++){
+							q = stack[j];
+							sx[0] += q[0];
+							sx[1] += q[1];
+							sxy[0] += q[0] * q[0];
+							sxy[1] += q[0] * q[1];
+						}
+						for (int j = stackEnd - numChildren; j <= stackEnd; j++){
+							q = stack[j];
+							tempWeight += ((sx[0] - q[0]) * (sx[1] - q[1]) - sxy[1] + q[0] * q[1]) * q[0] * (q[0] - 1L)
+								+ ((sx[0] - q[0]) * (sx[0] - q[0]) - sxy[0] + q[0] * q[0]) * (q[1] * (q[1] - 1L) / 2 - q[0] * (q[0] - 1L));
+						}
 					}
+					if ((cmd & 32) != 0) weight += tempWeight * queue[++i];
+					else weight += tempWeight;
 				}
 				stackEnd -= numChildren;
 				if ((cmd & 2) != 0){
@@ -351,14 +434,24 @@ public class Polytree {
 					q[0] = treeTotal[0] - p[0];
 					q[1] = treeTotal[1] - p[1];
 				}
-				if ((cmd & 8) != 0) weight += tempWeight * queue[++i];
-				else weight += tempWeight;
+				if ((cmd & 8) != 0){
+					q = list[listEnd++];
+					q[0] = p[0];
+					q[1] = p[1];
+				}
 			}
 			else {
-				int pos = cmd >> 1;
-				stack[stackEnd][0] = list[pos][0];
-				stack[stackEnd][1] = list[pos][1];
-				stackEnd++;
+				int[] p = list[cmd >> 3], q;
+				if ((cmd & 2) != 0){
+					q = stack[stackEnd++];
+					q[0] = p[0];
+					q[1] = p[1];
+				}
+				if ((cmd & 4) != 0){
+					q = list[listEnd++];
+					q[0] = treeTotal[0] - p[0];
+					q[1] = treeTotal[1] - p[1];
+				}
 			}
 		}
 		time += System.nanoTime() - t;
