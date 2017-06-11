@@ -33,7 +33,6 @@ public abstract class AbstractComputeMinCostTask<T> {
 	}
 	
 	Double computeUpperBound(Vertex v1){
-		if (true) return 1e18;
 		if (v1._done == 1) return v1._max_score;
 		if (v1._done == 3 || v1._done == 4 || v1._done == 5) return v1._upper_bound;
 		STITreeCluster c = v1.getCluster();
@@ -43,7 +42,6 @@ public abstract class AbstractComputeMinCostTask<T> {
 	}
 
 	Double estimateUpperBound(Vertex v1){
-		if (true) return 1e18;
 		if (v1._done == 5) return v1._max_score;
 		if (v1._done == 3) return v1._upper_bound;
 		STITreeCluster c = v1.getCluster();
