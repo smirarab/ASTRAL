@@ -374,7 +374,10 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		if (haveMissing > 0 ) {
 			completeGeneTrees();
 		} else  {
-			this.completedGeeneTrees = this.geneTrees;
+			this.completedGeeneTrees = new ArrayList<Tree>(this.geneTrees.size()); 
+			for (Tree t: this.geneTrees) {
+				this.completedGeeneTrees.add(new STITree(t));
+			}
 		}
 
 		/*
