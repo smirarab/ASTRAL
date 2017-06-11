@@ -245,7 +245,6 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 				}
 				if (newroot != tr.getRoot())
 					((STITree)(tr)).rerootTreeAtEdge(newroot);
-
 				for (TNode node : tr.postTraverse()) {
 					if (node.isLeaf()) {                        
 						temp.add(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
@@ -410,8 +409,8 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	 * @param wqInference
 	 */
 	public void setupGeneTrees(WQInference wqInference) {
-		this.algorithm.setupGeneTrees(wqInference);
 		tmpalgorithm.setupGeneTrees(wqInference);
+		this.algorithm.setupGeneTrees(wqInference);
 	}
 	
 	//TODO: this is algorithm-specific should not be exposed. Fix. 
