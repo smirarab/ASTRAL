@@ -945,8 +945,12 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 			sumDegrees += Math.pow(deg.get(i),2);
 			i++;
 		}
+		//polytomySizeLimit = deg.get(i-1);
 		polytomySizeLimit = deg.get(i-1);
-		
+		if(i > 0)
+			polytomySizeLimit = deg.get(i-1);
+		else    
+			polytomySizeLimit = 3;
 //			if(i==deg.size())
 //				allDegVisitedMaxDegrees.add(deg.get(i-1));
 //			else
