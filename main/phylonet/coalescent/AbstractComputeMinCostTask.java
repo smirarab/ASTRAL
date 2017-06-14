@@ -89,7 +89,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 			return v._max_score;
 		}
 		//
-		if (( v._done == 3 || v._done == 5 ) && v._upper_bound <= target) {
+		if (( v._done == 3 || v._done == 5 ) && v._upper_bound < target) {
 			return v._upper_bound;
 		}
 		
@@ -153,6 +153,10 @@ public abstract class AbstractComputeMinCostTask<T> {
 		
 		Collections.sort(clusterResolutionArrayList);
 		
+		if (clusterResolutionArrayList.size() == 0 ) {
+			new RuntimeException("Cannot resolve: "+this.v);
+		}
+		
 		for (VertexPair bi : clusterResolutionArrayList) {
 			Vertex smallV = bi.cluster1;
 			Vertex bigv = bi.cluster2;
@@ -174,7 +178,8 @@ public abstract class AbstractComputeMinCostTask<T> {
 			v._min_rc = bigv;
 			v._c = bi.weight;
 		}
-
+		if (v._min_lc == null || v._min_rc == null)
+			System.err.println("hmm; this shouldn't have happened: "+ v);
 		v._done = 1;
 		return v._max_score;
 	}
