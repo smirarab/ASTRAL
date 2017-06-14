@@ -1,3 +1,17 @@
+- version 5.2.5: ASTRAL-III - first version
+  - Enlarge set X for datasets with polytomies; multiple samples; randomize greedy and UPGMA
+  - For polytomies, do not half count  unresolved quartets
+  - solved a bug where in rare cases, output polytomy could be unresolved due to ASTRAL-III changes
+
+- version 5.2.4:
+  - Bug fix: weight calculation
+
+- version 5.2.3:
+
+- version 5.2.2:
+
+- version 5.2.1:
+
 - version 5.2.0: ASTRAL-III - first version
     - polytree
     - better handling of polytomies
