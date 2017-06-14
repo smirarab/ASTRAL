@@ -59,7 +59,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 	private final int GREEDY_ADDITION_DEFAULT_RUNS = 10;
 	private final double GREEDY_ADDITION_MIN_FREQ = 0.01;
 	private final int GREEDY_ADDITION_IMPROVEMENT_REWARD = 2;
-	private final int POLYTOMY_RESOLUTIONS = 2;
+	private final int POLYTOMY_RESOLUTIONS = 3;
+	private final int POLYTOMY_RESOLUTIONS_SAMPLE_GRADIENT = 10;
+	private final double POLYTOMY_RESOLUTIONS_GREEDY_GENESAMPLE = 0.9;
 	private List<Tree> geneTrees;
 	private List<Tree> completedGeeneTrees;
 	private boolean outputCompleted;
@@ -77,8 +79,6 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 	}
 
 
-
-
 	void addTreeBipartitionsToX(List<Tree> trees) {
 
 		Tree[] greedies = new Tree[POLYTOMY_RESOLUTIONS];
@@ -88,7 +88,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		 * resolved by UPGMA. Used for gene trees with polytomies. 
 		 */
 		for (int i = 0; i < greedies.length; i++ ) {
-			greedies[i] = Utils.greedyConsensus(trees, true, GlobalMaps.taxonIdentifier);
+			greedies[i] = Utils.greedyConsensus(trees, true, GlobalMaps.taxonIdentifier, 0.0, 
+					(trees.size() < 20 || i == 0) ? 1.0 : POLYTOMY_RESOLUTIONS_GREEDY_GENESAMPLE);
 			resolveByUPGMA((MutableTree) greedies[i]);
 		}
 
@@ -158,17 +159,20 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 						}
 						
 						//TODO: do multiple samples
-						HashMap<String, Integer> randomSample = this.randomSampleAroundPolytomy(polytomy);
-						
-						//STITree<Boolean> restrictedTree = new STITree(greedy);
-						//restrictedTree.constrainByLeaves(randomSample.keySet());
-						//Utils.randomlyResolve(restrictedTree);
-						for (int j = 0; j < greedies.length; j++) {
-							for (BitSet restrictedBitSet :  Utils.getBitsets(randomSample, greedies[j])) {
-								this.addSubSampledBitSetToX(polytomy, restrictedBitSet);
+						int gradient = Integer.MAX_VALUE;
+						while (gradient >= POLYTOMY_RESOLUTIONS_SAMPLE_GRADIENT) {
+							HashMap<String, Integer> randomSample = this.randomSampleAroundPolytomy(polytomy);
+							int b = this.clusters.getClusterCount();
+							//STITree<Boolean> restrictedTree = new STITree(greedy);
+							//restrictedTree.constrainByLeaves(randomSample.keySet());
+							//Utils.randomlyResolve(restrictedTree);
+							for (int j = 0; j < greedies.length; j++) {
+								for (BitSet restrictedBitSet :  Utils.getBitsets(randomSample, greedies[j])) {
+									this.addSubSampledBitSetToX(polytomy, restrictedBitSet);
+								}
 							}
+							gradient = this.clusters.getClusterCount() - b;
 						}
-						
 						//System.err.print(".");
 					}
 				}
@@ -537,7 +541,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 
 		Collection<Tree> allGreedies = Utils.greedyConsensus(
 				this.completedGeeneTrees, GREEDY_ADDITION_THRESHOLDS, true, 1,
-				GlobalMaps.taxonIdentifier);	
+				GlobalMaps.taxonIdentifier, 1.0);	
 		
 		int th = 0;
 		for (Tree cons: allGreedies) {
@@ -611,7 +615,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 	private boolean resolveByUPGMA(BitSet [] polytomyBSList) {
 		boolean added = false;
 		
-		for (BitSet bs: this.similarityMatrix.resolveByUPGMA(Arrays.asList(polytomyBSList),true)) {
+		for (BitSet bs: this.similarityMatrix.resolveByUPGMA(Arrays.asList(polytomyBSList),true, false)) {
 			added |= this.addARawBitSetToX(bs);
 		}
 		return added;
@@ -765,7 +769,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 				if (rest.cardinality() != 0)
 					children.add(rest);
 
-				for (BitSet bs: this.similarityMatrix.resolveByUPGMA(children, true)) {
+				for (BitSet bs: this.similarityMatrix.resolveByUPGMA(children, true, false)) {
 					addSubSampledBitSetToX(polytomyBSList, bs);	
 				}
 
@@ -846,7 +850,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 				}
 				if (children.size() > 2) {
 					
-					for (BitSet bs: this.similarityMatrix.resolveByUPGMA(poly,false)) {
+					for (BitSet bs: this.similarityMatrix.resolveByUPGMA(poly,false,true)) {
 						TMutableNode newChild = ((TMutableNode)node).createChild();
 						for(int i = bs.nextSetBit(0); i >=0; i = bs.nextSetBit(i+1) ) {
 							TMutableNode child = children.get(i);
