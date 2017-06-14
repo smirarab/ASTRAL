@@ -181,25 +181,22 @@ public class Utils {
      */
     public static final Tree greedyConsensus(Iterable<Tree> trees, boolean randomize,
     		TaxonIdentifier taxonIdentifier) {
-    	return greedyConsensus(trees,new double[]{0d}, randomize, 1, taxonIdentifier).iterator().next();
+    	return greedyConsensus(trees,new double[]{0d}, randomize, 1, taxonIdentifier, 1.0).iterator().next();
     }
     
-	
-    public static List<Integer> getRange(int n) {
-		List<Integer> range = new ArrayList<Integer>(n);
-		for (int j = 0; j < n; j++) {
-			range.add(j);
-		}
-		return range;
-	}
-	
-    public static List<Integer> getOnes(int n) {
-		List<Integer> range = new ArrayList<Integer>(n);
-		for (int j = 0; j < n; j++) {
-			range.add(1);
-		}
-		return range;
-	}
+    /**
+     * Greedy consensus
+     * @param trees
+     * @param randomize
+     * @param taxonIdentifier
+     * @param threshold
+     * @param geneTreeSkipProb 
+     * @return
+     */
+    public static final Tree greedyConsensus(Iterable<Tree> trees, boolean randomize,
+    		TaxonIdentifier taxonIdentifier, double threshold, double geneTreeKeepProb) {
+    	return greedyConsensus(trees,new double[]{threshold}, randomize, 1, taxonIdentifier, geneTreeKeepProb).iterator().next();
+    }
     
     /***
      * Greedy consensus with a set of thresholds
@@ -208,17 +205,20 @@ public class Utils {
      * @param randomzie
      * @param repeat
      * @param taxonIdentifier
+     * @param geneprob 
      * @return
      */
     public static final Collection<Tree> greedyConsensus(Iterable<Tree> trees, 
     		double[] thresholds, boolean randomzie, int repeat, 
-    		TaxonIdentifier taxonIdentifier) {
+    		TaxonIdentifier taxonIdentifier, double geneTreeKeepProb) {
     
     	List<Tree> outTrees = new ArrayList<Tree>();
 
         HashMap<STITreeCluster, Integer> count = new HashMap<STITreeCluster, Integer>();
         int treecount = 0;
         for (Tree tree : trees) {
+        	if (GlobalMaps.random.nextDouble() > geneTreeKeepProb)
+        		continue;
         	treecount++;
             List<STITreeCluster> geneClusters = Utils.getGeneClusters(tree, taxonIdentifier);
             for (STITreeCluster cluster: geneClusters) {
@@ -304,7 +304,23 @@ public class Utils {
         return biClusters;              
     }
     
-    public static void main(String[] args) throws IOException{
+    public static List<Integer> getRange(int n) {
+		List<Integer> range = new ArrayList<Integer>(n);
+		for (int j = 0; j < n; j++) {
+			range.add(j);
+		}
+		return range;
+	}
+
+	public static List<Integer> getOnes(int n) {
+		List<Integer> range = new ArrayList<Integer>(n);
+		for (int j = 0; j < n; j++) {
+			range.add(1);
+		}
+		return range;
+	}
+
+	public static void main(String[] args) throws IOException{
         if ("--fixsupport".equals(args[0])) {
             String line;
             int l = 0;          
