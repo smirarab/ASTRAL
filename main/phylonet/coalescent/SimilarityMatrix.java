@@ -289,7 +289,7 @@ public class SimilarityMatrix {
  							long rcu = rc * (treeall - lc - rc);
  							long rcp = rc*(rc-1)/2;
  							double sim = (totalPairs - lcp - rcp) // the number of fully resolved quartets
- 									+ (totalUnresolvedPairs - lcu - rcu) / 2.0 // we count partially resolved quartets
+ 									//+ (totalUnresolvedPairs - lcu - rcu) / 2.0 // we count partially resolved quartets
  									; 
  							updateQuartetDistanceTri( left, right, similarityMatrix, sim);
  						}
