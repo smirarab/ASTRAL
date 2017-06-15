@@ -67,7 +67,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	private final double GREEDY_ADDITION_MIN_RATIO = 0.01;
 	private final int GREEDY_ADDITION_MAX = 100;
 	private final int GREEDY_ADDITION_IMPROVEMENT_REWARD = 2;
-	private final int POLYTOMY_RESOLUTIONS = 2;
+	private final int POLYTOMY_RESOLUTIONS = 3;
+	private final int POLYTOMY_RESOLUTIONS_SAMPLE_GRADIENT = 15;
 	private final int POLYTOMY_SIZE_LIMIT_MAX = 100000;
 	private int polytomySizeLimit = POLYTOMY_SIZE_LIMIT_MAX;
 
@@ -187,43 +188,50 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 					}
 
 					// TODO: do multiple samples
+					int gradient = Integer.MAX_VALUE;
+					while (gradient >= POLYTOMY_RESOLUTIONS_SAMPLE_GRADIENT) {
+						int b = this.clusters.getClusterCount();					
+						HashMap<String, Integer> randomSample = this.randomSampleAroundPolytomy(polytomy, GlobalMaps.taxonNameMap
+												.getSpeciesIdMapper().getSTTaxonIdentifier());
+	
+			//			clone
+			//			AbstractClusterCollection backup=null;
+	//					if (bug) {
+	//						try {
+	//							backup = ((WQClusterCollection)this.clusters).clone();
+	//						} catch (CloneNotSupportedException e) {
+	//							// TODO Auto-generated catch block
+	//							e.printStackTrace();
+	//						}
+	//					}
+	//					int sampleAndResolveRounds = 4;
+	//					for (int j = 0; j < sampleAndResolveRounds; j++) {
+	//						sampleAndResolve(polytomy,inputTrees, false, speciesSimilarityMatrix, GlobalMaps.taxonNameMap
+	//								.getSpeciesIdMapper()
+	//								.getSTTaxonIdentifier(), false, true);
+	//					}
+						
+	//					if(bug){
+	//						((WQClusterCollection)this.clusters).printDiff((WQClusterCollection) backup);
+	//					}
+						//bug = false;
+						
+						for (BitSet restrictedBitSet : Utils.getBitsets(
+								randomSample, allGenesGreedy)) {
+							/**
+							 * Before adding bipartitions from the greedy consensus
+							 * to the set X we need to add the species we didn't
+							 * sample to the bitset.
+							 */
+							restrictedBitSet = this.addbackAfterSampling(polytomy,
+									restrictedBitSet, GlobalMaps.taxonNameMap
+											.getSpeciesIdMapper()
+											.getSTTaxonIdentifier());
+							this.addSpeciesBitSetToX(restrictedBitSet);
+						}
+						
+						gradient = this.clusters.getClusterCount() - b;
 
-					HashMap<String, Integer> randomSample = this.randomSampleAroundPolytomy(polytomy, GlobalMaps.taxonNameMap
-											.getSpeciesIdMapper().getSTTaxonIdentifier());
-
-		//			clone
-					AbstractClusterCollection backup=null;
-//					if (bug) {
-//						try {
-//							backup = ((WQClusterCollection)this.clusters).clone();
-//						} catch (CloneNotSupportedException e) {
-//							// TODO Auto-generated catch block
-//							e.printStackTrace();
-//						}
-//					}
-//					int sampleAndResolveRounds = 4;
-//					for (int j = 0; j < sampleAndResolveRounds; j++) {
-//						sampleAndResolve(polytomy,inputTrees, false, speciesSimilarityMatrix, GlobalMaps.taxonNameMap
-//								.getSpeciesIdMapper()
-//								.getSTTaxonIdentifier(), false, true);
-//					}
-					
-//					if(bug){
-//						((WQClusterCollection)this.clusters).printDiff((WQClusterCollection) backup);
-//					}
-					//bug = false;
-					for (BitSet restrictedBitSet : Utils.getBitsets(
-							randomSample, allGenesGreedy)) {
-						/**
-						 * Before adding bipartitions from the greedy consensus
-						 * to the set X we need to add the species we didn't
-						 * sample to the bitset.
-						 */
-						restrictedBitSet = this.addbackAfterSampling(polytomy,
-								restrictedBitSet, GlobalMaps.taxonNameMap
-										.getSpeciesIdMapper()
-										.getSTTaxonIdentifier());
-						this.addSpeciesBitSetToX(restrictedBitSet);
 					}
 
 				}
@@ -586,7 +594,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		int arraySize = this.completedGeeneTrees.size();
 		List<Tree> [] allGreedies = new List [arraySize];
 		
-		int prev = 0, firstgradiant = -1, gradiant = 0;
+		int prev = 0, gradiant = 0;
 		
 		
 		
@@ -722,7 +730,6 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 
 		}
 		prev = 0;
-		firstgradiant = -1;
 		gradiant = 0;
 		if (inference.getAddExtra() != 0) {
 			this.addExtraBipartitionByDistance();
