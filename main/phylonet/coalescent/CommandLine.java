@@ -38,8 +38,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
-
-    protected static String _versinon = "5.2.5";
+    protected static String _versinon = "5.2.6";
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
         System.err.println();
