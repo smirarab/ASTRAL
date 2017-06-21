@@ -2,8 +2,10 @@ package phylonet.tree.model.sti;
 
 import phylonet.coalescent.GlobalMaps;
 import phylonet.coalescent.TaxonIdentifier;
+import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.util.BitSet;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -268,12 +270,14 @@ public class STITreeCluster implements Iterable<Integer>
 		//public int _el_num = -1;
 		//public int _min_cost = -1;
 		public double _max_score = Integer.MIN_VALUE;
+		public double _estimated = Integer.MIN_VALUE;
 		public double _upper_bound = Integer.MAX_VALUE;
 		public double _c = 0;
 		public Vertex _min_lc = this._min_rc = null;
 		public Vertex _min_rc;
 		public List<Vertex> _subcl = null;	 // Don't matter	
-		public byte _done = 0; // 0 for not, 1 for yes, 2 for failed, 3 for upper bound estimated, 4 for no shortcut, 5 for estimate
+		public byte _done = 0; // 0 for not, 1 for upper bound, 2 for estimated, 3 for yes
+		public ArrayList<VertexPair> clusterResolutions = null;
 		
 		public Vertex() {
 			super();
