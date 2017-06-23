@@ -289,7 +289,7 @@ public class SimilarityMatrix {
  							long rcu = rc * (treeall - lc - rc);
  							long rcp = rc*(rc-1)/2;
  							double sim = (totalPairs - lcp - rcp) // the number of fully resolved quartets
- 									//+ (totalUnresolvedPairs - lcu - rcu) / 2.0 // we count partially resolved quartets
+ 									//+ (totalUnresolvedPairs - lcu - rcu) / 3.0 // we count partially resolved quartets
  									; 
  							updateQuartetDistanceTri( left, right, similarityMatrix, sim);
  						}
@@ -457,7 +457,7 @@ public class SimilarityMatrix {
 			indsBySim.add(sortColumn);
 		}
 		
-		return upgmaLoop(weights, internalBSList, indsBySim, sims, size);
+		return upgmaLoop(weights, internalBSList, indsBySim, sims, size,false);
 	}
 	
 	List<BitSet> UPGMA() {
@@ -480,11 +480,11 @@ public class SimilarityMatrix {
 			indsBySim.add(sortColumn);
 		}
 		
-		return upgmaLoop(weights, bsList, indsBySim, sims, n);
+		return upgmaLoop(weights, bsList, indsBySim, sims, n, false);
 	}
 
 	private List<BitSet> upgmaLoop(List<Integer> weights, List<BitSet> bsList,
-			List<TreeSet<Integer>> indsBySim, List<float[]> sims, int left) {
+			List<TreeSet<Integer>> indsBySim, List<float[]> sims, int left,boolean randomize) {
 		List<BitSet> ret = new ArrayList<BitSet>();
 		while ( left > 2) {
 			int closestI = -1;
@@ -494,7 +494,7 @@ public class SimilarityMatrix {
 				if (indsBySim.get(i) == null)
 					continue;
 				int j = indsBySim.get(i).first();
-				if (sims.get(i)[j] > bestHit) {
+				if (sims.get(i)[j] > bestHit || (randomize & sims.get(i)[i] == bestHit & GlobalMaps.random.nextBoolean())) {
 					bestHit = sims.get(i)[j];
 					closestI = i;
 					closestJ = j;
