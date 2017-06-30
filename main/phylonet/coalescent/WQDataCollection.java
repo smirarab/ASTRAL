@@ -392,7 +392,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	public void addExtraBipartitionsByInput(List<Tree> extraTrees,
 			boolean extraTreeRooted) {
 
-		List<Tree> completedExtraGeeneTrees = new ArrayList<Tree>();
+		//List<Tree> completedExtraGeeneTrees = new ArrayList<Tree>();
 		for (Tree tr : extraTrees) {
 			String[] gtLeaves = tr.getLeaves();
 			STITreeCluster gtAll = GlobalMaps.taxonIdentifier.newCluster();
@@ -684,16 +684,20 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 			upgma.add(sti);
 		}
 		Tree UPGMA = Utils.buildTreeFromClusters(upgma, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), false);
-//		Tree allGenesGreedy = Utils.greedyConsensus(greedyCandidates, false,
+		
+		
+		///		Tree allGenesGreedy = Utils.greedyConsensus(greedyCandidates, false,
 //				GlobalMaps.taxonNameMap.getSpeciesIdMapper()
 //						.getSTTaxonIdentifier(), true);
-//		resolveByUPGMA((MutableTree) allGenesGreedy, GlobalMaps.taxonNameMap.getSpeciesIdMapper()
-//				.getSTTaxonIdentifier(),
+////		resolveByUPGMA((MutableTree) allGenesGreedy, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(),
 //				this.speciesSimilarityMatrix);
-//
-//		
-//		baseTrees.add(allGenesGreedy);
+
+		
+	//	baseTrees.add(allGenesGreedy);
 		baseTrees.add(UPGMA);
+		addBipartitionsFromSignleIndTreesToX(UPGMA, baseTrees,
+
+				GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier()); 
 		
 
 		for (int ii=0; ii < secondRoundSampling; ii++) {
