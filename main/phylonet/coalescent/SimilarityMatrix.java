@@ -129,6 +129,8 @@ public class SimilarityMatrix {
 	*/
 	private void updateQuartetDistanceTri(BitSet left,
 			BitSet right, float[][] matrix,double d) {
+		if (d == 0)
+			return;
 		for (int l = left.nextSetBit(0); l >= 0; l=left.nextSetBit(l+1)) {
 			for (int r = right.nextSetBit(0); r >= 0; r=right.nextSetBit(r+1)) {
 				matrix[l][r] += d;
