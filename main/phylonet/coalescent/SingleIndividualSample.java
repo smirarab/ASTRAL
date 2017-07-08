@@ -1,18 +1,11 @@
 package phylonet.coalescent;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Stack;
-import java.util.Map.Entry;
 
 import phylonet.tree.model.MutableTree;
-import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
-import phylonet.tree.model.sti.STINode;
 import phylonet.tree.model.sti.STITree;
-import phylonet.tree.util.Trees;
 import phylonet.util.BitSet;
 
 /**
