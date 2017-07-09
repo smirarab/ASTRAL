@@ -22,4 +22,4 @@ astralVersions/
 calculateWeightVersions/
 *.trees
 *.tre
-
+old/*
