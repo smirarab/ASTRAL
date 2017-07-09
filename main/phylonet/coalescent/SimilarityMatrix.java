@@ -3,26 +3,19 @@ package phylonet.coalescent;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.Map.Entry;
-import java.util.concurrent.Callable;
+import java.util.TreeSet;
 import java.util.concurrent.CountDownLatch;
 
-
-import java.util.TreeSet;
-
-import phylonet.coalescent.AbstractClusterCollection.getContainedClustersLoop;
-import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
+import phylonet.tree.model.sti.STINode;
 import phylonet.tree.model.sti.STITreeCluster;
-import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.util.BitSet;
 
 /**
@@ -132,25 +125,23 @@ public class SimilarityMatrix {
 	}
 
 	
-	private void updateQuartetDistanceForPair (Integer treeall, BitSet left,
-			BitSet right, Float[][] matrix) {
-		long c = treeall - left.cardinality() - right.cardinality();
-		c = c*(c-1)/2;
+	
+	private void updateQuartetDistanceTri(BitSet left,
+			BitSet right, Float[][] matrix, float d) {
 		for (int l = left.nextSetBit(0); l >= 0; l=left.nextSetBit(l+1)) {
 			for (int r = right.nextSetBit(0); r >= 0; r=right.nextSetBit(r+1)) {
 				if(r > l) {
 					synchronized(matrix[l][r]){
-						matrix[l][r] += c;
+						matrix[l][r] += d;
 						matrix[r][l] = matrix[l][r];
 					}
 				}
 				else {
 					synchronized(matrix[r][l]){
-						matrix[l][r] += c;
+						matrix[l][r] += d;
 						matrix[r][l] = matrix[l][r];
 					}
 				}
-				
 			}
 		}
 	}
@@ -211,37 +202,70 @@ public class SimilarityMatrix {
 			this.latch = latch;
 		}
 		public void run() {
-			Deque<BitSet> stack = new ArrayDeque<BitSet>();
+			for (TNode node : tree.postTraverse()) {
+					if (node.isLeaf()) {
+						BitSet tmp = new BitSet(n);
+						tmp.set(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
+						((STINode)node).setData(tmp);
+					} else {
+						
+						BitSet newbs = new BitSet(n);
+						for (TNode cn: node.getChildren()) {
+							BitSet c = (BitSet) ((STINode)cn).getData();
+							newbs.or(c);
+						}
+						 
+						((STINode)node).setData(newbs);
+						
+					}
+				}
 
 			Integer treeall = treeallCL.getClusterSize();
 			
 			for (TNode node : tree.postTraverse()) {
-				if (node.isLeaf()) {
-					BitSet tmp = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
-					tmp.set(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
-					stack.push(tmp);
-				} else if (node.isRoot() && node.getChildCount() == 3){
-					BitSet left = stack.pop();
-					BitSet middle = stack.pop();
-					BitSet right = stack.pop();
-					updateQuartetDistanceForPair(treeall, left, right, similarityMatrix);
-					updateQuartetDistanceForPair(treeall, left, middle, similarityMatrix);
-					updateQuartetDistanceForPair(treeall, middle, right, similarityMatrix);
-				} else {
-					BitSet left = stack.pop();
-					BitSet right = stack.pop();
-					BitSet both = new BitSet();
-					both.or(left);
-					both.or(right);
-					BitSet middle = new BitSet();
-					middle.or(treeallCL.getBitSet());
-					middle.andNot(both); 
-					updateQuartetDistanceForPair(treeall, left, right, similarityMatrix);
-					updateQuartetDistanceForPair(treeall, left, middle, similarityMatrix);
-					updateQuartetDistanceForPair(treeall, middle, right, similarityMatrix);
-					stack.push(both);
+					if (node.isLeaf()) { 
+						continue;
+					}
+					BitSet cluster = (BitSet) ((STINode)node).getData();
+					BitSet others = (BitSet) treeallCL.getBitSet().clone();
+					others.andNot(cluster);
+					ArrayList<BitSet> children = new ArrayList<BitSet>();
+					long totalPairs = 0;
+					long totalUnresolvedPairs = 0;
+					for (TNode cn: node.getChildren()) {
+						BitSet c = (BitSet) ((STINode)cn).getData();
+						children.add(c);
+						long cc = c.cardinality();
+						totalPairs += cc*(cc-1);
+						totalUnresolvedPairs += cc * (treeall - cc); 
+					}
+					if (others.cardinality() != 0) {
+						children.add(others);
+						long cc = others.cardinality();
+						totalPairs += cc*(cc-1);
+						totalUnresolvedPairs += cc * (treeall - cc);
+					}
+					totalPairs /= 2;
+					totalUnresolvedPairs /= 2;
+					
+					
+					for (int j = 0; j < children.size(); j++ ) {
+						BitSet left = children.get(j);
+						long lc = left.cardinality();
+						long lcu = lc * (treeall - lc);
+						long lcp = lc*(lc-1)/2;
+						for (int i = j+1; i < children.size(); i++ ) {
+							BitSet right = children.get(i);
+							long rc = right.cardinality();
+							long rcu = rc * (treeall - lc - rc);
+							long rcp = rc*(rc-1)/2;
+							float sim = (totalPairs - lcp - rcp) // the number of fully resolved quartets
+									//+ (totalUnresolvedPairs - lcu - rcu) / 3.0 // we count partially resolved quartets
+									; 
+							updateQuartetDistanceTri( left, right, similarityMatrix, sim);
+						}
+					}
 				}
-			}
 
 			BitSet all = treeallCL.getBitSet();
 			int c = all.cardinality() - 2;
@@ -398,7 +422,7 @@ public class SimilarityMatrix {
 			indsBySim.add(sortColumn);
 		}
 		
-		return upgmaLoop(weights, internalBSList, indsBySim, sims, size);
+		return upgmaLoop(weights, internalBSList, indsBySim, sims, size,false);
 	}
 	
 	List<BitSet> UPGMA() {
@@ -421,11 +445,11 @@ public class SimilarityMatrix {
 			indsBySim.add(sortColumn);
 		}
 		
-		return upgmaLoop(weights, bsList, indsBySim, sims, n);
+		return upgmaLoop(weights, bsList, indsBySim, sims, n, false);
 	}
 
 	private List<BitSet> upgmaLoop(List<Integer> weights, List<BitSet> bsList,
-			List<TreeSet<Integer>> indsBySim, List<Float[]> sims, int left) {
+			List<TreeSet<Integer>> indsBySim, List<Float[]> sims, int left,boolean randomize) {
 		List<BitSet> ret = new ArrayList<BitSet>();
 		while ( left > 2) {
 			int closestI = -1;
@@ -435,7 +459,7 @@ public class SimilarityMatrix {
 				if (indsBySim.get(i) == null)
 					continue;
 				int j = indsBySim.get(i).first();
-				if (sims.get(i)[j] > bestHit) {
+				if (sims.get(i)[j] > bestHit || (randomize & sims.get(i)[i] == bestHit & GlobalMaps.random.nextBoolean())) {
 					bestHit = sims.get(i)[j];
 					closestI = i;
 					closestJ = j;
