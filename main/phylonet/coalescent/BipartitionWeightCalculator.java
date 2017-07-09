@@ -220,6 +220,23 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 	                if ( sideRemaining.isNotEmpty()) {
 	                    children.add(sideRemaining);
 	                }
+	                
+	                long sum0 = 0, sum1 = 0, sum2 = 0, sum3 = 0, sum01 = 0, sum23 = 0;
+	                for (int i = 0; i < children.size(); i++){
+	                	Intersects side = children.get(i);
+	                	sum0 += side.s0;
+	                	sum1 += side.s1;
+	                	sum2 += side.s2;
+	                	sum3 += side.s3;
+	                	sum01 += side.s0 * side.s1;
+	                	sum23 += side.s2 * side.s3;
+	                }
+	                for (int i = 0; i < children.size(); i++){
+	                	Intersects side = children.get(i);
+	                	fi += side.s0 * side.s1 * ((sum2 - side.s2) * (sum3 - side.s3) - sum23 + side.s2 * side.s3);
+	                	fi += side.s2 * side.s3 * ((sum0 - side.s0) * (sum1 - side.s1) - sum01 + side.s0 * side.s1);
+	                }
+	                /*
 	                for (int i = 0; i < children.size(); i++) {
 	                    Intersects side1 = children.get(i);
 	                    
@@ -234,6 +251,7 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 	                        }
 	                    }
 	                }
+	                */
 				}
 			}
 		}
