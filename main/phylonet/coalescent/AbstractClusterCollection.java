@@ -2,7 +2,7 @@ package phylonet.coalescent;
 
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
-import java.util.TreeSet;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -31,7 +31,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 		this.topClusterLength = len;
 		clusters = new ArrayList<Set<Vertex>>(len);
 		for (int i = 0; i <= len; i++) {
-			clusters.add(new TreeSet<Vertex>());
+			clusters.add(new HashSet<Vertex>());
 		}
 	}
 	
@@ -296,7 +296,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 		clone.clusters = new ArrayList<Set<Vertex>>();
 		
 		for (Set<Vertex> vset : this.clusters) {
-			TreeSet<Vertex> nset = new TreeSet<STITreeCluster.Vertex>();
+			HashSet<Vertex> nset = new HashSet<STITreeCluster.Vertex>();
 			clone.clusters.add(nset);
 			for (Vertex v: vset) {
 				nset.add(v.getCluster().new Vertex());
