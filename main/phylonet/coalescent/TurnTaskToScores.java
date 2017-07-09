@@ -61,6 +61,7 @@ public class TurnTaskToScores implements Runnable {
 	public final boolean pjohng23 = false;
 	public int speciesWordLength;
 	public boolean noGPU = false;
+	public Object gpuLock = new Object();
 	public TurnTaskToScores(AbstractInference inf, LinkedBlockingQueue<Tripartition> queue1, LinkedBlockingQueue<Long> queue2, int[] geneTreeAsInts,
 			long[] all, int speciesWordLength, cl_device_id[] devices, cl_context context, cl_context_properties contextProperties) {
 		this.inference = inf;
@@ -98,12 +99,12 @@ public class TurnTaskToScores implements Runnable {
 		while(true) {
 			
 			try {
-				if(!noGPU && currentGPU != -1 && gpu.available[currentGPU].get()) {
+				/*if(!noGPU && currentGPU != -1 && gpu.available[currentGPU].get()) {
 					timer2 = System.nanoTime();
 					taken = queue1.take();
 					timeWait += System.nanoTime() - timer2;
 				}
-				else
+				else*/
 					taken = queue1.take();
 			}
 			catch (Exception e) {
@@ -131,18 +132,20 @@ public class TurnTaskToScores implements Runnable {
 					tripsForCPULabel = new int[cpuChunkSize];
 					tripsForCPUCounter = 0;
 				}
-				for(int i = 0; i < devices.length; i++) {
-					if(gpu.available[i].get()) {
-						currentGPU = i;
-						break;
-					}
-				}
-				if(currentGPU == -1) {
+				synchronized(gpuLock) {
 					for(int i = 0; i < devices.length; i++) {
-						if(gpu.storageAvailable[i].get()) {
+						if(gpu.available[i].get()) {
 							currentGPU = i;
 							break;
 						}
+					}
+					if(currentGPU == -1) {
+						for(int i = 0; i < devices.length; i++) {
+							if(gpu.storageAvailable[i].get()) {
+								currentGPU = i;
+								break;
+							}
+							}
 					}
 				}
 			}
@@ -157,27 +160,29 @@ public class TurnTaskToScores implements Runnable {
 					gpu.tripartitions3[currentGPU][(speciesWordLength - i - 1) * (int)workGroupSize + tripCounter]=task.cluster3.getBitSet().words[i];
 				tripCounter++;
 				if(tripCounter == workGroupSize) {
-					if(gpu.available[currentGPU].get()) {
-						gpu.compute(workGroupSize, currentGPU);
-						gpu.available[currentGPU].set(false);
-						gpu.storageAvailable[currentGPU].set(false); 
-					}
-					else {
-						gpu.storageAvailable[currentGPU].set(false);
-					}
-					tripCounter = 0;
-					currentGPU = -1;
-					for(int i = 0; i < devices.length; i++) {
-						if(gpu.available[i].get()) {
-							currentGPU = i;
-							break;
+					synchronized(gpuLock) {
+						if(gpu.available[currentGPU].get()) {
+							gpu.compute(workGroupSize, currentGPU);
+							gpu.available[currentGPU].set(false);
+							gpu.storageAvailable[currentGPU].set(false); 
 						}
-					}
-					if(currentGPU == -1) {
+						else {
+							gpu.storageAvailable[currentGPU].set(false);
+						}
+						tripCounter = 0;
+						currentGPU = -1;
 						for(int i = 0; i < devices.length; i++) {
-							if(gpu.storageAvailable[i].get()) {
+							if(gpu.available[i].get()) {
 								currentGPU = i;
 								break;
+							}
+						}
+						if(currentGPU == -1) {
+							for(int i = 0; i < devices.length; i++) {
+								if(gpu.storageAvailable[i].get()) {
+								currentGPU = i;
+									break;
+								}
 							}
 						}
 					}
@@ -212,16 +217,16 @@ public class TurnTaskToScores implements Runnable {
 //		long timer2 = System.nanoTime();
 //		System.out.println("WAAAAIIIT A MINUTE!");
 //		System.err.println("THE WRITECOUNTER IS: " + positionOut);
-//
-//		while(positionOut != positionIn) {
-//			if(System.nanoTime() - timer2 > 1000000000) {
-//				timer2 += 1000000000;
-//				System.out.println("num threads: " + threadCount.get());
-//				System.out.println("The queue is empty??" + queue2Helper.isEmpty());
-//				System.out.println("Then lets check that the front of the queue is..." + queue2Helper.peek().value + " and that positionout is" + positionOut);
-//			}
-//		}
-
+/*
+		while(positionOut != positionIn) {
+			if(System.nanoTime() - timer2 > 1000000000) {
+				timer2 += 1000000000;
+				System.out.println("num threads: " + threadCount.get());
+				System.out.println("The queue is empty??" + queue2Helper.isEmpty());
+				System.out.println("Then lets check that the front of the queue is..." + queue2Helper.peek().value + " and that positionout is" + positionOut);
+			}
+		}
+*/
 
 		if(CommandLine.timerOn) {
 			System.err.println("Time used to wait on queue1.take() with at least one gpu available: " + (double)(timeWait)/1000000000);
@@ -388,7 +393,9 @@ public class TurnTaskToScores implements Runnable {
 					clEnqueueWriteBuffer(commandQueues[deviceIndex], d_tripartitions3[deviceIndex], CL_TRUE, 0L, Sizeof.cl_long * tripartitions3[deviceIndex].length, Pointer.to(tripartitions3[deviceIndex]), 0,
 							null, null);
 					currentLabel[deviceIndex] = -labelIndex + 1;
-					storageAvailable[deviceIndex].set(true);
+					synchronized(gpuLock) {
+						storageAvailable[deviceIndex].set(true);
+					}
 					synchronized(kernel) {
 						clSetKernelArg(kernel, 3, Sizeof.cl_mem, Pointer.to(d_tripartitions1[deviceIndex]));
 						clSetKernelArg(kernel, 4, Sizeof.cl_mem, Pointer.to(d_tripartitions2[deviceIndex]));
@@ -412,11 +419,16 @@ public class TurnTaskToScores implements Runnable {
 							timer3 = System.nanoTime();
 						}
 					}
+					synchronized(gpuLock) {
+						if(storageAvailable[deviceIndex].get()) {
+							available[deviceIndex].set(true);
+							break;
+						}
+					}
 				}
-				while(storageAvailable[deviceIndex].get() == false);
-				available[deviceIndex].set(true);
+				while(true);
 //				System.out.println(threadCount.decrementAndGet());
-//				System.out.println("I am back!!!");
+				//System.out.println("I am back!!!");
 
 			}
 			
