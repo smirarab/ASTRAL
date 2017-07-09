@@ -17,9 +17,12 @@ import java.util.concurrent.CountDownLatch;
 
 import java.util.TreeSet;
 
+import phylonet.coalescent.AbstractClusterCollection.getContainedClustersLoop;
+import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
+import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.util.BitSet;
 
 /**
