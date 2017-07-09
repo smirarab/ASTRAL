@@ -99,13 +99,7 @@ public class TurnTaskToScores implements Runnable {
 		while(true) {
 			
 			try {
-				/*if(!noGPU && currentGPU != -1 && gpu.available[currentGPU].get()) {
-					timer2 = System.nanoTime();
-					taken = queue1.take();
-					timeWait += System.nanoTime() - timer2;
-				}
-				else*/
-					taken = queue1.take();
+				taken = queue1.take();
 			}
 			catch (Exception e) {
 				e.printStackTrace();
@@ -217,16 +211,16 @@ public class TurnTaskToScores implements Runnable {
 //		long timer2 = System.nanoTime();
 //		System.out.println("WAAAAIIIT A MINUTE!");
 //		System.err.println("THE WRITECOUNTER IS: " + positionOut);
-/*
-		while(positionOut != positionIn) {
-			if(System.nanoTime() - timer2 > 1000000000) {
-				timer2 += 1000000000;
-				System.out.println("num threads: " + threadCount.get());
-				System.out.println("The queue is empty??" + queue2Helper.isEmpty());
-				System.out.println("Then lets check that the front of the queue is..." + queue2Helper.peek().value + " and that positionout is" + positionOut);
-			}
-		}
-*/
+//
+//		while(positionOut != positionIn) {
+//			if(System.nanoTime() - timer2 > 1000000000) {
+//				timer2 += 1000000000;
+//				System.out.println("num threads: " + threadCount.get());
+//				System.out.println("The queue is empty??" + queue2Helper.isEmpty());
+//				System.out.println("Then lets check that the front of the queue is..." + queue2Helper.peek().value + " and that positionout is" + positionOut);
+//			}
+//		}
+
 
 		if(CommandLine.timerOn) {
 			System.err.println("Time used to wait on queue1.take() with at least one gpu available: " + (double)(timeWait)/1000000000);
@@ -429,7 +423,6 @@ public class TurnTaskToScores implements Runnable {
 				while(true);
 //				System.out.println(threadCount.decrementAndGet());
 				//System.out.println("I am back!!!");
-
 			}
 			
 		}
