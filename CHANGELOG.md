@@ -1,15 +1,27 @@
+- version 5.1.2:
+    - Merge changes to similarity matrix and set X calculations from multiind (5.4.4)
+    - Merge linear time final scoring for polytomies from 5.2.7
+
+- version 5.1.1:
+    - Fix a synch bug for GPU+CPU case  (TunrTaskToScores)
+    - Parallelize final scoring 
+    - Implement linear time polytomy in GPU code
+
+- version 5.1.0:
+    - Merge of multi-ind and gpu for the first time
+
 - version 5.0.3:
-	- Bug fix: 5.0.2 has created a bug, which is fixed
-	- Error messages changed to emphasize that quartet score for multi individuals needs adjustment and the first value printed is just for internal use
-	- `-q` option now removes branch lengths that it does not compute (e.g., terminal ones and those close to polytomies)
-	 
+    - Bug fix: 5.0.2 has created a bug, which is fixed
+    - Error messages changed to emphasize that quartet score for multi individuals needs adjustment and the first value printed is just for internal use
+    - `-q` option now removes branch lengths that it does not compute (e.g., terminal ones and those close to polytomies)
+     
 - version 5.0.2: 
-	- Bug fix: root branch was not scored if it had degree two
-	
+    - Bug fix: root branch was not scored if it had degree two
+    
 - version 5.0.1: 
-	- Improved documentation of the multi-ind branch
-	- Some code refactoring impacting greedy consensus. May have changed speed a bit.
-	 
+    - Improved documentation of the multi-ind branch
+    - Some code refactoring impacting greedy consensus. May have changed speed a bit.
+     
 - version 5.0.0:
     - Merge the master branch (4.10.12) and the multi-ind branch (4.8.0)
       This version should have all the multi-ind features of 4.8.0 and
@@ -22,25 +34,25 @@
     - A bug fixed where number of taxa = 64*X was throwing an error
     
 - version 4.10.10:
-	- Very significant improvement in the running time for datasets with many polytomies in input gene trees
-	- Some running time improvement for datasets without polytomies 
-	- A little bit of simplifying code refactoring
-	 
+    - Very significant improvement in the running time for datasets with many polytomies in input gene trees
+    - Some running time improvement for datasets without polytomies 
+    - A little bit of simplifying code refactoring
+     
 - version 4.10.9:
-	- A bug introduced in 4.10.8 is fixed. Version 4.10.8 simply did not run
-	- Added `--gene-only` for gene-only bootstrapping
-	 
+    - A bug introduced in 4.10.8 is fixed. Version 4.10.8 simply did not run
+    - Added `--gene-only` for gene-only bootstrapping
+     
 - version 4.10.8:
-	- Output taxon occupancy
-	- Don't error out on gene trees with dummy degree 2 nodes
-	- Check the species name against gene names for identity. 
-	 
+    - Output taxon occupancy
+    - Don't error out on gene trees with dummy degree 2 nodes
+    - Check the species name against gene names for identity. 
+     
 - version 4.10.7:
-	- Small bug fix: with `-a` scoring using `-q` didn't work. Also, output both gene tree labels and the species tree labels. 
-	- Bug fix: effective N and quartet scores were not correctly printed out with -t X options if gene trees had polytomies. posterior values were correctly computed.
-	- Warning for low `EN` values.
-	- Some spell checking on prompts
-	
+    - Small bug fix: with `-a` scoring using `-q` didn't work. Also, output both gene tree labels and the species tree labels. 
+    - Bug fix: effective N and quartet scores were not correctly printed out with -t X options if gene trees had polytomies. posterior values were correctly computed.
+    - Warning for low `EN` values.
+    - Some spell checking on prompts
+    
 - version 4.10.6:
     - Small bug fix: with `-a` scoring didn't work
     - Print tree topology to stderr before scoring it. 
@@ -48,70 +60,70 @@
     - Update tutorial
 
 - version 4.10.5:
-	- Hide `-y` option for now. Not ready for prime time yet. 
-	
+    - Hide `-y` option for now. Not ready for prime time yet. 
+    
 - version 4.10.4:
-	- New option `-y` to score all possible trees; when used with `-t 12` outputs only the tree(s) with the best sum log local posterior
-	- Change handling the scoring of root nodes
-	- Add a bunch of for-test-only `-t` options
-	 
+    - New option `-y` to score all possible trees; when used with `-t 12` outputs only the tree(s) with the best sum log local posterior
+    - Change handling the scoring of root nodes
+    - Add a bunch of for-test-only `-t` options
+     
 - version 4.10.3:
-	- *Important change:* change calculation of local PP for trees with missing data. Avoid up-weighting genes with fewer missing leaves. 
-	- New feature: `-t 10` tests for polytomies. 
-	
+    - *Important change:* change calculation of local PP for trees with missing data. Avoid up-weighting genes with fewer missing leaves. 
+    - New feature: `-t 10` tests for polytomies. 
+    
 - version 4.10.2:
-	- Bug fix: when in rome do as the americans do. For people using European machines, the support values were printed with a comma, wreaking havoc in the newick format. Has to use US format for those to fix this.
+    - Bug fix: when in rome do as the americans do. For people using European machines, the support values were printed with a comma, wreaking havoc in the newick format. Has to use US format for those to fix this.
 
 
 - version 4.10.1:
-	- BUG FIX: Branch lengths could be negative in rare situations (few genes). This was because checks were for ML instead of MAP. 
-	- Some extra stuff were outputted to the log. Removed. 
-	- BUG FIX: For scoring a tree, the output was written to stdout instead of `-o`
+    - BUG FIX: Branch lengths could be negative in rare situations (few genes). This was because checks were for ML instead of MAP. 
+    - Some extra stuff were outputted to the log. Removed. 
+    - BUG FIX: For scoring a tree, the output was written to stdout instead of `-o`
 
 - version 4.10.0:
-	- Merge branch length and support calculation with the main branch
-	- Update documentation.
-	 
+    - Merge branch length and support calculation with the main branch
+    - Update documentation.
+     
 - version 4.9.9:
-	- New Feature: ability to set lambda (the prior parameter) using `-c`
-	- Some internal code refactoring
-	 
+    - New Feature: ability to set lambda (the prior parameter) using `-c`
+    - Some internal code refactoring
+     
 - version 4.9.8:
-	- BUG Fix: There was a small bug in branch length computation (akin to using wrong priors). This affected mostly long branches, where prior became important. Fixed the bug. 
+    - BUG Fix: There was a small bug in branch length computation (akin to using wrong priors). This affected mostly long branches, where prior became important. Fixed the bug. 
 
 - version 4.9.7:
-	- BUG Fix: for very large n (>30000), posterior probability could under or overflow. Fixed the issue. 
-	
+    - BUG Fix: for very large n (>30000), posterior probability could under or overflow. Fixed the issue. 
+    
 - version 4.9.6
-	- BUG Fix: 0.3 instead of 1/3 was used for branch length 
-	
+    - BUG Fix: 0.3 instead of 1/3 was used for branch length 
+    
 - version 4.9.5
-	- BUG Fix: fix branch length again. For q<1/3, return 0. Also, return MAP instead of ML. 
-	 
+    - BUG Fix: fix branch length again. For q<1/3, return 0. Also, return MAP instead of ML. 
+     
 - version 4.9.4: 
-	- BUG Fix: branch length for short branches should be using -ln(3p)
-	 
+    - BUG Fix: branch length for short branches should be using -ln(3p)
+     
 - version 4.9.3:
-	- Add `-t 4`
-	 
+    - Add `-t 4`
+     
 - version 4.9.2:
-	- first attempt at fixing numerical bugs for corner cases (not necessarily fixed)
-	 
+    - first attempt at fixing numerical bugs for corner cases (not necessarily fixed)
+     
 - version 4.9.1:
-	- Improve handling of missing data for posterior calculation. Use effective n
-	
+    - Improve handling of missing data for posterior calculation. Use effective n
+    
 - version 4.9.0:
-	- Now compute posterior probabilities as will (calculations to be published)
-	
+    - Now compute posterior probabilities as will (calculations to be published)
+    
 - version 4.8.5:
-	- Ignore species tree polytomies when scoring
-	 
+    - Ignore species tree polytomies when scoring
+     
 - version 4.8.4:
-	- multifurcating input gene trees are accepted now. 
-	 
+    - multifurcating input gene trees are accepted now. 
+     
 - version 4.8.3:
-	- use semicolon instead of `,` in branch length labels. Also output the total number of quartets around each branch in the species tree
-	 
+    - use semicolon instead of `,` in branch length labels. Also output the total number of quartets around each branch in the species tree
+     
 - version 4.8.2:
   - add options to control the amount of branch annotation
    
@@ -141,7 +153,7 @@
   - Output normalized score with -q option
 
 - Version 4.7.5:
-  - Added an option to output the search space to standard output. (-k searchspace_norun) 	
+  - Added an option to output the search space to standard output. (-k searchspace_norun)     
 
 - Version 4.7.4:
   - Adjust max polytomy size using sqrt of n
@@ -180,7 +192,7 @@
   - Changed log messages a bit.
   - More code refactoring
   - Added normalized score
-	 
+     
 - Version 4.6.3:
   - Fixed bug in calculation of the distance matrix for addition of extra bipartitions and completion of incomplete gene trees
   - Improved scalability of missing taxon completion algorithm (n^2 logn+n|X|^2)
@@ -202,7 +214,7 @@
   - Handle unresolved gene trees
     
 - Version 4.5.1:
-    - This version automatically adds extra bipartitions using a calculations based on quartet distances between two taxa 	
+    - This version automatically adds extra bipartitions using a calculations based on quartet distances between two taxa     
 
 - Version 4.5.0:
   - ASTRAL can now handle multi individual gene trees
