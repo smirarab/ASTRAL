@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
+<<<<<<< HEAD
 	<name>ASTRAL-III</name>
+=======
+	<name>phylonet_v2_multi</name>
+>>>>>>> refs/remotes/origin/multiind
 	<comment></comment>
 	<projects>
 	</projects>
