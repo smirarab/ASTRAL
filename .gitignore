@@ -2,3 +2,4 @@
 *.class
 main/test_data/*
 astral*jar
+old/*

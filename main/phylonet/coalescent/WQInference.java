@@ -38,6 +38,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 				&& ((WQWeightCalculator)weightCalculator).algorithm instanceof WQWeightCalculator.CondensedTraversalWeightCalculator){
 			return ((WQWeightCalculator.CondensedTraversalWeightCalculator)((WQWeightCalculator)weightCalculator).algorithm).polytree.maxScore / 4L;
 		}
+		
+		//TODO: MUTIND: In the multi individual case, some quartets can never be satisfied. 
+		//      We should compute their number and substract that from maxpossible here. 
 		long weight = 0;
 		Integer  allsides = null;
 		Iterator<STITreeCluster> tit = ((WQDataCollection)this.dataCollection).treeAllClusters.iterator();
@@ -103,8 +106,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 	}
 	
 	/**
-	 * Score first computes the quartet scors and the calls
-	 * scoreBranches to annotate branches (if needed). 
+	 * This method first computes the quartet scores and then calls
+	 * scoreBranches to annotate branches (if needed).
+	 * The method assumes the input tree st has labels of individuals (not species). 
 	 */
 	public double scoreSpeciesTreeWithGTLabels(Tree st, boolean initialize) {
 
@@ -134,7 +138,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 			if (node.isLeaf()) {
 				String nodeName = node.getName(); //GlobalMaps.TaxonNameMap.getSpeciesName(node.getName());
 
-				STITreeCluster cluster = new STITreeCluster();
+				STITreeCluster cluster = GlobalMaps.taxonIdentifier.newCluster();
 				Integer taxonID = GlobalMaps.taxonIdentifier.taxonId(nodeName);
 				cluster.addLeaf(taxonID);
 
@@ -149,7 +153,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 					bs.or(pop.getBitSet());
 				}
 				
-				STITreeCluster cluster = new STITreeCluster();
+				STITreeCluster cluster = GlobalMaps.taxonIdentifier.newCluster();
 				cluster.setCluster((BitSet) bs.clone());
 
 				//((STINode)node).setData(new GeneTreeBitset(node.isRoot()? -2: -1));
@@ -183,8 +187,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 		}
 		
 
-		System.err.println("Quartet score is: " + sum/4l);
-		System.err.println("Normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
+		System.err.println("Final quartet score is: " + sum/4l);
+		System.err.println("Final normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
 		//System.out.println(st.toNewickWD());
 
 		if (this.getBranchAnnotation() == 0){
@@ -245,7 +249,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 			if (node.isLeaf()) {
 				String nodeName = node.getName(); //GlobalMaps.TaxonNameMap.getSpeciesName(node.getName());
 
-				STITreeCluster cluster = new STITreeCluster();
+				STITreeCluster cluster = GlobalMaps.taxonIdentifier.newCluster();
 				Integer taxonID = GlobalMaps.taxonIdentifier.taxonId(nodeName);
 				cluster.addLeaf(taxonID);
 
@@ -261,7 +265,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 					bs.or(pop.getBitSet());
 				}
 				
-				STITreeCluster cluster = new STITreeCluster();
+				STITreeCluster cluster = GlobalMaps.taxonIdentifier.newCluster();
 				cluster.setCluster((BitSet) bs.clone());
 
 				//((STINode)node).setData(new GeneTreeBitset(node.isRoot()? -2: -1));
@@ -365,10 +369,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 					
 				if (this.getBranchAnnotation() == 6) {
-					STITreeCluster c1plussis = new STITreeCluster();
+					STITreeCluster c1plussis = GlobalMaps.taxonIdentifier.newCluster();
 					c1plussis.setCluster((BitSet) c1.getBitSet().clone());
 					c1plussis.getBitSet().or(sister.getBitSet());
-					STITreeCluster c1plusrem = new STITreeCluster();
+					STITreeCluster c1plusrem = GlobalMaps.taxonIdentifier.newCluster();
 					c1plusrem.setCluster((BitSet) c1.getBitSet().clone());
 					c1plusrem.getBitSet().or(remaining.getBitSet());
 					
@@ -477,7 +481,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	@Override
 	Long getTotalCost(Vertex all) {
-		System.err.println("Normalized score (portion of input quartet trees satisfied): " + 
+		System.err.println("Normalized score (portion of input quartet trees satisfied before correcting for multiple individuals): " + 
 				all._max_score/4./this.maxpossible);
 		return (long) (all._max_score/4l);
 	}
