@@ -22,5 +22,4 @@ public abstract class AbstractPartition {
 	}
 	
 	public abstract STITreeCluster[] getClusters();
-	
 }
