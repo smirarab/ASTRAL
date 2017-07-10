@@ -13,6 +13,7 @@ public class Options {
 	private int branchannotation; 
 	private double lambda;
 	private String outputFile;
+	private int samplingrounds;
 	
 	//OLD parameters
 	private double DLbdWeigth;
@@ -23,7 +24,7 @@ public class Options {
 	public Options(boolean rooted, boolean extrarooted, 
 			boolean exactSolution, boolean duploss, int alg, int addExtra,
 			boolean outputCompletedGenes, boolean outSearch, boolean run,
-			int branchannotation, double lambda, String outputFile, double trim) {
+			int branchannotation, double lambda, String outputFile, int samplingrounds, double trim) {
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
 		this.exactSolution = exactSolution;
@@ -36,6 +37,7 @@ public class Options {
 		this.branchannotation = branchannotation;
 		this.setLambda(lambda);
 		this.setOutputFile(outputFile);
+		this.setSamplingrounds(samplingrounds);
 		this.trim = trim;
 	}
 
@@ -167,5 +169,13 @@ public class Options {
 
 	public void setOutputFile(String outputFile) {
 		this.outputFile = outputFile;
+	}
+
+	public Integer getSamplingrounds() {
+		return samplingrounds;
+	}
+
+	public void setSamplingrounds(Integer samplingrounds) {
+		this.samplingrounds = samplingrounds;
 	}
 }
