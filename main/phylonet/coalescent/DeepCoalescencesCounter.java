@@ -234,7 +234,7 @@ public class DeepCoalescencesCounter {
 					bs.or(childCluster);
 				}
 				map.put(node, bs);
-				STITreeCluster c = new STITreeCluster();
+				STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
 				c.setCluster(bs);
 				if (c.getClusterSize() == taxa.length) {
 					((STINode) node).setData(Integer.valueOf(0));
@@ -287,7 +287,7 @@ public class DeepCoalescencesCounter {
 				}
 				map.put(node, bs);
 			}
-			STITreeCluster c = new STITreeCluster();
+			STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
 			c.setCluster(bs);
 			if (c.getClusterSize() == stTaxa.length) {
 				((STINode) node).setData(Integer.valueOf(0));
@@ -434,7 +434,7 @@ public class DeepCoalescencesCounter {
 		for (String leaf : taxa) {
 			taxalist.add(leaf);
 		}
-		STITreeCluster concluster = new STITreeCluster();
+		STITreeCluster concluster = new STITreeCluster(GlobalMaps.taxonIdentifier);
 		for (Integer leaf : cluster) {
 			if (taxalist.contains(GlobalMaps.taxonIdentifier.getTaxonName(leaf))) {
 				concluster.addLeaf(leaf);
@@ -570,7 +570,7 @@ public class DeepCoalescencesCounter {
 		for (String leaf : gtTaxa) {
 			gtTaxalist.add(leaf);
 		}
-		STITreeCluster concluster = new STITreeCluster();
+		STITreeCluster concluster = new STITreeCluster(GlobalMaps.taxonIdentifier);
 		for (TNode n : tr.getNodes()) {
 			if ((!n.isLeaf())
 					|| (!cluster.containsLeaf(GlobalMaps.taxonNameMap.getTaxonName(n.getName()))))
