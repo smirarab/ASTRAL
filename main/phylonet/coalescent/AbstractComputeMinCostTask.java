@@ -11,7 +11,6 @@ import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
-import phylonet.util.BitSet;
 
 /**
  * This class implements the dynamic programming
