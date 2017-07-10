@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import phylonet.tree.model.sti.STITreeCluster;
+
 public class TaxonIdentifier {
     private HashMap<String, Integer> nameToId = new HashMap<String, Integer>();
     private List<String> idToName = new ArrayList<String>();
@@ -14,9 +16,18 @@ public class TaxonIdentifier {
         return idToName.toArray(new String[]{});
     }
 
+    public STITreeCluster newCluster() {
+    	return new STITreeCluster(this);
+    }
+    
     public void lock() {
         this.locked = true;
     }
+    /**
+     * Returns the ID corresponding to the taxon name , if the taxon name is new it adds it unless the taxonidentifier is locked
+     * @param name
+     * @return
+     */
     public Integer taxonId(String name) {
         Integer a = nameToId.get(name);
         if (a ==  null){ 
@@ -38,4 +49,11 @@ public class TaxonIdentifier {
     public int taxonCount(){
         return taxonCount;
     }
+    
+	public  STITreeCluster getClusterForNodeName(String nodeName) {
+		STITreeCluster cluster = this.newCluster();;
+		Integer taxonID = this.taxonId(nodeName);
+		cluster.addLeaf(taxonID);
+		return cluster;
+	}
 }
