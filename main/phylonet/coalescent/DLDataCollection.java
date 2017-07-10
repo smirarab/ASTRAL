@@ -1,23 +1,17 @@
 package phylonet.coalescent;
 
 import java.util.AbstractMap;
-import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Stack;
 
-import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STINode;
 import phylonet.tree.model.sti.STITreeCluster;
-import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.util.BitSet;
 
 public class DLDataCollection extends AbstractDataCollection<STBipartition>{
@@ -41,7 +35,7 @@ public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 		this.clusters = clusters;
 	}
 
-	public void computeTreePartitions(AbstractInference<STBipartition> inference) {
+	public void formSetX(AbstractInference<STBipartition> inference) {
 
 		double unweigthedConstant = 0;
 		double weightedConstant = 0;
@@ -55,7 +49,7 @@ public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 		// needed for fast version
 		// clusterToSTBs = new HashMap<STITreeCluster, Set<STBipartition>>(k*n);
 
-		STITreeCluster all = new STITreeCluster();
+		STITreeCluster all = new STITreeCluster(GlobalMaps.taxonIdentifier);
 		for (int i = 0; i < GlobalMaps.taxonIdentifier.taxonCount(); i++) {
 			all.addLeaf(i);
 		}
@@ -64,7 +58,7 @@ public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 		for (int t = 0; t < inference.trees.size(); t++) {
 			Tree tr = inference.trees.get(t);
 
-			STITreeCluster allInducedByGT = new STITreeCluster();
+			STITreeCluster allInducedByGT = new STITreeCluster(GlobalMaps.taxonIdentifier);
 
 			String[] gtLeaves = tr.getLeaves();
 			for (int i = 0; i < gtLeaves.length; i++) {
@@ -87,7 +81,7 @@ public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 				if (node.isLeaf()) {
 					String nodeName = GlobalMaps.taxonNameMap.getTaxonName(node.getName());
 					
-					STITreeCluster cluster = new STITreeCluster();
+					STITreeCluster cluster = new STITreeCluster(GlobalMaps.taxonIdentifier);
 					cluster.addLeaf(GlobalMaps.taxonIdentifier.taxonId(nodeName));
 
 					addToClusters(cluster, 1);
@@ -116,7 +110,7 @@ public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 					// STITreeCluster gtCluster = new STITreeCluster(gtLeaves);
 					// gtCluster.setCluster(gbs);
 
-					STITreeCluster cluster = new STITreeCluster();
+					STITreeCluster cluster = new STITreeCluster(GlobalMaps.taxonIdentifier);
 					cluster.setCluster((BitSet) bs.clone());
 
 					int size = cluster.getClusterSize();
@@ -234,7 +228,7 @@ public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 					String treeName = node.getName();
 					String nodeName = GlobalMaps.taxonNameMap.getTaxonName(treeName);
 
-					STITreeCluster tb = new STITreeCluster();
+					STITreeCluster tb = new STITreeCluster(GlobalMaps.taxonIdentifier);
 					tb.addLeaf(GlobalMaps.taxonIdentifier.taxonId(nodeName));
 
 					nodeToSTCluster.put(node, tb);
@@ -255,7 +249,7 @@ public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 						bs.or(nodeToSTCluster.get(child).getBitSet());
 					}
 
-					STITreeCluster cluster = new STITreeCluster();
+					STITreeCluster cluster = new STITreeCluster(GlobalMaps.taxonIdentifier);
 					cluster.setCluster((BitSet) bs.clone());
 
 					addToClusters(cluster, cluster.getClusterSize());
@@ -362,12 +356,12 @@ public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 
 			BitSet l_Minus_r = (BitSet) and.clone();
 			l_Minus_r.xor(l_cluster.getBitSet());
-			STITreeCluster lmr = new STITreeCluster();
+			STITreeCluster lmr = new STITreeCluster(GlobalMaps.taxonIdentifier);
 			lmr.setCluster(l_Minus_r);
 
 			BitSet r_Minus_l = (BitSet) and.clone();
 			r_Minus_l.xor(r_cluster.getBitSet());
-			STITreeCluster rml = new STITreeCluster();
+			STITreeCluster rml = new STITreeCluster(GlobalMaps.taxonIdentifier);
 			rml.setCluster(r_Minus_l);
 
 			if (!rml.getBitSet().isEmpty()) {
@@ -381,10 +375,6 @@ public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 		}
 	}
 
-    @Override
-    public void addExtraBipartitionByExtension(AbstractInference<STBipartition> inference) {
-        
-    }
 
 	long maxPossibleScore(Tripartition trip) {
 		return 0;

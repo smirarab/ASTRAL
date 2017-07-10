@@ -17,12 +17,35 @@
     - better handling of polytomies
     - A*
 
+- version 5.1.0:
+        - Merge polytree and multiind
+
+- version 5.0.3:
+	- Bug fix: 5.0.2 has created a bug, which is fixed
+	- Error messages changed to emphasize that quartet score for multi individuals needs adjustment and the first value printed is just for internal use
+	- `-q` option now removes branch lengths that it does not compute (e.g., terminal ones and those close to polytomies)
+	 
+- version 5.0.2: 
+	- Bug fix: root branch was not scored if it had degree two
+	
+- version 5.0.1: 
+	- Improved documentation of the multi-ind branch
+	- Some code refactoring impacting greedy consensus. May have changed speed a bit.
+	 
+- version 5.0.0:
+    - Merge the master branch (4.10.12) and the multi-ind branch (4.8.0)
+      This version should have all the multi-ind features of 4.8.0 and
+      local posterior probability features of 4.10.12 (plus all other misc changes on the master branch)
+
 - version 4.11.1:
    - Change the calculation of the similarity matrix to count unresolved quartets as half
 
 - version 4.10.13:
    - A bug fixed where for input trees with polytomies, the distance matrix was not computed correctly. 
 
+- version 4.10.12:
+    - Update code documentation and some refactoring
+    
 - version 4.10.11:
     - A bug fixed where number of taxa = 64*X was throwing an error
     
@@ -123,12 +146,20 @@
 - version 4.8.1:
   - Major improvement: ASTRAL now computes branch lengths in coalescent units and also computes a quartet support for each branch 
 
+- version 4.8.0:
+  - BugFix: greedy consensus with bootstrapping was failing
+
 - version 4.7.12:
   - Added an option (-c) so that ties are broken randomly
+  
+- version 4.7.9:
+  - First pass at handling multi-individuals with a sampling strategy for forming X
+  - Check for gene trees with <4 taxa
+  - add an option --samplingrounds to enable more rounds of individual sampling
 
 - version 4.7.8:
-  - Fixed a bug in normalization of quartet scores. For very large datasets, the normalization of the quartet scores was incorrect. This only affected the outputted normalized score. 
-    The tree topology, and the non-normalized scores were not affected. 
+  - Fixed a bug in normalization of quartet scores. For very large datasets, the normalization of the quartet scores was incorrect. 
+    This only affected the outputted normalized score. The tree topology, and the non-normalized scores were not affected. 
 
 - version 4.7.7:
   - added a new option to filter genes by taxon occupancy
