@@ -38,7 +38,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
-    protected static String _versinon = "5.2.7";
+    protected static String _versinon = "5.5.0";
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
         System.err.println();
@@ -144,7 +144,14 @@ public class CommandLine {
 	                        JSAP.INTEGER_PARSER, null, JSAP.NOT_REQUIRED, 
 	                        'm', "minleaves",
 	                        "Remove genes with less than specified number of leaves "),
-	
+
+                    new FlaggedOption("samplingrounds", 
+                            JSAP.INTEGER_PARSER, null, JSAP.NOT_REQUIRED, 
+                            JSAP.NO_SHORTFLAG, "samplingrounds",
+                            "For mult-individual datasets, perform these many rounds of individual sampling for"
+                            + " building the set X. Leave empty or give a < 1 number and the program"
+                            + " automatically picks this parameter."),
+	                                
 	                new Switch( "duplication",
 	                        JSAP.NO_SHORTFLAG, "dup",
 	                        "Solves MGD problem. Minimizes the number duplications required to explain "
@@ -216,6 +223,7 @@ public class CommandLine {
 		int k = 0;
 		//int annotate = 1;
 		Integer minleaves = null;
+		Integer samplingrounds = null;
         BufferedWriter outbuffer;
         Set<String> keepOptions = new HashSet<String>();
         String outfileName = null;
@@ -276,13 +284,6 @@ public class CommandLine {
         
         
         if (config.getFile("mapping file") != null) {
-
-        	System.err.println("****** WARNNING ******\n"
-        			+ "		For multi-individual data, please use the code\n"
-        			+ "		available at the multiind branch of the ASTRAL github.\n"
-        			+ "		This branch does not yet include our improvements for the\n"
-        			+ "		multi-individual inputs.\n"
-        			+ "****** END OF WARNNING ******\n");
             BufferedReader br = new BufferedReader(new FileReader(
                     config.getFile("mapping file")));
 
@@ -291,6 +292,9 @@ public class CommandLine {
             try {
             while ((s = br.readLine()) != null) {
                 s = s.trim();
+                if ("".equals(s)) {
+                	continue;
+                }
                 String species;
                 String[] alleles;
                 if ("".equals(s.trim()))  
@@ -330,6 +334,8 @@ public class CommandLine {
         
         minleaves = config.contains("minleaves")? config.getInt("minleaves"):null;
         
+        samplingrounds = config.contains("samplingrounds")? config.getInt("samplingrounds"):null;
+        
         try {
         	
         	//GlobalMaps.taxonIdentifier.taxonId("0");
@@ -362,16 +368,19 @@ public class CommandLine {
         } else {
             GlobalMaps.taxonNameMap = new TaxonNameMap();
         }
-        
+	    
+
         Options options = newOptions(criterion, rooted, extrarooted, 
-        		1.0D, 1.0D, wh, keepOptions, config, outfileName);
+        		1.0D, 1.0D, wh, keepOptions, config, outfileName, samplingrounds);
+        
         
         /*Options bsoptions = newOptions(criterion, rooted, extrarooted, 
         		1.0D, 1.0D, wh, keepOptions, config);
         bsoptions.setBranchannotation(0);*/
        
+
         String outgroup = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesName(0);
-        
+            
         List<String> toScore = null;
         //List<StringBuffer> toScoreStrings = null;
         if (config.getFile("score species trees") != null) {
@@ -395,7 +404,9 @@ public class CommandLine {
 					minleaves, outbuffer, keepOptions, outfile, options,
 					outgroup);
         }
-		
+        // TODO: debug info
+        System.err.println("Weight calculation took " + Polytree.time / 1000000000.0D + " secs");
+        
 	    System.err.println("ASTRAL finished in "  + 
 	            (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 	}
@@ -576,13 +587,13 @@ public class CommandLine {
 		}
 		
 		if (bootstraps != null && bootstraps.size() != 0) {
-		    STITree<Double> cons = (STITree<Double>) Utils.greedyConsensus(bootstraps,false, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
+		    STITree<Double> cons = (STITree<Double>) Utils.greedyConsensus(bootstraps,false, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), false);
 		    cons.rerootTreeAtNode(cons.getNode(outgroup));
 			Trees.removeBinaryNodes(cons);
 		    Utils.computeEdgeSupports(cons, bootstraps);
 		    writeTreeToFile(outbuffer, cons);
 		}
-		
+
 		System.err.println("\n======== Running the main analysis");
 		runOnOneInput(criterion, extraTrees, outbuffer, mainTrees, bootstraps, 
 		        outgroup, options);
@@ -590,17 +601,29 @@ public class CommandLine {
 		outbuffer.close();
 	}
 
-
     private static Tree runOnOneInput(int criterion, List<Tree> extraTrees,
     		BufferedWriter outbuffer, List<Tree> input, 
             Iterable<Tree> bootstraps, String outgroup, Options options) {
         long startTime;
         startTime = System.currentTimeMillis();
-        
+//        int removedTrees = 0;
+//        Iterator<Tree> it = input.iterator();
+//        while(it.hasNext()){
+//        	Tree tr = it.next();
+//        	
+//        	int branchCount = tr.getNodeCount() - GlobalMaps.taxonIdentifier.taxonCount()-1;// if has missing*********
+//        	System.out.println(branchCount);
+//        	if(branchCount <= (GlobalMaps.taxonIdentifier.taxonCount() -3)/2){
+//        		removedTrees++;
+//        		it.remove();
+//        	}
+//        }
+//        System.err.println("removed trees"+ removedTrees);	
         AbstractInference inference =
-            initializeInference(criterion, input, extraTrees, options);
-              
+                initializeInference(criterion, input, extraTrees, options);
+        
         inference.setup(); 
+        
         List<Solution> solutions = inference.inferSpeciesTree();
         
         System.err.println("Optimal tree inferred in "
@@ -615,6 +638,7 @@ public class CommandLine {
     	return config.getBoolean("gene-sampling") || config.getBoolean("gene-only") ;
     }
 
+    
 	private static Tree processSolution(BufferedWriter outbuffer,
 			Iterable<Tree> bootstraps, String outgroup,
 			AbstractInference inference, List<Solution> solutions) {
@@ -625,10 +649,9 @@ public class CommandLine {
         st.rerootTreeAtNode(st.getNode(outgroup));
 		Trees.removeBinaryNodes((MutableTree) st);
    
+		// TODO: MULTIND. 
 		GlobalMaps.taxonNameMap.getSpeciesIdMapper().stToGt((MutableTree) st);
-		
 		inference.scoreSpeciesTreeWithGTLabels(st, false);
-		
 		GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) st);
 		
         if ((bootstraps != null) && (bootstraps.iterator().hasNext())) {
@@ -644,7 +667,8 @@ public class CommandLine {
     static private Options newOptions(int criterion, boolean rooted,
             boolean extrarooted, 
             double cs, double cd, double wh, 
-            Set<String> keepOptions, JSAPResult config, String outfileName) {
+            Set<String> keepOptions, JSAPResult config, 
+            String outfileName, Integer samplingrounds) {
     	Options options = new Options(
     			rooted, extrarooted, 
     			config.getBoolean("exact"), 
@@ -655,7 +679,8 @@ public class CommandLine {
     			!keepOptions.contains("searchspace_norun"),
     			config.getInt("branch annotation level"), 
     			config.getDouble("lambda"),
-    			outfileName, config.getDouble("trimming threshold"));
+    			outfileName, samplingrounds == null ? -1 : samplingrounds,
+    			config.getDouble("trimming threshold"));
     	options.setDLbdWeigth(wh); 
     	options.setCS(cs);
     	options.setCD(cd);
@@ -672,8 +697,7 @@ public class CommandLine {
 			inference = new DLInference(options, 
 					trees, extraTrees);			
 		} else if (criterion == 2) {
-			inference = new WQInference(options, trees, 
-					extraTrees );
+			inference = new WQInference(options, trees, extraTrees );
 		} else {
 			throw new RuntimeException("criterion not set?");
 		}		
@@ -787,6 +811,5 @@ public class CommandLine {
 		    e.printStackTrace();
 		}
     }
-
 
 }
