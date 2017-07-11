@@ -17,8 +17,6 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
 
-import com.sun.corba.se.impl.javax.rmi.CORBA.Util;
-
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TMutableNode;
