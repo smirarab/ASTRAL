@@ -10,8 +10,8 @@ import java.util.TreeSet;
 
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
-import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STINode;
+import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.util.BitSet;
 
 /**
@@ -129,6 +129,8 @@ public class SimilarityMatrix {
 	*/
 	private void updateQuartetDistanceTri(BitSet left,
 			BitSet right, float[][] matrix,double d) {
+		if (d == 0)
+			return;
 		for (int l = left.nextSetBit(0); l >= 0; l=left.nextSetBit(l+1)) {
 			for (int r = right.nextSetBit(0); r >= 0; r=right.nextSetBit(r+1)) {
 				matrix[l][r] += d;
