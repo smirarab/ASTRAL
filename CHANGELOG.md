@@ -1,3 +1,7 @@
+- version 4.11.2:
+   - Some small code refactoring in computing scores
+   - Change the hidden (not published) option `-t 10` that performs polytomy tests.
+
 - version 4.11.1:
    - Change the calculation of the similarity matrix to count unresolved quartets as half
 
