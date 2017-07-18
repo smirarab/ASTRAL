@@ -315,8 +315,11 @@ public class WQInference extends AbstractInference<Tripartition> {
 				else {
 					remaining = ((STITreeCluster)node.getParent().getData()).complementaryCluster();
 				}
-				Quadrapartition quad = weightCalculator2.new Quadrapartition
-						(c1,  c2, sister, remaining);
+				Quadrapartition[] threequads = new Quadrapartition [] { 
+						weightCalculator2.new Quadrapartition (c1,  c2, sister, remaining), 
+						weightCalculator2.new Quadrapartition (c1, sister, c2, remaining),
+						weightCalculator2.new Quadrapartition (c1, remaining, c2, sister)
+						};
 				if (this.getBranchAnnotation() == 7){
 					if (remaining.getClusterSize() != 0 && sister.getClusterSize() != 0 && c2.getClusterSize() != 0 && c1.getClusterSize() != 0 ){
 						System.err.print(c1.toString()+c2.toString()+"|"+sister.toString()+remaining.toString()+"\n");
@@ -326,8 +329,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 				/**
 				 * 2. Scores all three quadripartitoins
 				 */
-				Results s = weightCalculator2.getWeight(quad);
-				nd.mainfreq = s.qs;
+				Results s = weightCalculator2.getWeight(threequads);
+				nd.mainfreq = s.qs[0];
+				nd.alt1freqs=s.qs[1];
+				nd.alt2freqs=s.qs[2];
 				nd.effn = s.effn;
 				
 				
@@ -338,20 +343,6 @@ public class WQInference extends AbstractInference<Tripartition> {
 							":\n\t" +
 							GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTClusterForGeneCluster(cluster));
 				}
-				
-				Quadrapartition[] threequads = new Quadrapartition [] {quad, null,null};
-				
-				quad = weightCalculator2.new Quadrapartition
-						(c1, sister, c2, remaining);
-				s = weightCalculator2.getWeight(quad);
-				nd.alt1freqs=s.qs;
-				threequads[1] = quad;
-				
-				quad = weightCalculator2.new Quadrapartition
-						(c1, remaining, c2, sister);
-				s = weightCalculator2.getWeight(quad);
-				nd.alt2freqs=s.qs;
-				threequads[2] = quad;
 			
 				nd.quartcount= (c1.getClusterSize()+0l)
 						* (c2.getClusterSize()+0l)
@@ -419,7 +410,16 @@ public class WQInference extends AbstractInference<Tripartition> {
 				node.setData(df.format((f1+.0)/effni*100));
 			} else if (this.getBranchAnnotation() == 10) {
 				df.setMaximumFractionDigits(5);
-				node.setData(df.format(post.getPvalue()));
+				double pval = post.getPvalue();
+				if (pval < 0) {
+					System.err.println(""
+							+ "Cannot perform polytomy test with effective N (after polytomies) "+ effni +
+						":\n\t" +
+						node);
+					node.setData("NA");
+				} else {
+					node.setData(df.format(pval));
+				}
 			} else {
 				double postQ1 = post.getPost();
 				ret += Math.log(postQ1);
