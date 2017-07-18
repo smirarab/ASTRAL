@@ -39,7 +39,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
 
-    protected static String _versinon = "4.11.1";
+    protected static String _versinon = "4.11.2";
 
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
@@ -372,6 +372,7 @@ public class CommandLine {
         List<String> toScore = null;
         //List<StringBuffer> toScoreStrings = null;
         if (config.getFile("score species trees") != null) {
+        	System.err.println("Scoring "+config.getFile("score species trees"));
         	toScore = readTreeFileAsString(config.getFile("score species trees"));
         } else if (false) { //config.getBoolean("scoreall")) {
             toScore = Utils.generateAllBinaryTreeStrings(
@@ -731,7 +732,8 @@ public class CommandLine {
     				} else {
     					skipped.add(l);
     				}
-    			} else {						
+    			} else {	
+    				//System.err.println(".");
     				MutableTree tr = nr.readTree();
     				if (minleaves == null || tr.getLeafCount() >= minleaves) {
     					trees.add(tr);
