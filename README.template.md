@@ -1,5 +1,10 @@
 DESCRIPTION:
 -----------
+
+**Notice:**
+* Soon to be released ASTRAL-III with improved running time is available [here](https://github.com/chaoszhang/ASTRAL). Much faster for large numbers of genes and large polytomies.
+* Soon to be released ASTRAL with multi individual (faster and better than the curren version) is available [here](https://github.com/maryamrabiee/ASTRAL/tree/multiind).
+
 ASTRAL is a tool for estimating an unrooted species tree given a set of unrooted gene trees. ASTRAL is statistically consistent under the multi-species coalescent model (and thus is useful for handling ILS). ASTRAL finds the species tree that has the maximum number of shared induced quartet trees with the set of gene trees. 
 The original algorithm is described in:
 
