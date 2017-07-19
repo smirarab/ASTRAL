@@ -1,4 +1,13 @@
-- version 5.2.5: ASTRAL-III - first version
+- version 5.5.1:
+   - Combining version 5.5.0 and 4.11.2  
+
+- version 5.5.0: ?
+
+- version 5.4.*: ?
+
+- version 5.3.*: ?
+
+- version 5.2.5: ASTRAL-III - first correct version (conference proceedings)
   - Enlarge set X for datasets with polytomies; multiple samples; randomize greedy and UPGMA
   - For polytomies, do not half count  unresolved quartets
   - solved a bug where in rare cases, output polytomy could be unresolved due to ASTRAL-III changes
@@ -6,19 +15,19 @@
 - version 5.2.4:
   - Bug fix: weight calculation
 
-- version 5.2.3:
+- version 5.2.3: development
 
-- version 5.2.2:
+- version 5.2.2: development
 
-- version 5.2.1:
+- version 5.2.1: development 
 
-- version 5.2.0: ASTRAL-III - first version
+- version 5.2.0: ASTRAL-III - first attempt
     - polytree
     - better handling of polytomies
     - A*
 
 - version 5.1.0:
-        - Merge polytree and multiind
+     - Merge polytree and multiind
 
 - version 5.0.3:
 	- Bug fix: 5.0.2 has created a bug, which is fixed
@@ -36,6 +45,10 @@
     - Merge the master branch (4.10.12) and the multi-ind branch (4.8.0)
       This version should have all the multi-ind features of 4.8.0 and
       local posterior probability features of 4.10.12 (plus all other misc changes on the master branch)
+
+- version 4.11.2:
+   - Some small code refactoring in computing scores
+   - Change the hidden (not published) option `-t 10` that performs polytomy tests.
 
 - version 4.11.1:
    - Change the calculation of the similarity matrix to count unresolved quartets as half
