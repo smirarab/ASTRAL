@@ -162,6 +162,25 @@ public class SimilarityMatrix {
 		}
 		int k = 0;
 		CountDownLatch latch = new CountDownLatch(geneTrees.size());
+		for (Tree tree :  geneTrees) {
+			for (TNode node : tree.postTraverse()) {
+					if (node.isLeaf()) {
+						BitSet tmp = new BitSet(n);
+						tmp.set(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
+						((STINode)node).setData(tmp);
+					} else {
+						
+						BitSet newbs = new BitSet(n);
+						for (TNode cn: node.getChildren()) {
+							BitSet c = (BitSet) ((STINode)cn).getData();
+							newbs.or(c);
+						}
+						 
+						((STINode)node).setData(newbs);
+						
+					}
+				}
+		}
 
 		for (Tree tree :  geneTrees) {
 			CommandLine.eService.execute(new populateByQuartetDistanceLoop(treeAllClusters.get(k++), tree, denom, latch));
@@ -202,24 +221,6 @@ public class SimilarityMatrix {
 			this.latch = latch;
 		}
 		public void run() {
-			for (TNode node : tree.postTraverse()) {
-					if (node.isLeaf()) {
-						BitSet tmp = new BitSet(n);
-						tmp.set(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
-						((STINode)node).setData(tmp);
-					} else {
-						
-						BitSet newbs = new BitSet(n);
-						for (TNode cn: node.getChildren()) {
-							BitSet c = (BitSet) ((STINode)cn).getData();
-							newbs.or(c);
-						}
-						 
-						((STINode)node).setData(newbs);
-						
-					}
-				}
-
 			Integer treeall = treeallCL.getClusterSize();
 			
 			for (TNode node : tree.postTraverse()) {

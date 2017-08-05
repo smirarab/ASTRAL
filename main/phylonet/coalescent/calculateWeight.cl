@@ -44,12 +44,17 @@ __kernel void calcWeight(
 	int counter = 0;
 	int treeCounter = 0;
 
-	long overlap [(TAXON_SIZE + 1) * 3];
-	long overlapind [(TAXON_SIZE + 1) * 3];
+	//long overlap [(TAXON_SIZE + 1) * 3];
+	//long overlapind [(TAXON_SIZE + 1) * 3];
 	long stack[STACK_SIZE * 3];
+
+	long sx [3];
+	long sxy [3];
+	long tempWeight;
 
 	int top = 0;
 	short geneInt = 0;
+
 	while(counter < geneTreesAsIntsLength){
 		geneInt = geneTreesAsInts[counter];
 		counter++;
@@ -103,41 +108,40 @@ __kernel void calcWeight(
 
 		}
 		else { //for polytomies
-		
-			int nzc[3];
-			nzc[0] = nzc[1] = nzc[2] = 0;
-			int newSides[3];
-			newSides[0] = newSides[1] = newSides[2] = 0;
+			tempWeight = 0;	
+
+			sx[0] = 0;
+			sx[1] = 0;
+			sx[2] = 0;
+			sxy[0] = 0;
+			sxy[1] = 0;
+			sxy[2] = 0;
 			
-			for(int side = 0; side < 3; side++) {
-				for(int i = top - 1; i >= top + geneInt; i--) {
-					if(stack[i * 3 + side] > 0) {
-						newSides[side] += stack[i * 3 + side];
-						overlap[nzc[side]+ side * (TAXON_SIZE + 1)] = stack[i * 3 + side];
-						overlapind[nzc[side] + side * (TAXON_SIZE + 1)] = i;
-						nzc[side]++;
-					}
-				}
-				
-				stack[top * 3 + side] = allsides[side] - newSides[side];
-				
-				if(stack[top * 3 + side] > 0) {
-					overlap[nzc[side] + side * (TAXON_SIZE + 1)] = stack[top * 3 + side];
-					overlapind[nzc[side] + side * (TAXON_SIZE + 1)] = top;
-					nzc[side]++;					
-				}
-				stack[(top + geneInt) * 3 + side] = newSides[side];
+			long newSides[3];
+
+			for(int i = top - 1; i>= top + geneInt; i--) {
+				newSides[0] = stack[i * 3];
+				newSides[1] = stack[i * 3 + 1];
+				newSides[2] = stack[i * 3 + 2];
+
+				sx[0] += newSides[0];
+				sx[1] += newSides[1];
+				sx[2] += newSides[2];
+				sxy[0] += newSides[1] * newSides[2];
+				sxy[1] += newSides[0] * newSides[2];
+				sxy[2] += newSides[0] * newSides[1];
 			}
-			
-			for(int i = nzc[0] - 1; i >= 0; i--) {
-				for(int j = nzc[1] - 1; j >= 0; j--) {
-					for(int k = nzc[2] - 1; k >= 0; k--) {
-						if(overlapind[i] != overlapind[j + (TAXON_SIZE + 1)] && overlapind[i] != overlapind[k + (TAXON_SIZE + 1) * 2] && overlapind[j + (TAXON_SIZE + 1)] != overlapind[k + (TAXON_SIZE + 1) * 2])
-							weight += F(overlap[i], overlap[j + (TAXON_SIZE + 1)], overlap[k + (TAXON_SIZE + 1) * 2]);
-					}
-				}
+			for(int i = top - 1; i >= top + geneInt; i--) {
+				newSides[0] = stack[i * 3];
+				newSides[1] = stack[i * 3 + 1];
+				newSides[2] = stack[i * 3 + 2];
+				
+				tempWeight += ((sx[1] - newSides[1]) * (sx[2] - newSides[2]) - sxy[0] + newSides[1] * newSides[2]) * newSides[0] * (newSides[0] - 1) +((sx[0] - newSides[0]) * (sx[2] - newSides[2]) - sxy[1] + newSides[0] * newSides[2]) * newSides[1] * (newSides[1] - 1) +((sx[0] - newSides[0]) * (sx[1] - newSides[1]) - sxy[2] + newSides[0] * newSides[1]) * newSides[2] * (newSides[2] - 1);
 			}
-			
+			stack[(top + geneInt) * 3] = sx[0];
+			stack[(top + geneInt) * 3 + 1] = sx[1];
+			stack[(top + geneInt) * 3 + 2] = sx[2];
+			weight += tempWeight;
 			top = top + geneInt + 1;
 		}
 	}
