@@ -1,6 +1,7 @@
 package phylonet.coalescent;
 
-import cern.jet.stat.*;
+import cern.jet.stat.Gamma;
+import cern.jet.stat.Probability;
 
 /***
  * Computes branch length and posterior support
