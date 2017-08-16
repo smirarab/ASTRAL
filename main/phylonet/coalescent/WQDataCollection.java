@@ -949,7 +949,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 			i++;
 		}
 		//polytomySizeLimit = deg.get(i-1);
-		polytomySizeLimit = deg.get(i-1);
+//		polytomySizeLimit = deg.get(i-1);
 		if(i > 0)
 			polytomySizeLimit = deg.get(i-1);
 		else    
