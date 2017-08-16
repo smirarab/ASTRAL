@@ -548,10 +548,11 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	@Override
 	public void formSetX(AbstractInference<Tripartition> inf) {
 
+		
 		WQInference inference = (WQInference) inf;
 		int haveMissing = preProcess(inference);
 		SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
-
+		
 		calculateDistances();
 		if (haveMissing > 0) {
 			completeGeneTrees();
@@ -739,7 +740,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 				this.addExtraBipartitionByHeuristics(genes,
 						GlobalMaps.taxonNameMap.getSpeciesIdMapper()
 								.getSTTaxonIdentifier(),
-						this.speciesSimilarityMatrix);
+						this.speciesSimilarityMatrix,inference.options.getPolylimit());
 
 				System.err
 						.println("Number of Clusters after addition by greedy: "
@@ -912,7 +913,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	 *            : the single-individual subsample information
 	 */
 	void addExtraBipartitionByHeuristics(Collection<Tree> contractedTrees,
-			TaxonIdentifier tid, SimilarityMatrix sm) {
+			TaxonIdentifier tid, SimilarityMatrix sm, int polylimit) {
 
 		// Greedy trees. These will be based on sis taxon identifier
 		Collection<Tree> allGreedies;
@@ -933,6 +934,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		allGreedies = Utils.greedyConsensus(contractedTrees,
 				this.GREEDY_ADDITION_THRESHOLDS, true, 1, tid, true);
 		int sumDegrees = 0;
+		
 		ArrayList<Integer> deg = new ArrayList<Integer>();
 		for (Tree cons : allGreedies) {			
 			for (TNode greedyNode : cons.postTraverse()) {
@@ -942,20 +944,25 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 			}
 		}	
 		Collections.sort(deg);
-		//System.err.println(deg);
-		int N = this.GREEDY_ADDITION_MAX_POLYTOMY_MIN+ GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount()* this.GREEDY_ADDITION_MAX_POLYTOMY_MULT;
-		System.err.println("Limit for sigma of degrees:"+ N);
-		int i = 0;
-		while(sumDegrees < N && i < deg.size()){
-			sumDegrees += Math.pow(deg.get(i),2);
-			i++;
+		
+		if(polylimit == -1){
+	
+			int N = this.GREEDY_ADDITION_MAX_POLYTOMY_MIN+ GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount()* this.GREEDY_ADDITION_MAX_POLYTOMY_MULT;
+			System.err.println("Limit for sigma of degrees:"+ N);
+			int i = 0;
+			while(sumDegrees < N && i < deg.size()){
+				sumDegrees += Math.pow(deg.get(i),2);
+				i++;
+			}
+
+			if(i > 0)
+				polytomySizeLimit = deg.get(i-1);
+			else    
+				polytomySizeLimit = 3; // this means that the tree is fully binary
+		
 		}
-		//polytomySizeLimit = deg.get(i-1);
-		polytomySizeLimit = deg.get(i-1);
-		if(i > 0)
-			polytomySizeLimit = deg.get(i-1);
-		else    
-			polytomySizeLimit = 3;
+		else
+			polytomySizeLimit = polylimit;
 //			if(i==deg.size())
 //				allDegVisitedMaxDegrees.add(deg.get(i-1));
 //			else
