@@ -1,11 +1,11 @@
 package phylonet.coalescent;
 
+import java.util.AbstractMap.SimpleEntry;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
-import java.util.AbstractMap.SimpleEntry;
-import java.util.Map.Entry;
 
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.TNode;
