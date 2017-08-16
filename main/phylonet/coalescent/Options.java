@@ -14,6 +14,7 @@ public class Options {
 	private double lambda;
 	private String outputFile;
 	private int samplingrounds;
+	private int polylimit;
 	
 	//OLD parameters
 	private double DLbdWeigth;
@@ -24,7 +25,7 @@ public class Options {
 	public Options(boolean rooted, boolean extrarooted, 
 			boolean exactSolution, boolean duploss, int alg, int addExtra,
 			boolean outputCompletedGenes, boolean outSearch, boolean run,
-			int branchannotation, double lambda, String outputFile, int samplingrounds, double trim) {
+			int branchannotation, double lambda, String outputFile, int samplingrounds,int polylimit, double trim) {
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
 		this.exactSolution = exactSolution;
@@ -38,6 +39,7 @@ public class Options {
 		this.setLambda(lambda);
 		this.setOutputFile(outputFile);
 		this.setSamplingrounds(samplingrounds);
+		this.setPolylimit(polylimit);
 		this.trim = trim;
 	}
 
@@ -177,5 +179,13 @@ public class Options {
 
 	public void setSamplingrounds(Integer samplingrounds) {
 		this.samplingrounds = samplingrounds;
+	}
+
+	public int getPolylimit() {
+		return polylimit;
+	}
+
+	public void setPolylimit(int polylimit) {
+		this.polylimit = polylimit;
 	}
 }
