@@ -110,37 +110,40 @@ __kernel void calcWeight(
 		else { //for polytomies
 			tempWeight = 0;	
 
-			sx[0] = 0;
-			sx[1] = 0;
-			sx[2] = 0;
 			sxy[0] = 0;
 			sxy[1] = 0;
 			sxy[2] = 0;
 			
 			long newSides[3];
 
-			for(int i = top - 1; i>= top + geneInt; i--) {
+			for(int side = 0; side < 3; side++) {
+                        	stack[top * 3 + side] = allsides[side];
+				for(int i = top - 1; i>= top + geneInt; i--) {
+                        		stack[top * 3 + side] -= stack[i * 3 + side];
+				}
+			}
+			for(int i = top; i>= top + geneInt; i--) {
 				newSides[0] = stack[i * 3];
 				newSides[1] = stack[i * 3 + 1];
 				newSides[2] = stack[i * 3 + 2];
 
-				sx[0] += newSides[0];
-				sx[1] += newSides[1];
-				sx[2] += newSides[2];
 				sxy[0] += newSides[1] * newSides[2];
 				sxy[1] += newSides[0] * newSides[2];
 				sxy[2] += newSides[0] * newSides[1];
 			}
-			for(int i = top - 1; i >= top + geneInt; i--) {
+			for(int i = top; i >= top + geneInt; i--) {
 				newSides[0] = stack[i * 3];
 				newSides[1] = stack[i * 3 + 1];
 				newSides[2] = stack[i * 3 + 2];
 				
-				tempWeight += ((sx[1] - newSides[1]) * (sx[2] - newSides[2]) - sxy[0] + newSides[1] * newSides[2]) * newSides[0] * (newSides[0] - 1) +((sx[0] - newSides[0]) * (sx[2] - newSides[2]) - sxy[1] + newSides[0] * newSides[2]) * newSides[1] * (newSides[1] - 1) +((sx[0] - newSides[0]) * (sx[1] - newSides[1]) - sxy[2] + newSides[0] * newSides[1]) * newSides[2] * (newSides[2] - 1);
+				tempWeight += ((allsides[1] - newSides[1]) * (allsides[2] - newSides[2]) - sxy[0] + newSides[1] * newSides[2]) * newSides[0] * (newSides[0] - 1) +
+						((allsides[0] - newSides[0]) * (allsides[2] - newSides[2]) - sxy[1] + newSides[0] * newSides[2]) * newSides[1] * (newSides[1] - 1) +
+						((allsides[0] - newSides[0]) * (allsides[1] - newSides[1]) - sxy[2] + newSides[0] * newSides[1]) * newSides[2] * (newSides[2] - 1);
 			}
-			stack[(top + geneInt) * 3] = sx[0];
-			stack[(top + geneInt) * 3 + 1] = sx[1];
-			stack[(top + geneInt) * 3 + 2] = sx[2];
+
+			for(int side = 0; side < 3; side++) {
+				stack[(top + geneInt) * 3 + side] = allsides[side] - stack[top * 3 + side];
+			}
 			weight += tempWeight;
 			top = top + geneInt + 1;
 		}
