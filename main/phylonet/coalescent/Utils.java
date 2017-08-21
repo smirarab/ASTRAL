@@ -22,7 +22,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -235,7 +238,6 @@ public class Utils {
 			CommandLine.timer = System.nanoTime();
 		}
     	List<Tree> outTrees = new ArrayList<Tree>();
-
         HashMap<STITreeCluster, Integer> count = new HashMap<STITreeCluster, Integer>();
         int treecount = 0;
         for (Tree tree : trees) {
@@ -260,6 +262,7 @@ public class Utils {
 			System.err.println("TIME TOOK FROM LAST NOTICE Utils 240-243: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
 			CommandLine.timer = System.nanoTime();
 		}
+        ArrayList<Future<Tree>> futures = new ArrayList<Future<Tree>>();
         for (int gi = 0; gi < repeat; gi++) {
         	TreeSet<Entry<STITreeCluster,Integer>> countSorted = new 
         			TreeSet<Entry<STITreeCluster,Integer>>(new ClusterComparator(randomzie, taxonIdentifier.taxonCount()));
@@ -271,7 +274,8 @@ public class Utils {
 	        List<STITreeCluster> clusters = new ArrayList<STITreeCluster>();   
 	        for (Entry<STITreeCluster, Integer> entry : countSorted) {
 	        	if (threshold > (entry.getValue()+.0d)/treecount) {	
-	        		outTrees.add(0,Utils.buildTreeFromClusters(clusters, taxonIdentifier, keepclusters));
+	        		List<STITreeCluster> clusterCopy = new ArrayList<STITreeCluster>(clusters);
+	        		futures.add(CommandLine.eService.submit(new greedyConsensusLoop(taxonIdentifier, keepclusters, clusterCopy)));
 	        		ti--;
 	        		if (ti < 0) {
 	        			break;
@@ -281,9 +285,21 @@ public class Utils {
 	    		clusters.add(entry.getKey());
 	        }
 	        while (ti >= 0) {
-	        	outTrees.add(0, Utils.buildTreeFromClusters(clusters, taxonIdentifier, keepclusters));
+        		List<STITreeCluster> clusterCopy = new ArrayList<STITreeCluster>(clusters);
+        		futures.add(CommandLine.eService.submit(new greedyConsensusLoop(taxonIdentifier, keepclusters, clusterCopy)));
 	    		ti--;
 	        }
+        }
+        for(int i = 0; i < futures.size(); i++) {
+        	try {
+				outTrees.add(0, futures.get(i).get());
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         }
         if(CommandLine.timerOn) {
 			System.err.println("TIME TOOK FROM LAST NOTICE Utils 269-272: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
@@ -291,37 +307,18 @@ public class Utils {
 		}
         return outTrees;
     }
-    public static class greedyConsensusLoop implements Runnable{
-		CountDownLatch latch;
-		HashMap<STITreeCluster, Integer> count;
+	
+    public static class greedyConsensusLoop implements Callable<Tree>{
 		TaxonIdentifier taxonIdentifier;
-		Tree tree;
-		public greedyConsensusLoop(HashMap<STITreeCluster, Integer> count, Tree trees, TaxonIdentifier taxonIdentifier, CountDownLatch latch) {
-			this.count = count;
-			this.tree = trees;
+		boolean keepclusters;
+		List<STITreeCluster> clusters;
+		public greedyConsensusLoop(TaxonIdentifier taxonIdentifier, boolean keepclusters, List<STITreeCluster> clusters) {
+			this.keepclusters = keepclusters;
 			this.taxonIdentifier = taxonIdentifier;
-			this.latch = latch;
+			this.clusters = clusters;
 		}
-		public void run() {
-			List<STITreeCluster> geneClusters = Utils.getGeneClusters(tree, taxonIdentifier);
-            for (STITreeCluster cluster: geneClusters) {
-            	synchronized(count) {
-	                if (count.containsKey(cluster)) {
-	                    count.put(cluster, count.get(cluster) + 1);
-	                    continue;
-	                }
-            	}
-            	STITreeCluster comp = cluster.complementaryCluster();
-            	synchronized(count) {
-	            	if (count.containsKey(comp)) {
-	                    count.put(comp, count.get(comp) + 1);
-	                    continue;
-	                }
-	                count.put(cluster, 1);
-            	}
-            }
-			latch.countDown();
-
+		public Tree call() {
+			return Utils.buildTreeFromClusters(clusters, taxonIdentifier, keepclusters);
 		}
 	}
     /**
