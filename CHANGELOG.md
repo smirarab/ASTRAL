@@ -1,6 +1,9 @@
+<<<<<<< Upstream, based on master/master
 - version 5.5.3:
    - Fixed bug which affects efficiency  
 
+=======
+>>>>>>> f2d3a3d 5.5.3 - Fixed bug which affects efficiency
 - version 5.5.2:
    - Fixed memory consumption issue  
 
