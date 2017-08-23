@@ -28,65 +28,32 @@ public class Polytree {
 	
 	final class PTNode{
 		PTNode parent;
-		PTCluster cluster, complementCluster;
+		ArrayList<PTNode> children;
+		PTCluster cluster;
 		PTPartition partition;
+		boolean called = false;
 		
-		PTNode(PTNode p){
-			parent = p;
-		}
-		PTNode(PTNode p, TNode n, STITreeCluster s){
-			parent = p;
+		PTNode(TNode n){
 			STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
-			STITreeCluster xc = new STITreeCluster(GlobalMaps.taxonIdentifier);
 			c.getBitSet().set(GlobalMaps.taxonIdentifier.taxonId(n.getName()));
-			xc.getBitSet().xor(s.getBitSet());
-			xc.getBitSet().xor(c.getBitSet());
 			cluster = Polytree.this.clusters.get(c);
-			if (Polytree.this.clusters.containsKey(xc)) complementCluster = Polytree.this.clusters.get(xc);
-			else complementCluster = new PTCluster(xc, this);
-			partition = null;
+			children = new ArrayList<PTNode>();
 		}
-		boolean needToComputeCluster(){
-			if (cluster == null) return false;
-			return (cluster.firstNode == this);
-		}
-		boolean needToComputeComplementCluster(){
-			if (complementCluster == null) return false;
-			return ((complementCluster.firstNode == this) && (complementCluster.used == true));
-		}
-		boolean needToComputePartition(){
-			if (partition == null) return false;
-			return (partition.firstNode == this);
-		}
-		boolean needToCompute(){
-			return needToComputeCluster() || needToComputeComplementCluster() || needToComputePartition();
-		}
-		boolean needChildInfo(){
-			return needToComputeCluster() || needToComputePartition();
-		}
-		boolean parentNeedChildInfo(){
-			if (parent == null) return false;
-			return parent.needChildInfo();
-		}
-		void addChidren(ArrayList<PTNode> children, STITreeCluster s){
+		PTNode(ArrayList<PTNode> ch, STITreeCluster s){
+			children = ch;
 			STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
-			STITreeCluster xc = new STITreeCluster(GlobalMaps.taxonIdentifier);
 			ArrayList<STITreeCluster> cs = new ArrayList<STITreeCluster>();
-			for (PTNode ch: children){
-				STITreeCluster chc = ch.cluster.clusterRef;
-				c.getBitSet().xor(chc.getBitSet());
-				cs.add(chc);
+			for (PTNode child: children){
+				child.parent = this;
+				c.getBitSet().xor(child.cluster.clusterRef.getBitSet());
+				cs.add(child.cluster.clusterRef);
 			}
-			if (Polytree.this.clusterRef.containsKey(c)) c = Polytree.this.clusterRef.get(c);
-			xc.getBitSet().xor(s.getBitSet());
-			xc.getBitSet().xor(c.getBitSet());
-			if (Polytree.this.clusters.containsKey(c)) cluster = Polytree.this.clusters.get(c);
-			else cluster = new PTCluster(c, this);
-			if (xc.getBitSet().cardinality() != 0){
-				if (Polytree.this.clusterRef.containsKey(xc)) xc = Polytree.this.clusterRef.get(xc);
-				cs.add(xc);
-				if (Polytree.this.clusters.containsKey(xc)) complementCluster = Polytree.this.clusters.get(xc);
-				else complementCluster = new PTCluster(xc, this);
+			cluster = findCluster(c, this);
+			if (c.equals(s) == false){
+				STITreeCluster xc = new STITreeCluster(GlobalMaps.taxonIdentifier);
+				xc.getBitSet().xor(c.getBitSet());
+				xc.getBitSet().xor(s.getBitSet());
+				cs.add(findCluster(xc, null).clusterRef);
 			}
 			if (cs.size() >= 3){
 				AbstractPartition p = AbstractPartition.createPartition(cs);
@@ -96,58 +63,136 @@ public class Polytree {
 				}
 				else partition = new PTPartition(p, this);
 			}
-			else partition = null;
-			if (needChildInfo()){
-				for (PTNode ch: children){
-					if (ch.needChildInfo() == false) ch.cluster.used = true;
+		}
+		PTCluster findCluster(STITreeCluster c, PTNode n){
+			if (Polytree.this.clusters.containsKey(c)) {
+				PTCluster cluster = Polytree.this.clusters.get(c);
+				if (cluster.firstNode == null) cluster.firstNode = n;
+				return cluster;
+			}
+			else return new PTCluster(c, n);
+		}
+		boolean isPartitionNode(){
+			if (partition == null) return false;
+			return partition.firstNode == this;
+		}
+		boolean isClusterNode(){
+			return cluster.firstNode == this;
+		}
+		void addAllPartitions(){
+			for (PTNode child: children){
+				child.addAllPartitions();
+			}
+			if (isPartitionNode()){
+				called = true;
+				for (PTNode child: children){
+					child.addAllClusters();
 				}
 			}
 		}
-		void addComplementDependency(){
-			if (needChildInfo() == false && complementCluster != null && complementCluster.used) cluster.used = true;
+		void addAllClusters(){
+			if (called) return;
+			if (isClusterNode()){
+				called = true;
+				for (PTNode child: children){
+					child.addAllClusters();
+				}
+			}
+			else {
+				cluster.listUsed = true;
+				PTNode n = cluster.firstNode;
+				if (n == null || n.called) return;
+				n.called = true;
+				for (PTNode child: n.children){
+					child.addAllClusters();
+				}
+			}
+		}
+		void buildQueue(){
+			/*
+			 * 1 - true = compute based on stack; false = get from list
+			 * stack:
+			 * value >> 5 - number of children
+			 * 2 - true = store on stack
+			 * 4 - true = store on list
+			 * 8 - true = compute partition
+			 * 16 - true = partition cnt>1 
+			 * list:
+			 * value >> 1 - the position on the list to fetch from
+			 */
+			for (PTNode child: children){
+				child.buildQueue();
+			}
+			if (called){
+				int v = (children.size() << 5) | 1;
+				if (addToStack()) v = v | 2;
+				if (addToList()) {
+					v = v | 4;
+					cluster.listPos = Polytree.this.listSize++;
+				}
+				if (isPartitionNode()){
+					v = v | 8;
+					if (partition.cnt > 1){
+						v = v | 16;
+						Polytree.this.queueBuilder.add(v);
+						Polytree.this.queueBuilder.add(partition.cnt);
+					}
+					else Polytree.this.queueBuilder.add(v);
+				}
+				else Polytree.this.queueBuilder.add(v);
+			}
+			else {
+				if (parent != null && parent.called) Polytree.this.queueBuilder.add(cluster.listPos << 1);
+			}
+		}
+		boolean addToStack(){
+			return called && parent != null && parent.called;
+		}
+		boolean addToList(){
+			return called && isClusterNode() && cluster.listUsed;
 		}
 	}
 	
 	final class PTCluster{
 		STITreeCluster clusterRef;
 		PTNode firstNode;
-		boolean used = false;
+		boolean listUsed = false;
 		int listPos = -1;
 		
 		PTCluster(STITreeCluster c, PTNode n){
 			clusterRef = c;
 			firstNode = n;
 			Polytree.this.clusters.put(c, this);
-			Polytree.this.clusterRef.put(c, c);
-			Polytree.this.clusterID.add(this);
+		}
+		PTCluster(STITreeCluster c){
+			clusterRef = c;
+			firstNode = null;
+			listUsed = true;
+			listPos = Polytree.this.listSize++;
+			Polytree.this.clusters.put(c, this);
 		}
 	}
 	
 	final class PTPartition{
-		AbstractPartition partitionRef;
 		PTNode firstNode;
 		int cnt = 1;
 		
 		PTPartition(AbstractPartition p, PTNode n){
-			partitionRef = p;
 			firstNode = n;
+			Polytree.this.partitions.put(p, this);
 		}
 	}
 	
 	WQDataCollection dataCollection;
-	HashMap<STITreeCluster, STITreeCluster> clusterRef = new HashMap<STITreeCluster, STITreeCluster>();
 	HashMap<STITreeCluster, PTCluster> clusters = new HashMap<STITreeCluster, PTCluster>();	
 	HashMap<AbstractPartition, PTPartition> partitions = new HashMap<AbstractPartition, PTPartition>();
-	ArrayList<PTNode> nodes = new ArrayList<PTNode>();
-	ArrayList<PTCluster> clusterID = new ArrayList<PTCluster>();
+	ArrayList<PTNode> nodeRoots = new ArrayList<PTNode>();
 	ArrayList<Integer> queueBuilder = new ArrayList<Integer>();
 	int[][] stack, list;
 	int[] queue;
-	int nodeIDCounter = 0;
+	int listSize = 0;
 	int[] sx = new int[3], sxy = new int[3], treeTotal = new int[3];
 	long maxScore = 0;
-	
-	int debugClusterPos = 0;
 	
 	public Polytree(List<Tree> trees, WQDataCollection dataCollection){
 		this.dataCollection = dataCollection;
@@ -155,38 +200,27 @@ public class Polytree {
 		for (int i = 0; i < GlobalMaps.taxonIdentifier.taxonCount(); i++){
 			STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
 			c.getBitSet().set(i);
-			(new PTCluster(c, null)).used = true;
-			
-			debugClusterPos++;
+			new PTCluster(c);
 		}
 		Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
 		for (Tree tr: trees){
-			traversal1(tr.getRoot(), tit.next(), null);
+			nodeRoots.add(buildTree(tr.getRoot(), tit.next()));
 		}
-		int listSize = 0;
-		for (PTNode n: nodes){
-			n.addComplementDependency();
+		for (PTNode n: nodeRoots){
+			n.addAllPartitions();
 		}
-		for (PTCluster c: clusterID){
-			if (c.used) c.listPos = listSize++;
-		}
-		tit = dataCollection.treeAllClusters.iterator();
-		for (Tree tr: trees){
+		for (PTNode n: nodeRoots){
 			queueBuilder.add(-1);
-			traversal2(tr.getRoot());
+			n.buildQueue();
 		}
 		
 		stack = new int[GlobalMaps.taxonIdentifier.taxonCount() + 1][3];
 		list = new int[listSize][3];
 		queue = mapToInt(queueBuilder);
-		
-		nodes = null;
-		clusterRef = null;
 		clusters = null;
-		clusterID = null;
 		partitions = null;
 		queueBuilder = null;
-		
+
 		STITreeCluster c = (new STITreeCluster(GlobalMaps.taxonIdentifier)).complementaryCluster();
 		maxScore = WQWeightByTraversal(new Tripartition(c, c, c, false), null);
 		System.err.println("Polytree max score: " + maxScore / 4);
@@ -200,66 +234,15 @@ public class Polytree {
 		return ret;
 	}
 	
-	private PTNode traversal1(TNode node, STITreeCluster s, PTNode parent){
-		PTNode n = null;
-		if (node.isLeaf()){
-			n = new PTNode(parent, node, s);
-		}
+	private PTNode buildTree(TNode node, STITreeCluster s){
+		if (node.isLeaf()) return new PTNode(node);
 		else {
-			n = new PTNode(parent);
 			ArrayList<PTNode> cs = new ArrayList<PTNode>();
 			for (TNode ch: node.getChildren()){
-				cs.add(traversal1(ch, s, n));
+				cs.add(buildTree(ch, s));
 			}
-			n.addChidren(cs, s);
+			return new PTNode(cs, s);
 		}
-		nodes.add(n);
-		return n;
-	}
-
-	private void traversal2(TNode node){
-		for (TNode child: node.getChildren()){
-		    traversal2(child);
-		}
-		PTNode n = nodes.get(nodeIDCounter);
-		/*
-		 * 1 - true = compute based on stack; false = get from list
-		 * stack:
-		 * 2 - true = store on stack
-		 * 3 - true = store on list
-		 * 4 - true = store complement on list
-		 * 5 - true = compute partition
-		 * 6 - true = partition cnt>1
-		 * list:
-		 * 2 - true = store on stack
-		 * 3 - true = store complement on list 
-		 */
-		if (n.needToCompute() || n.parentNeedChildInfo()){
-			int cmd;
-			if (n.needChildInfo()){
-				cmd = ((node.getChildCount() << 6) | 1);
-				if (n.parentNeedChildInfo()) cmd = cmd | 2;
-				if (n.needToComputeCluster() && n.cluster.used) cmd = cmd | 4;
-				if (n.needToComputeComplementCluster() && n.complementCluster.used) cmd = cmd | 8;
-				if (n.needToComputePartition()){
-					cmd = cmd | 16;
-					if (n.partition.cnt > 1){
-						cmd = cmd | 32;
-						queueBuilder.add(cmd);
-						queueBuilder.add(n.partition.cnt);
-					}
-					else queueBuilder.add(cmd);
-				}
-				else queueBuilder.add(cmd);
-			}
-			else {
-				cmd = n.cluster.listPos << 3;
-				if (n.parentNeedChildInfo()) cmd = cmd | 2;
-				if (n.needToComputeComplementCluster()) cmd = cmd | 4;
-				queueBuilder.add(cmd);
-			}
-		}
-		nodeIDCounter++;
 	}
 
 	public Long WQWeightByTraversal(Tripartition trip, CondensedTraversalWeightCalculator algorithm){
@@ -284,7 +267,7 @@ public class Polytree {
 				continue;
 			}
 			if ((cmd & 1) != 0){
-				int numChildren = cmd >> 6;
+				int numChildren = cmd >> 5;
 				long tempWeight = 0;
 				int[] p = stack[stackEnd], q;
 				p[0] = treeTotal[0];
@@ -296,7 +279,7 @@ public class Polytree {
 					p[1] -= q[1];
 					p[2] -= q[2];
 				}
-				if ((cmd & 16) != 0){
+				if ((cmd & 8) != 0){
 					if (numChildren == 2){
 						tempWeight = F(stack[stackEnd - 2], stack[stackEnd - 1], stack[stackEnd]);
 					}
@@ -323,7 +306,7 @@ public class Polytree {
 								+ ((sx[0] - q[0]) * (sx[1] - q[1]) - sxy[2] + q[0] * q[1]) * q[2] * (q[2] - 1L);
 						}
 					}
-					if ((cmd & 32) != 0) weight += tempWeight * queue[++i];
+					if ((cmd & 16) != 0) weight += tempWeight * queue[++i];
 					else weight += tempWeight;
 				}
 				stackEnd -= numChildren;
@@ -339,27 +322,12 @@ public class Polytree {
 					q[1] = treeTotal[1] - p[1];
 					q[2] = treeTotal[2] - p[2];
 				}
-				if ((cmd & 8) != 0){
-					q = list[listEnd++];
-					q[0] = p[0];
-					q[1] = p[1];
-					q[2] = p[2];
-				}
 			}
 			else {
-				int[] p = list[cmd >> 3], q;
-				if ((cmd & 2) != 0){
-					q = stack[stackEnd++];
-					q[0] = p[0];
-					q[1] = p[1];
-					q[2] = p[2];
-				}
-				if ((cmd & 4) != 0){
-					q = list[listEnd++];
-					q[0] = treeTotal[0] - p[0];
-					q[1] = treeTotal[1] - p[1];
-					q[2] = treeTotal[2] - p[2];
-				}
+				int[] p = list[cmd >> 1], q = stack[stackEnd++];
+				q[0] = p[0];
+				q[1] = p[1];
+				q[2] = p[2];
 			}
 		}
 		time += System.nanoTime() - t;
@@ -384,7 +352,7 @@ public class Polytree {
 				continue;
 			}
 			if ((cmd & 1) != 0){
-				int numChildren = cmd >> 6;
+				int numChildren = cmd >> 5;
 				long tempWeight = 0;
 				int[] p = stack[stackEnd], q;
 				p[0] = treeTotal[0];
@@ -394,7 +362,7 @@ public class Polytree {
 					p[0] -= q[0];
 					p[1] -= q[1];
 				}
-				if ((cmd & 16) != 0){
+				if ((cmd & 8) != 0){
 					if (numChildren == 2){
 						tempWeight = U(stack[stackEnd - 2], stack[stackEnd - 1], stack[stackEnd]);
 					}
@@ -416,7 +384,7 @@ public class Polytree {
 								+ ((sx[0] - q[0]) * (sx[0] - q[0]) - sxy[0] + q[0] * q[0]) * (q[1] * (q[1] - 1L) / 2 - q[0] * (q[0] - 1L));
 						}
 					}
-					if ((cmd & 32) != 0) weight += tempWeight * queue[++i];
+					if ((cmd & 16) != 0) weight += tempWeight * queue[++i];
 					else weight += tempWeight;
 				}
 				stackEnd -= numChildren;
@@ -430,24 +398,11 @@ public class Polytree {
 					q[0] = treeTotal[0] - p[0];
 					q[1] = treeTotal[1] - p[1];
 				}
-				if ((cmd & 8) != 0){
-					q = list[listEnd++];
-					q[0] = p[0];
-					q[1] = p[1];
-				}
 			}
 			else {
-				int[] p = list[cmd >> 3], q;
-				if ((cmd & 2) != 0){
-					q = stack[stackEnd++];
-					q[0] = p[0];
-					q[1] = p[1];
-				}
-				if ((cmd & 4) != 0){
-					q = list[listEnd++];
-					q[0] = treeTotal[0] - p[0];
-					q[1] = treeTotal[1] - p[1];
-				}
+				int[] p = list[cmd >> 1], q = stack[stackEnd++];
+				q[0] = p[0];
+				q[1] = p[1];
 			}
 		}
 		time += System.nanoTime() - t;
