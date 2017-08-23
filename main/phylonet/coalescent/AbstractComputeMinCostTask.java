@@ -169,7 +169,6 @@ public abstract class AbstractComputeMinCostTask<T> {
 			
 			clusterResolutions = clusterResolutionArrayList;
 		}
-		
 		for (VertexPair bi : clusterResolutions) {
 			Vertex smallV = bi.cluster1;
 			Vertex bigv = bi.cluster2;
