@@ -1,3 +1,6 @@
+- version 5.5.3:
+   - Fixed bug which affects efficiency  
+
 - version 5.5.2:
    - Fixed memory consumption issue  
 
