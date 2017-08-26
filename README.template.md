@@ -3,16 +3,16 @@ DESCRIPTION:
 
 **Notice:**
 * Soon to be released ASTRAL-III with improved running time is available [here](https://github.com/chaoszhang/ASTRAL). Much faster for large numbers of genes and large polytomies.
-* Soon to be released ASTRAL with multi individual (faster and better than the curren version) is available [here](https://github.com/maryamrabiee/ASTRAL/tree/multiind).
+* Soon to be released ASTRAL with multi-individual (faster and better than the curren version) is available [here](https://github.com/maryamrabiee/ASTRAL/tree/multiind).
 
-ASTRAL is a tool for estimating an unrooted species tree given a set of unrooted gene trees. ASTRAL is statistically consistent under the multi-species coalescent model (and thus is useful for handling ILS). ASTRAL finds the species tree that has the maximum number of shared induced quartet trees with the set of gene trees. 
+ASTRAL is a tool for estimating an unrooted species tree given a set of unrooted gene trees. ASTRAL is statistically consistent under the multi-species coalescent model (and thus is useful for handling incomplete lineage sorting, i.e., ILS). ASTRAL finds the species tree that has the maximum number of shared induced quartet trees with the set of gene trees. 
 The original algorithm is described in:
 
 * Mirarab, Siavash, Rezwana Reaz, Md. Shamsuzzoha Bayzid, Theo Zimmermann, M Shel Swenson, and Tandy Warnow. “ASTRAL: Genome-Scale Coalescent-Based Species Tree.” Bioinformatics (ECCB special issue) 30 (17): i541–i548. 2014. [doi:10.1093/bioinformatics/btu462](doi.org/10.1093/bioinformatics/btu462).
 
 Starting from version **4.7.4**, the code given here corresponds to ASTRAL-II, described in this paper: 
 
-* Mirarab, Siavash, Tandy Warnow. “ASTRAL-II: Coalescent-Based Species Tree Estimation with Many Hundreds of Taxa and Thousands of Genes.”. Bioinformatics (ISMB special issue) 31 (12): i44–i52. 2015. [doi:10.1093/bioinformatics/btv234](http://bioinformatics.oxfordjournals.org/content/31/12/i44)
+* Mirarab, Siavash, and Tandy Warnow. “ASTRAL-II: Coalescent-Based Species Tree Estimation with Many Hundreds of Taxa and Thousands of Genes.”. Bioinformatics (ISMB special issue) 31 (12): i44–i52. 2015. [doi:10.1093/bioinformatics/btv234](http://bioinformatics.oxfordjournals.org/content/31/12/i44)
 
 Since version 4.10.0, ASTRAL can also compute branch length (in coalescent units) and a measure of support called “local posterior probability”, described here:
 
@@ -34,7 +34,7 @@ and extract the contents to a folder of your choice. Alternatively, you can clon
 
 ASTRAL is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. Java 1.5 or later is required. We have tested ASTRAL only on Linux and MAC.
 
-To test your installation, go to the place where you uncompressed ASTRAL, and run:
+To test your installation, go to the place where you put the uncompressed ASTRAL, and run:
 
 ```
 java -jar __astral.jar__ -i test_data/song_primates.424.gene.tre
@@ -42,7 +42,7 @@ java -jar __astral.jar__ -i test_data/song_primates.424.gene.tre
 
 This should quickly finish. There are also other sample input files under `test_data/` that can be used.
 
-ASTRAL can be run from any directories. You just need to run `java -jar /path/to/astral/__astral.jar__`.
+ASTRAL can be run from any directory. You just need to run `java -jar /path/to/astral/__astral.jar__`.
 Also, you can move `__astral.jar__` to any location you like and run it from there, but note that you need
 to move the `lib` directory as well. 
 
@@ -75,7 +75,7 @@ for internal branches, and branch supports measured as local posterior probabili
 as described in the [tutorial](astral-tutorial.md).
 
 
-As of July, 2015, we **strongly** recommend that you use the code available at [multiind branch](https://github.com/smirarab/ASTRAL/tree/multiind) for multi individuals. When multiple individuals from the same species are available, a mapping file needs to be provided using a `-a` option. This mapping file should have one line per species, and each line needs to be in one of two formats:
+As of July, 2015, we **strongly** recommend that you use the code available at [multiind branch](https://github.com/smirarab/ASTRAL/tree/multiind) for multi-individuals. When multiple individuals from the same species are available, a mapping file needs to be provided using the `-a` option. This mapping file should have one line per species, and each line needs to be in one of two formats:
 
 ```
 species_name [number of individuals] individual_1 individual_2 ...
@@ -114,7 +114,7 @@ Also related to bootstrapping are `-g` (to enable gene/site resampling) and `-s`
 
 
 ### Memory:
-For big datasets (say more than 100 taxa) increasing the memory available to Java can result in speedups. Note that you should give Java only as much free memory as you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke ASTRAL using the following command to make all the 3GB available to Java:
+For big datasets (say more than 100 taxa), increasing the memory available to Java can result in speedups. Note that you should give Java only as much free memory as you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke ASTRAL using the following command to make all the 3GB available to Java:
 
 ```
 java -Xmx3000M -jar __astral.jar__ -i in.tree
