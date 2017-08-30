@@ -512,7 +512,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 				RscriptLines.add("#!/usr/bin/env Rscript");
 				RscriptLines.add("red='#d53e4f';orange='#1d91c0';blue='#41b6c4';colormap = c(red,orange,blue)");
 				RscriptLines.add("require(reshape2);require(ggplot2);");
-				RscriptLines.add("dirPath = '"+options.getFreqOutputPath()+"'; filePath = paste(dirPath"
+				RscriptLines.add("dirPath = '.'; filePath = paste(dirPath"
 						+ ",'/freqQuadCorrected.csv',sep=''); md<-read.csv(filePath,header=F,sep='\\t'); md$value = md$V5/md$V6;");
 				RscriptLines.add("a<-length(levels(as.factor(md$V7)))*3.7; b<-4; sizes <- c(a,b);");
 				RscriptLines.add("md$V8<-reorder(md$V8,-md$value)");
