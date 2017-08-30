@@ -522,18 +522,6 @@ public class WQInference extends AbstractInference<Tripartition> {
 						+ "(values=colormap,name='Topology')+geom_hline(yintercept=1/3,size=0.4,linetype=2)+"
 						+ "ylab('relative freq.')+facet_wrap(~V7,scales='free_x')+xlab('')");
 				RscriptLines.add("pdfFile = paste(dirPath,'/relativeFreq.pdf',sep=''); ggsave(pdfFile,width = sizes[1], height= sizes[2]);");
-				RscriptLines.add("ggplot(data=md)+aes(x=V8,y=V4,fill=V9)+"
-						+ "geom_bar(stat='identity',color=1,position='dodge')+"
-						+ "theme_bw()+theme(axis.text.x=element_text(angle=90))+scale_fill_manual"
-						+ "(values=colormap,name='Topology')+geom_hline(yintercept=1/3,size=0.4,linetype=2)+"
-						+ "ylab('quartet score')+facet_wrap(~V7,scales='free_x')+xlab('')");
-				RscriptLines.add("pdfFile = paste(dirPath, '/quartetScore.pdf',sep=''); ggsave(pdfFile,width = sizes[1], height= sizes[2]);");
-				RscriptLines.add("ggplot(data=md)+aes(x=V8,y=V5,fill=V9)+"
-						+ "geom_bar(stat='identity',color=1,position='dodge')+"
-						+ "theme_bw()+theme(axis.text.x=element_text(angle=90))+scale_fill_manual"
-						+ "(values=colormap,name='Topology')+geom_hline(aes(yintercept=V6/3),size=0.4,linetype=2)+"
-						+ "ylab('#genes')+facet_wrap(~V7,scales='free_x')+xlab('')");
-				RscriptLines.add("pdfFile = paste(dirPath, '/countTopology.pdf',sep=''); ggsave(pdfFile,width = sizes[1], height= sizes[2]);");
 				Files.write(freqWriter, freqWriterLines, Charset.forName("UTF-8"));
 				Files.write(Rscript, RscriptLines, Charset.forName("UTF-8"));
 			} catch (IOException e) {
