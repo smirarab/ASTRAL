@@ -1,12 +1,21 @@
+- version 5.5.3:
+   - Fixed bug which affects efficiency  
+
+- version 5.5.2:
+   - Fixed memory consumption issue  
+
 - version 5.5.1:
    - Combining version 5.5.0 and 4.11.2  
 
-- version 5.5.0: ?
+- version 5.5.0:
+   - Combining version 5.4.4 and 5.3.*
 
-- version 5.4.*: ?
+- version 5.4.*: handling multi-individual cases
 
-- version 5.3.*: ?
-
+- version 5.3.*: 
+  - further developement on A* to form a 3-stage algorithm
+  - faster annotation for polytomies
+  
 - version 5.2.5: ASTRAL-III - first correct version (conference proceedings)
   - Enlarge set X for datasets with polytomies; multiple samples; randomize greedy and UPGMA
   - For polytomies, do not half count  unresolved quartets
