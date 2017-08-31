@@ -62,7 +62,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	}
 
 	/**
-	 * one of ASTRAL-IV way of calculating weights
+	 * one of ASTRAL-III way of calculating weights
 	 * Should be memory efficient
 	 * @author chaoszhang
 	 *
@@ -82,6 +82,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		*/
 		@Override
 		void setupGeneTrees(WQInference inference) {
+			System.err.println("Using polytree-based weight calculation.");
 			polytree = new Polytree(inference.trees, dataCollection);
 		}
 	}
