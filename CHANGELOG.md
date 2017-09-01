@@ -1,3 +1,6 @@
+- version 5.5.4:
+   - Merge changes from multiind (Maryam) to fix a small bug and add polytomies limit size option
+
 - version 5.5.3:
    - Fixed bug which affects efficiency  
 
@@ -13,7 +16,7 @@
 - version 5.4.*: handling multi-individual cases
 
 - version 5.3.*: 
-  - further developement on A* to form a 3-stage algorithm
+  - further development on A* to form a 3-stage algorithm
   - faster annotation for polytomies
   
 - version 5.2.5: ASTRAL-III - first correct version (conference proceedings)
