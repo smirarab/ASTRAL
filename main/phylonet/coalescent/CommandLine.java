@@ -38,7 +38,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
-    protected static String _versinon = "5.5.3";
+    protected static String _versinon = "5.5.4";
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
         System.err.println();
@@ -151,6 +151,12 @@ public class CommandLine {
                             "For mult-individual datasets, perform these many rounds of individual sampling for"
                             + " building the set X. Leave empty or give a < 1 number and the program"
                             + " automatically picks this parameter."),
+                    new FlaggedOption("polylimit", 
+                            JSAP.INTEGER_PARSER, null, JSAP.NOT_REQUIRED, 
+                            JSAP.NO_SHORTFLAG, "polylimit",
+                            "Sets a limit for size of polytomies to be considered to add quadraticly to search "
+                            + "space from them using ASTRAL-II heuristics. By defualt ASTRAL computes a limit based on the sigma of,"
+                            + " square degrees of polytomies, which should be linear with number of taxa."),
 	                                
 	                new Switch( "duplication",
 	                        JSAP.NO_SHORTFLAG, "dup",
@@ -224,6 +230,7 @@ public class CommandLine {
 		//int annotate = 1;
 		Integer minleaves = null;
 		Integer samplingrounds = null;
+		Integer polylimit = null;
         BufferedWriter outbuffer;
         Set<String> keepOptions = new HashSet<String>();
         String outfileName = null;
@@ -336,6 +343,8 @@ public class CommandLine {
         
         samplingrounds = config.contains("samplingrounds")? config.getInt("samplingrounds"):null;
         
+        polylimit = config.contains("polylimit")? config.getInt("polylimit"):null;
+        
         try {
         	
         	//GlobalMaps.taxonIdentifier.taxonId("0");
@@ -371,7 +380,7 @@ public class CommandLine {
 	    
 
         Options options = newOptions(criterion, rooted, extrarooted, 
-        		1.0D, 1.0D, wh, keepOptions, config, outfileName, samplingrounds);
+        		1.0D, 1.0D, wh, keepOptions, config, outfileName, samplingrounds, polylimit);
         
         
         /*Options bsoptions = newOptions(criterion, rooted, extrarooted, 
@@ -669,7 +678,7 @@ public class CommandLine {
             boolean extrarooted, 
             double cs, double cd, double wh, 
             Set<String> keepOptions, JSAPResult config, 
-            String outfileName, Integer samplingrounds) {
+            String outfileName, Integer samplingrounds,Integer polylimit) {
     	Options options = new Options(
     			rooted, extrarooted, 
     			config.getBoolean("exact"), 
@@ -680,7 +689,7 @@ public class CommandLine {
     			!keepOptions.contains("searchspace_norun"),
     			config.getInt("branch annotation level"), 
     			config.getDouble("lambda"),
-    			outfileName, samplingrounds == null ? -1 : samplingrounds,
+    			outfileName, samplingrounds == null ? -1 : samplingrounds, polylimit == null ? -1 : polylimit,
     			config.getDouble("trimming threshold"));
     	options.setDLbdWeigth(wh); 
     	options.setCS(cs);
