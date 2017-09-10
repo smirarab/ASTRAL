@@ -200,7 +200,7 @@ public abstract class AbstractInference<T> {
 			//System.out.println(pe.getCluster().getClusterSize()+"\t"+pe._max_score);
 			// int k = sigmaNs/(stTaxa.length-1);
 
-			if ( pe.getCluster().getClusterSize()>2 && (pe._min_lc == null || pe._min_rc == null))
+			if ( !GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleSP(pe.getCluster().getBitSet()) && (pe._min_lc == null || pe._min_rc == null))
 				System.err.println("hmm; this shouldn't have happened: "+ pe);
 			
 			if (pe._min_rc != null) {
