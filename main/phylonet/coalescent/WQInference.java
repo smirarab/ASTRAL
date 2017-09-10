@@ -165,10 +165,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 					childbslist.add(remaining);
 				}
 				if (childbslist.size() > 3) {
-					for (STITreeCluster chid :childbslist) {
+					/*for (STITreeCluster chid :childbslist) {
 						System.err.print(chid.getClusterSize()+" ");
 					}
-					System.err.println(" (polytomy)");
+					System.err.println(" (polytomy)");*/
 					if (this.getBranchAnnotation() % 2 == 0) {
 						continue;
 					}
@@ -394,7 +394,6 @@ public class WQInference extends AbstractInference<Tripartition> {
 				node.setData(null);
 				continue;
 			} 
-				
 			Double f1 = nd.mainfreq;
 			Double f2 = nd.alt1freqs;
 			Double f3 = nd.alt2freqs;
