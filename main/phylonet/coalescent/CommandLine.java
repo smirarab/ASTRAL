@@ -319,14 +319,14 @@ public class CommandLine {
                     allele = allele.trim();
                     if (taxonMap.containsKey(allele)) {
                         System.err
-                        .println("The name mapping file is not in correct format");
+                        .println("The name mapping file is not in the correct format");
                         System.err
-                        .println("Any gene name can only map to one species");
+                        .println("A gene name can map to one only species name; check: " + allele + " which seems to appear at least twice: " + taxonMap.get(allele)+ " & "+species);
                         System.exit(-1);
                     } else if (alleles.length > 1 && allele.equals(species)) {
                         System.err
                         .println("Error: The species name cannot be identical to gene names when"
-                        		+ "multiple alleles exist for the same gene"+ allele);
+                        		+ "multiple alleles exist for the same gene: "+ allele);
                         System.exit(-1);
                 	}
                     //System.err.println("Mapping '"+allele+"' to '"+species+"'");
