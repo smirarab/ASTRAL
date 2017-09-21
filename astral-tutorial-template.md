@@ -3,21 +3,7 @@ DESCRIPTION:
 ---------------
 ASTRAL is a java program for estimating a species tree given a set of unrooted gene trees. ASTRAL is statistically consistent under multi-species coalescent model (and thus is useful for handling ILS). The optimization problem solved by ASTRAL seeks to find the tree that maximizes the number of induced quartet trees in gene trees that are shared by the species tree. The optimization problem is solved exactly for a constrained version of the problem that restricts the search space. An exact solution to the unconstrained version is also implemented and can run on small datasets (less than 18 taxa).
 
-The original ASTRAL algorithm is described in:
-
-* Mirarab, Siavash, Rezwana Reaz, Md. Shamsuzzoha Bayzid, Theo Zimmermann, M Shel Swenson, and Tandy Warnow. “ASTRAL: Genome-Scale Coalescent-Based Species Tree.” Bioinformatics 30, no. 17 (2014): i541–i548. [doi:10.1093/bioinformatics/btu462](doi.org/10.1093/bioinformatics/btu462).
-
-The current version of the ASTRAL code corresponds to the algorithm called ASTRAL-II and is described in:
-
-* Mirarab, Siavash and Tandy Warnow. “ASTRAL-II: Coalescent-Based Species Tree Estimation with Many Hundreds of Taxa and Thousands of Genes.”. Bioinformatics (ISMB special issue) 31, no. 12 (2015): i44–i52. [doi:10.1093/bioinformatics/btv234](http://bioinformatics.oxfordjournals.org/content/31/12/i44)
-
-Since version 4.10.0, ASTRAL can also compute branch length (in coalescent units) and a measure of support called “local posterior probability”, described here:
-
-* Sayyari, Erfan and Siavash Mirarab. "Fast coalescent-based computation of local branch support from quartet frequencies".  Molecular Biology and Evolution (2016). [doi:10.1093/molbev/msw079](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1)
-
-
-For more details, refer to the chapter 5 of Siavash's [dissertation](https://repositories.lib.utexas.edu/bitstream/handle/2152/31377/MIRARABBAYGI-DISSERTATION-2015.pdf).
-
+Read the [README](README.md) file for more info. 
 
 Email: `astral-users@googlegroups.com` for questions. Please subscribe to the mailing list for infrequent updates. 
 
@@ -27,13 +13,7 @@ Tutorial Steps:
 ---------------
 
 ### INSTALLATION:
-
-There is no installation required to run ASTRAL. You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/Astral.4.10.6.zip) and extract the contents to a folder of your choice. Alternatively, you can clone the [GitHub repository](https://github.com/smirarab/ASTRAL/) if you are familiar with git. If you clone the git repository, you can run `make.sh` to build the project, or simply use the jar file that is included with the repository. 
-
-ASTRAL is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. java 1.5 or later is required. We have tested ASTRAL only on Linux and MAC, but it should work on Windows too.
-
-In the remainder of the tutorial, we will assume you have extracted the ASTRAL zip file into a directory with the path `~/astral-home/`. In the commands given below, substitute `~/astral-home/` with the directory you have chosen for ASTRAL. 
-
+Refer to the [README](README.md#installation)
 
 ###  Running ASTRAL from command-line to see the help:
 
@@ -177,6 +157,7 @@ Here is a description of various information that can be turned on by using `-t`
    * `QC`: this shows the total number of quartets defined around each branch (this is what our paper calls `m`).
    * `EN`: this is the effective number of genes for the branch. If you don't have any missing data, this would be the number of branches in your tree. When there are missing data, some gene trees might have nothing to say about a branch. Thus, the effective number of genes might be smaller than the total number of genes. 
 * *Alternative quartet topologies* (`-t 8`): Outputs `q1`, `q2`, `q3`; these three values show quartet support (as defined in the description of `-t 1`) for the main topology, the first alternative, and the second alternative, respectively.
+* *Polytomy test* (`-t 10`): runs an experimental test to see if a null hypothesis that the branch is a polytomy could be rejected. See [this arXiv note](arxiv.org/abs/1708.08916). 
 
 Run:
 
@@ -188,6 +169,9 @@ java -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 
 ```
 ```
 java -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 8 -o test_data/1kp-scored-t8.tre
+```
+```
+java -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 10 -o test_data/1kp-scored-t8.tre
 ```
 read all the values given for a couple of branches and try to make sense of them. 
 
@@ -301,7 +285,7 @@ Now you see that the tree outputted by the exact version has a slightly higher s
 The main point of our ASTRAL-II work is to make  the heuristic version as close to the exact version as possible. We have tested the heuristic version and a condition similar to the exact condition in our ASTRAL-II paper and have observed no real differences. Thus, we believe the ASTRAL-II heuristics do a very good job of searching the tree space. But when the exact version can be run, there is no reason not to. 
 
 
-### Step 7: Providing ASTRAL with extra trees:
+### Step 7: Providing ASTRAL with extra trees
 
 
 We always have another option for increasing the search space. Imagine that you are able to create a set of hypothetical trees using various methods. For example, maybe you have a prior hypothesis of what the species tree could be. Or, maybe you have run concatenation and have potential species trees. Most realistically, maybe you have a collection of bootstrapped gene trees that can be used. ASTRAL allows you to provide these sets of alternative trees to expand the space of that ASTRAL considers. Thus, ASTRAL will solve the optimization problem subject to the constraint that each bipartition should come either from one of the input gene trees, or the ones it infers automatically, or these "extra" gene trees. The extra gene trees, however, do not contribute to the calculation of the score, which is always computed against input gene trees. They just add to the space being searched, and thus may be beneficial for ASTRAL. 
@@ -315,48 +299,21 @@ To expand the search space, you can run:
 java -jar __astral.jar__ -i test_data/simulated_primates_5X.10.gene.tre -o test_data/simulated_primates_5X.10.species.tre -e test_data/simulated_primates_5X.10.bootstrap.gene.tre
 ```
 Here, the `-e` option is used to input a set of extra trees that ASTRAL uses to expand its search space. The file provided simply has 200 bootstrap replicates for each of the these 10 simulated genes.
+A similar option `-f` can be used when input trees have species labels instead of gene labels (only consequential when for multi-individual datasets).
 
 
 
-
-Miscellaneous :
+Miscellaneous 
 ---------------
 
-### Automatic addition of bipartitions to the set `X`
-
-The search space explored by ASTRAL is limited to bipartitions in a given set, which we call `X`. 
-This means that the accuracy of ASTRAL can be impacted by what is in the set `X`. 
-ASTRAL-I (the algorithm described in our 2014 paper) sets the set `X` to all bipartitions from the gene trees. 
-This is a good start and sufficient in many cases. 
-However, in ASTRAL-II, we have added several mechanisms to add extra bipartitions to the set `X`. 
-In our ASTRAL-II paper, we show that for the most challenging datasets, these additions dramatically increase the accuracy of ASTRAL.
-We also show that these additions seem sufficient, in the sense that adding bipartitions from the true species tree to the set does not further improve the accuracy. 
-
-Some of the heuristics used in ASTRAL-II for the addition of extra bipartitions are explained below. 
-
-For a detailed description of these heuristics, see Section 5.2.3.2 of [my dissertation chapter on ASTRAL](thesis-astral.pdf).
-
-1. **Completing gene trees:** If the input gene trees are missing some taxa, we use a built-in mechanism to first complete those gene trees and then add bipartitions to `X` from the completed gene trees (note that we use the original incomplete gene tree for score calculations). Our current implemented heuristic for doing this is based on calculating the similarity between all pairs of taxa (measured as how often they appear together on the same side of a quartet tree in induced gene trees) and using the four-point condition to figure out where the taxon belongs in the gene tree. The algorithm is described in detail on page 31 of [my thesis chapter on ASTRAL](thesis-astral.pdf).
-
-- **Greedy-based addition**: By default, we use an approach based on greedy consensus to find out additional bipartitions and add them to the set `X`, regardless of whether input gene trees are complete or not. In short, we first find the greedy consensus of the input gene trees at various thresholds. For each polytomy in these consensus trees, we resolve the polytomy by randomly sampling leaves from its pending branches and calculating the greedy consensus for gene trees restricted to these random subsamples. We do this many times for each polytomy and add all the induced new bipartitions. We also calculate a UPGMA resolution of the polytomy using our similarity matrix and add the resulting bipartitions to set `X`. We also use the similarity matrix to add all possible caterpillar resolutions of the polytomies according to the similarity matrix for some of the polytomies. 
-
-- **Similarity-based addition**: By default, we also use our similarity matrix (also used for completing trees) to add  more bipartitions using a UPGMA tree. 
- 
-- **Resolving unresolved gene trees**: When input gene trees are unresolved, we use a strategy similar to our Greedy-based addition strategy for inferring and adding extra bipartitions that effectively resolve the polytomies. Once again, the score calculation is based on the unresolved tree, and these additions only affect the set `X`. 
-
-Mechanisms 1 and 4 are always in place. Mechanisms 2 and 3 are activated by default, but you can turn them off to increase speed (not recommended). 
-To turn off these two features, use `-p 0`.
-We do not recommend `-p 0` option, because greedy-based additions could be quite important, and they typically have a relatively small impact on the running time. 
-
-
-### Memory:
-For big datasets (say more than 100 taxa) increasing the memory available to java might be necessary. Note that you should never give java more memory than what you have available on your machine. So, for example, if you have 4GB of free memory, you can invoke ASTRAL using the following command to make 3GB available to java:
+### Memory
+For big datasets (say more than 500 taxa) increasing the memory available to java might be necessary. Note that you should never give java more memory than what you have available on your machine. So, for example, if you have 4GB of free memory, you can invoke ASTRAL using the following command to make 3GB available to java:
 
 ```
 java -Xmx3000M -jar __astral.jar__ -i in.tree
 ```
 
-### Other options:
+### Other options
 
 * `-m [a number]`: removes genes with less that the specified number of leaves in them. Thus, this is useful for requiring a certain level of taxon occupancy. 
 * `-k completed`: To build the set X (and *not* to score the species tree), ASTRAL internally completes the gene trees. To see these completed gene trees, run this option. This option is usable only when you also have `-o`.
@@ -368,5 +325,5 @@ java -Xmx3000M -jar __astral.jar__ -i in.tree
 ASTRAL code uses bytecode and some reverse engineered code from PhyloNet package (with permission from the authors).
 
 
-### Bug Reports:
+### Bug Reports
 contact: ``astral-users@googlegroups.com``
