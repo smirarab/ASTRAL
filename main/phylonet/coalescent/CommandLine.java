@@ -38,7 +38,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
-    protected static String _versinon = "5.5.4";
+    protected static String _versinon = "5.5.5";
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
         System.err.println();
@@ -149,14 +149,14 @@ public class CommandLine {
                             JSAP.INTEGER_PARSER, null, JSAP.NOT_REQUIRED, 
                             JSAP.NO_SHORTFLAG, "samplingrounds",
                             "For mult-individual datasets, perform these many rounds of individual sampling for"
-                            + " building the set X. Leave empty or give a < 1 number and the program"
-                            + " automatically picks this parameter."),
+                            + " building the set X. The program"
+                            + " automatically picks this parameter if not provided or if below one."),
                     new FlaggedOption("polylimit", 
                             JSAP.INTEGER_PARSER, null, JSAP.NOT_REQUIRED, 
                             JSAP.NO_SHORTFLAG, "polylimit",
-                            "Sets a limit for size of polytomies to be considered to add quadraticly to search "
-                            + "space from them using ASTRAL-II heuristics. By defualt ASTRAL computes a limit based on the sigma of,"
-                            + " square degrees of polytomies, which should be linear with number of taxa."),
+                            "Sets a limit for size of polytomies in greedy consensus trees where O(n) number"
+                            + " of new  resolutions are added. ASTRAL-III sets automatic limits to guarantee polynomial"
+                            + " time running time."),
 	                                
 	                new Switch( "duplication",
 	                        JSAP.NO_SHORTFLAG, "dup",
@@ -319,14 +319,14 @@ public class CommandLine {
                     allele = allele.trim();
                     if (taxonMap.containsKey(allele)) {
                         System.err
-                        .println("The input file is not in correct format");
+                        .println("The name mapping file is not in the correct format");
                         System.err
-                        .println("Any gene name can only map to one species");
+                        .println("A gene name can map to one only species name; check: " + allele + " which seems to appear at least twice: " + taxonMap.get(allele)+ " & "+species);
                         System.exit(-1);
                     } else if (alleles.length > 1 && allele.equals(species)) {
                         System.err
                         .println("Error: The species name cannot be identical to gene names when"
-                        		+ "multiple alleles exist for the same gene"+ allele);
+                        		+ "multiple alleles exist for the same gene: "+ allele);
                         System.exit(-1);
                 	}
                     //System.err.println("Mapping '"+allele+"' to '"+species+"'");
@@ -349,6 +349,7 @@ public class CommandLine {
         	
         	//GlobalMaps.taxonIdentifier.taxonId("0");
 
+        	//System.err.println("Main input file: "+config.getFile("input file"));
         	mainTrees = readInputTrees(
         			readTreeFileAsString(config.getFile("input file")),
         					rooted, true, false, minleaves, 
