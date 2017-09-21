@@ -1,3 +1,6 @@
+- version 5.5.5:
+   - Remove false alarms in the log file
+    
 - version 5.5.4:
    - Merge changes from multiind (Maryam) to fix a small bug and add polytomies limit size option
 
