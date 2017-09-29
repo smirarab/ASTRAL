@@ -1,7 +1,7 @@
 -------------------------
 DESCRIPTION:
 ---------------
-ASTRAL is a java program for estimating a species tree given a set of unrooted gene trees. ASTRAL is statistically consistent under multi-species coalescent model (and thus is useful for handling ILS). The optimization problem solved by ASTRAL seeks to find the tree that maximizes the number of induced quartet trees in gene trees that are shared by the species tree. The optimization problem is solved exactly for a constrained version of the problem that restricts the search space. An exact solution to the unconstrained version is also implemented and can run on small datasets (less than 18 taxa).
+ASTRAL is a java program for estimating a species tree given a set of unrooted gene trees. ASTRAL is statistically consistent under multi-species coalescent model (and thus is useful for handling ILS). The optimization problem solved by ASTRAL seeks to find the tree that maximizes the number of induced quartet trees in gene trees that are shared by the species tree. The optimization problem is solved exactly for a constrained version of the problem that restricts the search space. An exact solution to the unconstrained version is also implemented and can run on small datasets (less than 18 taxa). The current repository (master branch) includes the ASTRAL-III algorithm. 
 
 Read the [README](README.md) file for more info. 
 
@@ -57,12 +57,14 @@ The output of ASTRAL is a tree in Newick format. These trees can be viewed in ma
 
 There are [many more tools](http://en.wikipedia.org/wiki/List_of_phylogenetic_tree_visualization_software).
 
-For this tutorial, let's use the online viewer (EvolView) or any other tool you can manage to download and install. Using either of these applications open the `test_data/song_mammals.tre` file. We will explore various tree viewing options. Importantly, we will reroot the tree at the correct node, which is always necessary, since the rooting of the ASTRAL trees is arbitrary and meaningless.  
+For this tutorial, let's use the online viewer (EvolView) or any other tool you can manage to download and install. Using either of these applications open the `test_data/song_mammals.tre` file. We will explore various tree viewing options. Importantly, we will reroot the tree at the correct node, which is always necessary, since the rooting of the ASTRAL trees is arbitrary and meaningless. 
+
+There have been some reports that FigTree and some other tools sometimes have difficulty opening ASTRAL trees. This is likely because ASTRAL does not generate terminal branch lengths. In the case of FigTree, opening the three two or three times in a row often works (who knows why!). In other tools, you may have to add an arbitrary branch length to each branch. [This script](https://github.com/smirarab/global/blob/master/src/mirphyl/utils/add-bl.py) may be of help.  
 
 #### Branch length and support
 
 ASTRAL measures branch length in coalescent units and also has a fast way of measuring support without a need for bootstrapping. 
-The algorithms to compute branch lengths and support and the meaning of support outputted is further described in [the paper mentioned above](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1).
+The algorithms to compute branch lengths and support and the meaning of support outputted is further described in [this paper](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1).
 We will return to these in later sections. Some points have to be emphasized:
 
 * ASTRAL only estimates branch lengths for internal branches and not terminal branches. 
@@ -72,7 +74,7 @@ We will return to these in later sections. Some points have to be emphasized:
 
 ### The ASTRAL Log information
 
-ASTRAL outputs lots of useful information to your screen ([stderr](https://en.wikipedia.org/wiki/Standard_streams) really). You can capture this information
+ASTRAL outputs lots of useful information to your screen ([stderr](https://en.wikipedia.org/wiki/Standard_streams), really). You can capture this information
 by directing your stderr to a file. Capturing the log is highly recommended. Here is how you would capture stderr:
 
 ```
@@ -87,10 +89,10 @@ Here are some of the important information captured in the log:
 * The normalized quartet score (proportion of input gene tree quartet trees satisfied by the species tree). This is a number between zero and one; the higher this number, the *less* discordant your gene trees are. 
 * The final optimization score is similar to the above number, but is not normalized (the number of gene tree quartets satisfied by the species tree).
 * Running time.
-* More advanced logs show the size of the search space in terms of the number of clusters and number of tripartitions (i.e., elements weighted). Note that for challenging datasets (not this mammalian dataset) the search space grows using heuristics implemented in ASTARL. We will get back to this.  
+* More advanced info: the size of the search space in terms of the number of clusters and number of tripartitions (i.e., elements weighted).  
 
 ### Running on larger datasets:
-We will now run ASTRAL on a relatively large dataset. Run:
+We will now run ASTRAL on a larger dataset. Run:
 
 ```
 java -jar __astral.jar__ -i test_data/100-simulated-boot
@@ -102,7 +104,7 @@ A larger real dataset from the [1kp](http://www.pnas.org/content/early/2014/10/2
 424 genes from 103 species. Run:
 
 ```
-java -jar __astral.jar__ -i test_data/1KP-genetrees.tre -o test_data/1kp.tre
+java -jar __astral.jar__ -i test_data/1KP-genetrees.tre -o test_data/1kp.tre 2> test_data/1kp.log
 ```
 
 This takes about a minute to run on a powerful laptop. On this dataset, notice in the ASTRAL log information that it originally starts with 11043 clusters in its search space, and using heuristics implemented in ASTRAL-II, it increases the search space slightly to 11085 clusters. For more challenging datasets (i.e., more discordance or fewer genes) this number might increase a lot. 
@@ -114,10 +116,10 @@ You can use the `-q` option in ASTRAL to score an existing species tree to produ
 To score a tree using ASTRAL, run:
 
 ```
-java -jar __astral.jar__ -q test_data/simulated_14taxon.default.tre -i test_data/simulated_14taxon.gene.tre -o test_data/simulated_scored.tre
+java -jar __astral.jar__ -q test_data/simulated_14taxon.default.tre -i test_data/simulated_14taxon.gene.tre -o test_data/simulated_scored.tre 2> test_data/simulated_scored.log
 ```
 
-This will score the species tree given in `test_data/simulated_14taxon.default.tre` with respect to the gene trees given in `test_data/simulated_14taxon.gene.tre`. It will output:
+This will score the species tree given in `test_data/simulated_14taxon.default.tre` with respect to the gene trees given in `test_data/simulated_14taxon.gene.tre`. It will output the following in the log:
 
 ```
 Quartet score is: 4803
@@ -192,6 +194,19 @@ java -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -c 
 
 Note that setting lambda to 0 results in reporting ML estimates of the branch lengths instead of MAP. However, for branches with no discordance, we cannot compute a branch lengths. For these, we currently arbitrarily set ML to 10 coalescent units (we might change this in future versions).
 
+### Multi-individual datasets
+
+When multiple individuals from the same species are available, a mapping file needs to be provided using the `-a` option. This mapping file should have one line per species, and each line needs to be in one of two formats:
+
+```
+species_name [number of individuals] individual_1 individual_2 ...
+
+species_name:individual_1,individual_2,...
+```
+Note that when multiple individuals exist for the same species, your species name should be different from the individual names.
+
+The code for handling multiple individuals is in its infancy and might not work well yet. Keep posted for improvements to this feature.
+
 
 ### Multi-locus Bootstrapping:
 Recent versions of ASTRAL output a branch support value even without bootstrapping. Our [analyses](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1) have revealed that this form of support is more reliable than bootstrapping (under the conditions we explored). Nevertheless, you may want to run bootstrapping as well. 
@@ -242,9 +257,7 @@ As ASTRAL performs bootstrapping, it outputs the bootstrapped ASTRAL tree for ea
 
 ### The exact version of ASTRAL
 
-ASTRAL has an exact and a heuristic version. The heuristic version solves the optimization problem exactly subject to the constraint that all the bipartitions in the species tree should be present in at least one of the input gene trees, or in a set of some other bipartitions that (since [version 4.5.1](CHANGELOG.md)) ASTRAL automatically infers from the set of input gene trees as likely bipartitions in the species tree. The constrained version of ASTRAL is the default. However, when you have a small number of taxa (typically 17 taxa or less), the exact version of ASTRAL can also run in reasonable time (see the figure below). 
-
-![Running time Figure](runningtime.png "ASTRAL running times for exact version as function of the number of taxa")
+ASTRAL has an exact and a heuristic version. The heuristic version solves the optimization problem exactly subject to the constraint that all the bipartitions in the species tree should be present in at least one of the input gene trees, or in a set of some other bipartitions that (since [version 4.5.1](CHANGELOG.md)) ASTRAL automatically infers from the set of input gene trees as likely bipartitions in the species tree. The constrained version of ASTRAL is the default. However, when you have a small number of taxa (typically 17 taxa or less), the exact version of ASTRAL can also run in reasonable time.
 
 Since the mammalian dataset we have used so far has 37 taxa, the exact version cannot run on it. However, we have created a subset of this dataset that has all 9 primates, tree shrew, rat, rabbit, horse, and the sloth (a total of 14 taxa). We can run the exact version of ASTRAL on this reduced dataset. Run:
 
@@ -319,6 +332,9 @@ java -Xmx3000M -jar __astral.jar__ -i in.tree
 * `-k completed`: To build the set X (and *not* to score the species tree), ASTRAL internally completes the gene trees. To see these completed gene trees, run this option. This option is usable only when you also have `-o`.
 * `-k bootstraps` and `-k bootstraps_norun`: these options output the bootstrap replicate inputs to ASTRAL. These are useful if you want to run ASTRAL separately on each bootstrap replicate on a cluster. 
 * `-k searchspace_norun`: outputs the search space (constraint set X) and exits. 
+* `--polylimit`: when ASTRAL adds new bipartitions to its search space, it partially does so based on a quadratic number of resolutions per each polytomy on a greedy consensus of gene trees. This could be slow, and therefore, we limit it to small polytomies. If you like to increase or decrease the search space, adjusting this option helps. 
+* `--samplingrounds`: For multi-individual datasets, this option controls how many rounds of individual sampling is used in building the constraint set. Adjust to reduce/increase the search space for multi-individual datasets
+
 
 ### Acknowledgment
 

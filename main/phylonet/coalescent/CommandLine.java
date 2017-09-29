@@ -38,7 +38,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
-    protected static String _versinon = "5.5.5";
+    protected static String _versinon = "5.5.6";
 
     private static void exitWithErr(String extraMessage, SimpleJSAP jsap) {
         System.err.println();
@@ -86,7 +86,9 @@ public class CommandLine {
                             + "2: full annotation (quartet support, quartet frequency, and posterior probability for all three alternatives, "
                                + "plus total number of quartets around the branch and effective number of genes).\n"
                             + "3 (default): only the posterior probability for the main resolution.\n"
-                            + "4: only three alternative posterior probabilities."),
+                            + "4: three alternative posterior probabilities.\n"
+                            + "8: three alternative quartet scores.\n"
+                            + "10: p-values of a polytomy null hypothesis test (arxiv: 1708.08916)."),
                             
 	                new FlaggedOption("bootstraps", 
 	                        FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED,
@@ -148,7 +150,7 @@ public class CommandLine {
                     new FlaggedOption("samplingrounds", 
                             JSAP.INTEGER_PARSER, null, JSAP.NOT_REQUIRED, 
                             JSAP.NO_SHORTFLAG, "samplingrounds",
-                            "For mult-individual datasets, perform these many rounds of individual sampling for"
+                            "For multi-individual datasets, perform these many rounds of individual sampling for"
                             + " building the set X. The program"
                             + " automatically picks this parameter if not provided or if below one."),
                     new FlaggedOption("polylimit", 
