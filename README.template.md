@@ -82,7 +82,7 @@ To save the logs (**also recommended**), run:
 java -jar __astral.jar__ -i in.tree -o out.tre 2>out.log
 ```
 
-#####Input: 
+###### Input: 
 * The input gene trees are in the Newick format
 * The input trees can have missing taxa, polytomies (unresolved branches), and also multiple individuals per species.
 *  Taxon names cannot have quotation marks in their names (sorry!). This means you also cannot have weird characters like ? in the name (underscore is fine).
@@ -95,7 +95,7 @@ species_name:individual_1,individual_2,...
 ```
    Note that when multiple individuals exist for the same species, your species name should be different from the individual names.
    
-#####Output: 
+###### Output: 
 The output in is Newick format and gives: 
 
 * the species tree topology, 
