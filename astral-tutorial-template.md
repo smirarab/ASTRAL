@@ -5,7 +5,7 @@ Read the [README](README.md) file in addition to this tutorial.
 Email: `astral-users@googlegroups.com` for questions. Please subscribe to the mailing list for infrequent updates. 
 
 
-* [INSTALLATION:](#installation)
+* [Installation](#installation)
 * [Running ASTRAL](#running-astral)
   * [ASTRAL Help](#astral-help)
   * [Running on the sample mammalian dataset](#running-on-the-sample-mammalian-dataset)
@@ -32,7 +32,7 @@ Email: `astral-users@googlegroups.com` for questions. Please subscribe to the ma
   * [Bug Reports](#bug-reports)
 
 
-INSTALLATION:
+Installation
 ---------------
 
 Refer to the [README](README.md#installation)
