@@ -290,9 +290,11 @@ public class WQInference extends AbstractInference<Tripartition> {
 				//((STINode)node).setData(new GeneTreeBitset(node.isRoot()? -2: -1));
 				stack.add(cluster);
 				node.setData(cluster);
-				String ndName = "N" + Integer.toString(numNodes);
-				numNodes += 1;
-				node.setName(ndName);
+				if (options.getBranchannotation() == 16) {
+					String ndName = "N" + Integer.toString(numNodes);
+					numNodes += 1;
+					node.setName(ndName);
+				}
 			}
 		}
 		stack = new Stack<STITreeCluster>();
