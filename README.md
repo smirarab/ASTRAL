@@ -17,7 +17,7 @@ Email: `astral-users@googlegroups.com` for questions.
 #### Documentations
 
 1. The rest of this README file
-- Our [tutorial](astral-tutorial.md)
+- **Our [tutorial](astral-tutorial.md)**.
 - The chapter of Siavash Mirarab's dissertation that describes ASTRAL in detail is provided [here](thesis-astral.pdf).
 - Publications below have scientific details
 - A [developer guide](developer-guide.md).
