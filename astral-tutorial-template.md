@@ -1,23 +1,27 @@
--------------------------
-DESCRIPTION:
----------------
-ASTRAL is a java program for estimating a species tree given a set of unrooted gene trees. ASTRAL is statistically consistent under multi-species coalescent model (and thus is useful for handling ILS). The optimization problem solved by ASTRAL seeks to find the tree that maximizes the number of induced quartet trees in gene trees that are shared by the species tree. The optimization problem is solved exactly for a constrained version of the problem that restricts the search space. An exact solution to the unconstrained version is also implemented and can run on small datasets (less than 18 taxa). The current repository (master branch) includes the ASTRAL-III algorithm. 
+ASTRAL is a java program for estimating a species tree given a set of unrooted gene trees. ASTRAL is statistically consistent under multi-species coalescent model (and thus is useful for handling ILS). The optimization problem solved by ASTRAL seeks to find the tree that maximizes the number of induced quartet trees in gene trees that are shared by the species tree. The optimization problem is solved exactly for a constrained version of the problem that restricts the search space. An exact solution to the unconstrained version is also implemented and can run on small datasets (less than 18 taxa). The current repository (master branch) includes the ASTRAL-III algorithm.  
 
-Read the [README](README.md) file for more info. 
+Read the [README](README.md) file in addition to this tutorial. 
 
 Email: `astral-users@googlegroups.com` for questions. Please subscribe to the mailing list for infrequent updates. 
 
 
----------------
-Tutorial Steps:
+
+INSTALLATION:
 ---------------
 
-### INSTALLATION:
 Refer to the [README](README.md#installation)
 
-###  Running ASTRAL from command-line to see the help:
+Running ASTRAL
+---------------
 
-ASTRAL currently has no GUI. You need to run it through command-line. Open a terminal (on Windows, look for a program called `Command Prompt` and run that; on Linux you should know how to do this; on MAC, search for an application called `Terminal`). Once the terminal opens, go the location where you have downloaded the software (e.g. using `cd ~/astral-home/`), and issue the following command:
+ASTRAL currently has no GUI. You need to run it through command-line. 
+
+* Open a terminal (on Windows, look for a program called `Command Prompt` and run that; on Linux you should know how to do this; on MAC, search for an application called `Terminal`).
+* Once the terminal opens, go the location where you have downloaded the software (e.g. using `cd ~/astral-home/`),
+
+###  ASTRAL Help
+
+ To see the help, issue the following command:
 
 ```
   java -jar __astral.jar__
@@ -25,7 +29,7 @@ ASTRAL currently has no GUI. You need to run it through command-line. Open a ter
 
 This will print the list of options available in ASTRAL. If no errors are printed, your ASTRAL installation is fine and you can proceed to the next sections. 
 
-###  Running ASTRAL on a sample input dataset 
+###  Running on the sample mammalian dataset 
 
 We will next run ASTRAL on an input dataset. From the ASTRAL directory, run:
 
@@ -39,13 +43,70 @@ The results will be outputted to the standard output. To save the results in an 
 java -jar __astral.jar__ -i test_data/song_mammals.424.gene.tre -o test_data/song_mammals.tre
 ```
 
+###### Input/Output:
 Here, the main input is just a file that contains all the input gene trees in Newick format. The input gene trees are treated as unrooted, whether or not they have a root. Note that the **output of ASTRAL should also be treated as an unrooted tree**. 
 
 The test file that we are providing here is based on the [Song et. al.](http://www.pnas.org/content/109/37/14942.short) dataset of 37 mammalian species and 442 genes. We have removed 23 problematic genes (21 mislabeled genes and 2 genes we classified as outliers) and we have also re-estimated gene trees using RAxML on the alignments that the authors of that paper kindly provided to us. 
 
-The input gene trees can have polytomies (unresolved branches) since [version 4.6.0](CHANGELOG.md). However, be aware that the use of unresolved gene trees can increase the running time, especially
-when the input gene trees have many high degree multifurcations. 
+The input gene trees can have polytomies (unresolved branches) since [version 4.6.0](CHANGELOG.md). 
 
+### Running on larger datasets:
+We will now run ASTRAL on a larger dataset. Run:
+
+```
+java -jar __astral.jar__ -i test_data/100-simulated-boot
+```
+
+The input file here is a simulated dataset with 100 sequences and 100 replicates of bootstrapped gene trees for 25 loci (thus 2,500 input trees). Note that ASTRAL finishes on this dataset in a matter of seconds. 
+
+A larger real dataset from the [1kp](http://www.pnas.org/content/early/2014/10/28/1323926111) dataset is also included. This dataset includes
+424 genes from 103 species. Run:
+
+```
+java -jar __astral.jar__ -i test_data/1KP-genetrees.tre -o test_data/1kp.tre 2> test_data/1kp.log
+```
+
+This takes about a minute to run on a laptop. On this dataset, notice in the ASTRAL log information that it originally starts with 11043 clusters in its search space, and using heuristics implemented in ASTRAL-II, it increases the search space slightly to 11085 clusters. For more challenging datasets (i.e., more discordance or fewer genes) this number might increase a lot. 
+
+
+### Running on a multi-individual datasets
+
+When multiple individuals from the same species are available, to force the species to be monophyletic, a mapping file needs to be provided using the `-a` option. This mapping file should have one line per species, and each line needs to be in one of two formats:
+
+```
+species_name [number of individuals] individual_1 individual_2 ...
+
+species_name:individual_1,individual_2,...
+```
+Some rules about the mapping file:
+
+* When multiple individuals exist for the same species, your species names should be different from the individual names.
+* You cannot have empty names (e.g., `,,`)
+* The same individual name should not be mapped to multiple species
+* Each individual name should appear in at least one gene name
+
+We will soon add an example here. 
+
+### Running with unresolved gene trees
+
+In our [ASTRAL-III paper](https://doi.org/10.1007/978-3-319-67979-2_4) we showed that contracting very low support branches (e.g., below 10% bootstrap support) from gene trees can improve accuracy somewhat. 
+Thus, we recommend removing very low support branches. 
+
+To contract low support branches, you can use many tools,  including the [newick utilities](htpp://cegg.unige.ch/newick_utils). If you have newick utilities installed, you can use
+
+```
+nw_ed  1KP-genetrees.tre 'i & b<=10' o > 1KP-genetrees-BS10.tre
+```
+
+To create a file `1KP-genetrees-BS10.tre` that includes the 1KP dataset with branches of 10% support or lower contracted. If you don't have newick utilities, don't worry. The contracted file is part of the ASTRAL distribution. 
+
+```
+java -jar ../astral.5.5.6.jar -i 1KP-genetrees-BS10.tre -o out-1KP-genetrees-BS10.tre
+```
+We will soon add an example here. 
+
+Interpreting output
+-----
 
 ### Viewing results of ASTRAL:
 
@@ -61,7 +122,7 @@ For this tutorial, let's use the online viewer (EvolView) or any other tool you 
 
 There have been some reports that FigTree and some other tools sometimes have difficulty opening ASTRAL trees. This is likely because ASTRAL does not generate terminal branch lengths. In the case of FigTree, opening the three two or three times in a row often works (who knows why!). In other tools, you may have to add an arbitrary branch length to each branch. [This script](https://github.com/smirarab/global/blob/master/src/mirphyl/utils/add-bl.py) may be of help.  
 
-#### Branch length and support
+### Branch length and support
 
 ASTRAL measures branch length in coalescent units and also has a fast way of measuring support without a need for bootstrapping. 
 The algorithms to compute branch lengths and support and the meaning of support outputted is further described in [this paper](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1).
@@ -70,6 +131,7 @@ We will return to these in later sections. Some points have to be emphasized:
 * ASTRAL only estimates branch lengths for internal branches and not terminal branches. 
 * Branch lengths are in coalescent units and are a direct measure of the amount of discordance in the gene trees. As such, they are prone to underestimation because of statistical noise in gene tree estimation.   
 * Branch support values measure the support for a quadripartition (the four clusters around a branch) and not the bipartition, as is commonly done. 
+
 
 
 ### The ASTRAL Log information
@@ -91,26 +153,9 @@ Here are some of the important information captured in the log:
 * Running time.
 * More advanced info: the size of the search space in terms of the number of clusters and number of tripartitions (i.e., elements weighted).  
 
-### Running on larger datasets:
-We will now run ASTRAL on a larger dataset. Run:
+Scoring existing trees
+---
 
-```
-java -jar __astral.jar__ -i test_data/100-simulated-boot
-```
-
-The input file here is a simulated dataset with 100 sequences and 100 replicates of bootstrapped gene trees for 25 loci (thus 2,500 input trees). Note that ASTRAL finishes on this dataset in a matter of seconds. 
-
-A larger real dataset from the [1kp](http://www.pnas.org/content/early/2014/10/28/1323926111) dataset is also included. This dataset includes
-424 genes from 103 species. Run:
-
-```
-java -jar __astral.jar__ -i test_data/1KP-genetrees.tre -o test_data/1kp.tre 2> test_data/1kp.log
-```
-
-This takes about a minute to run on a powerful laptop. On this dataset, notice in the ASTRAL log information that it originally starts with 11043 clusters in its search space, and using heuristics implemented in ASTRAL-II, it increases the search space slightly to 11085 clusters. For more challenging datasets (i.e., more discordance or fewer genes) this number might increase a lot. 
-
-Scoring a species tree
---------------
 You can use the `-q` option in ASTRAL to score an existing species tree to produce its quartet score, compute its branch lengths, and compute its ASTRAL branch support values. The ASTRAL score is the fraction of the induced quartet trees in the input set that are in the species tree. So, a score of `0.9` would mean that 90% of the quartet trees induced by your gene trees are in your species tree. 
 
 To score a tree using ASTRAL, run:
@@ -132,10 +177,9 @@ In addition to giving an overall score, when you score a tree, branch lengths
 and branch support are also computed and outputted. In the next section, we will
 introduce ways to output even more information per branch. 
 
-When scoring a tree, you probably want to capture the stderr using `2>name_of_a_file` technique described before. 
+When scoring a tree, you probably want to capture the stderr using `2>name_of_a_file` redirection, as described before. 
 
-Extensive branch annotations
----------------
+### Extensive branch annotations
 Where you are inferring a species tree or scoring one using the `-q` option,
 you will always get estimates of the branch length and local posterior support
 for each branch. In addition to these default annotations for each branch, 
@@ -150,7 +194,7 @@ Here is a description of various information that can be turned on by using `-t`
 
 
 * *no annotations* (`-t 0`): If you hate our posteriors and cannot stand seeing them, you can use this option to turn them off. If our calculations are causing numerical errors, you can use this to at least get the topology.  
-* *Quartet support* (`-t 1`): The local posterior probabilities are computed based on a transforation of the percentage of quartets in gene trees that agree or disagree with a branch. See Figure 2 of our MBE paper referenced above for the relationship. If you want to know what percentage of quartets in your gene trees agree with a branch, use this option. We refer to this measure as the quartet support.  Quartet score is a good way of measuring the amount of gene tree conflict around a branch.  
+* *Quartet support* (`-t 1`): The local posterior probabilities are computed based on a transformation of the percentage of quartets in gene trees that agree or disagree with a branch. See Figure 2 of our MBE paper referenced above for the relationship. If you want to know what percentage of quartets in your gene trees agree with a branch, use this option. We refer to this measure as the quartet support.  Quartet score is a good way of measuring the amount of gene tree conflict around a branch.  
 * *Alternative posteriors* (`-t 4`): When this option is used, ASTRAL outputs three local posterior probabilities: one for the main topology, and one for each of the two alternatives (`RS|LO` and `RO|LS`, in that order). The posterior of the three topologies adds up to one. This is because of our locality assumption, which basically asserts that we assume the four groups around the branch (`L`, `R`, `S`, and  `O`) are each correct and therefore, there are only three possible alternatives. 
 * *Full annotation* (`-t 2`): When you use this option, for each branch you get a lot of different measurements:
    * `q1`,`q2`,`q3`: these three values show quartet support (as defined in the description of `-t 1`) for the main topology, the first alternative, and the second alternative, respectively. 
@@ -160,6 +204,7 @@ Here is a description of various information that can be turned on by using `-t`
    * `EN`: this is the effective number of genes for the branch. If you don't have any missing data, this would be the number of branches in your tree. When there are missing data, some gene trees might have nothing to say about a branch. Thus, the effective number of genes might be smaller than the total number of genes. 
 * *Alternative quartet topologies* (`-t 8`): Outputs `q1`, `q2`, `q3`; these three values show quartet support (as defined in the description of `-t 1`) for the main topology, the first alternative, and the second alternative, respectively.
 * *Polytomy test* (`-t 10`): runs an experimental test to see if a null hypothesis that the branch is a polytomy could be rejected. See [this arXiv note](arxiv.org/abs/1708.08916). 
+* *.csv* (`-t 16`): produces a .csv file called `freqQuad.csv` with quartet frequencies.
 
 Run:
 
@@ -178,7 +223,7 @@ java -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 
 read all the values given for a couple of branches and try to make sense of them. 
 
 
-#### Prior hyper-parameter
+### Prior hyper-parameter
 
 Our calculations of the local posterior probabilities and branch lengths use a Yule prior model for the branch lengths of the species tree. The speciation rate (in coalescent units) of the Yule process (lambda) is by default set to 0.5, which results in a flat prior for the quartet frequencies in the `[1/3,1]` range. Using `-c` option one can adjust the hyper-parameter for the prior. For example, you might want to estimate lambda from the data after one run and plug the estimate prior in a subsequent run. We have not yet fully explored the impact of lambda on the posterior. For branch lengths, lambda acts as a pseudocount and can have a substantial impact on the estimated branch length for very long branches. More specifically, if there is no, or very little discordance around a branch, the MAP lengths of the branch (which is what we report) is almost fully determined by the prior. 
 
@@ -194,21 +239,9 @@ java -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -c 
 
 Note that setting lambda to 0 results in reporting ML estimates of the branch lengths instead of MAP. However, for branches with no discordance, we cannot compute a branch lengths. For these, we currently arbitrarily set ML to 10 coalescent units (we might change this in future versions).
 
-### Multi-individual datasets
 
-When multiple individuals from the same species are available, a mapping file needs to be provided using the `-a` option. This mapping file should have one line per species, and each line needs to be in one of two formats:
-
-```
-species_name [number of individuals] individual_1 individual_2 ...
-
-species_name:individual_1,individual_2,...
-```
-Note that when multiple individuals exist for the same species, your species name should be different from the individual names.
-
-The code for handling multiple individuals is in its infancy and might not work well yet. Keep posted for improvements to this feature.
-
-
-### Multi-locus Bootstrapping:
+Multi-locus Bootstrapping:
+---
 Recent versions of ASTRAL output a branch support value even without bootstrapping. Our [analyses](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1) have revealed that this form of support is more reliable than bootstrapping (under the conditions we explored). Nevertheless, you may want to run bootstrapping as well. 
 
 ASTRAL can perform multi-locus bootstrapping ([Seo, 2008](http://www.ncbi.nlm.nih.gov/pubmed/18281270)). To be able to perform multi-locus bootstrapping, ASTRAL needs to have access to bootstrap replicates for each gene. To start multi-locus bootstrapping using ASTRAL, you need to provide the location of all gene tree bootstrap replicates. To run bootstrapping on our test input files, 
@@ -231,7 +264,7 @@ java -jar ../__astral.jar__ -i song_mammals.424.gene.tre -b bs-files -r 150
 
 will do 150 replicates. Note that your input gene tree bootstrap files need to have enough bootstrap replicates for the number of replicates requested using `-r`. For example, if you have `-r 150`, each file listed in `bs-files` should contain at least 150 bootstrap replicates.
 
-**Gene+site resampling:** 
+####Gene+site resampling:
 ASTRAL performs site-only resampling by default (see [Seo, 2008](http://www.ncbi.nlm.nih.gov/pubmed/18281270)). ASTRAL can also perform gene+site resampling, which can be activated with the `-g` option:
 
 ```
@@ -240,7 +273,7 @@ java -jar ../__astral.jar__ -i song_mammals.424.gene.tre -b bs-files -g -r 100
 
 Note that when you perform gene/site resampling, you need more gene tree replicates than the number of multi-locus bootstrapping replicates you requested using `-r`. For example, if you have `-g -r 100`, you might need 150 replicates for some genes (and less than 100 replicates for other genes). This is because when genes are resampled, some genes will be sampled more often than others by chance.
 
-**Gene-only resampling:** 
+####Gene-only resampling:
 ASTRAL can also perform gene-only bootstrapping using the `--gene-only` option. This form of bootstrapping requires only one input file, which is given using `-i`. Thus, for this, you don't need to use `-b`. The following performs bootstrapping by resampling genes in the input file:
 
 ```
@@ -250,13 +283,15 @@ java -jar ../__astral.jar__ -i song_mammals.424.gene.tre --gene-only
 
 Finally, since bootstrapping involves a random process, a seed number can be provided to ASTRAL to ensure reproducibility. The seed number can be set using the `-s` option (by default 692 is used). 
 
-#### Output:
+#### Bootsraping output:
 As ASTRAL performs bootstrapping, it outputs the bootstrapped ASTRAL tree for each replicate. So, if the number of replicates is set to 100, it first outputs 100 trees. Then, it outputs a greedy consensus of all the 100 bootstrapped trees (with support drawn on branches). Finally, it performs the main analysis (i.e., on trees provided using `-i` option) and draws branch support on this main tree using the bootstrap replicates. Therefore, in this example, the output file will include 102 trees. The most important tree is the tree outputted at the end; this is the ASTRAL tree on main input trees, with support values drawn based on bootstrap replicates. Support values are shown as branch length (i.e., after a colon sign) and are percentages (as opposed to local posterior probabilities that when present are shown as a number between 0 and 1). 
 
 
 
-### The exact version of ASTRAL
+The Search space of ASTRAL
+---
 
+### Exact version
 ASTRAL has an exact and a heuristic version. The heuristic version solves the optimization problem exactly subject to the constraint that all the bipartitions in the species tree should be present in at least one of the input gene trees, or in a set of some other bipartitions that (since [version 4.5.1](CHANGELOG.md)) ASTRAL automatically infers from the set of input gene trees as likely bipartitions in the species tree. The constrained version of ASTRAL is the default. However, when you have a small number of taxa (typically 17 taxa or less), the exact version of ASTRAL can also run in reasonable time.
 
 Since the mammalian dataset we have used so far has 37 taxa, the exact version cannot run on it. However, we have created a subset of this dataset that has all 9 primates, tree shrew, rat, rabbit, horse, and the sloth (a total of 14 taxa). We can run the exact version of ASTRAL on this reduced dataset. Run:
@@ -273,7 +308,7 @@ java -jar __astral.jar__ -i test_data/song_primates.424.gene.tre -o test_data/so
 This time, ASTRAL finished in under a second. So, is there a difference between the output of the exact and the heuristic version? Open up the two trees in your tree viewer tool and compare them. You will notice they are identical. You could also compare the scores outputted by ASTRAL and notice that they are identical. 
 
 
-###  Example where exact helps
+####  Example where exact helps
 
 
 The default primate dataset we used in the previous step had 424 genes and 14 taxa. Since we have a relatively large number of gene trees, we could reasonably expect the exact and heuristic versions to generate identical output. The key point here is that as the number of genes increases, the probability that each bipartition of the species tree appears in at least one input gene tree increases. Thus, with 424 genes all bipartitions from the species tree are in at least one input gene tree, and therefore, the exact and the heuristic versions are identical. 
@@ -298,7 +333,7 @@ Now you see that the tree outputted by the exact version has a slightly higher s
 The main point of our ASTRAL-II work is to make  the heuristic version as close to the exact version as possible. We have tested the heuristic version and a condition similar to the exact condition in our ASTRAL-II paper and have observed no real differences. Thus, we believe the ASTRAL-II heuristics do a very good job of searching the tree space. But when the exact version can be run, there is no reason not to. 
 
 
-### Step 7: Providing ASTRAL with extra trees
+### Providing ASTRAL with extra trees
 
 
 We always have another option for increasing the search space. Imagine that you are able to create a set of hypothetical trees using various methods. For example, maybe you have a prior hypothesis of what the species tree could be. Or, maybe you have run concatenation and have potential species trees. Most realistically, maybe you have a collection of bootstrapped gene trees that can be used. ASTRAL allows you to provide these sets of alternative trees to expand the space of that ASTRAL considers. Thus, ASTRAL will solve the optimization problem subject to the constraint that each bipartition should come either from one of the input gene trees, or the ones it infers automatically, or these "extra" gene trees. The extra gene trees, however, do not contribute to the calculation of the score, which is always computed against input gene trees. They just add to the space being searched, and thus may be beneficial for ASTRAL. 
@@ -334,6 +369,7 @@ java -Xmx3000M -jar __astral.jar__ -i in.tree
 * `-k searchspace_norun`: outputs the search space (constraint set X) and exits. 
 * `--polylimit`: when ASTRAL adds new bipartitions to its search space, it partially does so based on a quadratic number of resolutions per each polytomy on a greedy consensus of gene trees. This could be slow, and therefore, we limit it to small polytomies. If you like to increase or decrease the search space, adjusting this option helps. 
 * `--samplingrounds`: For multi-individual datasets, this option controls how many rounds of individual sampling is used in building the constraint set. Adjust to reduce/increase the search space for multi-individual datasets
+
 
 
 ### Acknowledgment

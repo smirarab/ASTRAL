@@ -249,9 +249,17 @@ public class CommandLine {
         }
         
         File outfile = config.getFile("output file");  
+        String freqPath = null;
         if (outfile == null) {
             outbuffer = new BufferedWriter(new OutputStreamWriter(System.out));
+            if (config.getInt("branch annotation level") == 16) {
+            	File extraTreeFile = config.getFile("score species trees");
+            	freqPath = extraTreeFile.getAbsoluteFile().getParentFile().getAbsolutePath();
+            }
         } else {
+        	if (config.getInt("branch annotation level") == 16) {
+        		freqPath = outfile.getAbsoluteFile().getParentFile().getAbsolutePath();
+        	}
             outbuffer = new BufferedWriter(new FileWriter(outfile));
 			outfileName = config.getFile("output file") == null? 
 					null: config.getFile("output file").getCanonicalPath();
@@ -383,7 +391,8 @@ public class CommandLine {
 	    
 
         Options options = newOptions(criterion, rooted, extrarooted, 
-        		1.0D, 1.0D, wh, keepOptions, config, outfileName, samplingrounds, polylimit);
+
+        		1.0D, 1.0D, wh, keepOptions, config, outfileName, samplingrounds, polylimit, freqPath);
         
         
         /*Options bsoptions = newOptions(criterion, rooted, extrarooted, 
@@ -681,7 +690,7 @@ public class CommandLine {
             boolean extrarooted, 
             double cs, double cd, double wh, 
             Set<String> keepOptions, JSAPResult config, 
-            String outfileName, Integer samplingrounds,Integer polylimit) {
+            String outfileName, Integer samplingrounds,Integer polylimit , String freqPath) {
     	Options options = new Options(
     			rooted, extrarooted, 
     			config.getBoolean("exact"), 
@@ -693,7 +702,7 @@ public class CommandLine {
     			config.getInt("branch annotation level"), 
     			config.getDouble("lambda"),
     			outfileName, samplingrounds == null ? -1 : samplingrounds, polylimit == null ? -1 : polylimit,
-    			config.getDouble("trimming threshold"));
+    			config.getDouble("trimming threshold"), freqPath);
     	options.setDLbdWeigth(wh); 
     	options.setCS(cs);
     	options.setCD(cd);
