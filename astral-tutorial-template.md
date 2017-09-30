@@ -5,6 +5,32 @@ Read the [README](README.md) file in addition to this tutorial.
 Email: `astral-users@googlegroups.com` for questions. Please subscribe to the mailing list for infrequent updates. 
 
 
+* [INSTALLATION:](#installation)
+* [Running ASTRAL](#running-astral)
+  * [ASTRAL Help](#astral-help)
+  * [Running on the sample mammalian dataset](#running-on-the-sample-mammalian-dataset)
+  * [Running on larger datasets:](#running-on-larger-datasets)
+  * [Running with unresolved gene trees](#running-with-unresolved-gene-trees)
+  * [Running on a multi\-individual datasets](#running-on-a-multi-individual-datasets)
+* [Interpreting output](#interpreting-output)
+  * [Viewing results of ASTRAL:](#viewing-results-of-astral)
+  * [Branch length and support](#branch-length-and-support)
+  * [The ASTRAL Log information](#the-astral-log-information)
+* [Scoring existing trees](#scoring-existing-trees)
+  * [Extensive branch annotations](#extensive-branch-annotations)
+  * [Prior hyper\-parameter](#prior-hyper-parameter)
+* [Multi\-locus Bootstrapping:](#multi-locus-bootstrapping)
+    * [Bootsraping output:](#bootsraping-output)
+* [The Search space of ASTRAL](#the-search-space-of-astral)
+  * [Exact version](#exact-version)
+    * [Example where exact helps](#example-where-exact-helps)
+  * [Providing ASTRAL with extra trees](#providing-astral-with-extra-trees)
+* [Miscellaneous](#miscellaneous)
+  * [Memory](#memory)
+  * [Other options](#other-options)
+  * [Acknowledgment](#acknowledgment)
+  * [Bug Reports](#bug-reports)
+
 
 INSTALLATION:
 ---------------
@@ -43,7 +69,6 @@ The results will be outputted to the standard output. To save the results in an 
 java -jar __astral.jar__ -i test_data/song_mammals.424.gene.tre -o test_data/song_mammals.tre
 ```
 
-###### Input/Output:
 Here, the main input is just a file that contains all the input gene trees in Newick format. The input gene trees are treated as unrooted, whether or not they have a root. Note that the **output of ASTRAL should also be treated as an unrooted tree**. 
 
 The test file that we are providing here is based on the [Song et. al.](http://www.pnas.org/content/109/37/14942.short) dataset of 37 mammalian species and 442 genes. We have removed 23 problematic genes (21 mislabeled genes and 2 genes we classified as outliers) and we have also re-estimated gene trees using RAxML on the alignments that the authors of that paper kindly provided to us. 
@@ -68,6 +93,24 @@ java -jar __astral.jar__ -i test_data/1KP-genetrees.tre -o test_data/1kp.tre 2> 
 
 This takes about a minute to run on a laptop. On this dataset, notice in the ASTRAL log information that it originally starts with 11043 clusters in its search space, and using heuristics implemented in ASTRAL-II, it increases the search space slightly to 11085 clusters. For more challenging datasets (i.e., more discordance or fewer genes) this number might increase a lot. 
 
+### Running with unresolved gene trees
+
+In our [ASTRAL-III paper](https://doi.org/10.1007/978-3-319-67979-2_4) we showed that contracting very low support branches (e.g., below 10% bootstrap support) from gene trees can improve accuracy somewhat. 
+Thus, we recommend removing very low support branches. 
+
+To contract low support branches, you can use many tools,  including the [newick utilities](htpp://cegg.unige.ch/newick_utils). If you have newick utilities installed, you can use
+
+```
+nw_ed  1KP-genetrees.tre 'i & b<=10' o > 1KP-genetrees-BS10.tre
+```
+
+To create a file `1KP-genetrees-BS10.tre` that includes the 1KP dataset with branches of 10% support or lower contracted. If you don't have newick utilities, don't worry. The contracted file is part of the ASTRAL distribution. 
+
+```
+java -jar __astral.jar__ -i test_data/1KP-genetrees-BS10.tre -o test_data/1kp-BS10.tre 2> test_data/1kp-bs10.log
+```
+
+Compare the species tree generated here with that generated with the fully resolved gene trees. You can confirm that the tree topology has not changed in this case, but the branch lengths and the branch support have all changed (and that they tend to both increase). By comparing the log files you can also see that after contracting low support branches, the normalized quartet score increases to 0.92321 (from 0.89467 with no contraction). This is expected as low support branches tend to increase not decrease discordance. 
 
 ### Running on a multi-individual datasets
 
@@ -87,23 +130,6 @@ Some rules about the mapping file:
 
 We will soon add an example here. 
 
-### Running with unresolved gene trees
-
-In our [ASTRAL-III paper](https://doi.org/10.1007/978-3-319-67979-2_4) we showed that contracting very low support branches (e.g., below 10% bootstrap support) from gene trees can improve accuracy somewhat. 
-Thus, we recommend removing very low support branches. 
-
-To contract low support branches, you can use many tools,  including the [newick utilities](htpp://cegg.unige.ch/newick_utils). If you have newick utilities installed, you can use
-
-```
-nw_ed  1KP-genetrees.tre 'i & b<=10' o > 1KP-genetrees-BS10.tre
-```
-
-To create a file `1KP-genetrees-BS10.tre` that includes the 1KP dataset with branches of 10% support or lower contracted. If you don't have newick utilities, don't worry. The contracted file is part of the ASTRAL distribution. 
-
-```
-java -jar ../astral.5.5.6.jar -i 1KP-genetrees-BS10.tre -o out-1KP-genetrees-BS10.tre
-```
-We will soon add an example here. 
 
 Interpreting output
 -----
