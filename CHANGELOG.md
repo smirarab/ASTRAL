@@ -1,3 +1,7 @@
+- version 5.5.6:
+   - Merge in DiscoVista changes
+   - Update documentations and some help messages
+
 - version 5.5.5:
    - Remove false alarms in the log file
     
