@@ -1,12 +1,14 @@
 DESCRIPTION:
 -----------
-ASTRAL is a tool for estimating an unrooted species tree given a set of unrooted gene trees. ASTRAL is statistically consistent under the multi-species coalescent model (and thus is useful for handling incomplete lineage sorting, i.e., ILS). ASTRAL finds the species tree that has the maximum number of shared induced quartet trees with the set of gene trees.
+ASTRAL is a tool for estimating an unrooted species tree given a set of unrooted gene trees.
+ASTRAL is statistically consistent under the multi-species coalescent model (and thus is useful for handling incomplete lineage sorting, i.e., ILS).
+ASTRAL finds the species tree that has the maximum number of shared induced quartet trees with the set of gene trees, subject to the constraint that the set of bipartitions in the species tree comes from a predefined set of bipartitions. This predefined set is empirically decided by ASTRAL (but see tutorial on how to expand it). 
 
 
-The ASTRAL algorithm has an exact version that can run for small datasets (less than 18 taxa) and a more useful version (its default) that can handle large datasets (ASTRAL-II is tested for up to 1000 taxa and 1000 genes).
 
-
-The current code corresponds to** ASTRAL-III** (see below for the publication).
+The current code corresponds to **ASTRAL-III** (see below for the publication).
+The algorithm was designed by Tandy Warnow and Siavash Mirarab originally. ASTRAL-III incorporates many ideas by Chao Zhang and Maryam Rabiee.
+[Code developers](https://github.com/smirarab/ASTRAL/graphs/contributors) are mainly Siavash Mirarab, Chao Zhang, Maryam Rabiee, and Erfan Sayyari.
 
 Email: `astral-users@googlegroups.com` for questions.
 
@@ -18,6 +20,7 @@ Email: `astral-users@googlegroups.com` for questions.
 - Our [tutorial](astral-tutorial.md)
 - The chapter of Siavash Mirarab's dissertation that describes ASTRAL in detail is provided [here](thesis-astral.pdf).
 - Publications below have scientific details
+- A [developer guide](developer-guide.md).
 
 ##### Publications:
 
@@ -79,7 +82,7 @@ To save the logs (**also recommended**), run:
 java -jar __astral.jar__ -i in.tree -o out.tre 2>out.log
 ```
 
-######Input: 
+#####Input: 
 * The input gene trees are in the Newick format
 * The input trees can have missing taxa, polytomies (unresolved branches), and also multiple individuals per species.
 *  Taxon names cannot have quotation marks in their names (sorry!). This means you also cannot have weird characters like ? in the name (underscore is fine).
@@ -92,7 +95,7 @@ species_name:individual_1,individual_2,...
 ```
    Note that when multiple individuals exist for the same species, your species name should be different from the individual names.
    
-######Output: 
+#####Output: 
 The output in is Newick format and gives: 
 
 * the species tree topology, 
