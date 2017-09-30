@@ -1,4 +1,9 @@
 package phylonet.coalescent;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -243,7 +248,21 @@ public class WQInference extends AbstractInference<Tripartition> {
 		 * Add bitsets to each node for all taxa under it. 
 		 * Bitsets are saved in nodes "data" field
 		 */
+		BufferedWriter freqWriter = null;
+		BufferedWriter Rscript = null;
+		//List<String> freqWriterLines = new ArrayList<String>();
+		if (this.getBranchAnnotation() == 16) {
+			String freqOutputPath = this.options.getFreqOutputPath();
+			try {
+				Rscript = new BufferedWriter(new FileWriter(freqOutputPath + File.separator+ "freqQuadVisualization.R"));
+				freqWriter = new BufferedWriter(new FileWriter(freqOutputPath + File.separator+ "freqQuad.csv"));
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		
 		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
+		int numNodes = 0;
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
 			if (node.isLeaf()) {
@@ -271,6 +290,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 				//((STINode)node).setData(new GeneTreeBitset(node.isRoot()? -2: -1));
 				stack.add(cluster);
 				node.setData(cluster);
+				String ndName = "N" + Integer.toString(numNodes);
+				numNodes += 1;
+				node.setName(ndName);
 			}
 		}
 		stack = new Stack<STITreeCluster>();
@@ -359,8 +381,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 						* (remaining.getClusterSize()+0l);
 
 					
-				if (this.getBranchAnnotation() == 6) {
+				if (this.getBranchAnnotation() == 6 || this.getBranchAnnotation() == 16) {
 					STITreeCluster c1plussis = GlobalMaps.taxonIdentifier.newCluster();
+
 					c1plussis.setCluster((BitSet) c1.getBitSet().clone());
 					c1plussis.getBitSet().or(sister.getBitSet());
 					STITreeCluster c1plusrem = GlobalMaps.taxonIdentifier.newCluster();
@@ -435,6 +458,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 				if (this.getBranchAnnotation() == 3 || this.getBranchAnnotation() == 12) {
 					node.setData(df.format(postQ1));
 				} else if (this.getBranchAnnotation() % 2 == 0) {
+					
 					post = new Posterior(f2,f1,f3,(double)effni, options.getLambda());
 					double postQ2 = post.getPost();
 					post =  new Posterior(f3,f1,f2,(double)effni, options.getLambda());
@@ -466,6 +490,32 @@ public class WQInference extends AbstractInference<Tripartition> {
 								"'[q1="+df.format((f1)/effni)+
 								 ";q2="+df.format((f2)/effni)+
 								 ";q3="+df.format((f3)/effni)+"]'");
+					} else if (this.getBranchAnnotation() == 16) {
+						node.setData("'[pp1="+df.format(postQ1)+";pp2="+df.format(postQ2)+";pp3="+df.format(postQ3)+"]'");	
+						Quadrapartition[] threequads = nd.quads;
+						STBipartition[] biparts = nd.bipartitions;
+						
+						String lineTmp = node.getName() + "\t" + "t1" + "\t" + threequads[0].toString2() + "\t" + 
+										 Double.toString(postQ1) + "\t" + Double.toString(f1) +
+										 "\t" + Double.toString(effni);
+						
+						try {
+							freqWriter.write(lineTmp + "\n");
+							
+							lineTmp = node.getName() + "\t" + "t2" + "\t" + threequads[1].toString2() + "\t" + 
+									  Double.toString(postQ2) + "\t" + Double.toString(f2) + 
+									  "\t" + Double.toString(effni);
+							
+							freqWriter.write(lineTmp + "\n");
+							
+							lineTmp = node.getName() + "\t" + "t3" + "\t" + threequads[2].toString2() + "\t" +
+									  Double.toString(postQ3) + "\t" + Double.toString(f3) +
+									  "\t" + Double.toString(effni);
+							freqWriter.write(lineTmp + "\n");
+						} catch (IOException e) {
+							throw new RuntimeException(e);
+						}
+						
 					}
 				}
 				//i++;
@@ -473,7 +523,28 @@ public class WQInference extends AbstractInference<Tripartition> {
 		}
 		if (!nodeDataList.isEmpty())
 			throw new RuntimeException("Hmm, this shouldn't happen; "+nodeDataList);
-		
+		if (this.getBranchAnnotation() == 16) {
+			try {
+				Rscript.write("#!/usr/bin/env Rscript\n");
+				Rscript.write("red='#d53e4f';orange='#1d91c0';blue='#41b6c4';colormap = c(red,orange,blue)\n");
+				Rscript.write("require(reshape2);require(ggplot2);\n");
+				Rscript.write("dirPath = '.'; filePath = paste(dirPath"
+						+ ",'/freqQuadCorrected.csv',sep=''); md<-read.csv(filePath,header=F,sep='\\t'); md$value = md$V5/md$V6;\n");
+				Rscript.write("a<-length(levels(as.factor(md$V7)))*3.7; b<-4; sizes <- c(a,b);\n");
+				Rscript.write("md$V8<-reorder(md$V8,-md$value)\n");
+				Rscript.write("ggplot(data=md)+aes(x=V8,y=value,fill=V9)+"
+						+ "geom_bar(stat='identity',color=1,width=0.8,position='dodge')+"
+						+ "theme_bw()+theme(axis.text.x=element_text(angle=90))+scale_fill_manual"
+						+ "(values=colormap,name='Topology')+geom_hline(yintercept=1/3,size=0.4,linetype=2)+"
+						+ "ylab('relative freq.')+facet_wrap(~V7,scales='free_x')+xlab('')\n");
+				Rscript.write("pdfFile = paste(dirPath,'/relativeFreq.pdf',sep=''); ggsave(pdfFile,width = sizes[1], height= sizes[2]);\n");
+				Rscript.close();
+				freqWriter.close();
+			} catch (IOException e) {
+				throw new RuntimeException("Hmm, the Rscript and frequency of Quadripartition files cannot be created!");
+			}
+			
+		}
 		return ret;
 	}
 
