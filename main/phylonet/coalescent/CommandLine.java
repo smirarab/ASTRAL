@@ -313,6 +313,9 @@ public class CommandLine {
 		//	}
 			//testing only	
 			usedDevicesAL.add(devices[0]);
+			//usedDevicesAL.add(devices[1]);
+			//usedDevicesAL.add(devices[2]);
+			//usedDevicesAL.add(devices[3]);
 			usedDevices = new cl_device_id[usedDevicesAL.size()];
 			usedDevices = usedDevicesAL.toArray(usedDevices);
 //			cl_device_id device = devices[deviceIndex];
