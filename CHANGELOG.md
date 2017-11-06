@@ -1,5 +1,6 @@
 - version 5.5.7:
     - Terminal branches for multi ind
+    - Fixed a bug where for multi-ind datasets, the final quartet score was slightly underestimated. 
     - Remove more unneeded logs
      
 - version 5.5.6:
