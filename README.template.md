@@ -99,7 +99,7 @@ species_name:individual_1,individual_2,...
 The output in is Newick format and gives: 
 
 * the species tree topology, 
-* branch lengths in coalescent units only for internal branches,
+* branch lengths in coalescent units (only for internal branches or for terminal branches if that species has multiple individuals),
 * branch supports measured as [local posterior probabilities](). 
 * It can also annotate branches with other quantities, such as quartet support, as described in the [tutorial](astral-tutorial.md).
 
