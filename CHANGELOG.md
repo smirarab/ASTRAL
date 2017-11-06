@@ -1,3 +1,7 @@
+- version 5.5.7:
+    - Terminal branches for multi ind
+    - Remove more unneeded logs
+     
 - version 5.5.6:
    - Merge in DiscoVista changes
    - Update documentations and some help messages
