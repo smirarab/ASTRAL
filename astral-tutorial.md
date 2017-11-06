@@ -154,7 +154,7 @@ ASTRAL measures branch length in coalescent units and also has a fast way of mea
 The algorithms to compute branch lengths and support and the meaning of support outputted is further described in [this paper](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1).
 We will return to these in later sections. Some points have to be emphasized:
 
-* ASTRAL only estimates branch lengths for internal branches and not terminal branches. 
+* ASTRAL only estimates branch lengths for internal branches and those terminal branches that correspond to species with more than one individuals sampled. 
 * Branch lengths are in coalescent units and are a direct measure of the amount of discordance in the gene trees. As such, they are prone to underestimation because of statistical noise in gene tree estimation.   
 * Branch support values measure the support for a quadripartition (the four clusters around a branch) and not the bipartition, as is commonly done. 
 
