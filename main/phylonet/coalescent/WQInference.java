@@ -104,6 +104,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 
 	private long unresolvableQuartets() {
+		if (GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleIndividual())
+			return 0;
 		long ret = 0;
 		for (STITreeCluster gtCL : ((WQDataCollection)this.dataCollection).treeAllClusters) {
 			int[] counts = new int [GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount()];
