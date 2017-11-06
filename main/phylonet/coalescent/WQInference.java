@@ -464,9 +464,12 @@ public class WQInference extends AbstractInference<Tripartition> {
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
 
-			if (!node.isLeaf()) {
-				nd = nodeDataList.poll();
-			}
+			if (node.isLeaf()) {
+				node.setData(null);
+				continue;
+			} 
+			
+			nd = nodeDataList.poll();
 			if (nd == null ) {
 				node.setData(null);
 				continue;
@@ -601,7 +604,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 			}
 
 		}
-		System.err.println(st);
+		System.err.println(st.toStringWD());
 		return ret;
 	}
 
