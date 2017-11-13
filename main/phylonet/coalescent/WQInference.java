@@ -236,10 +236,13 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 
 	private boolean skipNode (TNode node) {
+		TNode parent = node.getParent();
+		int parentChildCount = parent.getChildCount();
+		
 		return 	node.isLeaf() || node.isRoot() || node.getChildCount() > 2 || 
-				(node.getParent().getChildCount() >3) ||
-				(node.getParent().getChildCount() >2 && !node.getParent().isRoot())||
-				((node.getParent().isRoot() && node.getParent().getChildCount() == 2));
+				(parentChildCount > 3) ||
+				(parentChildCount > 2 && !parent.isRoot()) ||
+				((parent.isRoot() && parent.getChildCount() == 2 && node.getSiblings().get(0).getChildCount() != 2));
 	}
 
 	private class NodeData {
@@ -632,19 +635,24 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	private STITreeCluster[] getSisterRemaining(STINode node) {
 		STITreeCluster [] sisterRemaining = {null,null};
-		Iterator<STINode> pcit = node.getParent().getChildren().iterator();
-		STINode pc = pcit.next();
-		if ( pc == node ) pc = pcit.next(); 
-		sisterRemaining[0] = (STITreeCluster)pc.getData();
+		Iterator<STINode> siblingsIt = node.getParent().getChildren().iterator();
+		STINode sibling = siblingsIt.next();
+		
+		if ( sibling == node ) sibling = siblingsIt.next(); 
+		
+		sisterRemaining[0] = (STITreeCluster)sibling.getData();
+		
 		if (node.getParent().isRoot() && node.getParent().getChildCount() == 3) {
-			pc = pcit.next();
-			if (pc == node) pc = pcit.next(); 
-			sisterRemaining[1] = (STITreeCluster)pc.getData();;					
+			sibling = siblingsIt.next();
+			if (sibling == node) sibling = siblingsIt.next(); 
+			sisterRemaining[1] = (STITreeCluster)sibling.getData();;					
 		}  else if (node.getParent().isRoot() && node.getParent().getChildCount() == 2) {
-			if (pc.getChildCount() == 2) {
-				Iterator<STINode> nieceIt = pc.getChildren().iterator();
+			if (sibling.getChildCount() == 2) {
+				Iterator<STINode> nieceIt = sibling.getChildren().iterator();
 				sisterRemaining[0] = (STITreeCluster) nieceIt.next().getData();
 				sisterRemaining[1] = (STITreeCluster) nieceIt.next().getData();
+			} else {
+				System.err.println("WARN: we should never be here; something wrong with branch annotations (but topology will be fine). ");
 			}
 		} 
 		else {
