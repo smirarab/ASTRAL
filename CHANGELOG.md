@@ -1,3 +1,8 @@
+- version 5.5.9:
+	- `-k` option was not working fixed	 
+	- Yet another problem with branch lengths fixed: root branch length was sometimes not shown
+	- A little bit of code refactoring performed
+	 
 - version 5.5.8:
 	- Fixed a bug in the computation of branch lengths. The bug was introduced in version 5.5.7
 	
