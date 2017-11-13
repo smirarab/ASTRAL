@@ -237,11 +237,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	private boolean skipNode (TNode node) {
 		TNode parent = node.getParent();
-		int parentChildCount = parent.getChildCount();
 		
 		return 	node.isLeaf() || node.isRoot() || node.getChildCount() > 2 || 
-				(parentChildCount > 3) ||
-				(parentChildCount > 2 && !parent.isRoot()) ||
+				(parent.getChildCount() > 3) ||
+				(parent.getChildCount() > 2 && !parent.isRoot()) ||
 				((parent.isRoot() && parent.getChildCount() == 2 && node.getSiblings().get(0).getChildCount() != 2));
 	}
 
