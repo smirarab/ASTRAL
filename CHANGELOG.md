@@ -1,3 +1,6 @@
+- version 5.5.8:
+	- Fixed a bug in the computation of branch lengths. The bug was introduced in version 5.5.7
+	
 - version 5.5.7:
     - Terminal branches for multi ind
     - Fixed a bug where for multi-ind datasets, the final quartet score was slightly underestimated. 
