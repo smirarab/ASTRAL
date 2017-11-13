@@ -334,9 +334,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 			if (node.isLeaf()) {
 				stack.push((STITreeCluster) node.getData());
 			} else {
-				/**
-				 * 1. Create quadripartition
-				 */
+
 				NodeData nd = null;
 
 				STITreeCluster cluster = (STITreeCluster) node.getData();		
@@ -353,20 +351,21 @@ public class WQInference extends AbstractInference<Tripartition> {
 				}
 				stack.push(cluster);
 
-				
+				/**
+				 * For terminal branches in a multi-ind data
+				 */
 				if (cs > 1 && GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleSP(cluster.getBitSet()))
 				{
 					STITreeCluster[] sisterRemaining = getSisterRemaining(node);
 					STITreeCluster sister = sisterRemaining[0]; 
 					STITreeCluster remaining = sisterRemaining[1];
 					
-					nd = new NodeData();
+					nd = getNodeData(0d, 0d, 0d, 0);
 					nodeDataList.add(nd);
-					nd.mainfreq = 0d;
-					nd.alt1freqs = 0d;
-					nd.alt2freqs = 0d;
-					nd.effn = 0;
 					
+					/**
+					 * Compute a quadripartition per each individual
+					 */
 					BitSet bitSet = cluster.getBitSet();			
 					for (int j = bitSet.nextSetBit(0); j >= 0; j = bitSet.nextSetBit(j + 1)) {
 						c1 = new STITreeCluster(cluster);
@@ -379,6 +378,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 								weightCalculator2.new Quadrapartition (c1, remaining, c2, sister)
 						};
 						
+						/**
+						 * Scores all three quadripartitoins
+						 */
 						Results s = weightCalculator2.getWeight(threequads);
 
 						nd.mainfreq += s.qs[0];
@@ -387,6 +389,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 						nd.effn += s.effn;
 					}
 					
+					/**
+					 * Average frequencies. TODO: Good with missing data?
+					 */
 					nd.mainfreq /= cs;
 					nd.alt1freqs /= cs;
 					nd.alt2freqs /= cs;
@@ -395,9 +400,11 @@ public class WQInference extends AbstractInference<Tripartition> {
 					nd.quartcount =  (cs*(cs-1)/2)
 							* (sister.getClusterSize()+0l)
 							* (remaining.getClusterSize()+0l);
-					
-					
-				} else if (! skipNode(node) ) {
+										
+				} else if (! skipNode(node) ) { 
+					/**
+					 * Normal internal branches
+					 */
 					STITreeCluster[] sisterRemaining = getSisterRemaining(node);
 					STITreeCluster sister = sisterRemaining[0]; 
 					STITreeCluster remaining = sisterRemaining[1];
@@ -412,12 +419,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 					 * 2. Scores all three quadripartitoins
 					 */
 					Results s = weightCalculator2.getWeight(threequads);
-					nd = new NodeData();
+					nd = getNodeData(s.qs[0],s.qs[1],s.qs[2],s.effn);
 					nodeDataList.add(nd);
-					nd.mainfreq = s.qs[0];
-					nd.alt1freqs=s.qs[1];
-					nd.alt2freqs=s.qs[2];
-					nd.effn = s.effn;
 
 					nd.quartcount= (c1.getClusterSize()+0l)
 							* (c2.getClusterSize()+0l)
@@ -447,7 +450,12 @@ public class WQInference extends AbstractInference<Tripartition> {
 						nd.quads = threequads;
 						nd.bipartitions = biparts;
 					}
-				} 
+				} else {
+					/**
+					 * Root or trivial branches
+					 */
+					nodeDataList.add(null);
+				}
 				
 				if (nd != null && nd.effn < 20) {
 					System.err.println("You may want to ignore posterior probabilities and other statistics related to the following "
@@ -608,6 +616,17 @@ public class WQInference extends AbstractInference<Tripartition> {
 		}
 		System.err.println(st.toStringWD());
 		return ret;
+	}
+
+
+	private NodeData getNodeData(Double m, Double a1, Double a2, Integer en) {
+		NodeData nd;
+		nd = new NodeData();
+		nd.mainfreq = m;
+		nd.alt1freqs=a1;
+		nd.alt2freqs=a2;
+		nd.effn = en;
+		return nd;
 	}
 
 
