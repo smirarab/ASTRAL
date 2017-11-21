@@ -479,7 +479,7 @@ public class TurnTaskToScores implements Runnable {
 			this.numRuns = numRuns;
 		}
 
-		long F(int a, int b, int c) {
+		long F(long a, long b, long c) {
 			if (a < 0 || b < 0 || c < 0) {
 				throw new RuntimeException("negative side not expected: " + a + " " + b + " " + c);
 			}
