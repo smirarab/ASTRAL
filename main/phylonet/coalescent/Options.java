@@ -13,19 +13,22 @@ public class Options {
 	private int branchannotation; 
 	private double lambda;
 	private String outputFile;
+
 	private int samplingrounds;
 	private int polylimit;
-	
+	private String freqOutputPath;
 	//OLD parameters
 	private double DLbdWeigth;
 	private double CS;
 	private double CD;
 	private double trim;
+	private Integer minLeaves;
 
 	public Options(boolean rooted, boolean extrarooted, 
 			boolean exactSolution, boolean duploss, int alg, int addExtra,
 			boolean outputCompletedGenes, boolean outSearch, boolean run,
-			int branchannotation, double lambda, String outputFile, int samplingrounds,int polylimit, double trim) {
+			int branchannotation, double lambda, String outputFile, int samplingrounds, int polylimit,
+			double trim, String freqOutputPath, Integer minimumLeaves) {
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
 		this.exactSolution = exactSolution;
@@ -41,6 +44,8 @@ public class Options {
 		this.setSamplingrounds(samplingrounds);
 		this.setPolylimit(polylimit);
 		this.trim = trim;
+		this.freqOutputPath = freqOutputPath;
+		this.setMinLeaves(minimumLeaves);
 	}
 
 	public boolean isRooted() {
@@ -187,5 +192,21 @@ public class Options {
 
 	public void setPolylimit(int polylimit) {
 		this.polylimit = polylimit;
+	}
+	
+	public String getFreqOutputPath() {
+		return freqOutputPath;
+	}
+	
+	public void setFreqOutputPath(String freqOutputPath) {
+		this.freqOutputPath = freqOutputPath;
+	}
+
+	public Integer getMinLeaves() {
+		return minLeaves;
+	}
+
+	public void setMinLeaves(Integer minLeaves) {
+		this.minLeaves = minLeaves;
 	}
 }
