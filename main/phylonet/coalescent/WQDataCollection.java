@@ -606,8 +606,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 				allGreedies[gtindex++] = tmp;
 			}
 		} else {
-			System.err.println("In the first round of  sampling "
-					+ firstRoundSampling + " samples will be taken");
+			//System.err.println("In the first round of  sampling "
+				//	+ firstRoundSampling + " samples will be taken");
 			
 			/*
 			 * instantiate k random samples
@@ -615,8 +615,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 			
 			for (int r = 0; r < secondRoundSampling*K; r++) {
 
-				System.err.println("------------\n" + "sample " + (r+1)
-						+ " of individual  sampling ...");
+				//System.err.println("------------\n" + "sample " + (r+1)
+					//	+ " of individual  sampling ...");
 				SingleIndividualSample taxonSample = new SingleIndividualSample(
 						spm, this.similarityMatrix);
 				firstRoundSamples.add(taxonSample);
@@ -709,9 +709,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 					e.printStackTrace(); 
 				}
 				
-				System.err
-						.println("Number of clusters added from gene tree "+j+" in round"+ii+" "
-								+ clusters.getClusterCount());
+				//System.err
+				//		.println("Number of clusters added from gene tree "+j+" in round"+ii+" "
+				//				+ clusters.getClusterCount());
 			}
 			System.err
 			.println("------------------------------");
