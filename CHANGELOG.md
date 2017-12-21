@@ -1,3 +1,20 @@
+- version 5.5.9:
+	- `-k` option was not working fixed	 
+	- Yet another problem with branch lengths fixed: root branch length was sometimes not shown
+	- A little bit of code refactoring performed
+	 
+- version 5.5.8:
+	- Fixed a bug in the computation of branch lengths. The bug was introduced in version 5.5.7
+	
+- version 5.5.7:
+    - Terminal branches for multi ind
+    - Fixed a bug where for multi-ind datasets, the final quartet score was slightly underestimated. 
+    - Remove more unneeded logs
+     
+- version 5.5.6:
+   - Merge in DiscoVista changes
+   - Update documentations and some help messages
+
 - version 5.5.5:
    - Remove false alarms in the log file
     
