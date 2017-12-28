@@ -277,7 +277,7 @@ public class STITreeCluster implements Iterable<Integer>
 		public Vertex _min_rc;
 		public List<Vertex> _subcl = null;	 // Don't matter	
 		public byte _done = 0; // 0 for not, 1 for upper bound, 2 for estimated, 3 for yes
-		public ArrayList<VertexPair> clusterResolutions = null;
+		public Iterable<VertexPair> clusterResolutions = null;
 		
 		public Vertex() {
 			super();

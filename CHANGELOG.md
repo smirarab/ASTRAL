@@ -1,3 +1,6 @@
+- version 5.9.0:
+	- AVX batch computation
+
 - version 5.5.9:
 	- `-k` option was not working fixed	 
 	- Yet another problem with branch lengths fixed: root branch length was sometimes not shown
