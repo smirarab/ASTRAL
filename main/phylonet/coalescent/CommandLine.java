@@ -437,7 +437,7 @@ public class CommandLine{
     			config.getInt("branch annotation level"), 
     			config.getDouble("lambda"),
     			outfileName, samplingrounds == null ? -1 : samplingrounds, polylimit == null ? -1 : polylimit,
-    			config.getDouble("trimming threshold"), freqPath, minleaves);
+    			config.getInt("number of threads"), freqPath, minleaves);
     	options.setDLbdWeigth(wh); 
     	options.setCS(1d);
     	options.setCD(1d);
