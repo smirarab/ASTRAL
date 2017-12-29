@@ -186,21 +186,21 @@ public class Polytree {
 	}
 	
 	public static final class PTNative{
+		private static boolean useNativeMethod = false;
+		private static final int batchSize = 32;
+		private static Polytree pt = null;
+		
 		static {
 			try {
 				System.loadLibrary("Astral");
 				System.err.println("Using native AVX batch computing method.");
+				useNativeMethod = true;
 			}
-			catch (Exception e) {
+			catch (Throwable e) {
 				useNativeMethod = false;
 				System.err.println("Fail to load native library; use Java default computing method.");
 			}
 		}
-		
-		private static boolean useNativeMethod = true;
-		private static final int batchSize = 32;
-		private static Polytree pt = null;
-		
 		private static native void cppInit(int n, int listSize, int[] q, long[][] c);
 		private static native long cppCompute(long[] a, long[] b, long[] c);
 		private static native void cppBatchCompute(long[] result, long[][] a, long[][] b, long[][] c);
