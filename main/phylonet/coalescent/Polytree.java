@@ -189,11 +189,11 @@ public class Polytree {
 		static {
 			try {
 				System.loadLibrary("Astral");
-				System.err.println("Using native AVX batch computating method.");
+				System.err.println("Using native AVX batch computing method.");
 			}
 			catch (Exception e) {
 				useNativeMethod = false;
-				System.err.println("Fail to load native library; use Java default computating method.");
+				System.err.println("Fail to load native library; use Java default computing method.");
 			}
 		}
 		
@@ -205,6 +205,8 @@ public class Polytree {
 		private static native long cppCompute(long[] a, long[] b, long[] c);
 		private static native void cppBatchCompute(long[] result, long[][] a, long[][] b, long[][] c);
 		public static void compute(ArrayList<VertexPair> todolist) {
+			System.err.println("number of jobs: " + todolist.size());
+			long t = System.nanoTime();
 			if (!useNativeMethod) {
 				for (VertexPair p: todolist) {
 					BitSet[] b = {
@@ -214,9 +216,9 @@ public class Polytree {
 					};
 					p.weight = pt.WQWeightByTraversal(b);
 				}
+				Polytree.time += System.nanoTime() - t;
 				return;
 			}
-			long t = System.nanoTime();
 			for (int i = 0; i < todolist.size(); i += batchSize) {
 				int size = (todolist.size() - i > batchSize) ? batchSize : todolist.size() - i;
 				long[] result = new long[size];
