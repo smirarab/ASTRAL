@@ -38,7 +38,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine{
-    protected static String _versinon = "5.9.0";
+    protected static String _versinon = "5.9.1";
 
     protected static SimpleJSAP jsap;
     
@@ -194,10 +194,10 @@ public class CommandLine{
                             'f', "extra-species",
                             "provide extra trees (with species labels) used to enrich the set of clusters searched"),
 
-                    new FlaggedOption("trimming threshold", 
-	                        JSAP.DOUBLE_PARSER, "0", JSAP.NOT_REQUIRED,
-	                        'd', "trimming",
-	                        "trimming threshold is user's estimate on normalized score; the closer user's estimate is, the faster astral runs."),
+                    new FlaggedOption("number of threads", 
+	                        JSAP.INTEGER_PARSER, "1", JSAP.NOT_REQUIRED,
+	                        'd', "thread",
+	                        "The number of threads to run Astral."),
                     
                     new FlaggedOption( "duploss weight",
                             JSAP.STRING_PARSER, null, JSAP.NOT_REQUIRED,
