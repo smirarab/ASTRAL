@@ -541,6 +541,10 @@ public class BitSet implements Cloneable, Serializable {
 	return b.toString();
     }
 
+    public long[] getArray() {
+    	return words;
+    }
+    
     private static final ObjectStreamField serialPersistentFields[] = { new ObjectStreamField(
 	    "bits", Byte.class) };
     private long words[];
