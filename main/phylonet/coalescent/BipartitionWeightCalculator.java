@@ -170,11 +170,16 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 				if (!cruise) {
 					//long fiall = fi[0] + fi[1] + fi[2];
 					//if (fiall != 0)
+					double tf = 0.0; 
 					for (int i=0; i<3; i++) {
 						double efffreq = (fi[i]+0.0)/(2.0*mi);
 						/*if (efffreq != 1 && efffreq != 0)
 							System.err.println(efffreq);*/
 						weight[i] += efffreq;
+						tf += efffreq;
+					}
+					if (tf < .99) {
+						System.err.println("Warning: a gene tree is contributing only "+tf +" to total score of the branch "+quad.toString());
 					}
 				}
 				for (int i=0; i<3; i++) stack[i].clear();
