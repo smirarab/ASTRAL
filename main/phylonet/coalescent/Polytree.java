@@ -16,9 +16,9 @@ public class Polytree {
 	
 	static long F(int[] x, int[] y, int[] z){
 		long a = x[0], b = x[1], c = x[2], d = y[0], e = y[1], f = y[2], g = z[0], h = z[1], i = z[2];
-		return a * ( (a + e + i - 3)  * e * i + (a + f + h - 3)  * f * h )
-			 + b * ((b + d + i - 3)  * d * i + (b + f + g - 3)  * f * g )
-			 + c * ((c + d + h - 3)  * d * h + (c + e + g - 3)  * e * g );
+		return a * ( (a + e + i - 3l)  * e * i + (a + f + h - 3l)  * f * h )
+			 + b * ((b + d + i - 3l)  * d * i + (b + f + g - 3l)  * f * g )
+			 + c * ((c + d + h - 3l)  * d * h + (c + e + g - 3l)  * e * g );
 	}
 	
 	static long U(int[] x, int[] y, int[] z){
@@ -191,7 +191,9 @@ public class Polytree {
 	int[][] stack, list;
 	int[] queue;
 	int listSize = 0;
-	int[] sx = new int[3], sxy = new int[3], treeTotal = new int[3];
+	int[] sx = new int[3];
+	long [] sxy = new long[3];
+	int [] treeTotal = new int[3];
 	long maxScore = 0;
 	
 	public Polytree(List<Tree> trees, WQDataCollection dataCollection){
