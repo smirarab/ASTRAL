@@ -93,7 +93,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 						 */
 						for (int k = j+1; k < children.size(); k++) {
 							Long c = children.get(k) + 0l;
-							weight += (a+b+c-3) *a*b*c;
+							weight += (a+b+c-3l) *a*b*c;
 						}
 					}
 				}
@@ -108,15 +108,15 @@ public class WQInference extends AbstractInference<Tripartition> {
 			return 0;
 		long ret = 0;
 		for (STITreeCluster gtCL : ((WQDataCollection)this.dataCollection).treeAllClusters) {
-			int[] counts = new int [GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount()];
-			int size = gtCL.getClusterSize();
+			long[] counts = new long [GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount()];
+			long size = gtCL.getClusterSize();
 			BitSet bs = gtCL.getBitSet();
 	        for (int i = bs.nextSetBit(0); i >=0 ; i = bs.nextSetBit(i+1)) {
 	            counts[(GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesIdForTaxon(i))]++;
 	        }
 	        for (long count : counts) {
-	        	ret += (count*(count-1)*(count-2))/6l*(size-count)+
-	        			(count*(count-1)*(count-2)*(count-3))/24l;
+	        	ret += (count*(count-1l)*(count-2l))/6l*(size-count)+
+	        			(count*(count-1l)*(count-2l)*(count-3l))/24l;
 	        }
 		}
 		return ret;
