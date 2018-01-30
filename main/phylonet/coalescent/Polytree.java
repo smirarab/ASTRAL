@@ -191,7 +191,8 @@ public class Polytree {
 	int[][] stack, list;
 	int[] queue;
 	int listSize = 0;
-	int[] sx = new int[3], sxy = new int[3], treeTotal = new int[3];
+	long[] sx = new long[3], sxy = new long[3];
+	int[] treeTotal = new int[3];
 	long maxScore = 0;
 	
 	public Polytree(List<Tree> trees, WQDataCollection dataCollection){
@@ -301,9 +302,9 @@ public class Polytree {
 						}
 						for (int j = stackEnd - numChildren; j <= stackEnd; j++){
 							q = stack[j];
-							tempWeight += ((sx[1] - q[1]) * (sx[2] - q[2]) - (sxy[0] + 0L) + q[1] * q[2]) * q[0] * (q[0] - 1L)
-								+ ((sx[2] - q[2]) * (sx[0] - q[0]) - (sxy[1] + 0L) + q[2] * q[0]) * q[1] * (q[1] - 1L)
-								+ ((sx[0] - q[0]) * (sx[1] - q[1]) - (sxy[2] + 0L) + q[0] * q[1]) * q[2] * (q[2] - 1L);
+							tempWeight += ((sx[1] - q[1]) * (sx[2] - q[2]) - sxy[0] + q[1] * q[2]) * q[0] * (q[0] - 1L)
+								+ ((sx[2] - q[2]) * (sx[0] - q[0]) - sxy[1] + q[2] * q[0]) * q[1] * (q[1] - 1L)
+								+ ((sx[0] - q[0]) * (sx[1] - q[1]) - sxy[2] + q[0] * q[1]) * q[2] * (q[2] - 1L);
 						}
 					}
 					if ((cmd & 16) != 0) weight += tempWeight * queue[++i];
@@ -380,8 +381,8 @@ public class Polytree {
 						}
 						for (int j = stackEnd - numChildren; j <= stackEnd; j++){
 							q = stack[j];
-							tempWeight += ((sx[0] - q[0]) * (sx[1] - q[1]) - (sxy[1] + 0L) + q[0] * q[1]) * q[0] * (q[0] - 1L)
-								+ ((sx[0] - q[0]) * (sx[0] - q[0]) - (sxy[0] + 0L) + q[0] * q[0]) * (q[1] * (q[1] - 1L) / 2 - q[0] * (q[0] - 1L));
+							tempWeight += ((sx[0] - q[0]) * (sx[1] - q[1]) - sxy[1] + q[0] * q[1]) * q[0] * (q[0] - 1L)
+								+ ((sx[0] - q[0]) * (sx[0] - q[0]) - sxy[0] + q[0] * q[0]) * (q[1] * (q[1] - 1L) / 2 - q[0] * (q[0] - 1L));
 						}
 					}
 					if ((cmd & 16) != 0) weight += tempWeight * queue[++i];
