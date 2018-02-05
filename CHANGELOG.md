@@ -1,3 +1,6 @@
+- version 5.5.10: 
+       - An overflow error for trees with 10,000 leaves is fixed. 
+
 - version 5.5.9:
 	- `-k` option was not working fixed	 
 	- Yet another problem with branch lengths fixed: root branch length was sometimes not shown
