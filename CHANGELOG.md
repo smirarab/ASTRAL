@@ -1,5 +1,11 @@
+- version 5.5.12: 
+	- A spurious warning removed
+	  
+- version 5.5.11: 
+     - An overflow error for trees with 10,000 leaves is fixed using an approach different from 5.5.10. 
+
 - version 5.5.10: 
-       - An overflow error for trees with 10,000 leaves is fixed. 
+     - An overflow error for trees with 10,000 leaves is fixed. 
 
 - version 5.5.9:
 	- `-k` option was not working fixed	 
