@@ -38,7 +38,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine{
-    protected static String _versinon = "5.5.12";
+    protected static String _versinon = "5.6.1";
 
     protected static SimpleJSAP jsap;
     
@@ -155,6 +155,12 @@ public class CommandLine{
                             "For multi-individual datasets, perform these many rounds of individual sampling for"
                             + " building the set X. The program"
                             + " automatically picks this parameter if not provided or if below one."),
+                            
+	                new FlaggedOption("gene repetition", 
+	                        JSAP.INTEGER_PARSER, "1", JSAP.NOT_REQUIRED,
+	                        'w', "generepeat",
+	                        "the number of trees sampled for each locus. "),
+	                        
                     new FlaggedOption("polylimit", 
                             JSAP.INTEGER_PARSER, null, JSAP.NOT_REQUIRED, 
                             JSAP.NO_SHORTFLAG, "polylimit",
@@ -437,7 +443,8 @@ public class CommandLine{
     			config.getInt("branch annotation level"), 
     			config.getDouble("lambda"),
     			outfileName, samplingrounds == null ? -1 : samplingrounds, polylimit == null ? -1 : polylimit,
-    			config.getDouble("trimming threshold"), freqPath, minleaves);
+    			config.getDouble("trimming threshold"), freqPath, minleaves,
+    			config.getInt("gene repetition"));
     	options.setDLbdWeigth(wh); 
     	options.setCS(1d);
     	options.setCD(1d);

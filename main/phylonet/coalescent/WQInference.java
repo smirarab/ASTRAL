@@ -493,11 +493,17 @@ public class WQInference extends AbstractInference<Tripartition> {
 			Double effni = nd.effn + 0.0;
 			
 
-			if ( Math.abs((f1+f2+f3) - effni) > 0.01 ) {
+			if ( Math.abs((f1+f2+f3) - effni) > 0.001 ) {
 				//System.err.println("Adjusting effective N from\t" + effni + "\tto\t" + (f1 + f2 + f3) + ". This should only happen as a result of polytomies in gene trees.");
 				effni = f1 + f2 + f3;
 			}
 
+			if (this.options.getGeneRepeat() != 1) {
+				f1 /= this.options.getGeneRepeat();
+				f2 /= this.options.getGeneRepeat();
+				f3 /= this.options.getGeneRepeat();
+				effni /= this.options.getGeneRepeat();
+			}
 			//Long sum = p+a1+a2;
 
 			Posterior post = new Posterior(
