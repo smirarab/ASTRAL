@@ -23,12 +23,14 @@ public class Options {
 	private double CD;
 	private double trim;
 	private Integer minLeaves;
+	private Integer geneRepeat;
+	
 
 	public Options(boolean rooted, boolean extrarooted, 
 			boolean exactSolution, boolean duploss, int alg, int addExtra,
 			boolean outputCompletedGenes, boolean outSearch, boolean run,
 			int branchannotation, double lambda, String outputFile, int samplingrounds, int polylimit,
-			double trim, String freqOutputPath, Integer minimumLeaves) {
+			double trim, String freqOutputPath, Integer minimumLeaves, Integer geneRepeat) {
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
 		this.exactSolution = exactSolution;
@@ -46,6 +48,7 @@ public class Options {
 		this.trim = trim;
 		this.freqOutputPath = freqOutputPath;
 		this.setMinLeaves(minimumLeaves);
+		this.setGeneRepeat(geneRepeat);
 	}
 
 	public boolean isRooted() {
@@ -208,5 +211,13 @@ public class Options {
 
 	public void setMinLeaves(Integer minLeaves) {
 		this.minLeaves = minLeaves;
+	}
+
+	public Integer getGeneRepeat() {
+		return geneRepeat;
+	}
+
+	public void setGeneRepeat(Integer geneRepeat) {
+		this.geneRepeat = geneRepeat;
 	}
 }
