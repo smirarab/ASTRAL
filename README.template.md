@@ -46,7 +46,7 @@ ASTRAL is a java-based application, and should run in any environment (Windows, 
 To test your installation, go to the place where you put the uncompressed ASTRAL, and run:
 
 ```
-java -jar __astral.jar__ -i test_data/song_primates.424.gene.tre
+java -Djava.library.path=. -jar __astral.jar__ -i test_data/song_primates.424.gene.tre
 ```
 
 This should quickly finish. There are also other sample input files under `test_data/` that can be used.
@@ -60,7 +60,7 @@ EXECUTION:
 ASTRAL currently has no GUI. You need to run it through the command-line. In a terminal, go the location where you have downloaded the software, and issue the following command:
 
 ```
-  java -jar __astral.jar__
+  java -Djava.library.path=. -jar __astral.jar__
 ```
 
 This will give you a list of options available in ASTRAL.
@@ -68,18 +68,18 @@ This will give you a list of options available in ASTRAL.
 To find the species tree given a set of gene trees in a file called `in.tree`, use:
 
 ```
-java -jar __astral.jar__ -i in.tree
+java -Djava.library.path=. -jar __astral.jar__ -i in.tree
 ```
 
 The results will be outputted to the standard output. To save the results in a file use the `-o` option (**Strongly recommended**):
 
 ```
-java -jar __astral.jar__ -i in.tree -o out.tre
+java -Djava.library.path=. -jar __astral.jar__ -i in.tree -o out.tre
 ```
 To save the logs (**also recommended**), run:
 
 ```
-java -jar __astral.jar__ -i in.tree -o out.tre 2>out.log
+java -Djava.library.path=. -jar __astral.jar__ -i in.tree -o out.tre 2>out.log
 ```
 
 ###### Input: 
@@ -110,7 +110,7 @@ The output in is Newick format and gives:
 To perform 100 replicates of multi-locus bootstrapping ([Seo 2008](http://www.ncbi.nlm.nih.gov/pubmed/18281270)), use:
 
 ```
-java -jar __astral.jar__ -i best_ml -b bs_paths -r 100
+java -Djava.library.path=. -jar __astral.jar__ -i best_ml -b bs_paths -r 100
 ```
 
 In this command, `bs_paths` is a file that gives the location (file path) of gene tree bootstrap files, one line per gene. See the [tutorial](astral-tutorial.md)
@@ -136,7 +136,7 @@ Also related to bootstrapping are `-g` (to enable gene/site resampling) and `-s`
 For big datasets (say more than 200 taxa), increasing the memory available to Java can result in speedups. Note that you should give Java only as much free memory as you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke ASTRAL using the following command to make all the 3GB available to Java:
 
 ```
-java -Xmx3000M -jar __astral.jar__ -i in.tree
+java -Xmx3000M -Djava.library.path=. -jar __astral.jar__ -i in.tree
 ```
 
 Acknowledgment
