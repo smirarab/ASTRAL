@@ -1,3 +1,5 @@
+- version 5.10.0:
+	- Merge vectorization code (5.9.1) with 5.6.1
 - version 5.9.1:
 	- New searching algorithm
 
