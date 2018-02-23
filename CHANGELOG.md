@@ -1,3 +1,9 @@
+- version 5.9.1:
+	- New searching algorithm
+
+- version 5.9.0:
+	- AVX batch computation
+
 - version 5.6.1:
 	- added a new option '-w x' to count each gene tree as 1/x when computing support values
 
