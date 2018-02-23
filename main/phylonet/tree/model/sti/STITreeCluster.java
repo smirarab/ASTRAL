@@ -269,6 +269,8 @@ public class STITreeCluster implements Iterable<Integer>
 		//public STITreeCluster _cluster = null;
 		//public int _el_num = -1;
 		//public int _min_cost = -1;
+	  	public long hash1 = 0, hash2 = 0;
+	  	public int clusterSize = 0;
 		public double _max_score = Integer.MIN_VALUE;
 		public double _estimated = Integer.MIN_VALUE;
 		public double _upper_bound = Integer.MAX_VALUE;
