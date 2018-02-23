@@ -21,7 +21,6 @@ public class Options {
 	private double DLbdWeigth;
 	private double CS;
 	private double CD;
-	private double trim;
 	private Integer minLeaves;
 	private Integer geneRepeat;
 	
@@ -30,7 +29,7 @@ public class Options {
 			boolean exactSolution, boolean duploss, int alg, int addExtra,
 			boolean outputCompletedGenes, boolean outSearch, boolean run,
 			int branchannotation, double lambda, String outputFile, int samplingrounds, int polylimit,
-			double trim, String freqOutputPath, Integer minimumLeaves, Integer geneRepeat) {
+			String freqOutputPath, Integer minimumLeaves, Integer geneRepeat) {
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
 		this.exactSolution = exactSolution;
@@ -45,7 +44,6 @@ public class Options {
 		this.setOutputFile(outputFile);
 		this.setSamplingrounds(samplingrounds);
 		this.setPolylimit(polylimit);
-		this.trim = trim;
 		this.freqOutputPath = freqOutputPath;
 		this.setMinLeaves(minimumLeaves);
 		this.setGeneRepeat(geneRepeat);
@@ -67,15 +65,6 @@ public class Options {
 
 	public boolean isDuploss() {
 		return duploss;
-	}
-
-
-	public double getTrim() {
-		return trim;
-	}
-
-	public void setTrim(double trim) {
-		this.trim = trim;
 	}
 
 	public int getAlg() {
