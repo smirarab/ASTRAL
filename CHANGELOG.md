@@ -1,18 +1,9 @@
-<<<<<<< HEAD
-- version 5.1.2:
-    - Merge changes to similarity matrix and set X calculations from multiind (5.4.4)
-    - Merge linear time final scoring for polytomies from 5.2.7
+- version 5.11.0:
+    - Merge ASTRAL-MP and 5.10.0
 
-- version 5.1.1:
-    - Fix a synch bug for GPU+CPU case  (TunrTaskToScores)
-    - Parallelize final scoring 
-    - Implement linear time polytomy in GPU code
-
-- version 5.1.0:
-    - Merge of multi-ind and gpu for the first time
-=======
 - version 5.10.0:
 	- Merge vectorization code (5.9.1) with 5.6.1
+
 - version 5.9.1:
 	- New searching algorithm
 
@@ -91,9 +82,17 @@
     - better handling of polytomies
     - A*
 
+- version 5.1.2:
+    - Merge changes to similarity matrix and set X calculations from multiind (5.4.4)
+    - Merge linear time final scoring for polytomies from 5.2.7
+
+- version 5.1.1:
+    - Fix a synch bug for GPU+CPU case  (TunrTaskToScores)
+    - Parallelize final scoring 
+    - Implement linear time polytomy in GPU code
+
 - version 5.1.0:
      - Merge polytree and multiind
->>>>>>> parallel
 
 - version 5.0.3:
     - Bug fix: 5.0.2 has created a bug, which is fixed
