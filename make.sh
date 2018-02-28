@@ -3,7 +3,6 @@
 set -u
 set -e
 set -x
-set -o pipefail
 
 version=`grep _version main/phylonet/coalescent/CommandLine.java|grep String|sed -e "s/.*= .//g" -e "s/.;//g"`
 echo Version $version
