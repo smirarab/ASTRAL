@@ -68,7 +68,7 @@ public class WQInferenceNoCalculations extends AbstractInferenceNoCalculations<T
 
 	@Override
 	AbstractWeightCalculator<Tripartition> newWeightCalculator() {
-		return new WQWeightCalculator(this, super.queue2, 9); //TODO: move this and the other 9 out to some variable.
+		return new WQWeightCalculator(this, super.queue2);
 	}
 	AbstractWeightCalculatorNoCalculations<Tripartition> newWeightCalculatorNoCalculations() {
 		return new WQWeightCalculatorNoCalculations(this, super.queue1);
