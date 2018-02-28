@@ -20,10 +20,10 @@ public abstract class AbstractComputeMinCostTask<T> {
 	//IClusterCollection clusters;
 
 	//IClusterCollection containedVertecies;
-	
+
 	//boolean isWriteToQueue;
-    private SpeciesMapper spm;
-    
+	private SpeciesMapper spm;
+
 	protected Double compute() {
 		try {
 			return computeMinCost();
@@ -38,7 +38,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 		this.spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
 	}
 
-	
+
 
 	/**
 	 * This is the dynamic programming
@@ -56,26 +56,26 @@ public abstract class AbstractComputeMinCostTask<T> {
 			return v._max_score;
 		}
 		//
-		
+
 		int clusterSize = v.getCluster().getClusterSize();
 
 		// SIA: base case for singelton clusters.
 		if (clusterSize <= 1 || spm.isSingleSP(v.getCluster().getBitSet())) {
-			
+
 			v._max_score = scoreBaseCase(inference.isRooted(), inference.trees);
-			
+
 			v._min_lc = (v._min_rc = null);
 			if(v._done == 3)
 				v._done = 4;
 			else
 				v._done = 1;
-		
+
 			return v._max_score;
 		}
 
 
 		Iterable<VertexPair> clusterResolutions = this.inference.getClusterResolutions2();
-		
+
 		long clusterLevelCost = 0;
 		if (clusterResolutions.iterator().hasNext()) { // Not relevant to ASTRAL
 			clusterLevelCost = calculateClusterLevelCost();
@@ -88,23 +88,23 @@ public abstract class AbstractComputeMinCostTask<T> {
 		 */
 		for (VertexPair bi : clusterResolutions) {
 			try {
-//					if(isWriteToQueue)
-//						System.out.println(bi.cluster1.toString() + " " + bi.cluster2.toString());
-//					else
-//						System.err.println(bi.cluster1.toString() + " " + bi.cluster2.toString());
+				//					if(isWriteToQueue)
+				//						System.out.println(bi.cluster1.toString() + " " + bi.cluster2.toString());
+				//					else
+				//						System.err.println(bi.cluster1.toString() + " " + bi.cluster2.toString());
 
 				Vertex smallV = bi.cluster1;
 				Vertex bigv = bi.cluster2;
-				
+
 				AbstractComputeMinCostTask<T> smallWork = newMinCostTask(
 						smallV);
 				AbstractComputeMinCostTask<T> bigWork = newMinCostTask(
 						bigv);
-				
+
 				//System.out.println(bigWork.v.toString());
 				// MP_VERSION: smallWork.fork();
 				Double rscore = bigWork.compute();
-				
+
 				if (rscore == null) {
 					// MP_VERSION: weigthWork.cancel(false);
 					// MP_VERSION: smallWork.cancel(false);
@@ -123,25 +123,25 @@ public abstract class AbstractComputeMinCostTask<T> {
 				}
 				// MP_VERSION: w = weigthWork.join();
 
-	
+
 				Long weight = null;
 				if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) {
 					weight = defaultWeightForFullClusters();
 				}
-				
+
 				if (weight == null) {
 					T t = STB2T(bi);					
 					weight =  inference.weightCalculator.getWeight(t, this);
-					
+
 					//System.out.print(weight/Integer.MAX_VALUE);
 				}					
-				
+
 				double c = adjustWeight(clusterLevelCost, smallV, bigv, weight);	// Not relevant to ASTRAL				
-//					double l = 2.4;
-//					if (clusterSize > 5 && v._max_score > l*(lscore + rscore))
-//						if ((lscore + rscore + c)> v._max_score)
+				//					double l = 2.4;
+				//					if (clusterSize > 5 && v._max_score > l*(lscore + rscore))
+				//						if ((lscore + rscore + c)> v._max_score)
 				//System.err.println(clusterSize+"\tmissing " +(lscore + rscore + c)+"\t"+v._max_score+"\t"+(lscore + rscore + c)/v._max_score);
-				
+
 				if ((v._max_score != -1)
 						&& (lscore + rscore + c < v._max_score)) {
 					continue;
@@ -153,7 +153,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 				v._min_lc = smallV;
 				v._min_rc = bigv;
 				v._c = c;
-				
+
 			} catch (CannotResolveException c) {
 				c.printStackTrace();
 				throw new RuntimeException("cannot resolve");
@@ -177,17 +177,17 @@ public abstract class AbstractComputeMinCostTask<T> {
 		 * System.out.println(v+" \nis scored "+(v._max_score ) +
 		 * " by \n"+v._min_lc + " \n"+v._min_rc); }
 		 *//*
-			 * if (clusterSize > 5){ counter.addGoodSTB(bestSTB, clusterSize); }
-			 */
+		 * if (clusterSize > 5){ counter.addGoodSTB(bestSTB, clusterSize); }
+		 */
 		//johng23
 		//if it's the consumer thread
-			//if the producer thread calculated it
+		//if the producer thread calculated it
 		if(v._done == 3)
 			//then make it 4 to represent that both consumer thread and producer thread calculated it
 			v._done = 4;
 		else
 			v._done = 1;
-		
+
 		return v._max_score;
 	}
 
@@ -198,10 +198,10 @@ public abstract class AbstractComputeMinCostTask<T> {
 	abstract protected double adjustWeight(long clusterLevelCost, Vertex smallV,
 			Vertex bigv, Long Wdom);
 
-    abstract protected long calculateClusterLevelCost();
-	
+	abstract protected long calculateClusterLevelCost();
+
 	abstract protected long scoreBaseCase(boolean rooted, List<Tree> trees);
-	
+
 	abstract protected T STB2T(VertexPair stb);
 
 	/***
