@@ -203,23 +203,21 @@ public class Utils {
     	return greedyConsensus(trees,new double[]{0d}, randomize, 1, taxonIdentifier, keepclusters).iterator().next();
     }
     
-	
-    public static List<Integer> getRange(int n) {
-		List<Integer> range = new ArrayList<Integer>(n);
-		for (int j = 0; j < n; j++) {
-			range.add(j);
-		}
-		return range;
+    /**
+     * Greedy consensus
+     * @param trees
+     * @param randomize
+     * @param taxonIdentifier
+     * @param threshold
+     * @param geneTreeSkipProb 
+     * @return
+     */
+    /*
+    public static final Tree greedyConsensus(Iterable<Tree> trees, boolean randomize,
+    		TaxonIdentifier taxonIdentifier, double threshold, double geneTreeKeepProb) {
+    	return greedyConsensus(trees,new double[]{threshold}, randomize, 1, taxonIdentifier, geneTreeKeepProb).iterator().next();
 	}
-	
-    public static List<Integer> getOnes(int n) {
-		List<Integer> range = new ArrayList<Integer>(n);
-		for (int j = 0; j < n; j++) {
-			range.add(1);
-		}
-		return range;
-	}
-    
+    */
     /***
      * Greedy consensus with a set of thresholds
      * @param trees
@@ -371,6 +369,22 @@ public class Utils {
         return biClusters;              
     }
     
+    public static List<Integer> getRange(int n) {
+		List<Integer> range = new ArrayList<Integer>(n);
+		for (int j = 0; j < n; j++) {
+			range.add(j);
+		}
+		return range;
+	}
+
+	public static List<Integer> getOnes(int n) {
+		List<Integer> range = new ArrayList<Integer>(n);
+		for (int j = 0; j < n; j++) {
+			range.add(1);
+		}
+		return range;
+	}
+
     public static void main(String[] args) throws IOException{
         if ("--fixsupport".equals(args[0])) {
             String line;
