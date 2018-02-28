@@ -3,6 +3,17 @@ This document will be used to document the code. Algorithms are given in the pap
 The project comes with an .project file that can be imported to Eclipse. 
 Make sure you select at least Java 1.6 for this to compile fine in your Eclipse. 
 
+## Versioning
+
+Please update the version number in the Commandline.java file everytime the code changed. 
+After updating the version, you need to commit to the repository the new file.
+To do that, 
+
+- run `make.sh`
+- remove the old zip file
+- git add the new zip file
+- commit to git
+
 ## Design
 
 The code is designed such that various phylogeny reconstruction methods

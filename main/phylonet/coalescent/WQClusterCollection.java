@@ -1,7 +1,6 @@
 package phylonet.coalescent;
 
 import java.util.HashSet;
-import java.util.Set;
 
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
