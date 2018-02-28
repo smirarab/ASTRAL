@@ -65,6 +65,12 @@ public class SpeciesMapper {
     }
 
     protected void setSpeciesIdForTaxon(String taxonName, String speciesName) {
+    	if (taxonName.isEmpty())
+    		throw new RuntimeException("There is an empty gene name (,,) for the species "
+    					+ speciesName + " in your mapping file");
+    	if (speciesName.isEmpty())
+    		throw new RuntimeException("There seems to exist an empty species name for gene name "
+					+ taxonName + " in your mapping file");
         this.setSpeciesIdForTaxon(GlobalMaps.taxonIdentifier.taxonId(taxonName),
                 this.speciesNameIdMap.taxonId(speciesName));
     }
