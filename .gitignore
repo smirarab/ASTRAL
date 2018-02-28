@@ -2,6 +2,7 @@
 *.swp
 *.class
 main/test_data/*
+<<<<<<< HEAD
 array*
 /ASTRALDATA
 estimated-gene-trees.tar.bz
@@ -22,4 +23,7 @@ astralVersions/
 calculateWeightVersions/
 *.trees
 *.tre
+=======
+astral*jar
+>>>>>>> parallel
 old/*

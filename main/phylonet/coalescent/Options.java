@@ -13,17 +13,23 @@ public class Options {
 	private int branchannotation; 
 	private double lambda;
 	private String outputFile;
+
 	private int samplingrounds;
-	
+	private int polylimit;
+	private String freqOutputPath;
 	//OLD parameters
 	private double DLbdWeigth;
 	private double CS;
 	private double CD;
+	private Integer minLeaves;
+	private Integer geneRepeat;
+	
 
 	public Options(boolean rooted, boolean extrarooted, 
 			boolean exactSolution, boolean duploss, int alg, int addExtra,
 			boolean outputCompletedGenes, boolean outSearch, boolean run,
-			int branchannotation, double lambda, String outputFile, int samplingrounds) {
+			int branchannotation, double lambda, String outputFile, int samplingrounds, int polylimit,
+			String freqOutputPath, Integer minimumLeaves, Integer geneRepeat) {
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
 		this.exactSolution = exactSolution;
@@ -37,6 +43,10 @@ public class Options {
 		this.setLambda(lambda);
 		this.setOutputFile(outputFile);
 		this.setSamplingrounds(samplingrounds);
+		this.setPolylimit(polylimit);
+		this.freqOutputPath = freqOutputPath;
+		this.setMinLeaves(minimumLeaves);
+		this.setGeneRepeat(geneRepeat);
 	}
 
 	public boolean isRooted() {
@@ -56,7 +66,6 @@ public class Options {
 	public boolean isDuploss() {
 		return duploss;
 	}
-
 
 	public int getAlg() {
 		return alg;
@@ -167,5 +176,37 @@ public class Options {
 
 	public void setSamplingrounds(Integer samplingrounds) {
 		this.samplingrounds = samplingrounds;
+	}
+
+	public int getPolylimit() {
+		return polylimit;
+	}
+
+	public void setPolylimit(int polylimit) {
+		this.polylimit = polylimit;
+	}
+	
+	public String getFreqOutputPath() {
+		return freqOutputPath;
+	}
+	
+	public void setFreqOutputPath(String freqOutputPath) {
+		this.freqOutputPath = freqOutputPath;
+	}
+
+	public Integer getMinLeaves() {
+		return minLeaves;
+	}
+
+	public void setMinLeaves(Integer minLeaves) {
+		this.minLeaves = minLeaves;
+	}
+
+	public Integer getGeneRepeat() {
+		return geneRepeat;
+	}
+
+	public void setGeneRepeat(Integer geneRepeat) {
+		this.geneRepeat = geneRepeat;
 	}
 }

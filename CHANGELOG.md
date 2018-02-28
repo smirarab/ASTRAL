@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 - version 5.1.2:
     - Merge changes to similarity matrix and set X calculations from multiind (5.4.4)
     - Merge linear time final scoring for polytomies from 5.2.7
@@ -9,6 +10,90 @@
 
 - version 5.1.0:
     - Merge of multi-ind and gpu for the first time
+=======
+- version 5.10.0:
+	- Merge vectorization code (5.9.1) with 5.6.1
+- version 5.9.1:
+	- New searching algorithm
+
+- version 5.9.0:
+	- AVX batch computation
+
+- version 5.6.1:
+	- added a new option '-w x' to count each gene tree as 1/x when computing support values
+
+- version 5.5.12: 
+	- A spurious warning removed
+	  
+- version 5.5.11: 
+     - An overflow error for trees with 10,000 leaves is fixed using an approach different from 5.5.10. 
+
+- version 5.5.10: 
+     - An overflow error for trees with 10,000 leaves is fixed. 
+
+- version 5.5.9:
+	- `-k` option was not working fixed	 
+	- Yet another problem with branch lengths fixed: root branch length was sometimes not shown
+	- A little bit of code refactoring performed
+	 
+- version 5.5.8:
+	- Fixed a bug in the computation of branch lengths. The bug was introduced in version 5.5.7
+	
+- version 5.5.7:
+    - Terminal branches for multi ind
+    - Fixed a bug where for multi-ind datasets, the final quartet score was slightly underestimated. 
+    - Remove more unneeded logs
+     
+- version 5.5.6:
+   - Merge in DiscoVista changes
+   - Update documentations and some help messages
+
+- version 5.5.5:
+   - Remove false alarms in the log file
+    
+- version 5.5.4:
+   - Merge changes from multiind (Maryam) to fix a small bug and add polytomies limit size option
+
+- version 5.5.3:
+   - Fixed bug which affects efficiency  
+
+- version 5.5.2:
+   - Fixed memory consumption issue  
+
+- version 5.5.1:
+   - Combining version 5.5.0 and 4.11.2  
+
+- version 5.5.0:
+   - Combining version 5.4.4 and 5.3.*
+
+- version 5.4.*: handling multi-individual cases
+
+- version 5.3.*: 
+  - further development on A* to form a 3-stage algorithm
+  - faster annotation for polytomies
+  
+- version 5.2.5: ASTRAL-III - first correct version (conference proceedings)
+  - Enlarge set X for datasets with polytomies; multiple samples; randomize greedy and UPGMA
+  - For polytomies, do not half count  unresolved quartets
+  - solved a bug where in rare cases, output polytomy could be unresolved due to ASTRAL-III changes
+
+- version 5.2.4:
+  - Bug fix: weight calculation
+
+- version 5.2.3: development
+
+- version 5.2.2: development
+
+- version 5.2.1: development 
+
+- version 5.2.0: ASTRAL-III - first attempt
+    - polytree
+    - better handling of polytomies
+    - A*
+
+- version 5.1.0:
+     - Merge polytree and multiind
+>>>>>>> parallel
 
 - version 5.0.3:
     - Bug fix: 5.0.2 has created a bug, which is fixed
@@ -26,6 +111,16 @@
     - Merge the master branch (4.10.12) and the multi-ind branch (4.8.0)
       This version should have all the multi-ind features of 4.8.0 and
       local posterior probability features of 4.10.12 (plus all other misc changes on the master branch)
+
+- version 4.11.2:
+   - Some small code refactoring in computing scores
+   - Change the hidden (not published) option `-t 10` that performs polytomy tests.
+
+- version 4.11.1:
+   - Change the calculation of the similarity matrix to count unresolved quartets as half
+
+- version 4.10.13:
+   - A bug fixed where for input trees with polytomies, the distance matrix was not computed correctly. 
 
 - version 4.10.12:
     - Update code documentation and some refactoring
