@@ -7,8 +7,6 @@ import java.io.ObjectStreamField;
 import java.io.Serializable;
 import java.util.Arrays;
 
-import phylonet.coalescent.GlobalMaps;
-
 public class BitSet implements Cloneable, Serializable, Comparable {
 
 	int hash = 0;
@@ -560,6 +558,10 @@ public class BitSet implements Cloneable, Serializable, Comparable {
 		return b.toString();
 	}
 
+    public long[] getArray() {
+    	return words;
+    }
+    
 	private static final ObjectStreamField serialPersistentFields[] = { new ObjectStreamField(
 			"bits", Byte.class) };
 	public long words[];
