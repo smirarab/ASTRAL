@@ -79,25 +79,25 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	 */
 	class CondensedTraversalWeightCalculator extends WeightCalculatorAlgorithm {
 		Polytree polytree;
-		
+
 		Long calculateWeight(Tripartition trip) {
 			return polytree.WQWeightByTraversal(trip, this);
 		}
 
 		/***
-		* Each gene tree is represented as a list of integers, using positive numbers
-		* for leaves, where the number gives the index of the leaf. 
-		* We use negative numbers for internal nodes, where the value gives the number of children. 
-		* Minus infinity is used for separating different genes. 
-		*/
+		 * Each gene tree is represented as a list of integers, using positive numbers
+		 * for leaves, where the number gives the index of the leaf. 
+		 * We use negative numbers for internal nodes, where the value gives the number of children. 
+		 * Minus infinity is used for separating different genes. 
+		 */
 		@Override
 		void setupGeneTrees(WQInference inference) {
 			System.err.println("Using polytree-based weight calculation.");
 			polytree = new Polytree(inference.trees, dataCollection);
 		}
 	}
-	
-	
+
+
 	/**
 	 * ASTRAL-II way of calculating weights 
 	 * @author smirarab
@@ -196,16 +196,16 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 					}
 
 
-						for (int i = nzc[0] - 1; i >= 0; i--) {
-							for (int j = nzc[1] - 1; j >= 0; j--) {
-								if (overlapind[i][0] != overlapind[j][1])
-									for (int k = nzc[2] - 1; k >= 0; k--) {
-										if ((overlapind[i][0] != overlapind[k][2]) 
-												&& (overlapind[j][1] != overlapind[k][2]))
-											weight += F(overlap[i][0], overlap[j][1], overlap[k][2]);
-									}
-							}
-				
+					for (int i = nzc[0] - 1; i >= 0; i--) {
+						for (int j = nzc[1] - 1; j >= 0; j--) {
+							if (overlapind[i][0] != overlapind[j][1])
+								for (int k = nzc[2] - 1; k >= 0; k--) {
+									if ((overlapind[i][0] != overlapind[k][2]) 
+											&& (overlapind[j][1] != overlapind[k][2]))
+										weight += F(overlap[i][0], overlap[j][1], overlap[k][2]);
+								}
+						}
+
 						top = top + gtb + 1;
 
 					} // End of polytomy section
@@ -226,7 +226,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		void setupGeneTrees(WQInference inference) {
 			System.err.println("Using tree-based weight calculation.");
 			List<Integer> temp = new ArrayList<Integer>(); 
-			
+
 			Stack<Integer> stackHeight = new Stack<Integer>();
 			/**
 			 * Reroot to minimize root to tip distance (number of nodes)
@@ -299,15 +299,15 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			}
 
 		}
-		
+
 		public int[] geneTreesAsInts() {
-			
+
 			return this.geneTreesAsInts;
 		}
 
-		
+
 	}
-	
+
 	/***
 	 * This is for ASTRAL-I
 	 * @author smirarab
