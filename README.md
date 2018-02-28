@@ -37,47 +37,30 @@ Email: `astral-users@googlegroups.com` for questions.
 
 INSTALLATION:
 -----------
-There is no installation required to run ASTRAL. 
-<<<<<<< HEAD
-You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/Astral.5.1.2.zip) 
-=======
-You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/Astral.5.10.0.zip)
->>>>>>> parallel
-and extract the contents to a folder of your choice. Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/). You can run `make.sh` to build the project or simply use the jar file that is included with the repository. 
+There is no installation required to run ASTRAL.
+You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/Astral.5.11.0.zip)
+and extract the contents to a folder of your choice. Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/). You can run `make.sh` to build the project or simply use the jar file that is included with the repository.
 
 ASTRAL is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. Java 1.5 or later is required. We have tested ASTRAL only on Linux and MAC.
 
 To test your installation, go to the place where you put the uncompressed ASTRAL, and run:
 
 ```
-<<<<<<< HEAD
-java -jar astral.5.1.2.jar -i test_data/song_primates.424.gene.tre
-=======
-java -Djava.library.path=. -jar astral.5.10.0.jar -i test_data/song_primates.424.gene.tre
->>>>>>> parallel
+java -Djava.library.path=. -jar astral.5.11.0.jar -i test_data/song_primates.424.gene.tre
 ```
 
 This should quickly finish. There are also other sample input files under `test_data/` that can be used.
 
-<<<<<<< HEAD
-ASTRAL can be run from any directories. You just need to run `java -jar /path/to/astral/astral.5.1.2.jar`.
-Also, you can move `astral.5.1.2.jar` to any location you like and run it from there, but note that you need
-=======
-ASTRAL can be run from any directory. You just need to run `java -jar /path/to/astral/astral.5.10.0.jar`.
-Also, you can move `astral.5.10.0.jar` to any location you like and run it from there, but note that you need
->>>>>>> parallel
-to move the `lib` directory as well. 
+ASTRAL can be run from any directory. You just need to run `java -jar /path/to/astral/astral.5.11.0.jar`.
+Also, you can move `astral.5.11.0.jar` to any location you like and run it from there, but note that you need
+to move the `lib` directory as well.
 
 EXECUTION:
 -----------
 ASTRAL currently has no GUI. You need to run it through the command-line. In a terminal, go the location where you have downloaded the software, and issue the following command:
 
 ```
-<<<<<<< HEAD
-  java -jar astral.5.1.2.jar
-=======
-  java -Djava.library.path=. -jar astral.5.10.0.jar
->>>>>>> parallel
+  java -Djava.library.path=. -jar astral.5.11.0.jar
 ```
 
 This will give you a list of options available in ASTRAL.
@@ -85,26 +68,18 @@ This will give you a list of options available in ASTRAL.
 To find the species tree given a set of gene trees in a file called `in.tree`, use:
 
 ```
-<<<<<<< HEAD
-java -jar astral.5.1.2.jar -i in.tree
-=======
-java -Djava.library.path=. -jar astral.5.10.0.jar -i in.tree
->>>>>>> parallel
+java -Djava.library.path=. -jar astral.5.11.0.jar -i in.tree
 ```
 
 The results will be outputted to the standard output. To save the results in a file use the `-o` option (**Strongly recommended**):
 
 ```
-<<<<<<< HEAD
-java -jar astral.5.1.2.jar -i in.tree -o out.tre
-=======
-java -Djava.library.path=. -jar astral.5.10.0.jar -i in.tree -o out.tre
->>>>>>> parallel
+java -Djava.library.path=. -jar astral.5.11.0.jar -i in.tree -o out.tre
 ```
 To save the logs (**also recommended**), run:
 
 ```
-java -Djava.library.path=. -jar astral.5.10.0.jar -i in.tree -o out.tre 2>out.log
+java -Djava.library.path=. -jar astral.5.11.0.jar -i in.tree -o out.tre 2>out.log
 ```
 
 ###### Input: 
@@ -118,8 +93,8 @@ species_name [number of individuals] individual_1 individual_2 ...
 
 species_name:individual_1,individual_2,...
 ```
-Note that when multiple individuals exist for the same species, your species name should be different from the individual names.
-
+   Note that when multiple individuals exist for the same species, your species name should be different from the individual names.
+   
 ###### Output: 
 The output in is Newick format and gives: 
 
@@ -135,41 +110,33 @@ The output in is Newick format and gives:
 To perform 100 replicates of multi-locus bootstrapping ([Seo 2008](http://www.ncbi.nlm.nih.gov/pubmed/18281270)), use:
 
 ```
-<<<<<<< HEAD
-java -jar astral.5.1.2.jar -i best_ml -b bs_paths -r 100
-=======
-java -Djava.library.path=. -jar astral.5.10.0.jar -i best_ml -b bs_paths -r 100
->>>>>>> parallel
+java -Djava.library.path=. -jar astral.5.11.0.jar -i best_ml -b bs_paths -r 100
 ```
 
 In this command, `bs_paths` is a file that gives the location (file path) of gene tree bootstrap files, one line per gene. See the [tutorial](astral-tutorial.md)
 for more details.
-`best_ml` has all the "main" trees (e.g. best ML trees) in one file. 
+`best_ml` has all the "main" trees (e.g. best ML trees) in one file.
 
-##### Bootstrap Output: 
+##### Bootstrap Output:
 
 The output file generated when using the bootstrapping feature with 100 replicates (`-r 100`) contains the following trees, in this order:
 
 * 100 bootstrapped replicate trees; each tree is the result of running ASTRAL on a set of bootstrap gene trees (one per gene).
-* A greedy consensus of the 100 bootstrapped replicate trees; this tree has support values drawn on branches based on the bootstrap replicate trees. Support values show the percentage of bootstrap replicates that contain a branch. 
+* A greedy consensus of the 100 bootstrapped replicate trees; this tree has support values drawn on branches based on the bootstrap replicate trees. Support values show the percentage of bootstrap replicates that contain a branch.
 * The “main” ASTRAL tree; this is the results of running ASTRAL on the `best_ml` input gene trees. This main tree also includes support values, which are again drawn based on the 100 bootstrap replicate trees.
 
-If `-r` option is set to anything other than 100, the number of replicates would be accordingly adjusted.    
+If `-r` option is set to anything other than 100, the number of replicates would be accordingly adjusted.
 **Note** that by default (i.e., when no `-r` is given), ASTRAL only performs 100 replicates regardless of the number of replicates in your bootstrapped gene trees.
-If you want to bootstrap with a different number of replicates, you must use `-r`. 
+If you want to bootstrap with a different number of replicates, you must use `-r`.
 
-Also related to bootstrapping are `-g` (to enable gene/site resampling) and `-s` (to set the seed number) options. 
+Also related to bootstrapping are `-g` (to enable gene/site resampling) and `-s` (to set the seed number) options.
 
 
 ### Memory:
 For big datasets (say more than 200 taxa), increasing the memory available to Java can result in speedups. Note that you should give Java only as much free memory as you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke ASTRAL using the following command to make all the 3GB available to Java:
 
 ```
-<<<<<<< HEAD
-java -Xmx3000M -jar astral.5.1.2.jar -i in.tree
-=======
-java -Xmx3000M -Djava.library.path=. -jar astral.5.10.0.jar -i in.tree
->>>>>>> parallel
+java -Xmx3000M -Djava.library.path=. -jar astral.5.11.0.jar -i in.tree
 ```
 
 Acknowledgment
