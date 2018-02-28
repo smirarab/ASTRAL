@@ -23,15 +23,15 @@ import phylonet.util.BitSet;
  *
  */
 public class SimilarityMatrix {
-	
+
 	private float[][] similarityMatrix;
 	private List<TreeSet<Integer>> orderedTaxonBySimilarity;
 	private Integer n;
-	
+
 	public SimilarityMatrix(int n) {
 		this.n = n;
 	}
-	
+
 	public SimilarityMatrix(float[][] from) {
 		this.n = from.length;
 		this.similarityMatrix = new float[from.length][from[0].length];
@@ -42,15 +42,15 @@ public class SimilarityMatrix {
 			}
 		}
 	}
-	
+
 	public int getSize() {
 		return n;
 	}
-	
+
 	public float get(int i, int j) {
 		return this.similarityMatrix[i][j];
 	}
-	
+
 	int getBetterSideByFourPoint(int x, int a, int b, int c) {
 		double xa = this.similarityMatrix[x][a];
 		double xb = this.similarityMatrix[x][b];
@@ -65,7 +65,7 @@ public class SimilarityMatrix {
 				ascore >= cscore ? a : c :
 					bscore >= cscore ? b : c;	
 	}
-	
+
 	private List<TreeSet<Integer>> sortByDistance(float[][] refMatrix) {
 		List<TreeSet<Integer>> ret = new ArrayList<TreeSet<Integer>>(n);
 		List<Integer> range = Utils.getRange(n);
@@ -92,7 +92,7 @@ public class SimilarityMatrix {
 		indices.addAll(range);
 		return indices;
 	}
-	
+
 	private void assureOrderedTaxa () {
 		if (this.orderedTaxonBySimilarity == null) {
 			this.orderedTaxonBySimilarity = this.sortByDistance(this.similarityMatrix);
@@ -123,8 +123,8 @@ public class SimilarityMatrix {
 		return closestId;
 	}
 
-	
-	
+
+
 	private void updateQuartetDistanceTri(BitSet left,
 			BitSet right, float[][] matrix, double d) {
 		if (d == 0)
@@ -136,7 +136,7 @@ public class SimilarityMatrix {
 			}
 		}
 	}
-	
+
 	void populateByQuartetDistance(List<STITreeCluster> treeAllClusters, List<Tree> geneTrees) {
 		this.similarityMatrix = new float[n][n];
 		long [][] denom = new long [n][n];
@@ -154,22 +154,22 @@ public class SimilarityMatrix {
 		int k = 0;
 		for (Tree tree :  geneTrees) {
 			for (TNode node : tree.postTraverse()) {
-					if (node.isLeaf()) {
-						BitSet tmp = new BitSet(n);
-						tmp.set(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
-						((STINode)node).setData(tmp);
-					} else {
-						
-						BitSet newbs = new BitSet(n);
-						for (TNode cn: node.getChildren()) {
-							BitSet c = (BitSet) ((STINode)cn).getData();
-							newbs.or(c);
-						}
-						 
-						((STINode)node).setData(newbs);
-						
+				if (node.isLeaf()) {
+					BitSet tmp = new BitSet(n);
+					tmp.set(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
+					((STINode)node).setData(tmp);
+				} else {
+
+					BitSet newbs = new BitSet(n);
+					for (TNode cn: node.getChildren()) {
+						BitSet c = (BitSet) ((STINode)cn).getData();
+						newbs.or(c);
 					}
+
+					((STINode)node).setData(newbs);
+
 				}
+			}
 		}
 
 		ArrayList<Future<float[][][]>> futures = new ArrayList<Future<float[][][]>>();
@@ -231,52 +231,52 @@ public class SimilarityMatrix {
 				STITreeCluster treeallCL = treeAllClusters.get(w);
 				Tree tree = geneTrees.get(w);
 				Integer treeall = treeallCL.getClusterSize();
-				
+
 				for (TNode node : tree.postTraverse()) {
-						if (node.isLeaf()) { 
-							continue;
-						}
-						BitSet cluster = (BitSet) ((STINode)node).getData();
-						BitSet others = (BitSet) treeallCL.getBitSet().clone();
-						others.andNot(cluster);
-						ArrayList<BitSet> children = new ArrayList<BitSet>();
-						long totalPairs = 0;
-						long totalUnresolvedPairs = 0;
-						for (TNode cn: node.getChildren()) {
-							BitSet c = (BitSet) ((STINode)cn).getData();
-							children.add(c);
-							long cc = c.cardinality();
-							totalPairs += cc*(cc-1);
-							totalUnresolvedPairs += cc * (treeall - cc); 
-						}
-						if (others.cardinality() != 0) {
-							children.add(others);
-							long cc = others.cardinality();
-							totalPairs += cc*(cc-1);
-							totalUnresolvedPairs += cc * (treeall - cc);
-						}
-						totalPairs /= 2;
-						totalUnresolvedPairs /= 2;
-						
-						
-						for (int j = 0; j < children.size(); j++ ) {
-							BitSet left = children.get(j);
-							long lc = left.cardinality();
-							long lcu = lc * (treeall - lc);
-							long lcp = lc*(lc-1)/2;
-							for (int i = j+1; i < children.size(); i++ ) {
-								BitSet right = children.get(i);
-								long rc = right.cardinality();
-								long rcu = rc * (treeall - lc - rc);
-								long rcp = rc*(rc-1)/2;
-								double sim = (totalPairs - lcp - rcp) // the number of fully resolved quartets
-										//+ (totalUnresolvedPairs - lcu - rcu) / 3.0 // we count partially resolved quartets
-										; 
-								updateQuartetDistanceTri( left, right, array, sim);
-							}
+					if (node.isLeaf()) { 
+						continue;
+					}
+					BitSet cluster = (BitSet) ((STINode)node).getData();
+					BitSet others = (BitSet) treeallCL.getBitSet().clone();
+					others.andNot(cluster);
+					ArrayList<BitSet> children = new ArrayList<BitSet>();
+					long totalPairs = 0;
+					long totalUnresolvedPairs = 0;
+					for (TNode cn: node.getChildren()) {
+						BitSet c = (BitSet) ((STINode)cn).getData();
+						children.add(c);
+						long cc = c.cardinality();
+						totalPairs += cc*(cc-1);
+						totalUnresolvedPairs += cc * (treeall - cc); 
+					}
+					if (others.cardinality() != 0) {
+						children.add(others);
+						long cc = others.cardinality();
+						totalPairs += cc*(cc-1);
+						totalUnresolvedPairs += cc * (treeall - cc);
+					}
+					totalPairs /= 2;
+					totalUnresolvedPairs /= 2;
+
+
+					for (int j = 0; j < children.size(); j++ ) {
+						BitSet left = children.get(j);
+						long lc = left.cardinality();
+						long lcu = lc * (treeall - lc);
+						long lcp = lc*(lc-1)/2;
+						for (int i = j+1; i < children.size(); i++ ) {
+							BitSet right = children.get(i);
+							long rc = right.cardinality();
+							long rcu = rc * (treeall - lc - rc);
+							long rcp = rc*(rc-1)/2;
+							double sim = (totalPairs - lcp - rcp) // the number of fully resolved quartets
+									//+ (totalUnresolvedPairs - lcu - rcu) / 3.0 // we count partially resolved quartets
+									; 
+							updateQuartetDistanceTri( left, right, array, sim);
 						}
 					}
-	
+				}
+
 				BitSet all = treeallCL.getBitSet();
 				int c = all.cardinality() - 2;
 				for (int l = all.nextSetBit(0); l >= 0; l=all.nextSetBit(l+1)) {
@@ -289,13 +289,13 @@ public class SimilarityMatrix {
 			return new float[][][]{array, denom};
 		}
 	}
-	
-	
+
+
 	SimilarityMatrix getInducedMatrix(HashMap<String, Integer> randomSample, TaxonIdentifier id) {
-		
+
 		int sampleSize = randomSample.size();
 		float[][] sampleSimMatrix = new float [sampleSize][sampleSize];
-		
+
 		for (Entry<String, Integer> row : randomSample.entrySet()) {
 			int rowI = id.taxonId(row.getKey());
 			int i = row.getValue();
@@ -310,11 +310,11 @@ public class SimilarityMatrix {
 	}
 
 	SimilarityMatrix getInducedMatrix(List<Integer> sampleOrigIDs) {
-		
+
 		int sampleSize = sampleOrigIDs.size();
 		SimilarityMatrix ret = new SimilarityMatrix(sampleSize);
 		ret.similarityMatrix = new float [sampleSize][sampleSize];
-		
+
 		int i = 0;
 		for (Integer rowI : sampleOrigIDs) {
 			int j = 0;
@@ -365,37 +365,37 @@ public class SimilarityMatrix {
 		}
 		return newBitSets;
 	}
-	
-	
+
+
 	List<BitSet> resolveByUPGMA(List<BitSet> bsList, boolean original) {
-		
+
 		List<BitSet> internalBSList;
 		if (original) {
 			internalBSList = new ArrayList<BitSet>(bsList);
 		} else {
 			internalBSList = new ArrayList<BitSet>();
 		}
-		
+
 		int size = bsList .size();
 		List<TreeSet<Integer>> indsBySim = new ArrayList<TreeSet<Integer>>(size);
 		List<float[]> sims = new ArrayList<float[]>(size);
 		List<Integer> range = Utils.getRange(size);
 		List<Integer> weights = new ArrayList<Integer>(size);
-		
+
 		for (int i = 0; i < size; i++) {
 			if (!original) {
 				BitSet internalBS = new BitSet(size);
 				internalBS.set(i);
 				internalBSList.add(internalBS);
 			}
-			
+
 			final float[] is = new float[size];// this.similarityMatrix[i].clone();
 			BitSet bsI = bsList.get(i);
 			weights.add(bsI.cardinality());
 			sims.add(is);
-			
+
 			for (int j = 0; j < size; j++) {
-				
+
 				BitSet bsJ = bsList.get(j);
 				int c = 0;
 				if (i == j) {
@@ -413,24 +413,24 @@ public class SimilarityMatrix {
 				}
 				is[j] /= c;
 			}
-		
+
 			range.remove(i);
 			TreeSet<Integer> sortColumn = this.sortColumn(range, is);
 			range.add(i,i);
 			indsBySim.add(sortColumn);
 		}
-		
+
 		return upgmaLoop(weights, internalBSList, indsBySim, sims, size,false);
 	}
-	
+
 	List<BitSet> UPGMA() {
-		
+
 		List<BitSet> bsList = new ArrayList<BitSet>(n);
 		List<TreeSet<Integer>> indsBySim = new ArrayList<TreeSet<Integer>>(n);
 		List<float[]> sims = new ArrayList<float[]>(n);
 		List<Integer> range = Utils.getRange(n);
 		List<Integer> weights = Utils.getOnes(n);
-		
+
 		for (int i = 0; i< n; i++) {
 			BitSet bs = new BitSet();
 			bs.set(i);
@@ -442,7 +442,7 @@ public class SimilarityMatrix {
 			range.add(i,i);
 			indsBySim.add(sortColumn);
 		}
-		
+
 		return upgmaLoop(weights, bsList, indsBySim, sims, n, false);
 	}
 
@@ -467,31 +467,31 @@ public class SimilarityMatrix {
 			bs.or(bsList.get(closestJ));
 			bsList.set(closestJ,null);
 			bsList.set(closestI,bs);
-			
+
 			float[] jDist = sims.get(closestJ);
 			float[] iDist = sims.get(closestI).clone();
 			for (int k = 0; k < sims.size(); k++) {
 				if (k == closestJ || sims.get(k) == null) {
 					continue;
 				}
-				
+
 				if ( k != closestI) {
 					Float newSimToI = (iDist[k] * weights.get(closestI) + jDist[k] * weights.get(closestJ))/( weights.get(closestI)+ weights.get(closestJ));
-					
+
 					indsBySim.get(k).remove(closestI);
 					sims.get(k)[closestI] = newSimToI;
 					indsBySim.get(k).add(closestI);
-					
+
 					indsBySim.get(closestI).remove(k);
 					sims.get(closestI)[k] = newSimToI;
 					indsBySim.get(closestI).add(k);
 				}
-			
+
 				indsBySim.get(k).remove(closestJ);
 				sims.get(k)[closestJ] = -1F;
 				//indsBySim.get(k).add(closestJ);
 			}
-			
+
 			sims.set(closestJ,null);
 			indsBySim.set(closestJ,null);
 			weights.set(closestI, weights.get(closestI)+weights.get(closestJ));
@@ -501,6 +501,7 @@ public class SimilarityMatrix {
 		}
 		return ret;
 	}
+	
 	public void fillZero2D(Float[][] array) {
 		for(int i = 0; i < array.length; i++) {
 			for(int j = 0; j < array[0].length; j++) {
