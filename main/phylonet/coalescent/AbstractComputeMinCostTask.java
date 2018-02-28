@@ -1,16 +1,11 @@
 package phylonet.coalescent;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
-import phylonet.util.BitSet;
 
 /**
  * This class implements the dynamic programming
@@ -28,7 +23,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 	
 	//boolean isWriteToQueue;
     private SpeciesMapper spm;
-
+    
 	protected Double compute() {
 		try {
 			return computeMinCost();

@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.TreeSet;
 import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -127,7 +126,9 @@ public class SimilarityMatrix {
 	
 	
 	private void updateQuartetDistanceTri(BitSet left,
-			BitSet right, float[][] matrix, float d) {
+			BitSet right, float[][] matrix, double d) {
+		if (d == 0)
+			return;
 		for (int l = left.nextSetBit(0); l >= 0; l=left.nextSetBit(l+1)) {
 			for (int r = right.nextSetBit(0); r >= 0; r=right.nextSetBit(r+1)) {
 				matrix[l][r] += d;
@@ -268,7 +269,7 @@ public class SimilarityMatrix {
 								long rc = right.cardinality();
 								long rcu = rc * (treeall - lc - rc);
 								long rcp = rc*(rc-1)/2;
-								float sim = (totalPairs - lcp - rcp) // the number of fully resolved quartets
+								double sim = (totalPairs - lcp - rcp) // the number of fully resolved quartets
 										//+ (totalUnresolvedPairs - lcu - rcu) / 3.0 // we count partially resolved quartets
 										; 
 								updateQuartetDistanceTri( left, right, array, sim);
