@@ -52,8 +52,13 @@ public abstract class AbstractInference<T> implements Cloneable{
 	protected Options options;
 	DecimalFormat df;
 	
+
 	LinkedBlockingQueue<Long> queue2;
 	public LinkedBlockingQueue<Iterable<VertexPair>> queue4;
+
+	double estimationFactor = 0;
+	
+
 	public AbstractInference(Options options, List<Tree> trees,
 			List<Tree> extraTrees) {
 		super();
@@ -220,6 +225,9 @@ public abstract class AbstractInference<T> implements Cloneable{
 			//System.out.println(pe.getCluster().getClusterSize()+"\t"+pe._max_score);
 			// int k = sigmaNs/(stTaxa.length-1);
 
+			if ( !GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleSP(pe.getCluster().getBitSet()) && (pe._min_lc == null || pe._min_rc == null))
+				System.err.println("hmm; this shouldn't have happened: "+ pe);
+			
 			if (pe._min_rc != null) {
 				minVertices.push(pe._min_rc);
 			}
