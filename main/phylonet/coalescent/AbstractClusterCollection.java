@@ -2,10 +2,10 @@ package phylonet.coalescent;
 
 import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.HashSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -23,6 +23,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 	protected ArrayList<Set<Vertex>> clusters;
 	protected int topClusterLength;
 	int totalcount = 0;
+	//private Vertex v;
 
 	protected void initialize(int len) {
 		this.topClusterLength = len;
@@ -174,11 +175,11 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 			}
 		};*/
 
-		int clusterSize = topClusterLength;
-		Vertex v = this.getTopVertex();
-		Future<ArrayList<VertexPair>>[] futures = new Future[clusterSize / 2];
-		for (int i = 1; i <= (clusterSize / 2); i++) {
-			futures[i - 1] = CommandLine.eService.submit(new getClusterResolutionsLoop(this.clusters, i, v, clusterSize));
+		//int clusterSize = topClusterLength;
+		Vertex vert = this.getTopVertex();
+		Future<ArrayList<VertexPair>>[] futures = new Future[topClusterLength / 2];
+		for (int i = 1; i <= (topClusterLength / 2); i++) {
+			futures[i - 1] = CommandLine.eService.submit(getClusterResolutionLoop(i,vert,topClusterLength));
 		}
 		for(int i = 0; i < futures.length; i++) {
 			try {
@@ -206,6 +207,11 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 
 		return ret;
 	}
+	
+	public getClusterResolutionsLoop getClusterResolutionLoop(int i, Vertex vert, int clusterSize) {
+		return new getClusterResolutionsLoop(this.clusters, i, vert, clusterSize);
+	}
+	
 	public class getClusterResolutionsLoop implements Callable{
 		int i;
 		ArrayList<Set<Vertex>> clusters;
@@ -296,7 +302,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 			HashSet<Vertex> nset = new HashSet<STITreeCluster.Vertex>();
 			clone.clusters.add(nset);
 			for (Vertex v: vset) {
-				nset.add(v.getCluster().new Vertex());
+				nset.add(v.copy());
 			}
 		}
 
