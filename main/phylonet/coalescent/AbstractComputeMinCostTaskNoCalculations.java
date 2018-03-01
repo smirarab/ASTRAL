@@ -263,12 +263,12 @@ public abstract class AbstractComputeMinCostTaskNoCalculations<T> {
 		}
 	}
 
-	public Vertex getCompleteryVertx(Vertex x, STITreeCluster refCluster) {
+	/*public Vertex getCompleteryVertx(Vertex x, STITreeCluster refCluster) {
 		STITreeCluster c = x.getCluster();
 
 		STITreeCluster revcluster = new STITreeCluster(refCluster);
 		revcluster.getBitSet().xor(c.getBitSet());
 		Vertex reverse = revcluster.new Vertex();
 		return reverse;
-	}
+	}*/
 }

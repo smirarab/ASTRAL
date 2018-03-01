@@ -58,7 +58,9 @@ public class WQInferenceNoCalculations extends AbstractInferenceNoCalculations<T
 	}
 
 	IClusterCollection newClusterCollection() {
-		return new WQClusterCollection(GlobalMaps.taxonIdentifier.taxonCount());
+		WQClusterCollection ret = new WQClusterCollection(GlobalMaps.taxonIdentifier.taxonCount());
+		//ret.preComputeHashValues();
+		return ret;
 	}
 
 	WQDataCollection newCounter(IClusterCollection clusters) {
@@ -98,7 +100,6 @@ public class WQInferenceNoCalculations extends AbstractInferenceNoCalculations<T
 
 	@Override
 	void setupMisc() {
-		// TODO Auto-generated method stub
 
 	}
 
