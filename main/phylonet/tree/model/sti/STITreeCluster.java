@@ -282,7 +282,7 @@ public class STITreeCluster implements Iterable<Integer>
 		public Vertex _min_rc;
 		public List<Vertex> _subcl = null;	 // Don't matter	
 		public byte _done = 0; // 0 for not, 1 for upper bound, 2 for estimated, 3 for yes
-		public ArrayList<VertexPair> clusterResolutions = null;
+		//public ArrayList<VertexPair> clusterResolutions = null;
 		
 		public Vertex() {
 			super();
@@ -312,6 +312,13 @@ public class STITreeCluster implements Iterable<Integer>
 			return this.getCluster().getBitSet().compareTo(((Vertex)arg0).getCluster().getBitSet());
 		}
 
+		public Vertex copy() {
+			Vertex tmp = this.getCluster().new Vertex();
+			tmp.hash1 = this.hash1;
+			tmp.hash2 = this.hash2;
+			tmp.clusterSize = this.clusterSize;
+			return this;
+		}
 	}
 
     class ClusterIterator implements  Iterator{
