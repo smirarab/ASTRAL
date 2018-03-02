@@ -19,7 +19,7 @@ public abstract class AbstractWeightCalculatorNoCalculations<T> {
 	}
 	
 	public void initializeWeightContainer(int size) {
-		weights = new HashMap<T, Long>(size);
+		weights = null;
 	}
 	
 	public int getCalculatedWeightCount() {
@@ -27,11 +27,11 @@ public abstract class AbstractWeightCalculatorNoCalculations<T> {
 		if (!save)
 			return this.callcounter;
 		else 
-			return weights.size();
+			return 0;
 	}
 	
 	public Long getCalculatedWeight(T t) {
-		return weights.get(t);
+		return null;
 	}
 	
 		
@@ -47,6 +47,7 @@ public abstract class AbstractWeightCalculatorNoCalculations<T> {
 			
 			if (this.callcounter % 100000 == 0) {
 				System.err.println(callcounter + " weights produced : " + (double)(System.currentTimeMillis() - lastTime)/1000 + " seconds");
+				lastTime = System.currentTimeMillis();
 			}
 			//System.out.println(t.toString());
 		return 0L;
