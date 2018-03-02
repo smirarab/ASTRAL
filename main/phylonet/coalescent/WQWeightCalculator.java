@@ -35,7 +35,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			LinkedBlockingQueue<Long> queue2) {
 		super(false, queue2);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
-		if(inference instanceof AbstractInferenceNoCalculations) {
+		if(inference instanceof AbstractInferenceProducer) {
 			this.inference = (WQInferenceNoCalculations) inference;
 		}
 		else {
