@@ -58,7 +58,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
-	protected static String _version = "5.11.0";
+	protected static String _version = "5.11.1b";
 
 
 	public static final boolean timerOn = true;
@@ -767,7 +767,15 @@ public class CommandLine {
 				((WQWeightCalculator) inference.weightCalculator).geneTreesAsInts(), allArray, getSpeciesWordLength(), usedDevices, context, contextProperties);
 		WriteTaskToQueue thread1 = new WriteTaskToQueue(inferenceNoCalc, threadgpu);
 
-		(new Thread(thread1)).start();
+		Thread producer = new Thread(thread1);
+		producer.setPriority(Thread.MAX_PRIORITY);
+		producer.start();
+		try {
+			Thread.sleep(1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		(new Thread(threadgpu)).start();
 
 		List<Solution> solutions = inference.inferSpeciesTree();
