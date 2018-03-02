@@ -5,19 +5,20 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.Set;
 
+import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.util.BitSet;
 
 public class HashClusterCollection extends AbstractClusterCollection {
 
-	HashMap<Long, Vertex> map = null;
+	HashMap<Long, Vertex> h1ToVertexMap = null;
 	
-	public HashMap<Long, Vertex> getMap() {
-		return map;
+	public HashMap<Long, Vertex> getH1ToVertexMap() {
+		return h1ToVertexMap;
 	}
 
-	public void setMap(HashMap<Long, Vertex> map) {
-		this.map = map;
+	public void setH1ToVertexMap(HashMap<Long, Vertex> map) {
+		this.h1ToVertexMap = map;
 	}
 
 	public HashClusterCollection(int n) {
@@ -27,8 +28,8 @@ public class HashClusterCollection extends AbstractClusterCollection {
 	@Override
 	public AbstractClusterCollection newInstance(int size) {
 		HashClusterCollection newInst = new HashClusterCollection(size);
-		if (this.getMap() != null) {
-			newInst.setMap(this.getMap());
+		if (this.getH1ToVertexMap() != null) {
+			newInst.setH1ToVertexMap(this.getH1ToVertexMap());
 		}
 		return newInst;
 		
@@ -41,7 +42,7 @@ public class HashClusterCollection extends AbstractClusterCollection {
 		long[] hash1 = new long[n], hash2 = new long[n];
 		boolean succeed = false;
 		while (!succeed) {
-			map = new HashMap<Long, Vertex>();
+			h1ToVertexMap = new HashMap<Long, Vertex>();
 			succeed = true;
 			for (int i = 0; i < n; i++) {
 				hash1[i] = rnd.nextLong();
@@ -56,11 +57,11 @@ public class HashClusterCollection extends AbstractClusterCollection {
 							h1 += hash1[k];
 							h2 ^= hash2[k];
 					}
-					if (map.containsKey(h1)) {
+					if (h1ToVertexMap.containsKey(h1)) {
 						succeed = false;
 						break;
 					}
-					map.put(h1, v);
+					h1ToVertexMap.put(h1, v);
 					v.hash1 = h1;
 					v.hash2 = h2;
 					v.clusterSize = i;
@@ -74,26 +75,24 @@ public class HashClusterCollection extends AbstractClusterCollection {
 
 	@Override
 	public getClusterResolutionsLoop getClusterResolutionLoop(int i, Vertex vert, int clusterSize) {
-		return new hashClusterResolutionsLoop(this.clusters, i, vert, clusterSize);
+		return new hashClusterResolutionsLoop( i, vert, clusterSize);
 	}
-	
 	public class hashClusterResolutionsLoop extends getClusterResolutionsLoop{
 
-		public hashClusterResolutionsLoop(ArrayList<Set<Vertex>> cluster, int i, Vertex v, int clusterSize) {
-			super(cluster, i, v, clusterSize);
+		public hashClusterResolutionsLoop(int i, Vertex v, int clusterSize) {
+			super( i, v, clusterSize);
 		}
 		public ArrayList<VertexPair> call() {
 			ArrayList<VertexPair> ret = new ArrayList<VertexPair>();
 
-			if (this.clusters.get(i) == null || this.clusters.get(i).size() == 0 ||
-				this.clusters.get(clusterSize - i) == null || this.clusters.get(clusterSize - i).size() == 0) {
+			if (clusters.get(i) == null || clusters.get(i).size() == 0 ||
+				clusters.get(clusterSize - i) == null || clusters.get(clusterSize - i).size() == 0) {
 				return null;
 			}
-			
-			Set<Vertex> small = (this.clusters.get(i).size() < this.clusters.get(clusterSize - i).size()) ? this.clusters.get(i) : this.clusters.get(clusterSize - i);
+			Set<Vertex> small = (clusters.get(i).size() < clusters.get(clusterSize - i).size()) ? clusters.get(i) : clusters.get(clusterSize - i);
 
 			for (Vertex v1 : small) {
-				Vertex v2 = map.get(v.hash1 - v1.hash1);
+				Vertex v2 = h1ToVertexMap.get(v.hash1 - v1.hash1);
 				if (v2 != null) {
 					if (v.hash2 == (v1.hash2 ^ v2.hash2)
 						&& v.clusterSize == v1.clusterSize + v2.clusterSize) {
@@ -107,7 +106,18 @@ public class HashClusterCollection extends AbstractClusterCollection {
 			return ret;
 		}
 	}
+	
 
+	
+	public IClusterCollection getContainedClusters(Vertex v) {
+		STITreeCluster cluster = v.getCluster();
+		int size = cluster.getClusterSize();
+		AbstractClusterCollection ret = newInstance(size);
+		ret.clusters = this.clusters;
+		ret.topV = v;
+		ret.totalcount = -1;
+		return ret;
+	}
 	
 
 }
