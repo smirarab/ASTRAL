@@ -9,7 +9,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.PriorityBlockingQueue;
+
+import javax.management.RuntimeErrorException;
 
 import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.MutableTree;
@@ -42,7 +43,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 	Collapse.CollapseDescriptor cd = null;
 	
 	AbstractDataCollection<T> dataCollection;
-	AbstractWeightCalculator<T> weightCalculator;
+	AbstractWeightCalculatorTask<T> weightCalculator;
 	AbstractWeightCalculatorNoCalculations<T> weightCalculatorNoCalculations;
 	Boolean done = false;
 //	private int addExtra;
@@ -78,12 +79,14 @@ public abstract class AbstractInference<T> implements Cloneable{
 		return options.isRooted();
 	}
 	
-	public Iterable<VertexPair> getClusterResolutions2() {
+	public Iterable<VertexPair> getClusterResolutions(Vertex v) {
 			Iterable<VertexPair> ret = null;
 			try{
 				ret = queue4.take();
 			}
 			catch (Exception e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 			return ret;
 
@@ -189,15 +192,8 @@ public abstract class AbstractInference<T> implements Cloneable{
 		}
 		
 		
-		//if (CommandLine._print) {
-			//System.err.println("Weights are: "
-				//	+ counter.weights);
-		//}
-		//System.out.println("domination calcs:" + counter.cnt);
-		if(CommandLine.timerOn) {
-	       	System.err.println("TIME TOOK FROM LAST NOTICE AbstractInference 193: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
-			CommandLine.timer = System.nanoTime();
-		}
+		CommandLine.logTimeMessage("AbstractInference 193: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+		
 		System.err.println("Total Number of elements weighted: "+ weightCalculator.getCalculatedWeightCount());
 
 		List<STITreeCluster> minClusters = new LinkedList<STITreeCluster>();
@@ -287,10 +283,8 @@ public abstract class AbstractInference<T> implements Cloneable{
 		Long cost = getTotalCost(all);
 		sol._totalCoals = cost;
 		solutions.add(sol);
-		if(CommandLine.timerOn) {
-	       	System.err.println("TIME TOOK FROM LAST NOTICE AbstractInference 283: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
-			CommandLine.timer = System.nanoTime();
-		}
+		CommandLine.logTimeMessage("AbstractInference 283: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			
         System.err.println("Final optimization score: " + cost);
         
 		return (List<Solution>) (List<Solution>) solutions;
@@ -354,11 +348,8 @@ public abstract class AbstractInference<T> implements Cloneable{
 
 		//counter.addExtraBipartitionsByHeuristics(clusters);
 
-		    //johng23
-	   if(CommandLine.timerOn) {
-			System.err.println("TIME TOOK FROM LAST NOTICE: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
-			CommandLine.timer = System.nanoTime();
-		    }
+		CommandLine.logTimeMessage("" +(double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			
 		System.err.println("partitions formed in "
 			+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 		
@@ -393,7 +384,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 	
 	abstract AbstractDataCollection<T> newCounter(IClusterCollection clusters);
 	
-	abstract AbstractWeightCalculator<T> newWeightCalculator();
+	abstract AbstractWeightCalculatorTask<T> newWeightCalculator();
 
 	abstract AbstractComputeMinCostTask<T> newComputeMinCostTask(AbstractInference<T> dlInference,
 			Vertex all);

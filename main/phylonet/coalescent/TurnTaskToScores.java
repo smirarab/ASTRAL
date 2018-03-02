@@ -94,11 +94,9 @@ public class TurnTaskToScores implements Runnable {
 		Tripartition[] tripsForCPU = new Tripartition[cpuChunkSize];
 		int[] tripsForCPULabel = new int[cpuChunkSize];
 		int tripsForCPUCounter = 0;
-		if (CommandLine.timerOn) {
-			System.err.println("TIME TOOK FROM LAST NOTICE TurnTaskToScores:92: "
+		CommandLine.logTimeMessage(" TurnTaskToScores:92: "
 					+ (double) (System.nanoTime() - CommandLine.timer) / 1000000000);
-			CommandLine.timer = System.nanoTime();
-		}
+		
 		while (true) {
 
 			try {
@@ -205,7 +203,7 @@ public class TurnTaskToScores implements Runnable {
 																		// pill"
 																		// for
 																		// AbstractWeightCalculator
-			System.out.println(positionIn + " " + positionOut + " " + queue2Helper.peek().value.intValue());
+			System.err.println(positionIn + " " + positionOut + " " + queue2Helper.peek().value.intValue());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -214,7 +212,7 @@ public class TurnTaskToScores implements Runnable {
 					&& queue2.add(queue2Helper.remove().key)) {
 				positionOut++;
 				if (positionOut % 100000 == 0) {
-					System.out.println(positionOut + " weights calculated in turntasktoscores "
+					System.err.println(positionOut + " weights calculated in turntasktoscores "
 							+ ((double) System.nanoTime() - timer3) / 1000000000);
 					timer3 = System.nanoTime();
 				}
@@ -235,13 +233,9 @@ public class TurnTaskToScores implements Runnable {
 		// }
 		// }
 
-		if (CommandLine.timerOn) {
-			System.err.println("Time used to wait on queue1.take() with at least one gpu available: "
-					+ (double) (timeWait) / 1000000000);
-			System.err.println("TIME TOOK FROM LAST NOTICE TurnTaskToScores:199: "
+			CommandLine.logTimeMessage("Time used to wait on queue1.take() with at least one gpu available: "
+					+ (double) (timeWait) / 1000000000+"\nTurnTaskToScores:199: "
 					+ (double) (System.nanoTime() - CommandLine.timer) / 1000000000);
-			CommandLine.timer = System.nanoTime();
-		}
 	}
 
 	public class GPUCall {
@@ -294,7 +288,7 @@ public class TurnTaskToScores implements Runnable {
 			tripartitions3 = new long[devices.length][(int) (speciesWordLength * workGroupSize)];
 			label = new int[2][devices.length][(int) workGroupSize];
 			currentLabel = new int[devices.length];
-			System.out.println("device length is: " + devices.length);
+			System.err.println("device length is: " + devices.length);
 			available = new AtomicBoolean[devices.length];
 			storageAvailable = new AtomicBoolean[devices.length];
 
@@ -313,7 +307,7 @@ public class TurnTaskToScores implements Runnable {
 
 		public void initCL() {
 			int treeheight = ((WQWeightCalculator) inference.weightCalculator).maxHeight();
-			System.out.println("TREE HEIGHT IS: " + treeheight);
+			System.err.println("TREE HEIGHT IS: " + treeheight);
 			// Program Setup
 			String source = readFile(getClass().getResourceAsStream(clFile));
 			// String source = readFile(clFile);
@@ -435,7 +429,7 @@ public class TurnTaskToScores implements Runnable {
 								&& queue2.add(queue2Helper.remove().key)) {
 							positionOut++;
 							if (positionOut % 100000 == 0) {
-								System.out.println(positionOut + " weights calculated in turntasktoscores "
+								System.err.println(positionOut + " weights calculated in turntasktoscores "
 										+ ((double) System.nanoTime() - timer3) / 1000000000);
 							}
 							timer3 = System.nanoTime();
@@ -597,7 +591,7 @@ public class TurnTaskToScores implements Runnable {
 				while(!queue2Helper.isEmpty() && positionOut == queue2Helper.peek().value.intValue() && queue2.add(queue2Helper.remove().key)) {
 					positionOut++;
 					if(positionOut % 100000 == 0) {
-						System.out.println(positionOut + " weights calculated in turntasktoscores " + ((double)System.nanoTime() - timer3)/1000000000);
+						System.err.println(positionOut + " weights calculated in turntasktoscores " + ((double)System.nanoTime() - timer3)/1000000000);
 						timer3 = System.nanoTime();
 					}
 				}
