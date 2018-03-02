@@ -72,9 +72,9 @@ public abstract class AbstractComputeMinCostTaskNoCalculations<T> {
 		}
 
 		IClusterCollection containedVertecies = clusters.getContainedClusters(v);
-
+				
 		Iterable<VertexPair> clusterResolutions;
-					
+		
 		if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) {
 			clusterResolutions = new ArrayList<VertexPair>();
 			Vertex v1 = null;
@@ -108,8 +108,8 @@ public abstract class AbstractComputeMinCostTaskNoCalculations<T> {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			
 		} else {
+			
 			clusterResolutions = containedVertecies.getClusterResolutions();
 			try {
 				inference.queue4.put(clusterResolutions);
@@ -117,9 +117,9 @@ public abstract class AbstractComputeMinCostTaskNoCalculations<T> {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+
 		}
 		long clusterLevelCost = 0;
-		
 		
 		if (clusterResolutions.iterator().hasNext()) { // Not relevant to ASTRAL
 			clusterLevelCost = calculateClusterLevelCost();
@@ -131,6 +131,7 @@ public abstract class AbstractComputeMinCostTaskNoCalculations<T> {
 		 * .getClusterCoalNum(this.inference.trees, this.v.getCluster(),
 		 * taxonNameMap, true));
 		 */
+		
 		
 		for (VertexPair bi : clusterResolutions) {
 			try {
