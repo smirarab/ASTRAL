@@ -6,10 +6,10 @@ import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
-public class WQComputeMinCostTaskNoCalculations extends AbstractComputeMinCostTaskNoCalculations<Tripartition>{
+public class WQComputeMinCostTaskNoCalculations extends AbstractComputeMinCostTaskProducer<Tripartition>{
 	WQDataCollection wqDataCollection;
 	
-	public WQComputeMinCostTaskNoCalculations(AbstractInferenceNoCalculations<Tripartition> inference, Vertex v) {
+	public WQComputeMinCostTaskNoCalculations(AbstractInferenceProducer<Tripartition> inference, Vertex v) {
 		super(inference, v);
 		this.wqDataCollection = (WQDataCollection)inference.dataCollection;
 	}
@@ -25,8 +25,8 @@ public class WQComputeMinCostTaskNoCalculations extends AbstractComputeMinCostTa
 	}
 
 	@Override
-	protected AbstractComputeMinCostTaskNoCalculations<Tripartition> newMinCostTask(Vertex v) {
-		return new WQComputeMinCostTaskNoCalculations((AbstractInferenceNoCalculations<Tripartition>) inference, v);
+	protected AbstractComputeMinCostTaskProducer<Tripartition> newMinCostTask(Vertex v) {
+		return new WQComputeMinCostTaskNoCalculations((AbstractInferenceProducer<Tripartition>) inference, v);
 	}
 	
 	@Override
