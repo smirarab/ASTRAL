@@ -2,9 +2,9 @@ package phylonet.coalescent;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
-public abstract class AbstractWeightCalculatorNoCalculations<T> extends AbstractWeightCalculatorTask<T>{
+public abstract class AbstractWeightCalculatorProducer<T> extends AbstractWeightCalculatorTask<T>{
 	LinkedBlockingQueue<T> queue;
-	public AbstractWeightCalculatorNoCalculations(LinkedBlockingQueue<T> queue1) {
+	public AbstractWeightCalculatorProducer(LinkedBlockingQueue<T> queue1) {
 		super();
 		this.queue = queue1;
 	}
