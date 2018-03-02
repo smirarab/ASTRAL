@@ -61,7 +61,7 @@ public class CommandLine {
 	protected static String _version = "5.11.1b";
 
 
-	public static final boolean timerOn = true;
+	public static final boolean timerOn = false;
 	public static long timer;
 	static int numThreads = Runtime.getRuntime().availableProcessors();
 	static ExecutorService eService;
@@ -396,11 +396,8 @@ public class CommandLine {
 
 			GlobalMaps.taxonIdentifier.lock();
 
-			// johng23
-			if (timerOn) {
-				System.err.println("TIME TOOK FROM LAST NOTICE: " + (double) (System.nanoTime() - timer) / 1000000000);
-				timer = System.nanoTime();
-			}
+
+			CommandLine.logTimeMessage("" + (double) (System.nanoTime() - timer) / 1000000000);
 
 		} catch (IOException e) {
 			System.err.println("Error when reading trees.");
@@ -526,6 +523,13 @@ public class CommandLine {
 		options.setCD(1d);
 
 		return options;
+	}
+
+	public static void logTimeMessage(String message) {
+		if (timerOn) {
+			System.err.println("TIME TOOK FROM LAST NOTICE " + message);
+			timer = System.nanoTime();
+		}
 	}
 
 	public static void main(String[] args) throws Exception{
@@ -714,11 +718,8 @@ public class CommandLine {
 			writeTreeToFile(outbuffer, cons);
 		}
 
-		// johng23
-		if (timerOn) {
-			System.err.println("TIME TOOK FROM LAST NOTICE: " + (double) (System.nanoTime() - timer) / 1000000000);
-			timer = System.nanoTime();
-		}
+		CommandLine.logTimeMessage(" " + (double) (System.nanoTime() - timer) / 1000000000);
+			
 		System.err.println("\n======== Running the main analysis");
 		runOnOneInput(criterion, extraTrees, outbuffer, mainTrees, bootstraps, outgroup, options);
 
@@ -747,6 +748,8 @@ public class CommandLine {
 
 		inferenceNoCalc.queue1 = queue1;
 		inferenceNoCalc.queue4 = queue4;
+		
+		inferenceNoCalc.setup();
 
 		int counter = 0;
 		long[] allArray = new long[((WQDataCollection) inference.dataCollection).treeAllClusters.size()
@@ -779,10 +782,8 @@ public class CommandLine {
 		(new Thread(threadgpu)).start();
 
 		List<Solution> solutions = inference.inferSpeciesTree();
-		if(CommandLine.timerOn) {
-			System.err.println("TIME TOOK FROM LAST NOTICE CommandLine 667: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
-			CommandLine.timer = System.nanoTime();
-		}
+		CommandLine.logTimeMessage(" CommandLine 667: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			
 		System.err.println("Optimal tree inferred in " + (System.currentTimeMillis() - startTime) / 1000.0D + " secs.");
 
 		Tree st = processSolution(outbuffer, bootstraps, outgroup, inference, solutions);
@@ -796,16 +797,12 @@ public class CommandLine {
 
 	private static Tree processSolution(BufferedWriter outbuffer, Iterable<Tree> bootstraps, String outgroup,
 			AbstractInference inference, List<Solution> solutions) {
-		if(CommandLine.timerOn) {
-			System.err.println("TIME TOOK FROM LAST NOTICE CommandLine 684: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
-			CommandLine.timer = System.nanoTime();
-		}
+			CommandLine.logTimeMessage(" CommandLine 684: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			
 
 		Tree st = solutions.get(0)._st;
-		if(CommandLine.timerOn) {
-			System.err.println("TIME TOOK FROM LAST NOTICE CommandLine 690: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
-			CommandLine.timer = System.nanoTime();
-		}
+		CommandLine.logTimeMessage(" CommandLine 690: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			
 		System.err.println(st.toNewick());
 
 		st.rerootTreeAtNode(st.getNode(outgroup));
