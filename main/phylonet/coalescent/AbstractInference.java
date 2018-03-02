@@ -10,8 +10,6 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import javax.management.RuntimeErrorException;
-
 import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TNode;
@@ -31,25 +29,16 @@ import phylonet.tree.util.Collapse;
  */
 public abstract class AbstractInference<T> implements Cloneable{
 	
-	//protected boolean rooted = true;
-	//protected boolean extrarooted = true;
 	protected List<Tree> trees;
 	protected List<Tree> extraTrees = null;
-	//protected boolean exactSolution;
-	
-	//protected String[] gtTaxa;
-	//protected String[] stTaxa;
+
 
 	Collapse.CollapseDescriptor cd = null;
 	
 	AbstractDataCollection<T> dataCollection;
 	AbstractWeightCalculatorTask<T> weightCalculator;
-	AbstractWeightCalculatorNoCalculations<T> weightCalculatorNoCalculations;
+	AbstractWeightCalculatorProducer<T> weightCalculatorNoCalculations;
 	Boolean done = false;
-//	private int addExtra;
-//	public boolean outputCompleted;
-//	boolean searchSpace;
-//	private boolean run;
 	protected Options options;
 	DecimalFormat df;
 	
@@ -67,14 +56,18 @@ public abstract class AbstractInference<T> implements Cloneable{
 		this.trees = trees;
 		this.extraTrees = extraTrees;
 		
+		this.initDF();
+		
+	}
+
+	private void initDF() {
 		df = new DecimalFormat();
 		df.setMaximumFractionDigits(2);
 		DecimalFormatSymbols dfs = DecimalFormatSymbols.getInstance();
 		dfs.setDecimalSeparator('.');
 		df.setDecimalFormatSymbols(dfs);
-		
 	}
-
+	
 	public boolean isRooted() {
 		return options.isRooted();
 	}
@@ -191,10 +184,9 @@ public abstract class AbstractInference<T> implements Cloneable{
 			System.exit(1);
 		}
 		
-		
 		CommandLine.logTimeMessage("AbstractInference 193: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
 		
-		System.err.println("Total Number of elements weighted: "+ weightCalculator.getCalculatedWeightCount());
+		System.err.println("Total Number of elements: "+ weightCalculator.getCalculatedWeightCount());
 
 		List<STITreeCluster> minClusters = new LinkedList<STITreeCluster>();
 		List<Double> coals = new LinkedList<Double>();
@@ -299,10 +291,6 @@ public abstract class AbstractInference<T> implements Cloneable{
 		this.setupMisc();
 	}
 	
-	abstract void initializeWeightCalculator();
-
-	
-
 	/***
 	 * Creates the set X 
 	 */
@@ -365,8 +353,6 @@ public abstract class AbstractInference<T> implements Cloneable{
 		
 	}
 	
-	abstract void setupMisc();
-
 	public List<Solution> inferSpeciesTree() {
 		
 		List<Solution> solutions;		
@@ -379,6 +365,22 @@ public abstract class AbstractInference<T> implements Cloneable{
 
 		return (List<Solution>) solutions;
 	}
+
+	protected Object semiDeepCopy() {
+		try {
+			AbstractInference<T> clone =  (AbstractInference<T>) super.clone();
+			clone.dataCollection = (AbstractDataCollection<T>) this.dataCollection.clone();
+			clone.weightCalculator = (AbstractWeightCalculator<T>) this.weightCalculator.clone();
+			return clone;
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+			throw new RuntimeException("unexpected error");
+		}
+	}
+
+	abstract void initializeWeightCalculator();
+
+	abstract void setupMisc();
 
 	abstract IClusterCollection newClusterCollection();
 	
@@ -400,8 +402,6 @@ public abstract class AbstractInference<T> implements Cloneable{
 		return options.getCS();
 	}
 
-	
-
 	public double getCD() {
 		return options.getCD();
 	}
@@ -422,17 +422,5 @@ public abstract class AbstractInference<T> implements Cloneable{
 
 	public void setDLbdWeigth(double d) {
 		options.setDLbdWeigth(d);
-	}
-	
-	protected Object semiDeepCopy() {
-		try {
-			AbstractInference<T> clone =  (AbstractInference<T>) super.clone();
-			clone.dataCollection = (AbstractDataCollection<T>) this.dataCollection.clone();
-			clone.weightCalculator = (AbstractWeightCalculator<T>) this.weightCalculator.clone();
-			return clone;
-		} catch (CloneNotSupportedException e) {
-			e.printStackTrace();
-			throw new RuntimeException("unexpected error");
-		}
 	}
 }
