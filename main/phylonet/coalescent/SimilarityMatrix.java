@@ -146,11 +146,8 @@ public class SimilarityMatrix {
 				denom[i][j] = 0L;
 			}
 		}
-		if(CommandLine.timerOn) {
-			System.err.println("TIME TOOK FROM LAST NOTICE SimilarityMatrix 145-148: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
-			CommandLine.timer = System.nanoTime();
-			System.out.println(n);
-		}
+		CommandLine.logTimeMessage("SimilarityMatrix 145-148: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			
 		int k = 0;
 		for (Tree tree :  geneTrees) {
 			for (TNode node : tree.postTraverse()) {
@@ -196,10 +193,8 @@ public class SimilarityMatrix {
 				}
 			}
 		}
-		if(CommandLine.timerOn) {
-			System.err.println("TIME TOOK FROM LAST NOTICE SimilarityMatrix 161-164: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
-			CommandLine.timer = System.nanoTime();
-		}
+		CommandLine.logTimeMessage("SimilarityMatrix 161-164: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			
 		for (int i = 0; i < n; i++) {
 			for (int j = i; j < n; j++) {
 				if (denom[i][j] == 0)

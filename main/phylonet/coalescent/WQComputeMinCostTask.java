@@ -26,8 +26,7 @@ public class WQComputeMinCostTask extends AbstractComputeMinCostTask<Tripartitio
 	}
 
 	@Override
-	protected AbstractComputeMinCostTask<Tripartition> newMinCostTask(
-			 Vertex v) {
+	protected AbstractComputeMinCostTask newMinCostTask( Vertex v) {
 		return new WQComputeMinCostTask(inference, v);
 	}
 	
