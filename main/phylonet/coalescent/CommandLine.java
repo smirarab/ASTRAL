@@ -743,7 +743,7 @@ public class CommandLine {
 		inference.queue2 = queue2;
 		inference.queue4 = queue4;
 		inference.setup();
-		AbstractInferenceNoCalculations inferenceNoCalc = new WQInferenceNoCalculations(
+		AbstractInferenceProducer inferenceNoCalc = new WQInferenceNoCalculations(
 				(AbstractInference) inference.semiDeepCopy());
 
 		inferenceNoCalc.queue1 = queue1;
