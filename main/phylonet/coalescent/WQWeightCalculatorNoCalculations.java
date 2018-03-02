@@ -5,7 +5,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import phylonet.tree.model.Tree;
 
-class WQWeightCalculatorNoCalculations extends AbstractWeightCalculatorNoCalculations<Tripartition> {
+class WQWeightCalculatorNoCalculations extends AbstractWeightCalculatorProducer<Tripartition> {
 	AbstractInference<Tripartition> inference;
 
 	public WQWeightCalculatorNoCalculations(AbstractInference<Tripartition> inference, LinkedBlockingQueue<Tripartition> queue1) {
