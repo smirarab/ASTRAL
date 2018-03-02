@@ -3,14 +3,12 @@ package phylonet.coalescent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Stack;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.PriorityBlockingQueue;
 
 import phylonet.tree.model.TMutableNode;
 import phylonet.tree.model.TNode;
@@ -63,12 +61,6 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 		abstract Long calculateWeight(Tripartition trip);
 		abstract void setupGeneTrees(WQInference inference);
-	}
-
-	@Override
-	Long calculateWeight(Tripartition t,
-			AbstractComputeMinCostTask<Tripartition> minCostTask) {
-		return this.algorithm.calculateWeight(t);
 	}
 
 	/**
@@ -467,6 +459,12 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	//TODO: this is algorithm-specific should not be exposed. Fix. 
 	public int maxHeight() {
 		return ((TraversalWeightCalculator)tmpalgorithm).maxHeight;
+	}
+	
+	@Override
+	protected Long calculateWeight(Tripartition t,
+			AbstractComputeMinCostTask minCostTask) {
+		return this.algorithm.calculateWeight(t);
 	}
 
 

@@ -1,41 +1,16 @@
 package phylonet.coalescent;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import phylonet.tree.model.Tree;
-
-public abstract class AbstractWeightCalculatorNoCalculations<T> {
-	private int callcounter = 0;
-	protected HashMap<T, Long> weights;
-	boolean save;
-	long lastTime;
+public abstract class AbstractWeightCalculatorNoCalculations<T> extends AbstractWeightCalculatorTask<T>{
 	LinkedBlockingQueue<T> queue;
-	public AbstractWeightCalculatorNoCalculations(boolean save, LinkedBlockingQueue<T> queue1) {
-		this.save = save;
+	public AbstractWeightCalculatorNoCalculations(LinkedBlockingQueue<T> queue1) {
+		super();
 		this.queue = queue1;
-		this.lastTime = System.currentTimeMillis();
 	}
-	
-	public void initializeWeightContainer(int size) {
-		weights = null;
-	}
-	
-	public int getCalculatedWeightCount() {
-		//return this.callcounter;	
-		if (!save)
-			return this.callcounter;
-		else 
-			return 0;
-	}
-	
-	public Long getCalculatedWeight(T t) {
-		return null;
-	}
-	
-		
-	public Long getWeight(T t, AbstractComputeMinCostTaskNoCalculations<T> minCostTask) {
+
+	@Override
+	public Long getWeight(T t, AbstractComputeMinCostTask<T> minCostTask) {
 		this.callcounter ++;
 			
 			try {
@@ -43,6 +18,7 @@ public abstract class AbstractWeightCalculatorNoCalculations<T> {
 			}
 			catch (Exception e) {
 				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 			
 			if (this.callcounter % 100000 == 0) {
@@ -53,5 +29,5 @@ public abstract class AbstractWeightCalculatorNoCalculations<T> {
 		return 0L;
 	}
 	
-	public abstract void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees);
+
 }
