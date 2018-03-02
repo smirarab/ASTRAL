@@ -36,10 +36,10 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 	@Override
 	public Vertex getTopVertex() {
 		if (topV == null) {
-			Iterator<Vertex> it = clusters.get(topClusterLength).iterator();
-			if (! it.hasNext()) {
-				throw new NoSuchElementException();
-			}
+		Iterator<Vertex> it = clusters.get(topClusterLength).iterator();
+		if (! it.hasNext()) {
+			throw new NoSuchElementException();
+		}
 			topV = it.next();
 		}
 		return topV;
@@ -204,6 +204,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+
 		}
 		/*
 		timeResolutions += System.nanoTime() - start;
@@ -219,7 +220,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 	}
 	
 	public getClusterResolutionsLoop getClusterResolutionLoop(int i, Vertex vert, int clusterSize) {
-		return new getClusterResolutionsLoop(i, vert, clusterSize);
+		return new getClusterResolutionsLoop( i, vert, clusterSize);
 	}
 	
 	public class getClusterResolutionsLoop implements Callable{
@@ -227,7 +228,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 		//ArrayList<Set<Vertex>> clusters;
 		Vertex v;
 		int clusterSize;
-		public getClusterResolutionsLoop( int i, Vertex v, int clusterSize) {
+		public getClusterResolutionsLoop(int i, Vertex v, int clusterSize) {
 			this.i = i;
 			this.v = v;
 			this.clusterSize = clusterSize;

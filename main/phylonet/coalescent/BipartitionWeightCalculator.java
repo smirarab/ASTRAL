@@ -124,13 +124,6 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 		}
 	}
 
-	@Override
-	Long calculateWeight(Tripartition t,
-			AbstractComputeMinCostTask<Tripartition> minCostTask) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public Results getWeight(Quadrapartition [] quad ) {
 		long [] fi = {0l,0l,0l};
 		long mi = 0l;
@@ -355,6 +348,13 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 	public void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees) {
 		// TODO Auto-generated method stub
 
+	}
+	
+	@Override
+	protected Long calculateWeight(Tripartition t,
+			AbstractComputeMinCostTask<Tripartition> minCostTask) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
