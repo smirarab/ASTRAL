@@ -23,7 +23,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 	protected ArrayList<Set<Vertex>> clusters;
 	protected int topClusterLength;
 	int totalcount = 0;
-	//private Vertex v;
+	Vertex topV;
 
 	protected void initialize(int len) {
 		this.topClusterLength = len;
@@ -35,11 +35,14 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 
 	@Override
 	public Vertex getTopVertex() {
-		Iterator<Vertex> it = clusters.get(topClusterLength).iterator();
-		if (! it.hasNext()) {
-			throw new NoSuchElementException();
+		if (topV == null) {
+			Iterator<Vertex> it = clusters.get(topClusterLength).iterator();
+			if (! it.hasNext()) {
+				throw new NoSuchElementException();
+			}
+			topV = it.next();
 		}
-		return it.next();
+		return topV;
 	}
 
 	@Override
@@ -92,7 +95,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 		addClusterToRet(v, size, ret);
 		CountDownLatch latch = new CountDownLatch(size - 1);
 		for (int i = size - 1 ; i > 0; i--) {
-			CommandLine.eService.execute(new getContainedClustersLoop(ret, cluster, i, latch));
+			CommandLine.eService.execute(newContainedClustersLoop(ret, v, i, latch));
 		}
 		try {
 			latch.await();
@@ -113,15 +116,22 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 
 		return ret;
 	}
+	
+	public getContainedClustersLoop newContainedClustersLoop(AbstractClusterCollection ret, Vertex v, int i, CountDownLatch latch) {
+		return new getContainedClustersLoop(ret, v, i, latch);
+	}
+	
 	public class getContainedClustersLoop implements Runnable{
 		AbstractClusterCollection ret;
 		int i;
-		STITreeCluster cluster;
+		//STITreeCluster cluster;
 		CountDownLatch latch;
-		public getContainedClustersLoop(AbstractClusterCollection ret, STITreeCluster cluster, int i, CountDownLatch latch) {
+		Vertex v;
+		
+		public getContainedClustersLoop(AbstractClusterCollection ret, Vertex v, int i, CountDownLatch latch) {
 			this.ret = ret;
 			this.i = i;
-			this.cluster = cluster;
+			this.v = v;
 			this.latch = latch;
 		}
 		public void run() {
@@ -130,6 +140,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 				latch.countDown();
 				return;
 			}
+			STITreeCluster cluster = v.getCluster();
 			for (Vertex vertex : sizeClusters) {
 				if (cluster.containsCluster(vertex.getCluster())) {
 					addClusterToRet(vertex, i, ret);
@@ -193,7 +204,6 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-
 		}
 		/*
 		timeResolutions += System.nanoTime() - start;
@@ -209,28 +219,27 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 	}
 	
 	public getClusterResolutionsLoop getClusterResolutionLoop(int i, Vertex vert, int clusterSize) {
-		return new getClusterResolutionsLoop(this.clusters, i, vert, clusterSize);
+		return new getClusterResolutionsLoop(i, vert, clusterSize);
 	}
 	
 	public class getClusterResolutionsLoop implements Callable{
 		int i;
-		ArrayList<Set<Vertex>> clusters;
+		//ArrayList<Set<Vertex>> clusters;
 		Vertex v;
 		int clusterSize;
-		public getClusterResolutionsLoop(ArrayList<Set<Vertex>> cluster, int i, Vertex v, int clusterSize) {
+		public getClusterResolutionsLoop( int i, Vertex v, int clusterSize) {
 			this.i = i;
-			this.clusters = cluster;
 			this.v = v;
 			this.clusterSize = clusterSize;
 		}
 		public ArrayList<VertexPair> call() {
 			ArrayList<VertexPair> ret = new ArrayList<VertexPair>();
 
-			Set<Vertex> left = this.clusters.get(i);
+			Set<Vertex> left = clusters.get(i);
 			if (left == null || left.size() == 0) {
 				return null;
 			}
-			Set<Vertex> right = this.clusters.get(clusterSize - i);
+			Set<Vertex> right = clusters.get(clusterSize - i);
 			if (right == null || right.size() == 0) {
 				return null;
 			}
