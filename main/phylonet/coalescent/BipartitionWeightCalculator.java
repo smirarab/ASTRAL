@@ -10,7 +10,7 @@ import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 
 // TODO: why extend the abstract? It doesn't seem to follow the same pattern exactly
-class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition> {
+class BipartitionWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> {
 
 	WQInference inference;
 	private WQDataCollection dataCollection;
