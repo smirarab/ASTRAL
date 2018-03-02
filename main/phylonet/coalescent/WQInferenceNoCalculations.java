@@ -6,7 +6,7 @@ import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
-public class WQInferenceNoCalculations extends AbstractInferenceNoCalculations<Tripartition> {
+public class WQInferenceNoCalculations extends AbstractInferenceProducer<Tripartition> {
 	
 	public WQInferenceNoCalculations(Options inOptions, List<Tree> trees, List<Tree> extraTrees) {
 		super(inOptions, trees, extraTrees);
@@ -24,7 +24,7 @@ public class WQInferenceNoCalculations extends AbstractInferenceNoCalculations<T
 	@Override
 	AbstractComputeMinCostTask<Tripartition> newComputeMinCostTask(
 			AbstractInference<Tripartition> inference, Vertex all) {
-		return new WQComputeMinCostTaskNoCalculations((AbstractInferenceNoCalculations<Tripartition>) inference, all);
+		return new WQComputeMinCostTaskNoCalculations((AbstractInferenceProducer<Tripartition>) inference, all);
 	}
 
 	IClusterCollection newClusterCollection() {
@@ -35,7 +35,7 @@ public class WQInferenceNoCalculations extends AbstractInferenceNoCalculations<T
 		return new WQDataCollection((WQClusterCollection)clusters, this);
 	}
 
-	AbstractWeightCalculatorNoCalculations<Tripartition> newWeightCalculator() {
+	AbstractWeightCalculatorProducer<Tripartition> newWeightCalculator() {
 		return new WQWeightCalculatorNoCalculations(this, super.queue1);
 	}
 
