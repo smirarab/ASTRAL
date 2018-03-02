@@ -126,7 +126,7 @@ public class DLInference extends AbstractInference<STBipartition> {
 	}
 
 	@Override
-		AbstractWeightCalculator<STBipartition> newWeightCalculator() {
+		AbstractWeightCalculatorConsumer<STBipartition> newWeightCalculator() {
 			return new DLWeightCalculator(this);
 		}
 
