@@ -370,7 +370,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 		try {
 			AbstractInference<T> clone =  (AbstractInference<T>) super.clone();
 			clone.dataCollection = (AbstractDataCollection<T>) this.dataCollection.clone();
-			clone.weightCalculator = (AbstractWeightCalculator<T>) this.weightCalculator.clone();
+			clone.weightCalculator = (AbstractWeightCalculatorConsumer<T>) this.weightCalculator.clone();
 			return clone;
 		} catch (CloneNotSupportedException e) {
 			e.printStackTrace();

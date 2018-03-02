@@ -23,7 +23,7 @@ import phylonet.util.BitSet;
  * @author smirarab
  *
  */
-class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
+class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> {
 	public static boolean HAS_NOT = true;
 	public static boolean WRITE_OR_DEBUG = false;
 	AbstractInference<Tripartition> inference;
