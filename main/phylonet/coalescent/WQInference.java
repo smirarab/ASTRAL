@@ -125,6 +125,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 		return ret;
 	}
 
+	@Override
 	void initializeWeightCalculator() {
 		((WQWeightCalculator)this.weightCalculator).setupGeneTrees(this);
 		if (this.forceAlg == 2) {
@@ -216,10 +217,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 			}
 		}
 
-		if(CommandLine.timerOn) {
-			System.err.println("TIME TOOK FROM LAST NOTICE WQInference 180: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
-			CommandLine.timer = System.nanoTime();
-		}
+		CommandLine.logTimeMessage("WQInference 180: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			
 		System.err.println("Final quartet score is: " + sum/4l);
 		System.err.println("Final normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
 		//System.out.println(st.toNewickWD());
@@ -265,10 +264,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 	 * @return
 	 */
 	private double scoreBranches(Tree st) {
-		if(CommandLine.timerOn) {
-			System.err.println("TIME TOOK FROM LAST NOTICE WQInference 227: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
-			CommandLine.timer = System.nanoTime();
-		}
+		CommandLine.logTimeMessage("WQInference 227: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			
 		double ret = 0;
 		int[] geneTreesAsInts = ((WQWeightCalculator)this.weightCalculator).geneTreesAsInts();
 
@@ -332,10 +329,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 			}
 		}
 		stack = new Stack<STITreeCluster>();
-		if(CommandLine.timerOn) {
-			System.err.println("TIME TOOK FROM LAST NOTICE WQInference 274: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
-			CommandLine.timer = System.nanoTime();
-		}
+		CommandLine.logTimeMessage("WQInference 274: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			
 		AtomicInteger processCount = new AtomicInteger();
 		Object lock = new Object();
 
@@ -495,10 +490,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 		catch(InterruptedException e) {
 			e.printStackTrace();
 		}
-		if(CommandLine.timerOn) {
-			System.err.println("TIME TOOK FROM LAST NOTICE WQInference 390: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
-			CommandLine.timer = System.nanoTime();
-		}
+		CommandLine.logTimeMessage("WQInference 390: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			
 		/**
 		 * Annotate each branch by updating its data field
 		 * according to scores and user's annotation preferences. 
@@ -629,10 +622,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 				//i++;
 			} 
 		}
-		if(CommandLine.timerOn) {
-			System.err.println("TIME TOOK FROM LAST NOTICE WQInference 478: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
-			CommandLine.timer = System.nanoTime();
-		}
+		CommandLine.logTimeMessage("WQInference 478: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			
 		if (!nodeDataList.isEmpty())
 			throw new RuntimeException("Hmm, this shouldn't happen; "+nodeDataList);
 		if (this.getBranchAnnotation() == 16) {
@@ -773,10 +764,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	@Override
 	Long getTotalCost(Vertex all) {
-		if(CommandLine.timerOn) {
-			System.err.println("TIME TOOK FROM LAST NOTICE WQInference 475: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
-			CommandLine.timer = System.nanoTime();
-		}
+		CommandLine.logTimeMessage("WQInference 475: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			
 		System.err.println("Normalized score (portion of input quartet trees satisfied before correcting for multiple individuals): " + 
 				all._max_score/4./this.maxpossible);
 		return (long) (all._max_score/4l);
@@ -784,7 +773,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 
 	@Override
-	AbstractComputeMinCostTask<Tripartition> newComputeMinCostTask(AbstractInference<Tripartition> dlInference,
+	AbstractComputeMinCostTask newComputeMinCostTask(AbstractInference<Tripartition> dlInference,
 			Vertex all) {
 		return new WQComputeMinCostTask( (WQInference) dlInference, all);
 	}
@@ -816,20 +805,4 @@ public class WQInference extends AbstractInference<Tripartition> {
 		((WQClusterCollection)this.dataCollection.clusters).preComputeHashValues();
 	}
 
-	/**
-	 * obsolete
-	 */
-	private void automaticallyDecideAlgorithm(int geneTreeTripartitonCountSize, int k){
-		if (this.forceAlg != -1) {
-			return;
-		}
-		if (k <= 0 || geneTreeTripartitonCountSize <= 0) {
-			throw new RuntimeException("gene tree tripartition size or k not set properly");
-		}
-		if (this.forceAlg == -1) {
-			this.forceAlg = ( GlobalMaps.taxonIdentifier.taxonCount() <= 32 || (geneTreeTripartitonCountSize < k*6)) ? 2 : 1;
-		} else {
-			throw new RuntimeException("Algorithm already set");
-		}
-	}
 }
