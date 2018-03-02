@@ -5,17 +5,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import phylonet.tree.model.Tree;
 
-class WQWeightCalculatorNoCalculations extends AbstractWeightCalculatorProducer<Tripartition> {
-	AbstractInference<Tripartition> inference;
+class WQWeightCalculatorProducer extends AbstractWeightCalculatorProducer<Tripartition> {
 
-	public WQWeightCalculatorNoCalculations(AbstractInference<Tripartition> inference, LinkedBlockingQueue<Tripartition> queue1) {
-		super(queue1);
-		this.inference =  inference;	
+	public WQWeightCalculatorProducer(AbstractInference<Tripartition> inference, LinkedBlockingQueue<Tripartition> queue1) {
+		super(queue1);	
 	}
 
 	@Override
 	public void preCalculateWeights(List trees, List extraTrees) {
-		// TODO Auto-generated method stub
 		
 	}
 
@@ -23,8 +20,5 @@ class WQWeightCalculatorNoCalculations extends AbstractWeightCalculatorProducer<
 	protected Long calculateWeight(Tripartition t, AbstractComputeMinCostTask<Tripartition> minCostTask) {
 		return 0l;
 	}
-
-
-	
 
 }
