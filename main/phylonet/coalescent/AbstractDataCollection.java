@@ -30,7 +30,7 @@ public abstract class AbstractDataCollection <T> {
 		Set<String> clusterSet = new HashSet<String>(Arrays.asList(c.getClusterLeaves()));
 		Set<String> bugSet = new HashSet<String>(Arrays.asList(bugs));	
 		if(bugSet.equals(clusterSet)){
-            System.out.println(c.toString());
+            System.err.println(c.toString());
             throw new RuntimeException();
 		}
 	

@@ -26,8 +26,7 @@ public class WQClusterCollection extends AbstractClusterCollection{
 }
 
 */
-
-public class WQClusterCollection extends HashClusterCollection{
+ public class WQClusterCollection extends HashClusterCollection{
 
 	public WQClusterCollection(int len) {
 		super(len);
