@@ -153,8 +153,8 @@ class DLWeightCalculator extends AbstractWeightCalculator<STBipartition>{
 	
 	
 	@Override
-	Long calculateWeight(STBipartition stb,
-			AbstractComputeMinCostTask<STBipartition> task) {
+	protected Long calculateWeight(STBipartition stb,
+			AbstractComputeMinCostTask task) {
 		DLClusterCollection containedClusterCollection = null;
 			// System.err.print("Calculating weight for: " + biggerSTB);
 			Long weight = 0l;
