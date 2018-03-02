@@ -2,13 +2,13 @@ package phylonet.coalescent;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
-public abstract class AbstractWeightCalculator<T> extends AbstractWeightCalculatorTask<T> implements Cloneable {
+public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeightCalculatorTask<T> implements Cloneable {
 	
 	boolean save;
 	LinkedBlockingQueue<Long> queue;
 	boolean done = false;
 	
-	public AbstractWeightCalculator(boolean save, LinkedBlockingQueue<Long> queue) {
+	public AbstractWeightCalculatorConsumer(boolean save, LinkedBlockingQueue<Long> queue) {
 		this.save = save;
 		this.queue = queue;
 		this.lastTime = System.currentTimeMillis();
