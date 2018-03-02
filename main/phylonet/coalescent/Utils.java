@@ -218,6 +218,7 @@ public class Utils {
     	return greedyConsensus(trees,new double[]{threshold}, randomize, 1, taxonIdentifier, geneTreeKeepProb).iterator().next();
 	}
     */
+    
     /***
      * Greedy consensus with a set of thresholds
      * @param trees
@@ -231,10 +232,8 @@ public class Utils {
     public static final Collection<Tree> greedyConsensus(Iterable<Tree> trees, 
     		double[] thresholds, boolean randomzie, int repeat, 
     		TaxonIdentifier taxonIdentifier, boolean keepclusters) {
-    	if(CommandLine.timerOn) {
-			System.err.println("TIME TOOK FROM LAST NOTICE Utils 219-222: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
-			CommandLine.timer = System.nanoTime();
-		}
+    	CommandLine.logTimeMessage("Utils 219-222: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			
     	List<Tree> outTrees = new ArrayList<Tree>();
         HashMap<STITreeCluster, Integer> count = new HashMap<STITreeCluster, Integer>();
         int treecount = 0;
@@ -256,10 +255,8 @@ public class Utils {
             }
         }        
        
-        if(CommandLine.timerOn) {
-			System.err.println("TIME TOOK FROM LAST NOTICE Utils 240-243: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
-			CommandLine.timer = System.nanoTime();
-		}
+        CommandLine.logTimeMessage("Utils 240-243: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			
         ArrayList<Future<Tree>> futures = new ArrayList<Future<Tree>>();
         for (int gi = 0; gi < repeat; gi++) {
         	TreeSet<Entry<STITreeCluster,Integer>> countSorted = new 
@@ -299,10 +296,8 @@ public class Utils {
 				e.printStackTrace();
 			}
         }
-        if(CommandLine.timerOn) {
-			System.err.println("TIME TOOK FROM LAST NOTICE Utils 269-272: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
-			CommandLine.timer = System.nanoTime();
-		}
+        CommandLine.logTimeMessage("Utils 269-272: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+			
         return outTrees;
     }
 	
