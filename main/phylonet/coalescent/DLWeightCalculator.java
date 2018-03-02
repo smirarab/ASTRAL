@@ -15,7 +15,7 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
 
-class DLWeightCalculator extends AbstractWeightCalculator<STBipartition>{
+class DLWeightCalculator extends AbstractWeightCalculatorConsumer<STBipartition>{
 	
 	private DLDataCollection dataCollection;
 	private DLInference inference;
