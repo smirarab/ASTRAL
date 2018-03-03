@@ -58,7 +58,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
-	protected static String _version = "5.11.1b";
+	protected static String _version = "5.11.2";
 
 
 	public static final boolean timerOn = false;
