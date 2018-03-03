@@ -82,21 +82,14 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 	class CondensedTraversalWeightCalculator extends WeightCalculatorAlgorithm {
 		Polytree polytree;
 
-		Long calculateWeight(Tripartition trip) {
-			return this.WQWeightByTraversal(trip);
+		@Override
+		Long[] calculateWeight(Tripartition[] trip) {
+			return polytree.WQWeightByTraversal(trip);
 		}
 		
-		public Long WQWeightByTraversal(Tripartition trip){
-
-			if (trip == null)
-			{
-				System.err.println("why here?");
-			}
-			if (trip.cluster1 == trip.cluster2) return polytree.computeUpperbound(trip.cluster1.getBitSet());
-			long t = System.nanoTime();
-			BitSet[] b = new BitSet[]{trip.cluster1.getBitSet(), trip.cluster2.getBitSet(), trip.cluster3.getBitSet()};
-			return polytree.WQWeightByTraversal(b);
-
+		@Override
+		Long calculateWeight(Tripartition t) {
+			return polytree.WQWeightByTraversal(t);
 		}
 
 		/***
@@ -110,6 +103,8 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 			System.err.println("Using polytree-based weight calculation.");
 			polytree = new Polytree(inference.trees, dataCollection);
 		}
+
+
 	}
 
 
