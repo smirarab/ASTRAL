@@ -33,9 +33,9 @@ public abstract class AbstractWeightCalculatorTask<T> {
 		return super.clone();
 	}
 	
-	protected abstract Long calculateWeight(T t, AbstractComputeMinCostTask<T> minCostTask);
+	protected abstract Long calculateWeight(T t);
 
 	public abstract void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees);
 
-	public abstract  Long getWeight(T t, AbstractComputeMinCostTask<T> minCostTask);
+	public abstract  Long getWeight(T t);
 }
