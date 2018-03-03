@@ -49,7 +49,7 @@ public class TurnTaskToScores implements Runnable {
 	int positionOut = 0;
 	int positionIn = 0;
 	public LinkedBlockingQueue<Tripartition> queue1;
-	public AbstractInference inference;
+	public AbstractInference<Tripartition> inference;
 	public long[] all;
 	public long timer3;
 	public int tripCounter = 0;
@@ -63,7 +63,7 @@ public class TurnTaskToScores implements Runnable {
 	public boolean noGPU = false;
 	public Object gpuLock = new Object();
 
-	public TurnTaskToScores(AbstractInference inf, LinkedBlockingQueue<Tripartition> queue1,
+	public TurnTaskToScores(AbstractInference<Tripartition> inf, LinkedBlockingQueue<Tripartition> queue1,
 			LinkedBlockingQueue<Long> queue2, int[] geneTreeAsInts, long[] all, int speciesWordLength,
 			cl_device_id[] devices, cl_context context, cl_context_properties contextProperties) {
 		this.inference = inf;
@@ -112,7 +112,7 @@ public class TurnTaskToScores implements Runnable {
 				tripsForCPULabel[tripsForCPUCounter] = positionIn++;
 				tripsForCPU[tripsForCPUCounter++] = task;
 				if (tripsForCPUCounter == cpuChunkSize) {
-					CommandLine.eService.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel));
+					CommandLine.eService.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel,this.inference.weightCalculator));
 					tripsForCPU = new Tripartition[cpuChunkSize];
 					tripsForCPULabel = new int[cpuChunkSize];
 					tripsForCPUCounter = 0;
@@ -121,7 +121,7 @@ public class TurnTaskToScores implements Runnable {
 				tripsForCPULabel[tripsForCPUCounter] = positionIn++;
 				tripsForCPU[tripsForCPUCounter++] = task;
 				if (tripsForCPUCounter == cpuChunkSize) {
-					CommandLine.eService.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel));
+					CommandLine.eService.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel,this.inference.weightCalculator));
 					tripsForCPU = new Tripartition[cpuChunkSize];
 					tripsForCPULabel = new int[cpuChunkSize];
 					tripsForCPUCounter = 0;
@@ -190,11 +190,11 @@ public class TurnTaskToScores implements Runnable {
 			gpu.compute(tripCounter, currentGPU);
 		}
 		if (tripsForCPUCounter != 0) {
-			CommandLine.eService.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel, tripsForCPUCounter));
+			CommandLine.eService.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel, tripsForCPUCounter, this.inference.weightCalculator));
 		}
 
 		try {
-			queue2Helper.offer(new ComparablePair(-23L, positionIn++)); // random
+			queue2Helper.offer(new ComparablePair<Long, Integer>(-23L, positionIn++)); // random
 																		// specific
 																		// number
 																		// used
@@ -236,6 +236,7 @@ public class TurnTaskToScores implements Runnable {
 			CommandLine.logTimeMessage("Time used to wait on queue1.take() with at least one gpu available: "
 					+ (double) (timeWait) / 1000000000+"\nTurnTaskToScores:199: "
 					+ (double) (System.nanoTime() - CommandLine.timer) / 1000000000);
+
 	}
 
 	public class GPUCall {
@@ -254,7 +255,7 @@ public class TurnTaskToScores implements Runnable {
 		public long[] allArray;
 		public short[] stack;
 		public long[] profile;
-		public AbstractInference inference;
+		public AbstractInference<Tripartition> inference;
 
 		public boolean p;
 
@@ -270,7 +271,7 @@ public class TurnTaskToScores implements Runnable {
 		private cl_command_queue[] commandQueues;
 		private cl_device_id[] devices;
 
-		public GPUCall(int[] geneTreesAsInts, long[] all, AbstractInference inference, boolean p,
+		public GPUCall(int[] geneTreesAsInts, long[] all, AbstractInference<Tripartition> inference, boolean p,
 				cl_device_id[] devices, cl_context context, cl_context_properties contextProperties) {
 			this.p = p;
 			this.geneTreesAsInts = geneTreesAsInts;
@@ -419,7 +420,7 @@ public class TurnTaskToScores implements Runnable {
 							null, null);
 					for (int i = 0; i < workSize; i++) {
 						queue2Helper.offer(
-								new ComparablePair(weightArray[deviceIndex][i], label[labelIndex][deviceIndex][i]));
+								new ComparablePair<Long, Integer>(weightArray[deviceIndex][i], label[labelIndex][deviceIndex][i]));
 						// System.out.println("I have been here!" +
 						// queue2Helper.peek().value + " " + positionOut);
 
@@ -461,127 +462,33 @@ public class TurnTaskToScores implements Runnable {
 		Tripartition[] trips;
 		int[] positions;
 		int numRuns = cpuChunkSize;
+		AbstractWeightCalculatorTask<Tripartition> wqWeightCalculator;
 
-		CPUCalculationThread(Tripartition[] trips, int[] positions) {
+		CPUCalculationThread(Tripartition[] trips, int[] positions, AbstractWeightCalculatorTask<Tripartition> weightCalculator) {
 			this.trips = trips;
 			this.positions = positions;
+			this.wqWeightCalculator = weightCalculator;
 		}
 
-		CPUCalculationThread(Tripartition[] trips, int[] positions, int numRuns) {
+		CPUCalculationThread(Tripartition[] trips, int[] positions, int numRuns, AbstractWeightCalculatorTask<Tripartition> weightCalculator) {
 			this.trips = trips;
 			this.positions = positions;
 			this.numRuns = numRuns;
-		}
-
-		long F(long a, long b, long c) {
-			if (a < 0 || b < 0 || c < 0) {
-				throw new RuntimeException("negative side not expected: " + a + " " + b + " " + c);
-			}
-			long ret = (a + b + c - 3);
-			ret *= a * b * c;
-			return ret;
+			this.wqWeightCalculator = weightCalculator;
 		}
 
 		public void run(){
 
 			threadCount.incrementAndGet();
-			int[] allsides = null;
 			long[] weights = new long[numRuns];
 			for(int ii = 0; ii < numRuns; ii++) {
-				Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
 				Tripartition trip = trips[ii];
-				boolean newTree = true;
-				int top = 0; // The first empty place on stack (generally)
-				for (Integer gtb : geneTreesAsInts) {
-					if (newTree) {
-						STITreeCluster all = tit.next();
-						allsides = new int[] {
-								trip.cluster1.getBitSet().intersectionSize(all.getBitSet()),
-								trip.cluster2.getBitSet().intersectionSize(all.getBitSet()),
-								trip.cluster3.getBitSet().intersectionSize(all.getBitSet())};
-						newTree = false;
-					}
-					if (gtb >= 0) { // Leaf nodes
-						if (trip.cluster1.getBitSet().get(gtb)) {
-							stack[top][0] = 1;
-							stack[top][1] = 0;
-							stack[top][2] = 0;
-						} else if (trip.cluster2.getBitSet().get(gtb)) {
-							stack[top][0] = 0;
-							stack[top][1] = 1;
-							stack[top][2] = 0;
-						} else if (trip.cluster3.getBitSet().get(gtb)) {
-							stack[top][0] = 0;
-							stack[top][1] = 0;
-							stack[top][2] = 1;
-						} else { // This can happen due to missing data
-							stack[top][0] = 0;
-							stack[top][1] = 0;
-							stack[top][2] = 0;
-						}
-						top++;
-					} else if (gtb == Integer.MIN_VALUE) { // delimiter between trees
-						top = 0;
-						newTree = true;
-					} else if (gtb == -2) { // Internal nodes
-		
-						top--;
-						int newSides0 = stack[top][0] + stack[top - 1][0];
-						int newSides1 = stack[top][1] + stack[top - 1][1];
-						int newSides2 = stack[top][2] + stack[top - 1][2];
-		
-						int side3s0 = allsides[0] - newSides0;
-						int side3s1 = allsides[1] - newSides1;
-						int side3s2 = allsides[2] - newSides2;
-		
-						weights[ii] += F(stack[top][0], stack[top - 1][1], side3s2)
-								+ F(stack[top][0], stack[top - 1][2], side3s1)
-								+ F(stack[top][1], stack[top - 1][0], side3s2)
-								+ F(stack[top][1], stack[top - 1][2], side3s0)
-								+ F(stack[top][2], stack[top - 1][0], side3s1)
-								+ F(stack[top][2], stack[top - 1][1], side3s0);
-		
-						stack[top - 1][0] = newSides0;
-						stack[top - 1][1] = newSides1;
-						stack[top - 1][2] = newSides2;
-					} else { // The following case is relevant only for polytomies.
-						int[] sxy = new int[3];
-						long tempWeight = 0;
-
-                        int[] newSides = new int[3];
-
-                        for(int side = 0; side < 3; side++) {
-                                stack[top][side] = allsides[side];
-                                for(int i = top - 1; i>= top + gtb; i--) {
-                                        stack[top][side] -= stack[i][side];
-                                }
-                        }
-                        for(int i = top; i>= top + gtb; i--) {
-                        	for(int side = 0; side < 3; side++) {
-                                newSides[side] = stack[i][side];
-                            }
-                            sxy[0] += newSides[1] * newSides[2];
-                            sxy[1] += newSides[0] * newSides[2];
-                            sxy[2] += newSides[0] * newSides[1];
-                        }
-                        for(int i = top; i >= top + gtb; i--) {
-                            for(int side = 0; side < 3; side++) {
-                                newSides[side] = stack[i][side];
-                            }
-                            tempWeight += ((allsides[1] - newSides[1]) * (allsides[2] - newSides[2]) - sxy[0] + newSides[1] * newSides[2]) * newSides[0] * (newSides[0] - 1) +
-                                            ((allsides[0] - newSides[0]) * (allsides[2] - newSides[2]) - sxy[1] + newSides[0] * newSides[2]) * newSides[1] * (newSides[1] - 1) +
-                                            ((allsides[0] - newSides[0]) * (allsides[1] - newSides[1]) - sxy[2] + newSides[0] * newSides[1]) * newSides[2] * (newSides[2] - 1);
-                        }
-
-                        for(int side = 0; side < 3; side++) {
-                            stack[top + gtb][side] = allsides[side] - stack[top][side];
-                        }
-                        weights[ii] += tempWeight;
-                        top = top + gtb + 1;
-		
-					} // End of polytomy section
-		
+				if (this.wqWeightCalculator == null) {
+					System.err.println("wait, what?");
 				}
+				
+				Long w = this.wqWeightCalculator.calculateWeight(trip);
+				weights[ii] = w;
 				
 			}
 			for(int i = 0; i < numRuns; i++) {
@@ -600,6 +507,7 @@ public class TurnTaskToScores implements Runnable {
 			threadCount.decrementAndGet();
 
 		}
+
 
 	}
 }
