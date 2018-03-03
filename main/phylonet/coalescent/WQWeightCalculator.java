@@ -462,8 +462,7 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 	}
 	
 	@Override
-	protected Long calculateWeight(Tripartition t,
-			AbstractComputeMinCostTask minCostTask) {
+	protected Long calculateWeight(Tripartition t) {
 		return this.algorithm.calculateWeight(t);
 	}
 
