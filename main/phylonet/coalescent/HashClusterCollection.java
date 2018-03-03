@@ -55,7 +55,7 @@ public class HashClusterCollection extends AbstractClusterCollection {
 					
 					for (int k = b.nextSetBit(0); k >= 0; k = b.nextSetBit(k + 1)) {
 							h1 += hash1[k];
-							h2 ^= hash2[k];
+							h2 += hash2[k];
 					}
 					if (h1ToVertexMap.containsKey(h1)) {
 						succeed = false;
@@ -94,9 +94,9 @@ public class HashClusterCollection extends AbstractClusterCollection {
 			for (Vertex v1 : small) {
 				Vertex v2 = h1ToVertexMap.get(v.hash1 - v1.hash1);
 				if (v2 != null) {
-					if (v.hash2 == (v1.hash2 ^ v2.hash2)
+					if (v.hash2 == (v1.hash2 + v2.hash2)
 						&& v.clusterSize == v1.clusterSize + v2.clusterSize) {
-						if (v1.clusterSize != v2.clusterSize || v1.hash1 < v2.hash1) {
+						if (v1.clusterSize != v2.clusterSize || v1.hash1 < v2.hash1) { // To avoid a pair of the same size twice
 							VertexPair bi = new VertexPair(v1, v2, v);
 							ret.add(bi);
 						}
