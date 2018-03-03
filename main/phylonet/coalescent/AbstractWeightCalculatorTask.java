@@ -1,5 +1,6 @@
 package phylonet.coalescent;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
@@ -33,7 +34,7 @@ public abstract class AbstractWeightCalculatorTask<T> {
 		return super.clone();
 	}
 	
-	protected abstract Long calculateWeight(T t);
+	protected abstract Long[] calculateWeight(T[] t);
 
 	public abstract void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees);
 
