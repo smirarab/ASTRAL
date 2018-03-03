@@ -18,7 +18,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.Iterator;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -33,8 +34,6 @@ import org.jocl.cl_device_id;
 import org.jocl.cl_kernel;
 import org.jocl.cl_mem;
 import org.jocl.cl_program;
-
-import phylonet.tree.model.sti.STITreeCluster;
 
 public class TurnTaskToScores implements Runnable {
 	public static final long workGroupSize = 1L << 13;
@@ -462,35 +461,28 @@ public class TurnTaskToScores implements Runnable {
 		Tripartition[] trips;
 		int[] positions;
 		int numRuns = cpuChunkSize;
+		Collection<Tripartition> nulls = Arrays.asList(new Tripartition[]{null});
 		AbstractWeightCalculatorTask<Tripartition> wqWeightCalculator;
 
-		CPUCalculationThread(Tripartition[] trips, int[] positions, AbstractWeightCalculatorTask<Tripartition> weightCalculator) {
+		CPUCalculationThread(Tripartition [] trips, int[] positions, AbstractWeightCalculatorTask<Tripartition> weightCalculator) {
 			this.trips = trips;
 			this.positions = positions;
 			this.wqWeightCalculator = weightCalculator;
 		}
 
-		CPUCalculationThread(Tripartition[] trips, int[] positions, int numRuns, AbstractWeightCalculatorTask<Tripartition> weightCalculator) {
-			this.trips = trips;
+		CPUCalculationThread(Tripartition [] trips, int[] positions, int numRuns, AbstractWeightCalculatorTask<Tripartition> weightCalculator) {
+
 			this.positions = positions;
 			this.numRuns = numRuns;
+			this.trips = Arrays.copyOf(trips,numRuns);
 			this.wqWeightCalculator = weightCalculator;
 		}
 
 		public void run(){
 
 			threadCount.incrementAndGet();
-			long[] weights = new long[numRuns];
-			for(int ii = 0; ii < numRuns; ii++) {
-				Tripartition trip = trips[ii];
-				if (this.wqWeightCalculator == null) {
-					System.err.println("wait, what?");
-				}
+			Long[] weights = this.wqWeightCalculator.calculateWeight(trips);
 				
-				Long w = this.wqWeightCalculator.calculateWeight(trip);
-				weights[ii] = w;
-				
-			}
 			for(int i = 0; i < numRuns; i++) {
 				queue2Helper.add(new ComparablePair<Long, Integer>(weights[i], positions[i]));
 			}

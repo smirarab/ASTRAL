@@ -1,5 +1,8 @@
 package phylonet.coalescent;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -17,8 +20,13 @@ class WQWeightCalculatorProducer extends AbstractWeightCalculatorProducer<Tripar
 	}
 
 	@Override
-	protected Long calculateWeight(Tripartition t) {
-		return 0l;
+	protected Long[] calculateWeight(Tripartition[] t) {
+		Long[] ret = new Long[t.length];
+		for (int i = 0; i < ret.length; i++) {
+			ret[i] = 0l;
+		}
+		return ret;
+		
 	}
 
 }

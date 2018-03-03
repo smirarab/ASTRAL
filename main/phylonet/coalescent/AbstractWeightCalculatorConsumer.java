@@ -1,5 +1,7 @@
 package phylonet.coalescent;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeightCalculatorTask<T> implements Cloneable {
@@ -20,9 +22,8 @@ public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeight
 		if (weight == null) {
 
 
-			if(done) {
-				
-				weight =  calculateWeight(t);
+			if(done) {				
+				weight =  calculateWeight(convertToSingletonArray(t))[0];
 				int count;
 				if (save ) {
 					weights.put(t, weight);
@@ -46,7 +47,7 @@ public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeight
 				}
 				if(weight == -23) {//random number from CommandLine used as a "poison pill"
 					done = true;
-					weight =  calculateWeight(t);
+					weight =  calculateWeight(convertToSingletonArray(t))[0];
 					int count;
 					if (save ) {
 						weights.put(t, weight);
@@ -81,6 +82,8 @@ public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeight
 		return weight;
 
 	}
+
+	abstract T[] convertToSingletonArray(T t);
 	
 	
 }
