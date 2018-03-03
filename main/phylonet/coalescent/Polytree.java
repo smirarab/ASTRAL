@@ -198,7 +198,8 @@ public class Polytree {
 			}
 			catch (Throwable e) {
 				useNativeMethod = false;
-				System.err.println("Fail to load native library; use Java default computing method.");
+				e.printStackTrace(); 
+				System.err.println("Fail to load native library "+System.mapLibraryName("Astral")+"; use Java default computing method.");
 			}
 		}
 		private static native void cppInit(int n, int listSize, int[] q, long[][] c);
@@ -276,7 +277,7 @@ public class Polytree {
 		queueBuilder = null;
 
 		STITreeCluster c = (new STITreeCluster(GlobalMaps.taxonIdentifier)).complementaryCluster();
-		maxScore = WQWeightByTraversal(new Tripartition(c, c, c, false), null);
+		maxScore = computeUpperbound(c.getBitSet());
 		System.err.println("Polytree max score: " + maxScore / 4);
 		System.err.println("Polytree building time: " + (System.currentTimeMillis() - t) / 1000.0D + " seconds.");
 		
@@ -309,12 +310,6 @@ public class Polytree {
 		}
 	}
 
-	public Long WQWeightByTraversal(Tripartition trip, CondensedTraversalWeightCalculator algorithm){
-		if (trip.cluster1 == trip.cluster2) return computeUpperbound(trip.cluster1.getBitSet());
-		long t = System.nanoTime();
-		BitSet[] b = new BitSet[]{trip.cluster1.getBitSet(), trip.cluster2.getBitSet(), trip.cluster3.getBitSet()};
-		return WQWeightByTraversal(b);
-	}
 	
 	public Long WQWeightByTraversal(BitSet[] b){
 		int[][] stack, list;

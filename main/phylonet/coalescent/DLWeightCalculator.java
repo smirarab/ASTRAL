@@ -153,6 +153,15 @@ class DLWeightCalculator extends AbstractWeightCalculatorConsumer<STBipartition>
 	
 	
 	@Override
+	protected Long[] calculateWeight(STBipartition[] stbs) {
+		Long[] ret = new Long[stbs.length];
+		int i = 0;
+		for (STBipartition stb: stbs) {
+			ret[i++] = calculateWeight(stb);
+		}
+		return ret;
+	}
+
 	protected Long calculateWeight(STBipartition stb) {
 		DLClusterCollection containedClusterCollection = null;
 			// System.err.print("Calculating weight for: " + biggerSTB);
@@ -179,5 +188,8 @@ class DLWeightCalculator extends AbstractWeightCalculatorConsumer<STBipartition>
 			// System.err.println("Weight of " + biggerSTB + " is " + weight);
 			return weight;
 		}
-
+	 @Override
+	 STBipartition[] convertToSingletonArray(STBipartition t) {
+		    return new STBipartition[]{t};
+	 }
 }
