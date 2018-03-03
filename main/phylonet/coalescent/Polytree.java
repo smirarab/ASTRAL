@@ -186,57 +186,33 @@ public class Polytree {
 	}
 	
 	public static final class PTNative{
-		private static boolean useNativeMethod = false;
 		private static final int batchSize = 32;
-		private static Polytree pt = null;
 		
-		static {
-			try {
-				System.loadLibrary("Astral");
-				System.err.println("Using native AVX batch computing method.");
-				useNativeMethod = true;
-			}
-			catch (Throwable e) {
-				useNativeMethod = false;
-				e.printStackTrace(); 
-				System.err.println("Fail to load native library "+System.mapLibraryName("Astral")+"; use Java default computing method.");
-			}
-		}
+
 		private static native void cppInit(int n, int listSize, int[] q, long[][] c);
-		//private static native long cppCompute(long[] a, long[] b, long[] c);
 		private static native void cppBatchCompute(long[] result, long[][] a, long[][] b, long[][] c);
-		public static void compute(ArrayList<VertexPair> todolist) {
-			System.err.println("number of jobs: " + todolist.size());
+
+		public static Long[] compute(Tripartition[] todolist) {
+			Long []  ret = new Long[todolist.length];
 			long t = System.nanoTime();
-			if (!useNativeMethod) {
-				for (VertexPair p: todolist) {
-					BitSet[] b = {
-						p.cluster1.getCluster().getBitSet(),
-						p.cluster2.getCluster().getBitSet(),
-						p.both.getCluster().complementaryCluster().getBitSet()
-					};
-					p.weight = pt.WQWeightByTraversal(b);
-				}
-				Polytree.time += System.nanoTime() - t;
-				return;
-			}
-			for (int i = 0; i < todolist.size(); i += batchSize) {
-				int size = (todolist.size() - i > batchSize) ? batchSize : todolist.size() - i;
+			for (int i = 0; i < todolist.length; i += batchSize) {
+				int size = (todolist.length - i > batchSize) ? batchSize : todolist.length - i;
 				long[] result = new long[size];
 				long[][] a = new long[size][];
 				long[][] b = new long[size][];
 				long[][] c = new long[size][];
 				for (int j = 0; j < size; j++) {
-					a[j] = todolist.get(i + j).cluster1.getCluster().getBitSet().getArray();
-					b[j] = todolist.get(i + j).cluster2.getCluster().getBitSet().getArray();
-					c[j] = todolist.get(i + j).both.getCluster().complementaryCluster().getBitSet().getArray();
+					a[j] = todolist[(i + j)].cluster1.getBitSet().getArray();
+					b[j] = todolist[(i + j)].cluster2.getBitSet().getArray();
+					c[j] = todolist[(i + j)].cluster3.getBitSet().getArray();
 				}
 				cppBatchCompute(result, a, b, c);
 				for (int j = 0; j < size; j++) {
-					todolist.get(i + j).weight = result[j];
+					ret[i+j] = result[j];
 				}
 			}
 			Polytree.time += System.nanoTime() - t;
+			return ret;
 		}
 	}
 	
@@ -248,9 +224,10 @@ public class Polytree {
 	int[] queue;
 	int listSize = 0;
 	long maxScore = 0;
+	private boolean useNativeMethod;
 	
 	public Polytree(List<Tree> trees, WQDataCollection dataCollection){
-		PTNative.pt = this;
+		
 		this.dataCollection = dataCollection;
 		long t = System.currentTimeMillis();
 		for (int i = 0; i < GlobalMaps.taxonIdentifier.taxonCount(); i++){
@@ -281,7 +258,18 @@ public class Polytree {
 		System.err.println("Polytree max score: " + maxScore / 4);
 		System.err.println("Polytree building time: " + (System.currentTimeMillis() - t) / 1000.0D + " seconds.");
 		
-		if (PTNative.useNativeMethod) {
+		try {
+			System.loadLibrary("Astral");
+			System.err.println("Using native AVX batch computing method.");
+			useNativeMethod = true;
+		}
+		catch (Throwable e) {
+			useNativeMethod = false;
+			e.printStackTrace(); 
+			System.err.println("Fail to load native library "+System.mapLibraryName("Astral")+"; use Java default computing method.");
+		}
+		
+		if (useNativeMethod) {
 			int m = trees.size();
 			long b[][] = new long[m][];
 			Iterator<STITreeCluster> ti = dataCollection.treeAllClusters.iterator();
@@ -310,6 +298,31 @@ public class Polytree {
 		}
 	}
 
+	public Long[] WQWeightByTraversal(Tripartition[] trips){
+		if (!useNativeMethod) {
+			Long[] ret = new Long[trips.length];
+			int i = 0;
+			for (Tripartition trip: trips) {
+				ret[i++] = this.WQWeightByTraversal(trip);
+			}
+			return ret;
+		} else {
+			return PTNative.compute(trips);
+		}
+		
+	}
+	public Long WQWeightByTraversal(Tripartition trip){
+
+		if (trip == null)
+		{
+			System.err.println("why here?");
+		}
+		if (trip.cluster1 == trip.cluster2) return this.computeUpperbound(trip.cluster1.getBitSet());
+		long t = System.nanoTime();
+		BitSet[] b = new BitSet[]{trip.cluster1.getBitSet(), trip.cluster2.getBitSet(), trip.cluster3.getBitSet()};
+		return this.WQWeightByTraversal(b);
+
+	}
 	
 	public Long WQWeightByTraversal(BitSet[] b){
 		int[][] stack, list;
