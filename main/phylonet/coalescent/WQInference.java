@@ -3,7 +3,6 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
@@ -209,7 +208,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 					for (int j = i+1; j < childbslist.size(); j++) {
 						for (int k = j+1; k < childbslist.size(); k++) {
 							Tripartition trip = new Tripartition(childbslist.get(i),  childbslist.get(j), childbslist.get(k));
-							Long s = weightCalculator.getWeight(trip, null);
+							Long s = weightCalculator.getWeight(trip);
 							sum += s;
 						}
 					}					       
