@@ -202,7 +202,7 @@ public class Polytree {
 			}
 		}
 		private static native void cppInit(int n, int listSize, int[] q, long[][] c);
-		private static native long cppCompute(long[] a, long[] b, long[] c);
+		//private static native long cppCompute(long[] a, long[] b, long[] c);
 		private static native void cppBatchCompute(long[] result, long[][] a, long[][] b, long[][] c);
 		public static void compute(ArrayList<VertexPair> todolist) {
 			System.err.println("number of jobs: " + todolist.size());
@@ -244,11 +244,8 @@ public class Polytree {
 	HashMap<AbstractPartition, PTPartition> partitions = new HashMap<AbstractPartition, PTPartition>();
 	ArrayList<PTNode> nodeRoots = new ArrayList<PTNode>();
 	ArrayList<Integer> queueBuilder = new ArrayList<Integer>();
-	int[][] stack, list;
 	int[] queue;
 	int listSize = 0;
-	long[] sx = new long[3], sxy = new long[3];
-	int[] treeTotal = new int[3];
 	long maxScore = 0;
 	
 	public Polytree(List<Tree> trees, WQDataCollection dataCollection){
@@ -272,8 +269,7 @@ public class Polytree {
 			n.buildQueue();
 		}
 		
-		stack = new int[GlobalMaps.taxonIdentifier.taxonCount() + 1][3];
-		list = new int[listSize][3];
+
 		queue = mapToInt(queueBuilder);
 		clusters = null;
 		partitions = null;
@@ -321,6 +317,11 @@ public class Polytree {
 	}
 	
 	public Long WQWeightByTraversal(BitSet[] b){
+		int[][] stack, list;
+		stack = new int[GlobalMaps.taxonIdentifier.taxonCount() + 1][3];
+		list = new int[listSize][3];
+		int[] treeTotal = new int[3];
+		long[] sx = new long[3], sxy = new long[3];
 		long weight = 0;
 		int stackEnd = 0, listEnd = GlobalMaps.taxonIdentifier.taxonCount();
 		Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
@@ -402,10 +403,16 @@ public class Polytree {
 				q[2] = p[2];
 			}
 		}
+		//System.err.println(weight);
 		return weight;
 	}
 	
 	public Long computeUpperbound(BitSet b){
+		int[][] stack, list;
+		stack = new int[GlobalMaps.taxonIdentifier.taxonCount() + 1][3];
+		list = new int[listSize][3];
+		int[] treeTotal = new int[3];
+		long[] sx = new long[3], sxy = new long[3];
 		long weight = 0;
 		int stackEnd = 0, listEnd = GlobalMaps.taxonIdentifier.taxonCount();
 		Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();

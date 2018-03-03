@@ -14,7 +14,7 @@ public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeight
 		this.lastTime = System.currentTimeMillis();
 	}
 	
-	public Long getWeight(T t, AbstractComputeMinCostTask<T> minCostTask) {
+	public Long getWeight(T t) {
 		this.callcounter ++;
 		Long weight = getCalculatedWeight(t);
 		if (weight == null) {
@@ -22,7 +22,7 @@ public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeight
 
 			if(done) {
 				
-				weight =  calculateWeight(t, minCostTask);
+				weight =  calculateWeight(t);
 				int count;
 				if (save ) {
 					weights.put(t, weight);
@@ -46,7 +46,7 @@ public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeight
 				}
 				if(weight == -23) {//random number from CommandLine used as a "poison pill"
 					done = true;
-					weight =  calculateWeight(t, minCostTask);
+					weight =  calculateWeight(t);
 					int count;
 					if (save ) {
 						weights.put(t, weight);
