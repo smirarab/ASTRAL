@@ -2,6 +2,7 @@ package phylonet.coalescent;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
@@ -351,9 +352,14 @@ class BipartitionWeightCalculator extends AbstractWeightCalculatorConsumer<Tripa
 	}
 	
 	@Override
-	protected Long calculateWeight(Tripartition t) {
+	protected Long[] calculateWeight(Tripartition[] t) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	Tripartition[] convertToSingletonArray(Tripartition t) {
+		return new Tripartition[]{t};
 	}
 
 }
