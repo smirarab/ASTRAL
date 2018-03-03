@@ -2,6 +2,7 @@ package phylonet.coalescent;
 
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -59,8 +60,17 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 			return ret;
 		}
 
-		abstract Long calculateWeight(Tripartition trip);
+		abstract Long calculateWeight(Tripartition t);
 		abstract void setupGeneTrees(WQInference inference);
+		
+		Long[] calculateWeight(Tripartition [] trips) {
+			int r = 0;
+			Long [] rets = new Long[trips.length];
+			for (Tripartition trip: trips) {
+				rets[r++] = calculateWeight(trip);
+			}
+			return rets;
+		}
 	}
 
 	/**
@@ -73,7 +83,20 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 		Polytree polytree;
 
 		Long calculateWeight(Tripartition trip) {
-			return polytree.WQWeightByTraversal(trip, this);
+			return this.WQWeightByTraversal(trip);
+		}
+		
+		public Long WQWeightByTraversal(Tripartition trip){
+
+			if (trip == null)
+			{
+				System.err.println("why here?");
+			}
+			if (trip.cluster1 == trip.cluster2) return polytree.computeUpperbound(trip.cluster1.getBitSet());
+			long t = System.nanoTime();
+			BitSet[] b = new BitSet[]{trip.cluster1.getBitSet(), trip.cluster2.getBitSet(), trip.cluster3.getBitSet()};
+			return polytree.WQWeightByTraversal(b);
+
 		}
 
 		/***
@@ -106,6 +129,7 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 
 		public int maxHeight;
 
+		
 		Long calculateWeight(Tripartition trip) {
 
 			long weight = 0;
@@ -311,13 +335,13 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 		int [] finalCounts = null;
 
 		Long calculateWeight(Tripartition trip) {
-			long weight = 0l;
-			for (int i = 0; i < this.finalCounts.length; i++) {
-				weight += sharedQuartetCount(trip,
-						this.finalTripartitions[i])
-						* this.finalCounts[i];
-			}
-			return weight;
+				long weight = 0l;
+				for (int i = 0; i < this.finalCounts.length; i++) {
+					weight += sharedQuartetCount(trip,
+							this.finalTripartitions[i])
+							* this.finalCounts[i];
+				}
+				return weight;
 		}
 
 
@@ -462,8 +486,13 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 	}
 	
 	@Override
-	protected Long calculateWeight(Tripartition t) {
+	protected Long[] calculateWeight(Tripartition[] t) {
 		return this.algorithm.calculateWeight(t);
+	}
+
+	@Override
+	Tripartition[] convertToSingletonArray(Tripartition t) {
+		return new Tripartition[]{t};
 	}
 
 
