@@ -351,8 +351,7 @@ class BipartitionWeightCalculator extends AbstractWeightCalculatorConsumer<Tripa
 	}
 	
 	@Override
-	protected Long calculateWeight(Tripartition t,
-			AbstractComputeMinCostTask<Tripartition> minCostTask) {
+	protected Long calculateWeight(Tripartition t) {
 		// TODO Auto-generated method stub
 		return null;
 	}
