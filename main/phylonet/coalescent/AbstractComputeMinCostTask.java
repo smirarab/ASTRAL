@@ -125,7 +125,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 	
 				if (weight == null) {
 					T t = STB2T(bi);					
-					weight =  inference.weightCalculator.getWeight(t, this);
+					weight =  inference.weightCalculator.getWeight(t);
 					//System.out.print(weight/Integer.MAX_VALUE);
 				}					
 	
