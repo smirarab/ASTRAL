@@ -10,7 +10,7 @@ public abstract class AbstractWeightCalculatorProducer<T> extends AbstractWeight
 	}
 
 	@Override
-	public Long getWeight(T t, AbstractComputeMinCostTask<T> minCostTask) {
+	public Long getWeight(T t) {
 		this.callcounter ++;
 			
 			try {
