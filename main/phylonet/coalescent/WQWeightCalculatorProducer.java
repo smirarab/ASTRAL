@@ -17,7 +17,7 @@ class WQWeightCalculatorProducer extends AbstractWeightCalculatorProducer<Tripar
 	}
 
 	@Override
-	protected Long calculateWeight(Tripartition t, AbstractComputeMinCostTask<Tripartition> minCostTask) {
+	protected Long calculateWeight(Tripartition t) {
 		return 0l;
 	}
 
