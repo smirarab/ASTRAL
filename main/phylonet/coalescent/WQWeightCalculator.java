@@ -44,6 +44,7 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 			//this.algorithm = new TraversalWeightCalculator();
 			this.algorithm = new CondensedTraversalWeightCalculator();
 			tmpalgorithm = new TraversalWeightCalculator();
+			System.err.println("Using polytree-based weight calculation.");
 			//tmpalgorithm.setupGeneTrees((WQInference) inference);
 		}
 
@@ -100,7 +101,7 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 		 */
 		@Override
 		void setupGeneTrees(WQInference inference) {
-			System.err.println("Using polytree-based weight calculation.");
+			//System.err.println("Using polytree-based weight calculation.");
 			polytree = new Polytree(inference.trees, dataCollection);
 		}
 
@@ -235,7 +236,7 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 		 */
 		@Override
 		void setupGeneTrees(WQInference inference) {
-			System.err.println("Using tree-based weight calculation.");
+			//System.err.println("Using tree-based weight calculation.");
 			List<Integer> temp = new ArrayList<Integer>(); 
 
 			Stack<Integer> stackHeight = new Stack<Integer>();
@@ -412,7 +413,7 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 
 			}
 
-			System.err.println("Using tripartition-based weight calculation.");
+			//System.err.println("Using tripartition-based weight calculation.");
 
 			finalTripartitions = new Tripartition[geneTreeTripartitonCount.size()];
 			finalCounts = new int[geneTreeTripartitonCount.size()];
