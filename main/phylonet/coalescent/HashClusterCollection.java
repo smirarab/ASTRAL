@@ -36,7 +36,7 @@ public class HashClusterCollection extends AbstractClusterCollection {
 	}
 	
 	public void preComputeHashValues() {
-		System.err.println("Computing hash values ...");
+		long t = System.currentTimeMillis();
 		Random rnd = GlobalMaps.random;
 		int n = GlobalMaps.taxonIdentifier.taxonCount();
 		long[] hash1 = new long[n], hash2 = new long[n];
@@ -69,7 +69,7 @@ public class HashClusterCollection extends AbstractClusterCollection {
 				if (!succeed) break;
 			}
 		}
-		System.err.println("Done computing hash values ...");
+		System.err.println("Computing hash values took "+((System.currentTimeMillis()-t)/100)+" seconds");
 	}
 
 
