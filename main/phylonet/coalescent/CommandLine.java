@@ -608,9 +608,6 @@ public class CommandLine {
 			runInference(config, criterion, rooted, extrarooted, 
 					mainTrees, outbuffer, bootstrapInputSets,  options, outgroup);
 		}
-		// TODO: debug info
-		System.err.println("Weight calculation took " + Polytree.time / 1000000000.0D + " secs");
-
 		System.err.println("ASTRAL finished in " + (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 	}
 
@@ -785,6 +782,7 @@ public class CommandLine {
 		CommandLine.logTimeMessage(" CommandLine 667: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
 			
 		System.err.println("Optimal tree inferred in " + (System.currentTimeMillis() - startTime) / 1000.0D + " secs.");
+		System.err.println("Weight calculation cumulatively took" + Polytree.time / 1000000000.0D + " secs");
 
 		Tree st = processSolution(outbuffer, bootstraps, outgroup, inference, solutions);
 
