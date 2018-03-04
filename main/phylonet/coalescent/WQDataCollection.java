@@ -771,6 +771,7 @@ implements Cloneable {
 				}
 			}
 		}
+		System.err.println("Number of Clusters after addition by greedy: "+clusters.getClusterCount());
 		CommandLine.logTimeMessage(" WQDataCollection 760-763: "
 				+ (double) (System.nanoTime() - CommandLine.timer)
 				/ 1000000000);
@@ -1053,7 +1054,7 @@ implements Cloneable {
 					continue;
 				}
 
-				System.err.println("Queued: " + "polytomy of size " + greedyNode.getChildCount());
+				//System.err.println("Queued: " + "polytomy of size " + greedyNode.getChildCount());
 
 				stringOutput.add(CommandLine.eService
 						.submit(new addExtraBipartitionByHeuristicsLoop(
