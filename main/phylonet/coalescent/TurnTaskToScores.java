@@ -72,7 +72,7 @@ public class TurnTaskToScores implements Runnable {
 		queue2Helper = new PriorityBlockingQueue<ComparablePair<Long, Integer>>();
 		this.all = all;
 		this.speciesWordLength = speciesWordLength;
-		System.err.println("global work group size is : " + workGroupSize);
+		//System.err.println("global work group size is : " + workGroupSize);
 		if (devices == null || devices.length == 0)
 			noGPU = true;
 		else {
