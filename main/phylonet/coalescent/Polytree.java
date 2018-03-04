@@ -190,28 +190,6 @@ public class Polytree {
 		private static native void cppInit(int n, int listSize, int[] q, long[][] c);
 		private static native void cppBatchCompute(long[] result, long[][] a, long[][] b, long[][] c);
 
-		public static Long[] compute(Tripartition[] todolist) {
-			Long []  ret = new Long[todolist.length];
-			long t = System.nanoTime();
-			for (int i = 0; i < todolist.length; i += batchSize) {
-				int size = (todolist.length - i > batchSize) ? batchSize : todolist.length - i;
-				long[] result = new long[size];
-				long[][] a = new long[size][];
-				long[][] b = new long[size][];
-				long[][] c = new long[size][];
-				for (int j = 0; j < size; j++) {
-					a[j] = todolist[(i + j)].cluster1.getBitSet().getArray();
-					b[j] = todolist[(i + j)].cluster2.getBitSet().getArray();
-					c[j] = todolist[(i + j)].cluster3.getBitSet().getArray();
-				}
-				cppBatchCompute(result, a, b, c);
-				for (int j = 0; j < size; j++) {
-					ret[i+j] = result[j];
-				}
-			}
-			Polytree.time += System.nanoTime() - t;
-			return ret;
-		}
 	}
 	
 	WQDataCollection dataCollection;
@@ -263,7 +241,7 @@ public class Polytree {
 		}
 		catch (Throwable e) {
 			useNativeMethod = false;
-			e.printStackTrace(); 
+			//e.printStackTrace(); 
 			System.err.println("Fail to load native library "+System.mapLibraryName("Astral")+"; use Java default computing method.");
 		}
 		
@@ -297,16 +275,37 @@ public class Polytree {
 	}
 
 	public Long[] WQWeightByTraversal(Tripartition[] trips){
+		long t = System.nanoTime();
+		Long[] ret = new Long[trips.length];
 		if (!useNativeMethod) {
-			Long[] ret = new Long[trips.length];
 			int i = 0;
 			for (Tripartition trip: trips) {
 				ret[i++] = this.WQWeightByTraversal(trip);
 			}
-			return ret;
 		} else {
-			return PTNative.compute(trips);
+			for (int i = 0; i < trips.length; i += PTNative.batchSize) {
+				int size = (trips.length - i > PTNative.batchSize) ? PTNative.batchSize : trips.length - i;
+				long[] result = new long[size];
+				long[][] a = new long[size][];
+				long[][] b = new long[size][];
+				long[][] c = new long[size][];
+				for (int j = 0; j < size; j++) {
+					a[j] = trips[(i + j)].cluster1.getBitSet().getArray();
+					b[j] = trips[(i + j)].cluster2.getBitSet().getArray();
+					c[j] = trips[(i + j)].cluster3.getBitSet().getArray();
+					if (a[j].length != b[j].length || a[j].length != c[j].length) {
+						System.err.println("Warning: BitSets not the same size!!!!!!!!!!!!!!!! " + 
+									a[j].length + " "+ b[j].length + " "+ a[j].length + " "+ c[j].length);
+					}
+				}
+				PTNative.cppBatchCompute(result, a, b, c);
+				for (int j = 0; j < size; j++) {
+					ret[i+j] = result[j];
+				}
+			}
 		}
+		Polytree.time += System.nanoTime() - t;	
+		return ret;
 		
 	}
 	public Long WQWeightByTraversal(Tripartition trip){

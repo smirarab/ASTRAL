@@ -39,7 +39,7 @@ public class TurnTaskToScores implements Runnable {
 	public static final long workGroupSize = 1L << 13;
 	public static final Object POISON_PILL = new Object();
 	public static String clFile = "calculateWeight.cl";
-	public static final int cpuChunkSize = 10;
+	public static final int cpuChunkSize = 64;
 
 	public PriorityBlockingQueue<ComparablePair<Long, Integer>> queue2Helper;
 	public LinkedBlockingQueue<Long> queue2;
