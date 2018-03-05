@@ -18,9 +18,9 @@ __attribute__ ((always_inline)) inline unsigned long long F(unsigned long long (
 
 __attribute__((vector)) __attribute__ ((always_inline)) inline unsigned long long F(unsigned short a, unsigned short b, unsigned short c, unsigned short d, 
 		unsigned short e, unsigned short f, unsigned short g, unsigned short h, unsigned short i){
-	return a * ( (a + e + i - 3)  * e * i + (a + f + h - 3)  * f * h )
-		+ b * ((b + d + i - 3)  * d * i + (b + f + g - 3)  * f * g )
-		+ c * ((c + d + h - 3)  * d * h + (c + e + g - 3)  * e * g );
+	return a * ( (-3LL + a + e + i)  * e * i + (-3LL + a + f + h)  * f * h )
+		+ b * ((-3LL + b + d + i)  * d * i + (-3LL + b + f + g)  * f * g )
+		+ c * ((-3LL + c + d + h)  * d * h + (-3LL + c + e + g)  * e * g );
 }
 
 __attribute__((vector)) __attribute__ ((always_inline)) inline unsigned long long Fpoly(unsigned long long sx0, unsigned long long sx1, unsigned long long sx2,
