@@ -20,7 +20,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.MutableTree;
