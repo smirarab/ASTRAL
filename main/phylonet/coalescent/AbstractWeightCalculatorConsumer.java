@@ -1,7 +1,5 @@
 package phylonet.coalescent;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeightCalculatorTask<T> implements Cloneable {
