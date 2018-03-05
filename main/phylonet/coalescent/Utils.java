@@ -232,7 +232,7 @@ public class Utils {
     public static final Collection<Tree> greedyConsensus(Iterable<Tree> trees, 
     		double[] thresholds, boolean randomzie, int repeat, 
     		TaxonIdentifier taxonIdentifier, boolean keepclusters) {
-    	CommandLine.logTimeMessage("Utils 219-222: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+    	GlobalMaps.logTimeMessage("Utils 219-222: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
 			
     	List<Tree> outTrees = new ArrayList<Tree>();
         HashMap<STITreeCluster, Integer> count = new HashMap<STITreeCluster, Integer>();
@@ -255,7 +255,7 @@ public class Utils {
             }
         }        
        
-        CommandLine.logTimeMessage("Utils 240-243: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+        GlobalMaps.logTimeMessage("Utils 240-243: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
 			
         ArrayList<Future<Tree>> futures = new ArrayList<Future<Tree>>();
         for (int gi = 0; gi < repeat; gi++) {
@@ -270,7 +270,7 @@ public class Utils {
 	        for (Entry<STITreeCluster, Integer> entry : countSorted) {
 	        	if (threshold > (entry.getValue()+.0d)/treecount) {	
 	        		List<STITreeCluster> clusterCopy = new ArrayList<STITreeCluster>(clusters);
-	        		futures.add(CommandLine.eService.submit(new greedyConsensusLoop(taxonIdentifier, keepclusters, clusterCopy)));
+	        		futures.add(GlobalMaps.eService.submit(new greedyConsensusLoop(taxonIdentifier, keepclusters, clusterCopy)));
 	        		ti--;
 	        		if (ti < 0) {
 	        			break;
@@ -281,7 +281,7 @@ public class Utils {
 	        }
 	        while (ti >= 0) {
         		List<STITreeCluster> clusterCopy = new ArrayList<STITreeCluster>(clusters);
-        		futures.add(CommandLine.eService.submit(new greedyConsensusLoop(taxonIdentifier, keepclusters, clusterCopy)));
+        		futures.add(GlobalMaps.eService.submit(new greedyConsensusLoop(taxonIdentifier, keepclusters, clusterCopy)));
 	    		ti--;
 	        }
         }
@@ -296,7 +296,7 @@ public class Utils {
 				e.printStackTrace();
 			}
         }
-        CommandLine.logTimeMessage("Utils 269-272: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+        GlobalMaps.logTimeMessage("Utils 269-272: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
 			
         return outTrees;
     }
