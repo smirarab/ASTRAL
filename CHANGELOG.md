@@ -1,3 +1,15 @@
+- version 5.11.3:
+    - Bug fix: long to int downcast in native C code
+    - Small refactoring
+
+- version 5.11.2:
+    - finish merging ASTRAL-MP and 5.10.0; vectorization, hashing, and MP all work
+    - more refactroing
+
+- version 5.11.1:
+    - Continue merging ASTRAL-MP and 5.10.0; more features working
+    - major refactoring
+
 - version 5.11.0:
     - Merge ASTRAL-MP and 5.10.0
 

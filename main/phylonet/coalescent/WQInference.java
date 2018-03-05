@@ -216,7 +216,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 			}
 		}
 
-		CommandLine.logTimeMessage("WQInference 180: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+		GlobalMaps.logTimeMessage("WQInference 180: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
 			
 		System.err.println("Final quartet score is: " + sum/4l);
 		System.err.println("Final normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
@@ -263,7 +263,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 	 * @return
 	 */
 	private double scoreBranches(Tree st) {
-		CommandLine.logTimeMessage("WQInference 227: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+		GlobalMaps.logTimeMessage("WQInference 227: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
 			
 		double ret = 0;
 		int[] geneTreesAsInts = ((WQWeightCalculator)this.weightCalculator).geneTreesAsInts();
@@ -328,7 +328,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 			}
 		}
 		stack = new Stack<STITreeCluster>();
-		CommandLine.logTimeMessage("WQInference 274: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+		GlobalMaps.logTimeMessage("WQInference 274: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
 			
 		AtomicInteger processCount = new AtomicInteger();
 		Object lock = new Object();
@@ -489,7 +489,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 		catch(InterruptedException e) {
 			e.printStackTrace();
 		}
-		CommandLine.logTimeMessage("WQInference 390: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+		GlobalMaps.logTimeMessage("WQInference 390: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
 			
 		/**
 		 * Annotate each branch by updating its data field
@@ -621,7 +621,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 				//i++;
 			} 
 		}
-		CommandLine.logTimeMessage("WQInference 478: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+		GlobalMaps.logTimeMessage("WQInference 478: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
 			
 		if (!nodeDataList.isEmpty())
 			throw new RuntimeException("Hmm, this shouldn't happen; "+nodeDataList);
@@ -763,7 +763,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	@Override
 	Long getTotalCost(Vertex all) {
-		CommandLine.logTimeMessage("WQInference 475: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+		GlobalMaps.logTimeMessage("WQInference 475: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
 			
 		System.err.println("Normalized score (portion of input quartet trees satisfied before correcting for multiple individuals): " + 
 				all._max_score/4./this.maxpossible);
