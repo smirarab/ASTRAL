@@ -1,8 +1,6 @@
 package phylonet.coalescent;
 import java.util.List;
 
-import phylonet.coalescent.BipartitionWeightCalculator.Quadrapartition;
-import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
