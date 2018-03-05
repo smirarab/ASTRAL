@@ -2,8 +2,8 @@ package phylonet.coalescent;
 
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
-import java.util.TreeSet;
 import java.util.Iterator;
+import java.util.TreeSet;
 
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
