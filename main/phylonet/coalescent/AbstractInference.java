@@ -184,7 +184,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 			System.exit(1);
 		}
 		
-		CommandLine.logTimeMessage("AbstractInference 193: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+		GlobalMaps.logTimeMessage("AbstractInference 193: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
 		
 		System.err.println("Total Number of elements: "+ weightCalculator.getCalculatedWeightCount());
 
@@ -275,7 +275,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 		Long cost = getTotalCost(all);
 		sol._totalCoals = cost;
 		solutions.add(sol);
-		CommandLine.logTimeMessage("AbstractInference 283: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+		GlobalMaps.logTimeMessage("AbstractInference 283: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
 			
         System.err.println("Final optimization score: " + cost);
         
@@ -336,7 +336,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 
 		//counter.addExtraBipartitionsByHeuristics(clusters);
 
-		CommandLine.logTimeMessage("" +(double)(System.nanoTime()-CommandLine.timer)/1000000000);
+		GlobalMaps.logTimeMessage("" +(double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
 			
 		System.err.println("partitions formed in "
 			+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
