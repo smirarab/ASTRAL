@@ -146,7 +146,7 @@ public class SimilarityMatrix {
 				denom[i][j] = 0L;
 			}
 		}
-		CommandLine.logTimeMessage("SimilarityMatrix 145-148: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+		GlobalMaps.logTimeMessage("SimilarityMatrix 145-148: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
 			
 		int k = 0;
 		for (Tree tree :  geneTrees) {
@@ -170,10 +170,10 @@ public class SimilarityMatrix {
 		}
 
 		ArrayList<Future<float[][][]>> futures = new ArrayList<Future<float[][][]>>();
-		for (int i = 0; i < geneTrees.size(); i+=geneTrees.size()/CommandLine.numThreads) {
+		for (int i = 0; i < geneTrees.size(); i+=geneTrees.size()/GlobalMaps.numThreads) {
 			int start = i;
-			int end = Math.min(start + geneTrees.size()/CommandLine.numThreads, geneTrees.size());
-			futures.add((Future) CommandLine.eService.submit(new populateByQuartetDistanceLoop(start, end, treeAllClusters, geneTrees)));
+			int end = Math.min(start + geneTrees.size()/GlobalMaps.numThreads, geneTrees.size());
+			futures.add((Future) GlobalMaps.eService.submit(new populateByQuartetDistanceLoop(start, end, treeAllClusters, geneTrees)));
 		}
 		for (Future future: futures) {
 			float[][][] res = null;
@@ -193,7 +193,7 @@ public class SimilarityMatrix {
 				}
 			}
 		}
-		CommandLine.logTimeMessage("SimilarityMatrix 161-164: " + (double)(System.nanoTime()-CommandLine.timer)/1000000000);
+		GlobalMaps.logTimeMessage("SimilarityMatrix 161-164: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
 			
 		for (int i = 0; i < n; i++) {
 			for (int j = i; j < n; j++) {

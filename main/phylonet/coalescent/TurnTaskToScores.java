@@ -93,8 +93,8 @@ public class TurnTaskToScores implements Runnable {
 		Tripartition[] tripsForCPU = new Tripartition[cpuChunkSize];
 		int[] tripsForCPULabel = new int[cpuChunkSize];
 		int tripsForCPUCounter = 0;
-		CommandLine.logTimeMessage(" TurnTaskToScores:92: "
-					+ (double) (System.nanoTime() - CommandLine.timer) / 1000000000);
+		GlobalMaps.logTimeMessage(" TurnTaskToScores:92: "
+					+ (double) (System.nanoTime() - GlobalMaps.timer) / 1000000000);
 		
 		while (true) {
 
@@ -111,7 +111,7 @@ public class TurnTaskToScores implements Runnable {
 				tripsForCPULabel[tripsForCPUCounter] = positionIn++;
 				tripsForCPU[tripsForCPUCounter++] = task;
 				if (tripsForCPUCounter == cpuChunkSize) {
-					CommandLine.eService.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel,this.inference.weightCalculator));
+					GlobalMaps.eService.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel,this.inference.weightCalculator));
 					tripsForCPU = new Tripartition[cpuChunkSize];
 					tripsForCPULabel = new int[cpuChunkSize];
 					tripsForCPUCounter = 0;
@@ -120,7 +120,7 @@ public class TurnTaskToScores implements Runnable {
 				tripsForCPULabel[tripsForCPUCounter] = positionIn++;
 				tripsForCPU[tripsForCPUCounter++] = task;
 				if (tripsForCPUCounter == cpuChunkSize) {
-					CommandLine.eService.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel,this.inference.weightCalculator));
+					GlobalMaps.eService.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel,this.inference.weightCalculator));
 					tripsForCPU = new Tripartition[cpuChunkSize];
 					tripsForCPULabel = new int[cpuChunkSize];
 					tripsForCPUCounter = 0;
@@ -189,7 +189,7 @@ public class TurnTaskToScores implements Runnable {
 			gpu.compute(tripCounter, currentGPU);
 		}
 		if (tripsForCPUCounter != 0) {
-			CommandLine.eService.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel, tripsForCPUCounter, this.inference.weightCalculator));
+			GlobalMaps.eService.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel, tripsForCPUCounter, this.inference.weightCalculator));
 		}
 
 		try {
@@ -232,9 +232,9 @@ public class TurnTaskToScores implements Runnable {
 		// }
 		// }
 
-			CommandLine.logTimeMessage("Time used to wait on queue1.take() with at least one gpu available: "
+			GlobalMaps.logTimeMessage("Time used to wait on queue1.take() with at least one gpu available: "
 					+ (double) (timeWait) / 1000000000+"\nTurnTaskToScores:199: "
-					+ (double) (System.nanoTime() - CommandLine.timer) / 1000000000);
+					+ (double) (System.nanoTime() - GlobalMaps.timer) / 1000000000);
 
 	}
 
@@ -449,7 +449,7 @@ public class TurnTaskToScores implements Runnable {
 		}
 
 		public void compute(long workSize, int deviceNum) {
-			CommandLine.eService.execute(new ComputeThread(workSize, deviceNum));
+			GlobalMaps.eService.execute(new ComputeThread(workSize, deviceNum));
 		}
 	}
 
