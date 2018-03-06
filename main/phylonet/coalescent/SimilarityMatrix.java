@@ -146,7 +146,7 @@ public class SimilarityMatrix {
 				denom[i][j] = 0L;
 			}
 		}
-		GlobalMaps.logTimeMessage("SimilarityMatrix 145-148: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
+		GlobalMaps.logTimeMessage("SimilarityMatrix 145-148: ");
 			
 		int k = 0;
 		for (Tree tree :  geneTrees) {
@@ -193,7 +193,7 @@ public class SimilarityMatrix {
 				}
 			}
 		}
-		GlobalMaps.logTimeMessage("SimilarityMatrix 161-164: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
+		GlobalMaps.logTimeMessage("SimilarityMatrix 161-164: ");
 			
 		for (int i = 0; i < n; i++) {
 			for (int j = i; j < n; j++) {

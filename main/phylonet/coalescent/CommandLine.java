@@ -400,7 +400,7 @@ public class CommandLine {
 		// johng23
 		if (GlobalMaps.timerOn) {
 			System.err.println("Timer starts here");
-			GlobalMaps.timer = System.nanoTime();
+			GlobalMaps.timer = System.currentTimeMillis();
 		}
 
 		if (config.getFile("mapping file") != null) {
@@ -485,8 +485,7 @@ public class CommandLine {
 
 			GlobalMaps.taxonIdentifier.lock();
 
-			GlobalMaps.logTimeMessage(""
-					+ (double) (System.nanoTime() - GlobalMaps.timer) / 1000000000);
+			GlobalMaps.logTimeMessage("");
 
 		} catch (IOException e) {
 			System.err.println("Error when reading trees.");
@@ -716,7 +715,7 @@ public class CommandLine {
 		System.err.println("Scoring: " + toScore.size() + " trees");
 
 		AbstractInference inference = initializeInference(criterion, mainTrees,
-				new ArrayList<Tree>(), options, true);
+				new ArrayList<Tree>(), options);
 		double score = Double.NEGATIVE_INFINITY;
 		List<Tree> bestTree = new ArrayList<Tree>();
 		for (String trs : toScore) {
@@ -819,8 +818,7 @@ public class CommandLine {
 			writeTreeToFile(outbuffer, cons);
 		}
 
-		GlobalMaps.logTimeMessage(" " + (double) (System.nanoTime() - GlobalMaps.timer)
-				/ 1000000000);
+		GlobalMaps.logTimeMessage(" ");
 
 		System.err.println("\n======== Running the main analysis");
 		runOnOneInput(criterion, extraTrees, outbuffer, mainTrees, bootstraps,
@@ -829,86 +827,47 @@ public class CommandLine {
 		outbuffer.close();
 	}
 
-	private static int getSpeciesWordLength() {
-		return (GlobalMaps.taxonIdentifier.taxonCount() / 64 + 1);
-	}
-
 	private static Tree runOnOneInput(int criterion, List<Tree> extraTrees,
 			BufferedWriter outbuffer, List<Tree> input,
 			Iterable<Tree> bootstraps, String outgroup, Options options) {
 		long startTime;
 		startTime = System.currentTimeMillis();
 
-		LinkedBlockingQueue<Tripartition> queue1 = new LinkedBlockingQueue<Tripartition>();
-		LinkedBlockingQueue<Long> queue2 = new LinkedBlockingQueue<Long>();
-		LinkedBlockingQueue<Iterable<VertexPair>> queue4 = new LinkedBlockingQueue<Iterable<VertexPair>>();
+		AbstractInference inferenceConsumer = initializeInference(criterion, input, extraTrees, options);
+		inferenceConsumer.setup();
+		
+		AbstractInferenceProducer inferenceProducer = 
+				new WQInferenceProducer((AbstractInference) inferenceConsumer.semiDeepCopy());
+		inferenceProducer.setup();
 
-		AbstractInference inference = initializeInference(criterion, input,
-				extraTrees, options, true);
-		inference.queue2 = queue2;
-		inference.queue4 = queue4;
-		inference.setup();
-		AbstractInferenceProducer inferenceNoCalc = new WQInferenceNoCalculations(
-				(AbstractInference) inference.semiDeepCopy());
-
-		inferenceNoCalc.queue1 = queue1;
-		inferenceNoCalc.queue4 = queue4;
-
-		inferenceNoCalc.setup();
-
-		int counter = 0;
-		long[] allArray = new long[((WQDataCollection) inference.dataCollection).treeAllClusters
-				.size() * getSpeciesWordLength()];
-		for (int i = 0; i < ((WQDataCollection) inference.dataCollection).treeAllClusters
-				.size(); i++) {
-			for (int j = getSpeciesWordLength() - 1; j >= 0; j--)
-				allArray[counter++] = ((WQDataCollection) inference.dataCollection).treeAllClusters
-						.get(i).getBitSet().words[j];
-		}
-		/*
-		 * int[] geneTreesAsInts = new
-		 * int[((WQDataCollection)inference.dataCollection).geneTreesAsInts.
-		 * length]; for(int i = 0; i < geneTreesAsInts.length; i++) {
-		 * geneTreesAsInts[i] =
-		 * ((WQDataCollection)inference.dataCollection).geneTreesAsInts[i]; }
-		 */
-		TurnTaskToScores threadgpu = new TurnTaskToScores(inference, queue1,
-				queue2,
-				((WQWeightCalculator) inference.weightCalculator)
-						.geneTreesAsInts(), allArray, getSpeciesWordLength(),
-				GlobalMaps.usedDevices, GlobalMaps.context, GlobalMaps.contextProperties);
-		WriteTaskToQueue thread1 = new WriteTaskToQueue(inferenceNoCalc,
-				threadgpu);
+		TurnTaskToScores consumer = new TurnTaskToScores(inferenceConsumer, inferenceProducer.getQueueReadyTripartitions());
+		WriteTaskToQueue thread1 = new WriteTaskToQueue(inferenceProducer, consumer);
 
 		Thread producer = new Thread(thread1);
 		producer.setPriority(Thread.MAX_PRIORITY);
 		producer.start();
 		try {
-			Thread.sleep(1000);
+			Thread.sleep(1000); // Meant to give a bit of head-start to the producer
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		(new Thread(threadgpu)).start();
+		
+		(new Thread(consumer)).start();
 
-		List<Solution> solutions = inference.inferSpeciesTree();
-		GlobalMaps
-				.logTimeMessage(" CommandLine 667: "
-						+ (double) (System.nanoTime() - GlobalMaps.timer)
-						/ 1000000000);
+		List<Solution> solutions = inferenceConsumer.inferSpeciesTree();
+		GlobalMaps.logTimeMessage(" CommandLine 667: ");
 
-		System.err
-				.println("Optimal tree inferred in "
+		System.err.println("Optimal tree inferred in "
 						+ (System.currentTimeMillis() - startTime) / 1000.0D
 						+ " secs.");
 		System.err.println("Weight calculation cumulatively took"
-				+ Polytree.time / 1000000000.0D + " secs");
+				+ Polytree.time / 1000.0D + " secs");
 
-		Tree st = processSolution(outbuffer, bootstraps, outgroup, inference,
-				solutions);
+		Tree st = processSolution(outbuffer, bootstraps, outgroup, inferenceConsumer, solutions);
 
 		return st;
 	}
+
 
 	private static boolean isGeneResamplign(JSAPResult config) {
 		return config.getBoolean("gene-sampling")
@@ -919,15 +878,11 @@ public class CommandLine {
 			Iterable<Tree> bootstraps, String outgroup,
 			AbstractInference inference, List<Solution> solutions) {
 		GlobalMaps
-				.logTimeMessage(" CommandLine 684: "
-						+ (double) (System.nanoTime() - GlobalMaps.timer)
-						/ 1000000000);
+				.logTimeMessage(" CommandLine 684: ");
 
 		Tree st = solutions.get(0)._st;
 		GlobalMaps
-				.logTimeMessage(" CommandLine 690: "
-						+ (double) (System.nanoTime() - GlobalMaps.timer)
-						/ 1000000000);
+				.logTimeMessage(" CommandLine 690: ");
 
 		System.err.println(st.toNewick());
 
@@ -955,18 +910,12 @@ public class CommandLine {
 	}
 
 	private static AbstractInference initializeInference(int criterion,
-			List<Tree> trees, List<Tree> extraTrees, Options options,
-			boolean calculations) {
+			List<Tree> trees, List<Tree> extraTrees, Options options) {
 		AbstractInference inference;
 		if (criterion == 1 || criterion == 0) {
 			inference = new DLInference(options, trees, extraTrees);
 		} else if (criterion == 2) {
-			if (calculations)
-				inference = new WQInference(options, trees, extraTrees);
-			else {
-				inference = new WQInferenceNoCalculations(options, trees,
-						extraTrees);
-			}
+			inference = new WQInference(options, trees, extraTrees);
 		} else {
 			throw new RuntimeException("criterion not set?");
 		}
