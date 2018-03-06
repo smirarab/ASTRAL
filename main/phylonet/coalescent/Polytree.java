@@ -275,7 +275,7 @@ public class Polytree {
 	}
 
 	public Long[] WQWeightByTraversal(Tripartition[] trips){
-		long t = System.nanoTime();
+		long t = System.currentTimeMillis();
 		Long[] ret = new Long[trips.length];
 		if (!useNativeMethod) {
 			int i = 0;
@@ -304,7 +304,7 @@ public class Polytree {
 				}
 			}
 		}
-		Polytree.time += System.nanoTime() - t;	
+		Polytree.time += System.currentTimeMillis() - t;	
 		return ret;
 		
 	}
@@ -315,7 +315,7 @@ public class Polytree {
 			System.err.println("why here?");
 		}
 		if (trip.cluster1 == trip.cluster2) return this.computeUpperbound(trip.cluster1.getBitSet());
-		long t = System.nanoTime();
+		//long t = System.nanoTime();
 		BitSet[] b = new BitSet[]{trip.cluster1.getBitSet(), trip.cluster2.getBitSet(), trip.cluster3.getBitSet()};
 		return this.WQWeightByTraversal(b);
 

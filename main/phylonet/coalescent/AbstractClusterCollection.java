@@ -88,7 +88,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 	}*/
 	@Override
 	public IClusterCollection getContainedClusters(Vertex v) {
-		long start = System.nanoTime();
+		//long start = System.nanoTime();
 		STITreeCluster cluster = v.getCluster();
 		int size = cluster.getClusterSize();
 		AbstractClusterCollection ret = newInstance(size);
@@ -155,7 +155,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 
 	@Override
 	public Iterable<VertexPair> getClusterResolutions() {
-		long start = System.nanoTime();
+		//long start = System.nanoTime();
 		//System.out.println(topClusterLength+ " "+getTopVertex());
 		//TODO: return an iterator directly instead of building a collection.
 		ArrayList<VertexPair> ret = new ArrayList<VertexPair>();

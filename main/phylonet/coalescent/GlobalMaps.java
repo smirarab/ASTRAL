@@ -33,8 +33,9 @@ public class GlobalMaps{
 	static int numThreads = Runtime.getRuntime().availableProcessors();
 	public static void logTimeMessage(String message) {
 		if (GlobalMaps.timerOn) {
-			System.err.println("TIME TOOK FROM LAST NOTICE " + message);
-			GlobalMaps.timer = System.nanoTime();
+			System.err.println("TIME TOOK FROM LAST NOTICE " + message 
+					+" "+ (double) (System.currentTimeMillis() - GlobalMaps.timer) / 1000);
+			GlobalMaps.timer = System.currentTimeMillis();
 		}
 	}
 	public static long timer;

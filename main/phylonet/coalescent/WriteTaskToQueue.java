@@ -8,10 +8,9 @@ public class WriteTaskToQueue implements Runnable {
 		this.threadgpu = threadgpu;
 	}
 	public void run() {
-		// TODO Auto-generated method stub
 		inf.inferSpeciesTree();
 		try {
-			inf.queue1.put(TurnTaskToScores.POISON_PILL);
+			inf.getQueueReadyTripartitions().put(TurnTaskToScores.POISON_PILL);
 		}
 		catch (Exception e) {
 		}
