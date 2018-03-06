@@ -36,70 +36,80 @@ import org.jocl.cl_mem;
 import org.jocl.cl_program;
 
 public class TurnTaskToScores implements Runnable {
-	public static final long workGroupSize = 1L << 13;
+	private static final int LOG_FREQ = 100000;
+	private static final long workGroupSize = 1L << 13;
+	private static final String clFile = "calculateWeight.cl";
+	private static final int cpuChunkSize = 64;
 	public static final Object POISON_PILL = new Object();
-	public static String clFile = "calculateWeight.cl";
-	public static final int cpuChunkSize = 64;
+	
+	private static int nextLog = 0;
+	private static long timer3;
 
-	public PriorityBlockingQueue<ComparablePair<Long, Integer>> queue2Helper;
-	public LinkedBlockingQueue<Long> queue2;
+	final PriorityBlockingQueue<ComparablePair<Long, Integer>> queue2Helper;
+	final LinkedBlockingQueue<Long> queueWeightResults;
+	final LinkedBlockingQueue<Tripartition> tripartitionsQueue;
+	final AbstractWeightCalculatorTask<Tripartition> wqWeightCalculator;
+	final AbstractInference<Tripartition> inference;
+	final WQDataCollection dataCollection;
+	
 	AtomicInteger threadCount = new AtomicInteger(0);
 	Object positionOutLock = new Object();
-	int positionOut = 0;
-	int positionIn = 0;
-	public LinkedBlockingQueue<Tripartition> queue1;
-	public AbstractInference<Tripartition> inference;
-	public long[] all;
-	public long timer3;
-	public int tripCounter = 0;
-	public boolean done = false;
-	public GPUCall gpu;
-	public cl_device_id[] devices;
-	public int[] geneTreesAsInts;
-	public WQDataCollection dataCollection;
-	public final boolean pjohng23 = false;
-	public int speciesWordLength;
-	public boolean noGPU = false;
-	public Object gpuLock = new Object();
+	
+	private int positionOut = 0;
+	private int positionIn = 0;
+	
+	int tripCounter = 0;
+	boolean done = false;
+	
+	final GPUCall gpuRunner;
+	
+	public final boolean pjohng23 = false; //TODO: Figure what this is?
+	public final int speciesWordLength;
+	
 
-	public TurnTaskToScores(AbstractInference<Tripartition> inf, LinkedBlockingQueue<Tripartition> queue1,
-			LinkedBlockingQueue<Long> queue2, int[] geneTreeAsInts, long[] all, int speciesWordLength,
-			cl_device_id[] devices, cl_context context, cl_context_properties contextProperties) {
+	public TurnTaskToScores(AbstractInference<Tripartition> inf, LinkedBlockingQueue<Tripartition> queue1) {
 		this.inference = inf;
-		this.queue1 = queue1;
-		this.queue2 = queue2;
-		this.geneTreesAsInts = geneTreeAsInts;
-		queue2Helper = new PriorityBlockingQueue<ComparablePair<Long, Integer>>();
-		this.all = all;
-		this.speciesWordLength = speciesWordLength;
-		//System.err.println("global work group size is : " + workGroupSize);
-		if (devices == null || devices.length == 0)
-			noGPU = true;
-		else {
-			this.devices = devices;
-			gpu = new GPUCall(geneTreeAsInts, all, inference, pjohng23, devices, context, contextProperties);
-		}
+		this.wqWeightCalculator = inf.weightCalculator;
 		this.dataCollection = (WQDataCollection) inf.dataCollection;
+		this.tripartitionsQueue = queue1;
+		this.queueWeightResults = inf.getQueueWeightResults();
+		
+		this.queue2Helper = new PriorityBlockingQueue<ComparablePair<Long, Integer>>();
+		this.speciesWordLength = (GlobalMaps.taxonIdentifier.taxonCount() / 64 + 1);
+		
+		//System.err.println("global work group size is : " + workGroupSize);
+		if (GlobalMaps.usedDevices == null || GlobalMaps.usedDevices.length == 0) {
+			this.gpuRunner = null;
+		} else {
+			this.gpuRunner = new GPUCall(((WQWeightCalculator)this.wqWeightCalculator).geneTreesAsInts(), 
+					((WQDataCollection)inf.dataCollection).getAllArray(),
+					inference, pjohng23, GlobalMaps.usedDevices, 
+					GlobalMaps.context, GlobalMaps.contextProperties);
+		}
+
 	}
 
+	private boolean noGPU() {
+		return this.gpuRunner == null;
+	}
+	
 	public void run() {
-		long timer2 = System.nanoTime();
-		long timeWait = 0;
+		//long timer2 = System.nanoTime();
+		//long timeWait = 0;
 		Object taken = null;
 		Tripartition task = null;
 		((WQWeightCalculator) inference.weightCalculator).lastTime = System.currentTimeMillis();
 		int currentGPU = 0;
-		long timer3 = System.nanoTime();
+		//long timer3 = System.nanoTime();
 		Tripartition[] tripsForCPU = new Tripartition[cpuChunkSize];
 		int[] tripsForCPULabel = new int[cpuChunkSize];
 		int tripsForCPUCounter = 0;
-		GlobalMaps.logTimeMessage(" TurnTaskToScores:92: "
-					+ (double) (System.nanoTime() - GlobalMaps.timer) / 1000000000);
-		
+		GlobalMaps.logTimeMessage(" TurnTaskToScores:92: ");
+
 		while (true) {
 
 			try {
-				taken = queue1.take();
+				taken = tripartitionsQueue.take();
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -107,7 +117,7 @@ public class TurnTaskToScores implements Runnable {
 				break;
 			}
 			task = (Tripartition) taken;
-			if (noGPU) {
+			if (noGPU() || (currentGPU == -1)) {
 				tripsForCPULabel[tripsForCPUCounter] = positionIn++;
 				tripsForCPU[tripsForCPUCounter++] = task;
 				if (tripsForCPUCounter == cpuChunkSize) {
@@ -116,126 +126,109 @@ public class TurnTaskToScores implements Runnable {
 					tripsForCPULabel = new int[cpuChunkSize];
 					tripsForCPUCounter = 0;
 				}
-			} else if (currentGPU == -1) {
-				tripsForCPULabel[tripsForCPUCounter] = positionIn++;
-				tripsForCPU[tripsForCPUCounter++] = task;
-				if (tripsForCPUCounter == cpuChunkSize) {
-					GlobalMaps.eService.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel,this.inference.weightCalculator));
-					tripsForCPU = new Tripartition[cpuChunkSize];
-					tripsForCPULabel = new int[cpuChunkSize];
-					tripsForCPUCounter = 0;
-				}
-				synchronized (gpuLock) {
-					for (int i = 0; i < devices.length; i++) {
-						if (gpu.available[i].get()) {
-							currentGPU = i;
-							break;
-						}
-					}
-					if (currentGPU == -1) {
-						for (int i = 0; i < devices.length; i++) {
-							if (gpu.storageAvailable[i].get()) {
-								currentGPU = i;
-								break;
-							}
-						}
-					}
-				}
-			} else {
-				gpu.label[gpu.currentLabel[currentGPU]][currentGPU][tripCounter] = positionIn++;
-
-				for (int i = speciesWordLength - 1; i >= 0; i--)
-					gpu.tripartitions1[currentGPU][(speciesWordLength - i - 1) * (int) workGroupSize
-							+ tripCounter] = task.cluster1.getBitSet().words[i];
-				for (int i = speciesWordLength - 1; i >= 0; i--)
-					gpu.tripartitions2[currentGPU][(speciesWordLength - i - 1) * (int) workGroupSize
-							+ tripCounter] = task.cluster2.getBitSet().words[i];
-				for (int i = speciesWordLength - 1; i >= 0; i--)
-					gpu.tripartitions3[currentGPU][(speciesWordLength - i - 1) * (int) workGroupSize
-							+ tripCounter] = task.cluster3.getBitSet().words[i];
-				tripCounter++;
-				if (tripCounter == workGroupSize) {
-					synchronized (gpuLock) {
-						if (gpu.available[currentGPU].get()) {
-							gpu.compute(workGroupSize, currentGPU);
-							gpu.available[currentGPU].set(false);
-							gpu.storageAvailable[currentGPU].set(false);
-						} else {
-							gpu.storageAvailable[currentGPU].set(false);
-						}
-						tripCounter = 0;
-						currentGPU = -1;
-						for (int i = 0; i < devices.length; i++) {
-							if (gpu.available[i].get()) {
+			} 
+			if (!noGPU()) {
+				if (currentGPU == -1) {
+					synchronized (gpuRunner.gpuLock) {
+						for (int i = 0; i < GlobalMaps.usedDevices.length; i++) {
+							if (gpuRunner.available[i].get()) {
 								currentGPU = i;
 								break;
 							}
 						}
 						if (currentGPU == -1) {
-							for (int i = 0; i < devices.length; i++) {
-								if (gpu.storageAvailable[i].get()) {
+							for (int i = 0; i < GlobalMaps.usedDevices.length; i++) {
+								if (gpuRunner.storageAvailable[i].get()) {
 									currentGPU = i;
 									break;
 								}
 							}
 						}
 					}
+				} else {
+					gpuRunner.label[gpuRunner.currentLabel[currentGPU]][currentGPU][tripCounter] = positionIn++;
+
+					for (int i = speciesWordLength - 1; i >= 0; i--)
+						gpuRunner.tripartitions1[currentGPU][(speciesWordLength - i - 1) * (int) workGroupSize
+						                               + tripCounter] = task.cluster1.getBitSet().words[i];
+					for (int i = speciesWordLength - 1; i >= 0; i--)
+						gpuRunner.tripartitions2[currentGPU][(speciesWordLength - i - 1) * (int) workGroupSize
+						                               + tripCounter] = task.cluster2.getBitSet().words[i];
+					for (int i = speciesWordLength - 1; i >= 0; i--)
+						gpuRunner.tripartitions3[currentGPU][(speciesWordLength - i - 1) * (int) workGroupSize
+						                               + tripCounter] = task.cluster3.getBitSet().words[i];
+					tripCounter++;
+					if (tripCounter == workGroupSize) {
+						synchronized (gpuRunner.gpuLock) {
+							if (gpuRunner.available[currentGPU].get()) {
+								gpuRunner.compute(workGroupSize, currentGPU);
+								gpuRunner.available[currentGPU].set(false);
+								gpuRunner.storageAvailable[currentGPU].set(false);
+							} else {
+								gpuRunner.storageAvailable[currentGPU].set(false);
+							}
+							tripCounter = 0;
+							currentGPU = -1;
+							for (int i = 0; i < GlobalMaps.usedDevices.length; i++) {
+								if (gpuRunner.available[i].get()) {
+									currentGPU = i;
+									break;
+								}
+							}
+							if (currentGPU == -1) {
+								for (int i = 0; i < GlobalMaps.usedDevices.length; i++) {
+									if (gpuRunner.storageAvailable[i].get()) {
+										currentGPU = i;
+										break;
+									}
+								}
+							}
+						}
+					}									
 				}
 			}
-
 		}
-		// System.out.println("Time used to wait was: " + timeWait/1000000000);
-		if (currentGPU != -1 && !noGPU) {
-			gpu.compute(tripCounter, currentGPU);
+		// System.out.println("Time used to wait was: " + timeWait/1000);
+		//TODO: Check if the call below is asynchronous. If not, it should be. 
+		if (currentGPU != -1 && !noGPU()) {
+			gpuRunner.compute(tripCounter, currentGPU);
 		}
 		if (tripsForCPUCounter != 0) {
 			GlobalMaps.eService.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel, tripsForCPUCounter, this.inference.weightCalculator));
 		}
 
 		try {
-			queue2Helper.offer(new ComparablePair<Long, Integer>(-23L, positionIn++)); // random
-																		// specific
-																		// number
-																		// used
-																		// as a
-																		// "poison
-																		// pill"
-																		// for
-																		// AbstractWeightCalculator
+			queue2Helper.offer(new ComparablePair<Long, Integer>(-23L, positionIn++));
+			// random  specific number used as a "poison pill" for AbstractWeightCalculator
 			System.err.println(positionIn + " " + positionOut + " " + queue2Helper.peek().value.intValue());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		synchronized (positionOutLock) {
 			while (!queue2Helper.isEmpty() && positionOut == queue2Helper.peek().value.intValue()
-					&& queue2.add(queue2Helper.remove().key)) {
+					&& queueWeightResults.add(queue2Helper.remove().key)) {
 				positionOut++;
-				if (positionOut % 100000 == 0) {
-					System.err.println(positionOut + " weights calculated in turntasktoscores "
-							+ ((double) System.nanoTime() - timer3) / 1000000000);
-					timer3 = System.nanoTime();
-				}
 			}
+
+			logWeights();
 		}
-		// long timer2 = System.nanoTime();
-		// System.out.println("WAAAAIIIT A MINUTE!");
-		// System.err.println("THE WRITECOUNTER IS: " + positionOut);
-		//
-		// while(positionOut != positionIn) {
-		// if(System.nanoTime() - timer2 > 1000000000) {
-		// timer2 += 1000000000;
-		// System.out.println("num threads: " + threadCount.get());
-		// System.out.println("The queue is empty??" + queue2Helper.isEmpty());
-		// System.out.println("Then lets check that the front of the queue
-		// is..." + queue2Helper.peek().value + " and that positionout is" +
-		// positionOut);
-		// }
-		// }
 
-			GlobalMaps.logTimeMessage("Time used to wait on queue1.take() with at least one gpu available: "
-					+ (double) (timeWait) / 1000000000+"\nTurnTaskToScores:199: "
-					+ (double) (System.nanoTime() - GlobalMaps.timer) / 1000000000);
+		//GlobalMaps.logTimeMessage("Time used to wait on queue1.take() with at least one gpu available: "
+		//		+ (double) (timeWait) / 1000000000+"\nTurnTaskToScores:199: ");
 
+	}
+
+	public void logWeights() {
+		if (nextLog == 0) {
+			timer3 = System.currentTimeMillis();
+			nextLog += LOG_FREQ;
+		}
+		else if(positionOut > nextLog) {
+			nextLog += LOG_FREQ;
+			System.err.println(positionOut + " weights calculated " + 
+					((double)System.currentTimeMillis() - timer3)/1000);
+			timer3 = System.currentTimeMillis();
+		}
 	}
 
 	public class GPUCall {
@@ -270,6 +263,8 @@ public class TurnTaskToScores implements Runnable {
 		private cl_command_queue[] commandQueues;
 		private cl_device_id[] devices;
 
+		public Object gpuLock = new Object();
+		
 		public GPUCall(int[] geneTreesAsInts, long[] all, AbstractInference<Tripartition> inference, boolean p,
 				cl_device_id[] devices, cl_context context, cl_context_properties contextProperties) {
 			this.p = p;
@@ -426,15 +421,11 @@ public class TurnTaskToScores implements Runnable {
 					}
 					synchronized (positionOutLock) {
 						while (!queue2Helper.isEmpty() && positionOut == queue2Helper.peek().value.intValue()
-								&& queue2.add(queue2Helper.remove().key)) {
+								&& queueWeightResults.add(queue2Helper.remove().key)) {
 							positionOut++;
-							if (positionOut % 100000 == 0) {
-								System.err.println(positionOut + " weights calculated in turntasktoscores "
-										+ ((double) System.nanoTime() - timer3) / 1000000000);
-							}
-							timer3 = System.nanoTime();
 						}
 					}
+					logWeights();
 					synchronized (gpuLock) {
 						if (storageAvailable[deviceIndex].get()) {
 							available[deviceIndex].set(true);
@@ -461,13 +452,14 @@ public class TurnTaskToScores implements Runnable {
 		Tripartition[] trips;
 		int[] positions;
 		int numRuns = cpuChunkSize;
+		
 		Collection<Tripartition> nulls = Arrays.asList(new Tripartition[]{null});
-		AbstractWeightCalculatorTask<Tripartition> wqWeightCalculator;
+		//AbstractWeightCalculatorTask<Tripartition> wqWeightCalculator;
 
 		CPUCalculationThread(Tripartition [] trips, int[] positions, AbstractWeightCalculatorTask<Tripartition> weightCalculator) {
 			this.trips = trips;
 			this.positions = positions;
-			this.wqWeightCalculator = weightCalculator;
+			//this.wqWeightCalculator = weightCalculator;
 		}
 
 		CPUCalculationThread(Tripartition [] trips, int[] positions, int numRuns, AbstractWeightCalculatorTask<Tripartition> weightCalculator) {
@@ -475,26 +467,24 @@ public class TurnTaskToScores implements Runnable {
 			this.positions = positions;
 			this.numRuns = numRuns;
 			this.trips = Arrays.copyOf(trips,numRuns);
-			this.wqWeightCalculator = weightCalculator;
+			//this.wqWeightCalculator = weightCalculator;
 		}
 
 		public void run(){
 
 			threadCount.incrementAndGet();
-			Long[] weights = this.wqWeightCalculator.calculateWeight(trips);
+			Long[] weights = TurnTaskToScores.this.wqWeightCalculator.calculateWeight(trips);
 				
 			for(int i = 0; i < numRuns; i++) {
 				queue2Helper.add(new ComparablePair<Long, Integer>(weights[i], positions[i]));
 			}
 			synchronized(positionOutLock) {
-				while(!queue2Helper.isEmpty() && positionOut == queue2Helper.peek().value.intValue() && queue2.add(queue2Helper.remove().key)) {
+				while(!queue2Helper.isEmpty() && positionOut == queue2Helper.peek().value.intValue() && queueWeightResults.add(queue2Helper.remove().key)) {
 					positionOut++;
-					if(positionOut % 100000 == 0) {
-						System.err.println(positionOut + " weights calculated in turntasktoscores " + ((double)System.nanoTime() - timer3)/1000000000);
-						timer3 = System.nanoTime();
-					}
 				}
 			}
+			
+			logWeights();
 
 			threadCount.decrementAndGet();
 
