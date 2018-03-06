@@ -11,8 +11,8 @@ import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
 public abstract class AbstractInferenceProducer<T> extends AbstractInference<T> {
 	
-	LinkedBlockingQueue<Tripartition> queue1;
-	LinkedBlockingQueue<Iterable<VertexPair>> queue4;
+	private LinkedBlockingQueue<Tripartition> queueReadyTripartitions;
+	
 	public AbstractInferenceProducer(Options options, List<Tree> trees,
 			List<Tree> extraTrees) {
 		super(options, trees, extraTrees);
@@ -21,6 +21,8 @@ public abstract class AbstractInferenceProducer<T> extends AbstractInference<T> 
 	public AbstractInferenceProducer(AbstractInference in) {
 		super(in.options, in.trees, in.extraTrees);
 		this.dataCollection = in.dataCollection;
+		this.setQueueClusterResolutions(in.getQueueClusterResolutions());
+		this.queueReadyTripartitions = (new LinkedBlockingQueue<Tripartition>());
 	}
 
 
@@ -67,7 +69,7 @@ public abstract class AbstractInferenceProducer<T> extends AbstractInference<T> 
 			}
 			
 			try {
-				this.queue4.put(clusterResolutions);
+				this.getQueueClusterResolutions().put(clusterResolutions);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -76,7 +78,7 @@ public abstract class AbstractInferenceProducer<T> extends AbstractInference<T> 
 			
 			clusterResolutions = containedVertecies.getClusterResolutions();
 			try {
-				this.queue4.put(clusterResolutions);
+				this.getQueueClusterResolutions().put(clusterResolutions);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -102,4 +104,8 @@ public abstract class AbstractInferenceProducer<T> extends AbstractInference<T> 
 	abstract AbstractDataCollection<T> newCounter(IClusterCollection clusters);
 	
 	abstract AbstractWeightCalculatorProducer<T> newWeightCalculator();
+
+	public LinkedBlockingQueue<Tripartition> getQueueReadyTripartitions() {
+		return queueReadyTripartitions;
+	}
 }
