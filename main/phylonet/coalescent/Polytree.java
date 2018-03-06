@@ -293,10 +293,6 @@ public class Polytree {
 					a[j] = trips[(i + j)].cluster1.getBitSet().getArray();
 					b[j] = trips[(i + j)].cluster2.getBitSet().getArray();
 					c[j] = trips[(i + j)].cluster3.getBitSet().getArray();
-					if (a[j].length != b[j].length || a[j].length != c[j].length) {
-						System.err.println("Warning: BitSets not the same size!!!!!!!!!!!!!!!! " + 
-									a[j].length + " "+ b[j].length + " "+ a[j].length + " "+ c[j].length);
-					}
 				}
 				PTNative.cppBatchCompute(result, a, b, c);
 				for (int j = 0; j < size; j++) {
@@ -304,7 +300,8 @@ public class Polytree {
 				}
 			}
 		}
-		Polytree.time += System.currentTimeMillis() - t;	
+		Polytree.time += System.nanoTime() - t;
+		//System.err.println((System.nanoTime() - t));
 		return ret;
 		
 	}
