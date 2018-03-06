@@ -30,7 +30,6 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import org.jocl.CL;
 import org.jocl.Pointer;
@@ -38,7 +37,6 @@ import org.jocl.cl_context_properties;
 import org.jocl.cl_device_id;
 import org.jocl.cl_platform_id;
 
-import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.io.NewickReader;
 import phylonet.tree.io.ParseException;
 import phylonet.tree.model.MutableTree;
@@ -860,8 +858,8 @@ public class CommandLine {
 		System.err.println("Optimal tree inferred in "
 						+ (System.currentTimeMillis() - startTime) / 1000.0D
 						+ " secs.");
-		System.err.println("Weight calculation cumulatively took"
-				+ Polytree.time / 1000.0D + " secs");
+		System.err.println("Weight calculation cumulatively took "
+				+ Polytree.time / 1000000.0D + " secs");
 
 		Tree st = processSolution(outbuffer, bootstraps, outgroup, inferenceConsumer, solutions);
 
