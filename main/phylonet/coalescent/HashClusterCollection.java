@@ -69,7 +69,7 @@ public class HashClusterCollection extends AbstractClusterCollection {
 				if (!succeed) break;
 			}
 		}
-		System.err.println("Computing hash values took "+((System.currentTimeMillis()-t)/100)+" seconds");
+		System.err.println("Computing hash values took "+((System.currentTimeMillis()-t)/1000)+" seconds");
 	}
 
 
