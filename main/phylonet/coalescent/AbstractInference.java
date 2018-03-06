@@ -42,9 +42,8 @@ public abstract class AbstractInference<T> implements Cloneable{
 	protected Options options;
 	DecimalFormat df;
 	
-
-	LinkedBlockingQueue<Long> queue2;
-	public LinkedBlockingQueue<Iterable<VertexPair>> queue4;
+	private LinkedBlockingQueue<Long> queueWeightResults;
+	private LinkedBlockingQueue<Iterable<VertexPair>> queueClusterResolutions;
 
 	double estimationFactor = 0;
 	
@@ -75,7 +74,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 	public Iterable<VertexPair> getClusterResolutions(Vertex v) {
 			Iterable<VertexPair> ret = null;
 			try{
-				ret = queue4.take();
+				ret = getQueueClusterResolutions().take();
 			}
 			catch (Exception e) {
 				e.printStackTrace();
@@ -184,7 +183,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 			System.exit(1);
 		}
 		
-		GlobalMaps.logTimeMessage("AbstractInference 193: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
+		GlobalMaps.logTimeMessage("AbstractInference 193: " );
 		
 		System.err.println("Total Number of elements: "+ weightCalculator.getCalculatedWeightCount());
 
@@ -275,7 +274,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 		Long cost = getTotalCost(all);
 		sol._totalCoals = cost;
 		solutions.add(sol);
-		GlobalMaps.logTimeMessage("AbstractInference 283: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
+		GlobalMaps.logTimeMessage("AbstractInference 283: ");
 			
         System.err.println("Final optimization score: " + cost);
         
@@ -336,7 +335,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 
 		//counter.addExtraBipartitionsByHeuristics(clusters);
 
-		GlobalMaps.logTimeMessage("" +(double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
+		GlobalMaps.logTimeMessage("" );
 			
 		System.err.println("partitions formed in "
 			+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
@@ -422,5 +421,21 @@ public abstract class AbstractInference<T> implements Cloneable{
 
 	public void setDLbdWeigth(double d) {
 		options.setDLbdWeigth(d);
+	}
+
+	public LinkedBlockingQueue<Iterable<VertexPair>> getQueueClusterResolutions() {
+		return queueClusterResolutions;
+	}
+
+	public void setQueueClusterResolutions(LinkedBlockingQueue<Iterable<VertexPair>> queueClusterResolutions) {
+		this.queueClusterResolutions = queueClusterResolutions;
+	}
+
+	public LinkedBlockingQueue<Long> getQueueWeightResults() {
+		return queueWeightResults;
+	}
+
+	public void setQueueWeightResults(LinkedBlockingQueue<Long> queueWeightResults) {
+		this.queueWeightResults = queueWeightResults;
 	}
 }
