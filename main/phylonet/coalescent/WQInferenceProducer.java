@@ -4,13 +4,13 @@ import java.util.List;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
-public class WQInferenceNoCalculations extends AbstractInferenceProducer<Tripartition> {
+public class WQInferenceProducer extends AbstractInferenceProducer<Tripartition> {
 	
-	public WQInferenceNoCalculations(Options inOptions, List<Tree> trees, List<Tree> extraTrees) {
+	public WQInferenceProducer(Options inOptions, List<Tree> trees, List<Tree> extraTrees) {
 		super(inOptions, trees, extraTrees);
 	}
 
-	public WQInferenceNoCalculations(AbstractInference semiDeepCopy) {
+	public WQInferenceProducer(AbstractInference semiDeepCopy) {
 		super(semiDeepCopy);
 	}
 
@@ -34,7 +34,7 @@ public class WQInferenceNoCalculations extends AbstractInferenceProducer<Tripart
 	}
 
 	AbstractWeightCalculatorProducer<Tripartition> newWeightCalculator() {
-		return new WQWeightCalculatorProducer(this, super.queue1);
+		return new WQWeightCalculatorProducer(this, super.getQueueReadyTripartitions());
 	}
 
 	@Override

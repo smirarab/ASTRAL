@@ -13,10 +13,12 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import phylonet.coalescent.BipartitionWeightCalculator.Quadrapartition;
 import phylonet.coalescent.BipartitionWeightCalculator.Results;
+import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STINode;
@@ -31,7 +33,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	public WQInference(Options inOptions, List<Tree> trees, List<Tree> extraTrees) {
 		super(inOptions, trees, extraTrees);
-
+		this.setQueueWeightResults(new LinkedBlockingQueue<Long>());
+		this.setQueueClusterResolutions(new LinkedBlockingQueue<Iterable<VertexPair>>());
 		this.forceAlg = inOptions.getAlg();
 	}
 
@@ -216,7 +219,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 			}
 		}
 
-		GlobalMaps.logTimeMessage("WQInference 180: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
+		GlobalMaps.logTimeMessage("WQInference 180: ");
 			
 		System.err.println("Final quartet score is: " + sum/4l);
 		System.err.println("Final normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
@@ -263,7 +266,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 	 * @return
 	 */
 	private double scoreBranches(Tree st) {
-		GlobalMaps.logTimeMessage("WQInference 227: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
+		GlobalMaps.logTimeMessage("WQInference 227: " );
 			
 		double ret = 0;
 		int[] geneTreesAsInts = ((WQWeightCalculator)this.weightCalculator).geneTreesAsInts();
@@ -328,7 +331,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 			}
 		}
 		stack = new Stack<STITreeCluster>();
-		GlobalMaps.logTimeMessage("WQInference 274: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
+		GlobalMaps.logTimeMessage("WQInference 274: " );
 			
 		AtomicInteger processCount = new AtomicInteger();
 		Object lock = new Object();
@@ -489,7 +492,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 		catch(InterruptedException e) {
 			e.printStackTrace();
 		}
-		GlobalMaps.logTimeMessage("WQInference 390: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
+		GlobalMaps.logTimeMessage("WQInference 390: ");
 			
 		/**
 		 * Annotate each branch by updating its data field
@@ -621,7 +624,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 				//i++;
 			} 
 		}
-		GlobalMaps.logTimeMessage("WQInference 478: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
+		GlobalMaps.logTimeMessage("WQInference 478: ");
 			
 		if (!nodeDataList.isEmpty())
 			throw new RuntimeException("Hmm, this shouldn't happen; "+nodeDataList);
@@ -763,7 +766,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	@Override
 	Long getTotalCost(Vertex all) {
-		GlobalMaps.logTimeMessage("WQInference 475: " + (double)(System.nanoTime()-GlobalMaps.timer)/1000000000);
+		GlobalMaps.logTimeMessage("WQInference 475: ");
 			
 		System.err.println("Normalized score (portion of input quartet trees satisfied before correcting for multiple individuals): " + 
 				all._max_score/4./this.maxpossible);
@@ -791,7 +794,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	@Override
 	AbstractWeightCalculatorConsumer<Tripartition> newWeightCalculator() {
-		return new WQWeightCalculator(this, super.queue2);
+		return new WQWeightCalculator(this, super.getQueueWeightResults());
 
 	}
 
