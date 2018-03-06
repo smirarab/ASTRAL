@@ -568,9 +568,7 @@ implements Cloneable {
 
 		System.err.println("Building set of clusters (X) from gene trees ");
 
-		GlobalMaps.logTimeMessage(" WQDataCollection 558-561: "
-				+ (double) (System.nanoTime() - GlobalMaps.timer)
-				/ 1000000000);
+		GlobalMaps.logTimeMessage(" WQDataCollection 558-561: ");
 
 		/**
 		 * This is where we randomly sample one individual per species before
@@ -590,10 +588,8 @@ implements Cloneable {
 		int arraySize = this.completedGeeneTrees.size();
 		List<Tree>[] allGreedies = new List[arraySize];
 
-		int prev = 0, gradiant = 0;
-		GlobalMaps.logTimeMessage(" WQDataCollection 588-591: "
-				+ (double) (System.nanoTime() - GlobalMaps.timer)
-				/ 1000000000);
+		int prev = 0;
+		GlobalMaps.logTimeMessage(" WQDataCollection 588-591: ");
 
 
 
@@ -627,9 +623,8 @@ implements Cloneable {
 			if (GlobalMaps.timerOn) {
 				System.err
 				.println("TIME TOOK FROM LAST NOTICE WQDataCollection 621-624: "
-						+ (double) (System.nanoTime() - GlobalMaps.timer)
-						/ 1000000000);
-				GlobalMaps.timer = System.nanoTime();
+						+ (double) (System.currentTimeMillis() - GlobalMaps.timer) / 1000);
+				GlobalMaps.timer = System.currentTimeMillis();
 			}
 			int gtindex = 0;
 			for (Tree gt : this.completedGeeneTrees) {
@@ -665,14 +660,7 @@ implements Cloneable {
 				// + clusters.getClusterCount());
 
 			}
-			if (GlobalMaps.timerOn) {
-				System.err
-				.println("TIME TOOK FROM LAST NOTICE WQDataCollection 657-660: "
-						+ (double) (System.nanoTime() - GlobalMaps.timer)
-						/ 1000000000);
-				GlobalMaps.timer = System.nanoTime();
-			}
-
+			GlobalMaps.logTimeMessage("WQDataCollection 657-660: ");
 		}
 
 		/**
@@ -707,9 +695,7 @@ implements Cloneable {
 
 
 
-		GlobalMaps.logTimeMessage(" WQDataCollection 701-704: "
-				+ (double) (System.nanoTime() - GlobalMaps.timer)
-				/ 1000000000);
+		GlobalMaps.logTimeMessage(" WQDataCollection 701-704: ");
 
 		CountDownLatch latch = new CountDownLatch(secondRoundSampling*allGreedies.length);
 		for (int ii = 0; ii < secondRoundSampling; ii++) {
@@ -730,13 +716,11 @@ implements Cloneable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		GlobalMaps.logTimeMessage(" WQDataCollection 728-731: "
-				+ (double) (System.nanoTime() - GlobalMaps.timer)
-				/ 1000000000);
+		GlobalMaps.logTimeMessage(" WQDataCollection 728-731: ");
 
 		prev = 0;
 
-		gradiant = 0;
+		//gradiant = 0;
 		if (inference.getAddExtra() != 0) {
 			this.addExtraBipartitionByDistance();
 			for (int l = 0; l < secondRoundSampling; l++) {
@@ -750,7 +734,7 @@ implements Cloneable {
 						.getSTTaxonIdentifier(),
 						this.speciesSimilarityMatrix,inference.options.getPolylimit());
 
-				gradiant = clusters.getClusterCount() - prev;
+				//gradiant = clusters.getClusterCount() - prev;
 				prev = clusters.getClusterCount();
 
 			}
@@ -771,9 +755,7 @@ implements Cloneable {
 			}
 		}
 		System.err.println("Number of Clusters after addition by greedy: "+clusters.getClusterCount());
-		GlobalMaps.logTimeMessage(" WQDataCollection 760-763: "
-				+ (double) (System.nanoTime() - GlobalMaps.timer)
-				/ 1000000000);
+		GlobalMaps.logTimeMessage(" WQDataCollection 760-763: ");
 
 	}
 
@@ -1514,6 +1496,19 @@ implements Cloneable {
 		return clone;
 	}
 
+	public long[] getAllArray() {
+		int counter = 0;
+		int wordLength =  (GlobalMaps.taxonIdentifier.taxonCount() / 64 + 1);
+		long[] allArray = new long[this.treeAllClusters.size() * wordLength];
+		for (int i = 0; i < this.treeAllClusters.size(); i++) {
+			for (int j = wordLength - 1; j >= 0; j--)
+				allArray[counter++] = this.treeAllClusters
+						.get(i).getBitSet().words[j];
+		}
+		return allArray;
+	}
+	
+	
 	/*
 	 * private BitSet hemogenizeBipartitionByVoting(BitSet b1copy, BitSet
 	 * b2copy) {
