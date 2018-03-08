@@ -1,3 +1,6 @@
+- version 5.11.4:
+    - reparallelized scoreBranches in WQInference
+
 - version 5.11.3:
     - Bug fix: long to int downcast in native C code
     - Refactoring
