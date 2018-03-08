@@ -48,6 +48,7 @@ public class Polytomy extends AbstractPartition {
 		if (_hash == 0) {
 			for (int i = 0; i < clusters.length; i++){
 				_hash += clusters[i].hashCode();
+				//= _hash * 33  +
 			}
 		}
 		return _hash;
