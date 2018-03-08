@@ -48,6 +48,13 @@ public class STITreeCluster implements Iterable<Integer>
     this.taxonIdentifier = taxonId;
     this._cluster = new BitSet(this.taxonIdentifier.taxonCount());
   }
+  
+  public STITreeCluster(TaxonIdentifier taxonId, BitSet bitset)
+  {
+    this.taxonIdentifier = taxonId;
+    this._cluster = bitset;
+  }
+  
 //  public String[] getTaxa() {
 //    return this._taxa;
 //  }
@@ -116,6 +123,7 @@ public class STITreeCluster implements Iterable<Integer>
 
 //  /static HashMap<STITreeCluster,HashSet<STITreeCluster>> contains = new HashMap<STITreeCluster, HashSet<STITreeCluster>>();
   
+  @Override
   public int hashCode()
   { 
 	  if (hashCode == 0)
