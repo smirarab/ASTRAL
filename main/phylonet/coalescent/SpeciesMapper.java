@@ -225,7 +225,7 @@ public class SpeciesMapper {
      */
     SimilarityMatrix convertToSpeciesDistance(SimilarityMatrix matrix) {
 		float [][] STsimMatrix = new float[this.getSpeciesCount()][this.getSpeciesCount()];
-		float[][] denum = new float[this.getSpeciesCount()][this.getSpeciesCount()];
+		float [][] denum = new float[this.getSpeciesCount()][this.getSpeciesCount()];
 		int n = matrix.getSize();
 		for (int i = 0; i < n; i++) {
 			for (int j = i; j < n; j++) {
@@ -242,7 +242,7 @@ public class SpeciesMapper {
 				STsimMatrix[i][j] = denum[i][j] == 0 ? 0 : 
 					STsimMatrix[i][j] / denum[i][j];
 			}
-			STsimMatrix[i][i] = 1;
+			STsimMatrix[i][i] = new Float(1.0);
 			//System.err.println(Arrays.toString(this.distSTMatrix[i]));
 		}
 		System.err.println("Species tree distances calculated ...");

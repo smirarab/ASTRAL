@@ -106,41 +106,39 @@ public class DLInference extends AbstractInference<STBipartition> {
 		return (lossesstd+duplications);
 	}
 
+	@Override
+	AbstractComputeMinCostTask<STBipartition> newComputeMinCostTask(AbstractInference<STBipartition> dlInference,
+				Vertex all) {
+		return new DLComputeMinCostTask( (DLInference) dlInference, all, null);
+	}
+
 
 	Long getTotalCost(Vertex all) {
 		return (long) (((DLDataCollection)this.dataCollection).sigmaNs - all._max_score);
 	}
 
-
-	@Override
-	AbstractComputeMinCostTask<STBipartition> newComputeMinCostTask(AbstractInference<STBipartition> dlInference,
-			Vertex all, IClusterCollection clusters) {
-		return new DLComputeMinCostTask( (DLInference) dlInference, all,  clusters);
-	}
-
 	DLClusterCollection newClusterCollection() {
 		return new DLClusterCollection(GlobalMaps.taxonIdentifier.taxonCount());
 	}
-	
+
 	DLDataCollection newCounter(IClusterCollection clusters) {
 		return new DLDataCollection(options.isRooted(), (DLClusterCollection)clusters);
 	}
 
 	@Override
-	AbstractWeightCalculator<STBipartition> newWeightCalculator() {
-		return new DLWeightCalculator(this);
-	}
+		AbstractWeightCalculatorConsumer<STBipartition> newWeightCalculator() {
+			return new DLWeightCalculator(this);
+		}
 
 	@Override
-	void setupMisc() {
-		// TODO Auto-generated method stub
-		
-	}
+		void setupMisc() {
+			// TODO Auto-generated method stub
+
+		}
 
 	@Override
-	void initializeWeightCalculator() {
-		// TODO Auto-generated method stub
-		
-	}
+		void initializeWeightCalculator() {
+			// TODO Auto-generated method stub
+		}
 
 }

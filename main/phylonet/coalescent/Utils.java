@@ -22,6 +22,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -48,7 +51,6 @@ public class Utils {
 		}
 		return children;
 	}
-
 
 	/**
 	 * For a given set of compatible clusters, it outputs the Tree object
@@ -80,7 +82,7 @@ public class Utils {
         for (STITreeCluster tc : clusters) {
           // Let's start with easy cases
           if (tc.getClusterSize() <= 1 || tc.getClusterSize() == identifier.taxonCount())
-        	  continue;
+            continue;
     
           /**  
            * Find the LCA of all nodes inside this cluster
@@ -90,6 +92,7 @@ public class Utils {
             TNode node = tree.getNode(l);
             clusterLeaves.add(node);
           }
+    
           SchieberVishkinLCA lcaFinder = new SchieberVishkinLCA(tree);
           TNode lca = lcaFinder.getLCA(clusterLeaves);
     
@@ -102,7 +105,7 @@ public class Utils {
           // Go through the children of the LCA
           for (TNode child : lca.getChildren()) {
             STITreeCluster childCluster = (STITreeCluster) ((STINode)child).getData();
-
+            
             // If the child cluster is a substet of this cluster
             //    add it to the set of clusters that will be moved
             //    to become the children of this cluster
@@ -187,7 +190,7 @@ public class Utils {
     }
 
     /**
-     * Greedy consensus
+     * 
      * @param trees
      * @param randomize
      * @param taxonIdentifier
@@ -212,8 +215,9 @@ public class Utils {
     public static final Tree greedyConsensus(Iterable<Tree> trees, boolean randomize,
     		TaxonIdentifier taxonIdentifier, double threshold, double geneTreeKeepProb) {
     	return greedyConsensus(trees,new double[]{threshold}, randomize, 1, taxonIdentifier, geneTreeKeepProb).iterator().next();
-    }
+	}
     */
+    
     /***
      * Greedy consensus with a set of thresholds
      * @param trees
@@ -227,29 +231,32 @@ public class Utils {
     public static final Collection<Tree> greedyConsensus(Iterable<Tree> trees, 
     		double[] thresholds, boolean randomzie, int repeat, 
     		TaxonIdentifier taxonIdentifier, boolean keepclusters) {
-    
+    	GlobalMaps.logTimeMessage("Utils 219-222: ");
+			
     	List<Tree> outTrees = new ArrayList<Tree>();
-
         HashMap<STITreeCluster, Integer> count = new HashMap<STITreeCluster, Integer>();
         int treecount = 0;
         for (Tree tree : trees) {
-        	treecount++;
+            treecount++;
             List<STITreeCluster> geneClusters = Utils.getGeneClusters(tree, taxonIdentifier); //taxoncount changes
             for (STITreeCluster cluster: geneClusters) {
-
                 if (count.containsKey(cluster)) {
                     count.put(cluster, count.get(cluster) + 1);
                     continue;
                 }
+            	
             	STITreeCluster comp = cluster.complementaryCluster();
-                if (count.containsKey(comp)) {
+            	if (count.containsKey(comp)) {
                     count.put(comp, count.get(comp) + 1);
                     continue;
                 }
                 count.put(cluster, 1);
             }
-        }
-        
+        }        
+       
+        GlobalMaps.logTimeMessage("Utils 240-243: " );
+			
+        ArrayList<Future<Tree>> futures = new ArrayList<Future<Tree>>();
         for (int gi = 0; gi < repeat; gi++) {
         	TreeSet<Entry<STITreeCluster,Integer>> countSorted = new 
         			TreeSet<Entry<STITreeCluster,Integer>>(new ClusterComparator(randomzie, taxonIdentifier.taxonCount()));
@@ -258,10 +265,11 @@ public class Utils {
 	        
 	        int ti = thresholds.length - 1;
 	        double threshold = thresholds[ti];
-	        List<STITreeCluster> clusters = new ArrayList<STITreeCluster>(); 
+	        List<STITreeCluster> clusters = new ArrayList<STITreeCluster>();   
 	        for (Entry<STITreeCluster, Integer> entry : countSorted) {
 	        	if (threshold > (entry.getValue()+.0d)/treecount) {	
-	        		outTrees.add(0,Utils.buildTreeFromClusters(clusters, taxonIdentifier, keepclusters));
+	        		List<STITreeCluster> clusterCopy = new ArrayList<STITreeCluster>(clusters);
+	        		futures.add(GlobalMaps.eService.submit(new greedyConsensusLoop(taxonIdentifier, keepclusters, clusterCopy)));
 	        		ti--;
 	        		if (ti < 0) {
 	        			break;
@@ -271,14 +279,40 @@ public class Utils {
 	    		clusters.add(entry.getKey());
 	        }
 	        while (ti >= 0) {
-	        	outTrees.add(0, Utils.buildTreeFromClusters(clusters, taxonIdentifier, keepclusters));
+        		List<STITreeCluster> clusterCopy = new ArrayList<STITreeCluster>(clusters);
+        		futures.add(GlobalMaps.eService.submit(new greedyConsensusLoop(taxonIdentifier, keepclusters, clusterCopy)));
 	    		ti--;
 	        }
         }
-        
+        for(int i = 0; i < futures.size(); i++) {
+        	try {
+				outTrees.add(0, futures.get(i).get());
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ExecutionException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+        }
+        GlobalMaps.logTimeMessage("Utils 269-272: " );
+			
         return outTrees;
     }
-
+	
+    public static class greedyConsensusLoop implements Callable<Tree>{
+		TaxonIdentifier taxonIdentifier;
+		boolean keepclusters;
+		List<STITreeCluster> clusters;
+		public greedyConsensusLoop(TaxonIdentifier taxonIdentifier, boolean keepclusters, List<STITreeCluster> clusters) {
+			this.keepclusters = keepclusters;
+			this.taxonIdentifier = taxonIdentifier;
+			this.clusters = clusters;
+		}
+		public Tree call() {
+			return Utils.buildTreeFromClusters(clusters, taxonIdentifier, keepclusters);
+		}
+	}
     /**
      * Gives you all clusters in the tree. These are equivalent
      *  of all bipartitions (if you know the set of all leaves in the tree). 
@@ -316,7 +350,7 @@ public class Utils {
                 stack.add(bs);
             }
                           
-            if(bs.cardinality() < leaves.length && bs.cardinality() > 1){
+            if(bs.cardinality()<leaves.length && bs.cardinality()>1){
                 STITreeCluster tb = taxonIdentifier.newCluster();
                 tb.setCluster((BitSet)bs.clone());
                 //if(!biClusters.contains(tb)){
@@ -345,7 +379,7 @@ public class Utils {
 		return range;
 	}
 
-	public static void main(String[] args) throws IOException{
+    public static void main(String[] args) throws IOException{
         if ("--fixsupport".equals(args[0])) {
             String line;
             int l = 0;          
@@ -445,7 +479,7 @@ public class Utils {
 					bs = new BitSet(randomSample.size());
 					int i =  randomSample.get(rgtn.getName());               
 					bs.set(i); 
-				} 
+				}
 			}
 			else {
 				int childCount = rgtn.getChildCount();
@@ -488,7 +522,7 @@ public class Utils {
 				newChild.adoptChild((TMutableNode) c2);
 				children.add(newChild);
 			}
-	}
+		}
 
 	
 	

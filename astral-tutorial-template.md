@@ -290,7 +290,7 @@ java -jar ../__astral.jar__ -i song_mammals.424.gene.tre -b bs-files -r 150
 
 will do 150 replicates. Note that your input gene tree bootstrap files need to have enough bootstrap replicates for the number of replicates requested using `-r`. For example, if you have `-r 150`, each file listed in `bs-files` should contain at least 150 bootstrap replicates.
 
-####Gene+site resampling:
+#### Gene+site resampling:
 ASTRAL performs site-only resampling by default (see [Seo, 2008](http://www.ncbi.nlm.nih.gov/pubmed/18281270)). ASTRAL can also perform gene+site resampling, which can be activated with the `-g` option:
 
 ```
@@ -299,7 +299,7 @@ java -jar ../__astral.jar__ -i song_mammals.424.gene.tre -b bs-files -g -r 100
 
 Note that when you perform gene/site resampling, you need more gene tree replicates than the number of multi-locus bootstrapping replicates you requested using `-r`. For example, if you have `-g -r 100`, you might need 150 replicates for some genes (and less than 100 replicates for other genes). This is because when genes are resampled, some genes will be sampled more often than others by chance.
 
-####Gene-only resampling:
+#### Gene-only resampling:
 ASTRAL can also perform gene-only bootstrapping using the `--gene-only` option. This form of bootstrapping requires only one input file, which is given using `-i`. Thus, for this, you don't need to use `-b`. The following performs bootstrapping by resampling genes in the input file:
 
 ```

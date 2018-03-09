@@ -5,10 +5,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import phylonet.coalescent.IClusterCollection.VertexPair;
-import phylonet.coalescent.WQWeightCalculator.CondensedTraversalWeightCalculator;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
+import phylonet.tree.model.sti.HashOnlyTreeCluster;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.util.BitSet;
 
@@ -18,9 +17,9 @@ public class Polytree {
 	
 	static long F(int[] x, int[] y, int[] z){
 		long a = x[0], b = x[1], c = x[2], d = y[0], e = y[1], f = y[2], g = z[0], h = z[1], i = z[2];
-		return a * ( (a + e + i - 3)  * e * i + (a + f + h - 3)  * f * h )
-			 + b * ((b + d + i - 3)  * d * i + (b + f + g - 3)  * f * g )
-			 + c * ((c + d + h - 3)  * d * h + (c + e + g - 3)  * e * g );
+		return a * ( (a + e + i - 3l)  * e * i + (a + f + h - 3l)  * f * h )
+			 + b * ((b + d + i - 3l)  * d * i + (b + f + g - 3l)  * f * g )
+			 + c * ((c + d + h - 3l)  * d * h + (c + e + g - 3l)  * e * g );
 	}
 	
 	static long U(int[] x, int[] y, int[] z){
@@ -28,148 +27,178 @@ public class Polytree {
 		return ((s - c + f) * b * f + (s - b + e) * e * c) * a + ((s - a + d) * d - 2 * s * a) * b * c;
 	}
 	
+	/**
+	 * A node in the input gene trees. Used temporarily to build the polytree. 
+	 * @author smirarab
+	 *
+	 */
 	final class PTNode{
 		PTNode parent;
 		ArrayList<PTNode> children;
 		PTCluster cluster;
 		PTPartition partition;
-		boolean called = false;
+		boolean isUsed = false;
 		
+		/**
+		 * To be used for leaves
+		 * @param n
+		 */
 		PTNode(TNode n){
-			STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
-			c.getBitSet().set(GlobalMaps.taxonIdentifier.taxonId(n.getName()));
+			HashOnlyTreeCluster c = new HashOnlyTreeCluster(GlobalMaps.taxonIdentifier.taxonId(n.getName()));
 			cluster = Polytree.this.clusters.get(c);
 			children = new ArrayList<PTNode>();
 		}
-		PTNode(ArrayList<PTNode> ch, STITreeCluster s){
+		PTNode(ArrayList<PTNode> ch, HashOnlyTreeCluster s){
 			children = ch;
-			STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
+			HashOnlyTreeCluster c =  new HashOnlyTreeCluster();
 			ArrayList<STITreeCluster> cs = new ArrayList<STITreeCluster>();
 			for (PTNode child: children){
 				child.parent = this;
-				c.getBitSet().xor(child.cluster.clusterRef.getBitSet());
+				c = c.disjointClusterMerge(child.cluster.clusterRef);
 				cs.add(child.cluster.clusterRef);
 			}
 			cluster = findCluster(c, this);
-			if (c.equals(s) == false){
-				STITreeCluster xc = new STITreeCluster(GlobalMaps.taxonIdentifier);
-				xc.getBitSet().xor(c.getBitSet());
-				xc.getBitSet().xor(s.getBitSet());
+			if (c.equals(s) == false){ // If this is not the root
+				HashOnlyTreeCluster xc = s.subclusterComplement(c);
 				cs.add(findCluster(xc, null).clusterRef);
 			}
 			if (cs.size() >= 3){
 				AbstractPartition p = AbstractPartition.createPartition(cs);
-				if (Polytree.this.partitions.containsKey(p)){
-					partition = Polytree.this.partitions.get(p);
-					partition.cnt++;
+				partition = Polytree.this.partitions.get(p);
+				if (partition != null){
+					partition.cardinality++;
 				}
 				else partition = new PTPartition(p, this);
 			}
 		}
-		PTCluster findCluster(STITreeCluster c, PTNode n){
-			if (Polytree.this.clusters.containsKey(c)) {
-				PTCluster cluster = Polytree.this.clusters.get(c);
+		PTCluster findCluster(HashOnlyTreeCluster c, PTNode n){
+			PTCluster cluster = Polytree.this.clusters.get(c);
+			if (cluster != null) {
 				if (cluster.firstNode == null) cluster.firstNode = n;
 				return cluster;
 			}
 			else return new PTCluster(c, n);
 		}
-		boolean isPartitionNode(){
-			if (partition == null) return false;
+		boolean isFirstResolutionOfCluster(){
+			if (partition == null) return false; // leaf node
 			return partition.firstNode == this;
 		}
-		boolean isClusterNode(){
+		boolean isFirstClusterAppearence(){
 			return cluster.firstNode == this;
 		}
-		void addAllPartitions(){
+		
+		/**
+		 * This function sets the isUsed flag based on whether
+		 *   1. the cluster is being seen for the first time
+		 *      or 
+		 *   2. the partition is being seen for the first time
+		 */
+		void setClusterFlag(){
 			for (PTNode child: children){
-				child.addAllPartitions();
+				child.setClusterFlag();
 			}
-			if (isPartitionNode()){
-				called = true;
+			if (isFirstResolutionOfCluster()){
+				isUsed = true;
 				for (PTNode child: children){
-					child.addAllClusters();
+					child.setClusterFlagsByClusterPrecedence();
 				}
 			}
 		}
-		void addAllClusters(){
-			if (called) return;
-			if (isClusterNode()){
-				called = true;
+		void setClusterFlagsByClusterPrecedence(){
+			if (this.isUsed) return;
+			if (isFirstClusterAppearence()){
+				this.isUsed = true;
 				for (PTNode child: children){
-					child.addAllClusters();
+					child.setClusterFlagsByClusterPrecedence();
 				}
 			}
 			else {
-				cluster.listUsed = true;
+				cluster.intersectionAlreadyComputed = true;
 				PTNode n = cluster.firstNode;
-				if (n == null || n.called) return;
-				n.called = true;
+				if (n == null || n.isUsed) return;
+				n.isUsed = true;
 				for (PTNode child: n.children){
-					child.addAllClusters();
+					child.setClusterFlagsByClusterPrecedence();
 				}
 			}
 		}
-		void buildQueue(){
+		void buildInstructionQueue(){
 			/*
-			 * 1 - true = compute based on stack; false = get from list
-			 * stack:
-			 * value >> 5 - number of children
+			 * -1 - new tree
+			 * 
+			 * If the cluster is used, the five LS bits are flags, with meanings: 
+			 * 1 - true = compute based on stack; 
+			 *     false = get from list stack: value >> 5 - number of children
 			 * 2 - true = store on stack
 			 * 4 - true = store on list
 			 * 8 - true = compute partition
-			 * 16 - true = partition cnt>1 
+			 * 16 - true = partition seen multiple times 
+			 * and the remaining bits are simply the number of children. 
+			 * When 16 is set, the following value is simply the cardinality fo the partition.
+			 * 
+			 * If the cluster is not used, bit 1 is not set and 
+			 *   the remaining bits give the position in the list where the results for this can be found. 
 			 * list:
 			 * value >> 1 - the position on the list to fetch from
 			 */
 			for (PTNode child: children){
-				child.buildQueue();
+				child.buildInstructionQueue();
 			}
-			if (called){
+			if (isUsed){
 				int v = (children.size() << 5) | 1;
 				if (addToStack()) v = v | 2;
 				if (addToList()) {
 					v = v | 4;
 					cluster.listPos = Polytree.this.listSize++;
 				}
-				if (isPartitionNode()){
+				if (isFirstResolutionOfCluster()){
 					v = v | 8;
-					if (partition.cnt > 1){
+					if (partition.cardinality > 1){
 						v = v | 16;
 						Polytree.this.queueBuilder.add(v);
-						Polytree.this.queueBuilder.add(partition.cnt);
+						Polytree.this.queueBuilder.add(partition.cardinality); // The cardinality is saved on the queue
 					}
 					else Polytree.this.queueBuilder.add(v);
 				}
 				else Polytree.this.queueBuilder.add(v);
 			}
 			else {
-				if (parent != null && parent.called) Polytree.this.queueBuilder.add(cluster.listPos << 1);
+				if (parent != null && parent.isUsed) Polytree.this.queueBuilder.add(cluster.listPos << 1);
 			}
 		}
+		
+		/**
+		 * The intersection for this cluster has to be saved on stack
+		 * @return
+		 */
 		boolean addToStack(){
-			return called && parent != null && parent.called;
+			return isUsed && parent != null && parent.isUsed;
 		}
+		
+		/**
+		 * The intersection for this cluster has to be saved on the end of the list 
+		 * @return
+		 */
 		boolean addToList(){
-			return called && isClusterNode() && cluster.listUsed;
+			return isUsed && isFirstClusterAppearence() && cluster.intersectionAlreadyComputed;
 		}
 	}
 	
 	final class PTCluster{
-		STITreeCluster clusterRef;
-		PTNode firstNode;
-		boolean listUsed = false;
+		HashOnlyTreeCluster clusterRef;
+		PTNode firstNode; // The first gene tree node that matched this cluster
+		boolean intersectionAlreadyComputed = false; 
 		int listPos = -1;
 		
-		PTCluster(STITreeCluster c, PTNode n){
+		PTCluster(HashOnlyTreeCluster c, PTNode n){
 			clusterRef = c;
 			firstNode = n;
 			Polytree.this.clusters.put(c, this);
 		}
-		PTCluster(STITreeCluster c){
+		PTCluster(HashOnlyTreeCluster c){
 			clusterRef = c;
 			firstNode = null;
-			listUsed = true;
+			intersectionAlreadyComputed = true;
 			listPos = Polytree.this.listSize++;
 			Polytree.this.clusters.put(c, this);
 		}
@@ -177,7 +206,7 @@ public class Polytree {
 	
 	final class PTPartition{
 		PTNode firstNode;
-		int cnt = 1;
+		int cardinality = 1; // cardinality of the partition in the gene tree set
 		
 		PTPartition(AbstractPartition p, PTNode n){
 			firstNode = n;
@@ -186,104 +215,81 @@ public class Polytree {
 	}
 	
 	public static final class PTNative{
-		private static boolean useNativeMethod = false;
 		private static final int batchSize = 32;
-		private static Polytree pt = null;
 		
-		static {
-			try {
-				System.loadLibrary("Astral");
-				System.err.println("Using native AVX batch computing method.");
-				useNativeMethod = true;
-			}
-			catch (Throwable e) {
-				useNativeMethod = false;
-				System.err.println("Fail to load native library; use Java default computing method.");
-			}
-		}
+
 		private static native void cppInit(int n, int listSize, int[] q, long[][] c);
-		private static native long cppCompute(long[] a, long[] b, long[] c);
 		private static native void cppBatchCompute(long[] result, long[][] a, long[][] b, long[][] c);
-		public static void compute(ArrayList<VertexPair> todolist) {
-			System.err.println("number of jobs: " + todolist.size());
-			long t = System.nanoTime();
-			if (!useNativeMethod) {
-				for (VertexPair p: todolist) {
-					BitSet[] b = {
-						p.cluster1.getCluster().getBitSet(),
-						p.cluster2.getCluster().getBitSet(),
-						p.both.getCluster().complementaryCluster().getBitSet()
-					};
-					p.weight = pt.WQWeightByTraversal(b);
-				}
-				Polytree.time += System.nanoTime() - t;
-				return;
-			}
-			for (int i = 0; i < todolist.size(); i += batchSize) {
-				int size = (todolist.size() - i > batchSize) ? batchSize : todolist.size() - i;
-				long[] result = new long[size];
-				long[][] a = new long[size][];
-				long[][] b = new long[size][];
-				long[][] c = new long[size][];
-				for (int j = 0; j < size; j++) {
-					a[j] = todolist.get(i + j).cluster1.getCluster().getBitSet().getArray();
-					b[j] = todolist.get(i + j).cluster2.getCluster().getBitSet().getArray();
-					c[j] = todolist.get(i + j).both.getCluster().complementaryCluster().getBitSet().getArray();
-				}
-				cppBatchCompute(result, a, b, c);
-				for (int j = 0; j < size; j++) {
-					todolist.get(i + j).weight = result[j];
-				}
-			}
-			Polytree.time += System.nanoTime() - t;
-		}
+
 	}
 	
 	WQDataCollection dataCollection;
-	HashMap<STITreeCluster, PTCluster> clusters = new HashMap<STITreeCluster, PTCluster>();	
+	HashMap<HashOnlyTreeCluster, PTCluster> clusters = new HashMap<HashOnlyTreeCluster, PTCluster>();	
 	HashMap<AbstractPartition, PTPartition> partitions = new HashMap<AbstractPartition, PTPartition>();
 	ArrayList<PTNode> nodeRoots = new ArrayList<PTNode>();
+
 	ArrayList<Integer> queueBuilder = new ArrayList<Integer>();
-	int[][] stack, list;
 	int[] queue;
 	int listSize = 0;
-	int[] sx = new int[3], sxy = new int[3], treeTotal = new int[3];
 	long maxScore = 0;
+	private boolean useNativeMethod;
 	
 	public Polytree(List<Tree> trees, WQDataCollection dataCollection){
-		PTNative.pt = this;
+		GlobalMaps.generateHashValues();
+		
 		this.dataCollection = dataCollection;
 		long t = System.currentTimeMillis();
+		
+		// Create singleton clusters and add to map
 		for (int i = 0; i < GlobalMaps.taxonIdentifier.taxonCount(); i++){
-			STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
-			c.getBitSet().set(i);
+			HashOnlyTreeCluster c = new HashOnlyTreeCluster(i);
 			new PTCluster(c);
 		}
+		
+		// Represent gene trees as PTNodes
 		Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
 		for (Tree tr: trees){
-			nodeRoots.add(buildTree(tr.getRoot(), tit.next()));
-		}
-		for (PTNode n: nodeRoots){
-			n.addAllPartitions();
-		}
-		for (PTNode n: nodeRoots){
-			queueBuilder.add(-1);
-			n.buildQueue();
+			nodeRoots.add(buildTree(tr.getRoot(), new HashOnlyTreeCluster(tit.next())));
 		}
 		
-		stack = new int[GlobalMaps.taxonIdentifier.taxonCount() + 1][3];
-		list = new int[listSize][3];
+		// Set the isUsedFlag on gene tree nodes
+		for (PTNode n: nodeRoots){
+			n.setClusterFlag();
+		}
+		
+		// For each node of each gene tree, decide how it
+		//  should be treated when calculating weights.
+		// Options (non-exclusive) are:
+		//   - compute the intersection for the cluster or retrieve it from the list
+		//   - compute the weight for the partition if it's the first resolution
+		for (PTNode n: nodeRoots){
+			queueBuilder.add(-1);
+			n.buildInstructionQueue();
+		}
+		
+
 		queue = mapToInt(queueBuilder);
 		clusters = null;
 		partitions = null;
 		queueBuilder = null;
 
 		STITreeCluster c = (new STITreeCluster(GlobalMaps.taxonIdentifier)).complementaryCluster();
-		maxScore = WQWeightByTraversal(new Tripartition(c, c, c, false), null);
+		maxScore = computeUpperbound(c.getBitSet());
 		System.err.println("Polytree max score: " + maxScore / 4);
 		System.err.println("Polytree building time: " + (System.currentTimeMillis() - t) / 1000.0D + " seconds.");
 		
-		if (PTNative.useNativeMethod) {
+		try {
+			System.loadLibrary("Astral");
+			System.err.println("Using native AVX batch computing method.");
+			useNativeMethod = true;
+		}
+		catch (Throwable e) {
+			useNativeMethod = false;
+			//e.printStackTrace(); 
+			System.err.println("Fail to load native library "+System.mapLibraryName("Astral")+"; use Java default computing method.");
+		}
+		
+		if (useNativeMethod) {
 			int m = trees.size();
 			long b[][] = new long[m][];
 			Iterator<STITreeCluster> ti = dataCollection.treeAllClusters.iterator();
@@ -301,7 +307,7 @@ public class Polytree {
 		return ret;
 	}
 	
-	private PTNode buildTree(TNode node, STITreeCluster s){
+	private PTNode buildTree(TNode node, HashOnlyTreeCluster s){
 		if (node.isLeaf()) return new PTNode(node);
 		else {
 			ArrayList<PTNode> cs = new ArrayList<PTNode>();
@@ -312,14 +318,56 @@ public class Polytree {
 		}
 	}
 
-	public Long WQWeightByTraversal(Tripartition trip, CondensedTraversalWeightCalculator algorithm){
-		if (trip.cluster1 == trip.cluster2) return computeUpperbound(trip.cluster1.getBitSet());
-		long t = System.nanoTime();
+	public Long[] WQWeightByTraversal(Tripartition[] trips){
+		long t = System.currentTimeMillis();
+		Long[] ret = new Long[trips.length];
+		if (!useNativeMethod) {
+			int i = 0;
+			for (Tripartition trip: trips) {
+				ret[i++] = this.WQWeightByTraversal(trip);
+			}
+		} else {
+			for (int i = 0; i < trips.length; i += PTNative.batchSize) {
+				int size = (trips.length - i > PTNative.batchSize) ? PTNative.batchSize : trips.length - i;
+				long[] result = new long[size];
+				long[][] a = new long[size][];
+				long[][] b = new long[size][];
+				long[][] c = new long[size][];
+				for (int j = 0; j < size; j++) {
+					a[j] = trips[(i + j)].cluster1.getBitSet().getArray();
+					b[j] = trips[(i + j)].cluster2.getBitSet().getArray();
+					c[j] = trips[(i + j)].cluster3.getBitSet().getArray();
+				}
+				PTNative.cppBatchCompute(result, a, b, c);
+				for (int j = 0; j < size; j++) {
+					ret[i+j] = result[j];
+				}
+			}
+		}
+		Polytree.time += System.nanoTime() - t;
+		//System.err.println((System.nanoTime() - t));
+		return ret;
+		
+	}
+	public Long WQWeightByTraversal(Tripartition trip){
+
+		if (trip == null)
+		{
+			System.err.println("why here?");
+		}
+		if (trip.cluster1 == trip.cluster2) return this.computeUpperbound(trip.cluster1.getBitSet());
+		//long t = System.nanoTime();
 		BitSet[] b = new BitSet[]{trip.cluster1.getBitSet(), trip.cluster2.getBitSet(), trip.cluster3.getBitSet()};
-		return WQWeightByTraversal(b);
+		return this.WQWeightByTraversal(b);
+
 	}
 	
 	public Long WQWeightByTraversal(BitSet[] b){
+		int[][] stack, list;
+		stack = new int[GlobalMaps.taxonIdentifier.taxonCount() + 1][3];
+		list = new int[listSize][3];
+		int[] treeTotal = new int[3];
+		long[] sx = new long[3], sxy = new long[3];
 		long weight = 0;
 		int stackEnd = 0, listEnd = GlobalMaps.taxonIdentifier.taxonCount();
 		Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
@@ -401,10 +449,16 @@ public class Polytree {
 				q[2] = p[2];
 			}
 		}
+		//System.err.println(weight);
 		return weight;
 	}
 	
 	public Long computeUpperbound(BitSet b){
+		int[][] stack, list;
+		stack = new int[GlobalMaps.taxonIdentifier.taxonCount() + 1][3];
+		list = new int[listSize][3];
+		int[] treeTotal = new int[3];
+		long[] sx = new long[3], sxy = new long[3];
 		long weight = 0;
 		int stackEnd = 0, listEnd = GlobalMaps.taxonIdentifier.taxonCount();
 		Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();

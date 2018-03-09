@@ -10,15 +10,15 @@ import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 
 // TODO: why extend the abstract? It doesn't seem to follow the same pattern exactly
-class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition> {
+class BipartitionWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> {
 
 	WQInference inference;
 	private WQDataCollection dataCollection;
-	private Integer[] geneTreesAsInts;
+	private int[] geneTreesAsInts;
 
 	public BipartitionWeightCalculator(AbstractInference<Tripartition> inference,
-			Integer[] geneAsInts) {
-		super(false);
+			int[] geneAsInts) {
+		super(false, null);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
 		this.inference = (WQInference) inference;
 		this.geneTreesAsInts = geneAsInts;
@@ -124,13 +124,6 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 		}
 	}
 
-	@Override
-	Long calculateWeight(Tripartition t,
-			AbstractComputeMinCostTask<Tripartition> minCostTask) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public Results getWeight(Quadrapartition [] quad ) {
 		long [] fi = {0l,0l,0l};
 		long mi = 0l;
@@ -170,12 +163,17 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 				if (!cruise) {
 					//long fiall = fi[0] + fi[1] + fi[2];
 					//if (fiall != 0)
+					//double tf = 0.0; 
 					for (int i=0; i<3; i++) {
 						double efffreq = (fi[i]+0.0)/(2.0*mi);
-						/*if (efffreq != 1 && efffreq != 0)
-							System.err.println(efffreq);*/
+					/*if (efffreq != 1 && efffreq != 0)
+						System.err.println(efffreq);*/
 						weight[i] += efffreq;
+						//tf += efffreq;
 					}
+					//if (tf < .99) {
+						//System.err.println("Warning: a gene tree is contributing only "+tf +" to total score of the branch with mi: "+mi);
+					//}
 				}
 				for (int i=0; i<3; i++) stack[i].clear();
 				newTree = true;
@@ -190,11 +188,11 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 					for (int i=0; i<3; i++) {
 						Intersects side1 = stack[i].pop();
 						Intersects side2 = stack[i].pop();
-						Intersects newSide = new Intersects(side1, side2);
+					Intersects newSide = new Intersects(side1, side2);
 						stack[i].push(newSide);
 						Intersects side3 = new Intersects(allsides[i]);
-						side3.subtract(newSide);
-		
+					side3.subtract(newSide);
+	
 						fi[i] += allcases(side1, side2, side3);
 					}
 	
@@ -203,18 +201,18 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 					for (int i=0; i<3; i++) {
 						ArrayList<Intersects> children = new ArrayList<Intersects>();
 					    Intersects newSide = new Intersects(0,0,0,0);
-					    for (int j = gtb; j < 0 ; j++) {
-					        Intersects pop = stack[i].pop();
+						    for (int j = gtb; j < 0 ; j++) {
+						        Intersects pop = stack[i].pop();
 					        children.add(pop);
 					        newSide.addin(pop);
 					    }
-					    stack[i].push(newSide);
-		                Intersects sideRemaining = new Intersects (allsides[i]);
+						    stack[i].push(newSide);
+			                Intersects sideRemaining = new Intersects (allsides[i]);
 		                sideRemaining.subtract(newSide);
 		                if ( sideRemaining.isNotEmpty()) {
 		                    children.add(sideRemaining);
 		                }
-		                
+		                    
 		                long sum0 = 0, sum1 = 0, sum2 = 0, sum3 = 0, sum01 = 0, sum23 = 0;
 		                for (int j = 0; j < children.size(); j++){
 		                	Intersects side = children.get(j);
@@ -224,13 +222,13 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 		                	sum3 += side.s3;
 		                	sum01 += side.s0 * side.s1;
 		                	sum23 += side.s2 * side.s3;
-		                }
+	                        }
 		                for (int j = 0; j < children.size(); j++) {
 		                	Intersects side = children.get(j);
 		                	fi[i] += side.s0 * side.s1 * ((sum2 - side.s2) * (sum3 - side.s3) - sum23 + side.s2 * side.s3);
 		                	fi[i] += side.s2 * side.s3 * ((sum0 - side.s0) * (sum1 - side.s1) - sum01 + side.s0 * side.s1);
-		                }
-					}
+	                    }
+	                }
 				}
 			}
 		}
@@ -349,7 +347,18 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 	@Override
 	public void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees) {
 		// TODO Auto-generated method stub
+
+	}
 	
+	@Override
+	protected Long[] calculateWeight(Tripartition[] t) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	Tripartition[] convertToSingletonArray(Tripartition t) {
+		return new Tripartition[]{t};
 	}
 
 }

@@ -4,16 +4,15 @@ set -u
 set -e
 set -x
 
-version=`grep _versinon main/phylonet/coalescent/CommandLine.java|grep String|sed -e "s/.*= .//g" -e "s/.;//g"`
+version=`grep _version main/phylonet/coalescent/CommandLine.java|grep String|sed -e "s/.*= .//g" -e "s/.;//g"|tr -d '\r'`
 echo Version $version
 
 cd main
 
-rm -f phylonet/coalescent/*.class phylonet/util/BitSet.class phylonet/tree/model/sti/STITreeCluster*.class phylonet/tree/io/NewickWriter.class
+rm -f phylonet/coalescent/*.class phylonet/util/BitSet.class phylonet/tree/model/sti/*.class phylonet/tree/io/NewickWriter.class
 
-javac -source 1.6  -target 1.6 -classpath ../lib/main.jar:../lib/colt.jar:../lib/JSAP-2.1.jar phylonet/util/BitSet.java phylonet/coalescent/*java phylonet/tree/model/sti/STITreeCluster.java phylonet/tree/io/NewickWriter.java
-
-jar cvfm ../astral.$version.jar ../manifest.text phylonet/util/BitSet.* phylonet/coalescent/*.* phylonet/tree/model/sti/STITreeCluster*.* phylonet/tree/io/NewickWriter.*
+javac -J-Xmx20m -g -source 1.6 -target 1.6 -classpath ../lib/main.jar:../lib/colt.jar:../lib/JSAP-2.1.jar:../lib/jocl-2.0.0.jar phylonet/util/BitSet.java phylonet/coalescent/*.java phylonet/tree/model/sti/*.java phylonet/tree/io/NewickWriter.java
+jar -J-Xmx20m cvfm ../astral.$version.jar ../manifest.text phylonet/util/BitSet.* phylonet/coalescent/*.* phylonet/tree/model/sti/*.* phylonet/tree/io/NewickWriter.*
 
 cd ..
 

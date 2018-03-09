@@ -3,18 +3,24 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.Callable;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import phylonet.coalescent.AbstractClusterCollection.getClusterResolutionsLoop;
 import phylonet.coalescent.BipartitionWeightCalculator.Quadrapartition;
 import phylonet.coalescent.BipartitionWeightCalculator.Results;
+import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STINode;
@@ -29,7 +35,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	public WQInference(Options inOptions, List<Tree> trees, List<Tree> extraTrees) {
 		super(inOptions, trees, extraTrees);
-
+		this.setQueueWeightResults(new LinkedBlockingQueue<Long>());
+		this.setQueueClusterResolutions(new LinkedBlockingQueue<Iterable<VertexPair>>());
 		this.forceAlg = inOptions.getAlg();
 	}
 
@@ -93,13 +100,13 @@ public class WQInference extends AbstractInference<Tripartition> {
 						 */
 						for (int k = j+1; k < children.size(); k++) {
 							Long c = children.get(k) + 0l;
-							weight += (a+b+c-3) *a*b*c;
+							weight += (a+b+c-3l) *a*b*c;
 						}
 					}
 				}
 			}
 		}
-        return weight/4l - unresolvableQuartets();
+		return weight/4l - unresolvableQuartets();
 	}
 
 
@@ -108,20 +115,21 @@ public class WQInference extends AbstractInference<Tripartition> {
 			return 0;
 		long ret = 0;
 		for (STITreeCluster gtCL : ((WQDataCollection)this.dataCollection).treeAllClusters) {
-			int[] counts = new int [GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount()];
-			int size = gtCL.getClusterSize();
+			long[] counts = new long [GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount()];
+			long size = gtCL.getClusterSize();
 			BitSet bs = gtCL.getBitSet();
-	        for (int i = bs.nextSetBit(0); i >=0 ; i = bs.nextSetBit(i+1)) {
-	            counts[(GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesIdForTaxon(i))]++;
-	        }
-	        for (long count : counts) {
-	        	ret += (count*(count-1)*(count-2))/6l*(size-count)+
-	        			(count*(count-1)*(count-2)*(count-3))/24l;
-	        }
+			for (int i = bs.nextSetBit(0); i >=0 ; i = bs.nextSetBit(i+1)) {
+				counts[(GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesIdForTaxon(i))]++;
+			}
+			for (long count : counts) {
+				ret += (count*(count-1l)*(count-2l))/6l*(size-count)+
+						(count*(count-1l)*(count-2l)*(count-3l))/24l;
+			}
 		}
 		return ret;
 	}
 
+	@Override
 	void initializeWeightCalculator() {
 		((WQWeightCalculator)this.weightCalculator).setupGeneTrees(this);
 		if (this.forceAlg == 2) {
@@ -134,7 +142,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	/**
 	 * This method first computes the quartet scores and then calls
-	 * scoreBranches to annotate branches (if needed).
+	 * scoreBranches to annotate branches (if needed). 
 	 * The method assumes the input tree st has labels of individuals (not species). 
 	 */
 	public double scoreSpeciesTreeWithGTLabels(Tree st, boolean initialize) {
@@ -205,7 +213,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 					for (int j = i+1; j < childbslist.size(); j++) {
 						for (int k = j+1; k < childbslist.size(); k++) {
 							Tripartition trip = new Tripartition(childbslist.get(i),  childbslist.get(j), childbslist.get(k));
-							Long s = weightCalculator.getWeight(trip, null);
+							Long s = weightCalculator.getWeight(trip);
 							sum += s;
 						}
 					}					       
@@ -213,7 +221,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 			}
 		}
 
-
+		GlobalMaps.logTimeMessage("WQInference 180: ");
+			
 		System.err.println("Final quartet score is: " + sum/4l);
 		System.err.println("Final normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
 		//System.out.println(st.toNewickWD());
@@ -237,7 +246,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	private boolean skipNode (TNode node) {
 		TNode parent = node.getParent();
-		
+
 		return 	node.isLeaf() || node.isRoot() || node.getChildCount() > 2 || 
 				(parent.getChildCount() > 3) ||
 				(parent.getChildCount() > 2 && !parent.isRoot()) ||
@@ -259,8 +268,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 	 * @return
 	 */
 	private double scoreBranches(Tree st) {
-
+		GlobalMaps.logTimeMessage("WQInference 227: " );
+			
 		double ret = 0;
+		int[] geneTreesAsInts = ((WQWeightCalculator)this.weightCalculator).geneTreesAsInts();
 
 		weightCalculator = new BipartitionWeightCalculator(this,((WQWeightCalculator)this.weightCalculator).geneTreesAsInts());
 
@@ -308,7 +319,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 					bs.or(pop.getBitSet());
 				}
 
-				STITreeCluster cluster = GlobalMaps.taxonIdentifier.newCluster();
+				STITreeCluster cluster =GlobalMaps.taxonIdentifier.newCluster();
 				cluster.setCluster((BitSet) bs.clone());
 
 				//((STINode)node).setData(new GeneTreeBitset(node.isRoot()? -2: -1));
@@ -322,14 +333,19 @@ public class WQInference extends AbstractInference<Tripartition> {
 			}
 		}
 		stack = new Stack<STITreeCluster>();
+		GlobalMaps.logTimeMessage("WQInference 274: " );
+			
+		AtomicInteger processCount = new AtomicInteger();
+		Object lock = new Object();
 
-
+		Set<TNode> skippedNodes = new HashSet<TNode>();
 		/**
 		 * For each node,
 		 *   1. create three quadripartitoins for the edge above it
 		 *   2. score the quadripartition
 		 *   3. save the scores in a list for annotations in the next loop
 		 */
+
 		Queue<NodeData> nodeDataList = new LinkedList<NodeData>();
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
@@ -339,10 +355,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 				NodeData nd = null;
 
-				STITreeCluster cluster = (STITreeCluster) node.getData();		
+				STITreeCluster cluster = (STITreeCluster) node.getData();				
 				STITreeCluster c1 = null, c2 = null;
 				long cs = cluster.getClusterSize()+0l;
-				
+
 				for (int i =0; i< node.getChildCount(); i++) {
 					if (c1 == null)
 						c1 = stack.pop();
@@ -352,122 +368,23 @@ public class WQInference extends AbstractInference<Tripartition> {
 						stack.pop();
 				}
 				stack.push(cluster);
+				processCount.incrementAndGet();
+				GlobalMaps.eService.execute(scoreBranchesLoop(weightCalculator2, nodeDataList, node, nd, cluster, c1, c2, cs, processCount, lock));
 
-				/**
-				 * For terminal branches in a multi-ind data
-				 */
-				if (cs > 1 && GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleSP(cluster.getBitSet()))
-				{
-					STITreeCluster[] sisterRemaining = getSisterRemaining(node);
-					STITreeCluster sister = sisterRemaining[0]; 
-					STITreeCluster remaining = sisterRemaining[1];
-					
-					nd = getNodeData(0d, 0d, 0d, 0);
-					nodeDataList.add(nd);
-					
-					/**
-					 * Compute a quadripartition per each individual
-					 */
-					BitSet bitSet = cluster.getBitSet();			
-					for (int j = bitSet.nextSetBit(0); j >= 0; j = bitSet.nextSetBit(j + 1)) {
-						c1 = new STITreeCluster(cluster);
-						c1.getBitSet().clear(j);
-						c2 = GlobalMaps.taxonIdentifier.newCluster();
-						c2.getBitSet().set(j);
-						Quadrapartition[] threequads = new Quadrapartition [] { 
-								weightCalculator2.new Quadrapartition (c1,  c2, sister, remaining), 
-								weightCalculator2.new Quadrapartition (c1, sister, c2, remaining),
-								weightCalculator2.new Quadrapartition (c1, remaining, c2, sister)
-						};
-						
-						/**
-						 * Scores all three quadripartitoins
-						 */
-						Results s = weightCalculator2.getWeight(threequads);
-
-						nd.mainfreq += s.qs[0];
-						nd.alt1freqs += s.qs[1];
-						nd.alt2freqs += s.qs[2];
-						nd.effn += s.effn;
-					}
-					
-					/**
-					 * Average frequencies. TODO: Good with missing data?
-					 */
-					nd.mainfreq /= cs;
-					nd.alt1freqs /= cs;
-					nd.alt2freqs /= cs;
-					nd.effn /= (int) cs;
-					
-					nd.quartcount =  (cs*(cs-1)/2)
-							* (sister.getClusterSize()+0l)
-							* (remaining.getClusterSize()+0l);
-										
-				} else if (! skipNode(node) ) { 
-					/**
-					 * Normal internal branches
-					 */
-					STITreeCluster[] sisterRemaining = getSisterRemaining(node);
-					STITreeCluster sister = sisterRemaining[0]; 
-					STITreeCluster remaining = sisterRemaining[1];
-					
-					Quadrapartition[] threequads = new Quadrapartition [] { 
-							weightCalculator2.new Quadrapartition (c1,  c2, sister, remaining), 
-							weightCalculator2.new Quadrapartition (c1, sister, c2, remaining),
-							weightCalculator2.new Quadrapartition (c1, remaining, c2, sister)
-					};
-
-					/**
-					 * 2. Scores all three quadripartitoins
-					 */
-					Results s = weightCalculator2.getWeight(threequads);
-					nd = getNodeData(s.qs[0],s.qs[1],s.qs[2],s.effn);
-					nodeDataList.add(nd);
-
-					nd.quartcount= (c1.getClusterSize()+0l)
-							* (c2.getClusterSize()+0l)
-							* (sister.getClusterSize()+0l)
-							* (remaining.getClusterSize()+0l);
-
-
-					if (this.getBranchAnnotation() == 7){
-						if (remaining.getClusterSize() != 0 && sister.getClusterSize() != 0 && c2.getClusterSize() != 0 && c1.getClusterSize() != 0 ){
-							System.err.print(c1.toString()+c2.toString()+"|"+sister.toString()+remaining.toString()+"\n");
-						}
-					}
-					if (this.getBranchAnnotation() == 6 || this.getBranchAnnotation() == 16) {
-						STITreeCluster c1plussis = GlobalMaps.taxonIdentifier.newCluster();
-
-						c1plussis.setCluster((BitSet) c1.getBitSet().clone());
-						c1plussis.getBitSet().or(sister.getBitSet());
-						STITreeCluster c1plusrem = GlobalMaps.taxonIdentifier.newCluster();
-						c1plusrem.setCluster((BitSet) c1.getBitSet().clone());
-						c1plusrem.getBitSet().or(remaining.getBitSet());
-
-						STBipartition bmain = new STBipartition(cluster, cluster.complementaryCluster());
-						STBipartition b2 = new STBipartition(c1plussis, c1plussis.complementaryCluster());
-						STBipartition b3 = new STBipartition(c1plusrem, c1plusrem.complementaryCluster());
-
-						STBipartition[] biparts = new STBipartition[] {bmain, b2, b3};
-						nd.quads = threequads;
-						nd.bipartitions = biparts;
-					}
-				} else {
-					/**
-					 * Root or trivial branches
-					 */
-					nodeDataList.add(null);
-				}
-				
-				if (nd != null && nd.effn < 20) {
-					System.err.println("You may want to ignore posterior probabilities and other statistics related to the following "
-							+ "branch branch because the effective number of genes impacting it is only "+ nd.effn +
-							":\n\t" +
-							GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTClusterForGeneCluster(cluster));
+			}
+		}
+		try {
+			synchronized(lock) {
+				while(processCount.get() != 0) {
+					lock.wait();
 				}
 			}
 		}
-
+		catch(InterruptedException e) {
+			e.printStackTrace();
+		}
+		GlobalMaps.logTimeMessage("WQInference 390: ");
+			
 		/**
 		 * Annotate each branch by updating its data field
 		 * according to scores and user's annotation preferences. 
@@ -480,7 +397,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 				node.setData(null);
 				continue;
 			} 
-			
+
 			nd = nodeDataList.poll();
 			if (nd == null ) {
 				node.setData(null);
@@ -491,13 +408,19 @@ public class WQInference extends AbstractInference<Tripartition> {
 			Double f3 = nd.alt2freqs;
 			Long quarc = nd.quartcount;
 			Double effni = nd.effn + 0.0;
-			
 
-			if ( Math.abs((f1+f2+f3) - effni) > 0.01 ) {
+
+			if ( Math.abs((f1+f2+f3) - effni) > 0.001 ) {
 				//System.err.println("Adjusting effective N from\t" + effni + "\tto\t" + (f1 + f2 + f3) + ". This should only happen as a result of polytomies in gene trees.");
 				effni = f1 + f2 + f3;
 			}
 
+			if (this.options.getGeneRepeat() != 1) {
+				f1 /= this.options.getGeneRepeat();
+				f2 /= this.options.getGeneRepeat();
+				f3 /= this.options.getGeneRepeat();
+				effni /= this.options.getGeneRepeat();
+			}
 			//Long sum = p+a1+a2;
 
 			Posterior post = new Posterior(
@@ -524,7 +447,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 			} else {
 				double postQ1 = post.getPost();
 				ret += Math.log(postQ1);
-				
+
 
 				if (this.getBranchAnnotation() == 3 || this.getBranchAnnotation() == 12) {
 					node.setData(df.format(postQ1));
@@ -592,6 +515,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 				//i++;
 			} 
 		}
+		GlobalMaps.logTimeMessage("WQInference 478: ");
+			
 		if (!nodeDataList.isEmpty())
 			throw new RuntimeException("Hmm, this shouldn't happen; "+nodeDataList);
 		if (this.getBranchAnnotation() == 16) {
@@ -620,6 +545,152 @@ public class WQInference extends AbstractInference<Tripartition> {
 		return ret;
 	}
 
+	public scoreBranchesLoop scoreBranchesLoop(BipartitionWeightCalculator weightCalculator2, Queue<NodeData> nodeDataList, STINode node,
+			NodeData nd, STITreeCluster cluster, STITreeCluster c1, STITreeCluster c2, long cs, AtomicInteger processCount, Object lock) {
+		return new scoreBranchesLoop(weightCalculator2, nodeDataList, node, nd, cluster, c1, c2, cs, processCount, lock);
+	}
+
+	public class scoreBranchesLoop implements Runnable {
+		BipartitionWeightCalculator weightCalculator2;
+		Queue<NodeData> nodeDataList;
+		STINode node;
+		NodeData nd;
+		STITreeCluster cluster;
+		STITreeCluster c1;
+		STITreeCluster c2;
+		long cs;
+		AtomicInteger processCount;
+		Object lock;
+		public scoreBranchesLoop(BipartitionWeightCalculator weightCalculator2, Queue<NodeData> nodeDataList, STINode node,
+				NodeData nd, STITreeCluster cluster, STITreeCluster c1, STITreeCluster c2, long cs, AtomicInteger processCount, Object lock) {
+			this.weightCalculator2 = weightCalculator2;
+			this.nodeDataList = nodeDataList;
+			this.node = node;
+			this.nd = nd;
+			this.cluster = cluster;
+			this.c1 = c1;
+			this.c2 = c2;
+			this.cs = cs;
+			this.processCount = processCount;
+			this.lock = lock;
+		}
+		public void run() {
+			/**
+			 * For terminal branches in a multi-ind data
+			 */
+			if (cs > 1 && GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleSP(cluster.getBitSet()))
+			{
+				STITreeCluster[] sisterRemaining = getSisterRemaining(node);
+				STITreeCluster sister = sisterRemaining[0]; 
+				STITreeCluster remaining = sisterRemaining[1];				
+				nd = getNodeData(0d, 0d, 0d, 0);
+				nodeDataList.add(nd);
+
+				/**
+				 * Compute a quadripartition per each individual
+				 */
+				BitSet bitSet = cluster.getBitSet();			
+				for (int j = bitSet.nextSetBit(0); j >= 0; j = bitSet.nextSetBit(j + 1)) {
+					c1 = new STITreeCluster(cluster);
+					c1.getBitSet().clear(j);
+					c2 = GlobalMaps.taxonIdentifier.newCluster();
+					c2.getBitSet().set(j);
+					Quadrapartition[] threequads = new Quadrapartition [] { 
+							weightCalculator2.new Quadrapartition (c1,  c2, sister, remaining), 
+							weightCalculator2.new Quadrapartition (c1, sister, c2, remaining),
+							weightCalculator2.new Quadrapartition (c1, remaining, c2, sister)
+					};
+
+					/**
+					 * Scores all three quadripartitoins
+					 */
+					/*CommandLine.eService.execute(new scoreBranchesLoop(c1, c2, sister, remaining, cluster, nd, this, processCount, lock, geneTreesAsInts));
+					processCount.incrementAndGet();*/
+					Results s = weightCalculator2.getWeight(threequads);
+
+					nd.mainfreq += s.qs[0];
+					nd.alt1freqs += s.qs[1];
+					nd.alt2freqs += s.qs[2];
+					nd.effn += s.effn;
+				}
+
+				/**
+				 * Average frequencies. TODO: Good with missing data?
+				 */
+				nd.mainfreq /= cs;
+				nd.alt1freqs /= cs;
+				nd.alt2freqs /= cs;
+				nd.effn /= (int) cs;
+
+				nd.quartcount =  (cs*(cs-1)/2)
+						* (sister.getClusterSize()+0l)
+						* (remaining.getClusterSize()+0l);
+
+			} else if (! skipNode(node) ) { 
+				/**
+				 * Normal internal branches
+				 */
+				STITreeCluster[] sisterRemaining = getSisterRemaining(node);
+				STITreeCluster sister = sisterRemaining[0]; 
+				STITreeCluster remaining = sisterRemaining[1];
+
+				Quadrapartition[] threequads = new Quadrapartition [] { 
+						weightCalculator2.new Quadrapartition (c1,  c2, sister, remaining), 
+						weightCalculator2.new Quadrapartition (c1, sister, c2, remaining),
+						weightCalculator2.new Quadrapartition (c1, remaining, c2, sister)
+				};
+
+				Results s = weightCalculator2.getWeight(threequads);
+				nd = getNodeData(s.qs[0],s.qs[1],s.qs[2],s.effn);
+				nodeDataList.add(nd);
+
+				nd.quartcount= (c1.getClusterSize()+0l)
+						* (c2.getClusterSize()+0l)
+						* (sister.getClusterSize()+0l)
+						* (remaining.getClusterSize()+0l);
+
+
+				if (getBranchAnnotation() == 7){
+					if (remaining.getClusterSize() != 0 && sister.getClusterSize() != 0 && c2.getClusterSize() != 0 && c1.getClusterSize() != 0 ){
+						System.err.print(c1.toString()+c2.toString()+"|"+sister.toString()+remaining.toString()+"\n");
+					}
+				}
+				if (getBranchAnnotation() == 6 || getBranchAnnotation() == 16) {
+					STITreeCluster c1plussis = GlobalMaps.taxonIdentifier.newCluster();
+
+					c1plussis.setCluster((BitSet) c1.getBitSet().clone());
+					c1plussis.getBitSet().or(sister.getBitSet());
+					STITreeCluster c1plusrem = GlobalMaps.taxonIdentifier.newCluster();
+					c1plusrem.setCluster((BitSet) c1.getBitSet().clone());
+					c1plusrem.getBitSet().or(remaining.getBitSet());
+
+					STBipartition bmain = new STBipartition(cluster, cluster.complementaryCluster());
+					STBipartition b2 = new STBipartition(c1plussis, c1plussis.complementaryCluster());
+					STBipartition b3 = new STBipartition(c1plusrem, c1plusrem.complementaryCluster());
+
+					STBipartition[] biparts = new STBipartition[] {bmain, b2, b3};
+					nd.bipartitions = biparts;
+				}
+			} else {
+				/**
+				 * Root or trivial branches
+				 */
+				nodeDataList.add(null);
+			}
+
+			if (nd != null && nd.effn < 20) {
+				System.err.println("You may want to ignore posterior probabilities and other statistics related to the following "
+						+ "branch branch because the effective number of genes impacting it is only "+ nd.effn +
+						":\n\t" +
+						GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTClusterForGeneCluster(cluster));
+			}
+			processCount.decrementAndGet();
+			synchronized(lock) {
+				lock.notify();
+			}
+		}
+
+	}
 
 	private NodeData getNodeData(Double m, Double a1, Double a2, Integer en) {
 		NodeData nd;
@@ -636,11 +707,11 @@ public class WQInference extends AbstractInference<Tripartition> {
 		STITreeCluster [] sisterRemaining = {null,null};
 		Iterator<STINode> siblingsIt = node.getParent().getChildren().iterator();
 		STINode sibling = siblingsIt.next();
-		
+
 		if ( sibling == node ) sibling = siblingsIt.next(); 
-		
+
 		sisterRemaining[0] = (STITreeCluster)sibling.getData();
-		
+
 		if (node.getParent().isRoot() && node.getParent().getChildCount() == 3) {
 			sibling = siblingsIt.next();
 			if (sibling == node) sibling = siblingsIt.next(); 
@@ -663,6 +734,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	@Override
 	Long getTotalCost(Vertex all) {
+		GlobalMaps.logTimeMessage("WQInference 475: ");
+			
 		System.err.println("Normalized score (portion of input quartet trees satisfied before correcting for multiple individuals): " + 
 				all._max_score/4./this.maxpossible);
 		return (long) (all._max_score/4l);
@@ -670,13 +743,15 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 
 	@Override
-	AbstractComputeMinCostTask<Tripartition> newComputeMinCostTask(AbstractInference<Tripartition> dlInference,
-			Vertex all, IClusterCollection clusters) {
-		return new WQComputeMinCostTask( (WQInference) dlInference, all,  clusters);
+	AbstractComputeMinCostTask newComputeMinCostTask(AbstractInference<Tripartition> dlInference,
+			Vertex all) {
+		return new WQComputeMinCostTask( (WQInference) dlInference, all);
 	}
 
 	IClusterCollection newClusterCollection() {
-		return new WQClusterCollection(GlobalMaps.taxonIdentifier.taxonCount());
+		WQClusterCollection ret = new WQClusterCollection(GlobalMaps.taxonIdentifier.taxonCount());
+		//ret.preComputeHashValues();
+		return ret;
 	}
 
 	WQDataCollection newCounter(IClusterCollection clusters) {
@@ -686,8 +761,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 
 	@Override
-	AbstractWeightCalculator<Tripartition> newWeightCalculator() {
-		return new WQWeightCalculator(this);
+	AbstractWeightCalculatorConsumer<Tripartition> newWeightCalculator() {
+		return new WQWeightCalculator(this, super.getQueueWeightResults());
+
 	}
 
 
@@ -696,23 +772,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 		this.maxpossible = this.calculateMaxPossible();
 		System.err.println("Number of quartet trees in the gene trees: " +
 				this.maxpossible);
-
+		((WQClusterCollection)this.dataCollection.clusters).preComputeHashValues();
 	}
 
-	/**
-	 * obsolete
-	 */
-	private void automaticallyDecideAlgorithm(int geneTreeTripartitonCountSize, int k){
-		if (this.forceAlg != -1) {
-			return;
-		}
-		if (k <= 0 || geneTreeTripartitonCountSize <= 0) {
-			throw new RuntimeException("gene tree tripartition size or k not set properly");
-		}
-		if (this.forceAlg == -1) {
-			this.forceAlg = ( GlobalMaps.taxonIdentifier.taxonCount() <= 32 || (geneTreeTripartitonCountSize < k*6)) ? 2 : 1;
-		} else {
-			throw new RuntimeException("Algorithm already set");
-		}
-	}
 }

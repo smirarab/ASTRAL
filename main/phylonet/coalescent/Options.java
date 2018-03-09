@@ -21,14 +21,15 @@ public class Options {
 	private double DLbdWeigth;
 	private double CS;
 	private double CD;
-	private int thrd;
 	private Integer minLeaves;
+	private Integer geneRepeat;
+	
 
 	public Options(boolean rooted, boolean extrarooted, 
 			boolean exactSolution, boolean duploss, int alg, int addExtra,
 			boolean outputCompletedGenes, boolean outSearch, boolean run,
 			int branchannotation, double lambda, String outputFile, int samplingrounds, int polylimit,
-			int thrd, String freqOutputPath, Integer minimumLeaves) {
+			String freqOutputPath, Integer minimumLeaves, Integer geneRepeat) {
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
 		this.exactSolution = exactSolution;
@@ -43,9 +44,9 @@ public class Options {
 		this.setOutputFile(outputFile);
 		this.setSamplingrounds(samplingrounds);
 		this.setPolylimit(polylimit);
-		this.thrd = thrd;
 		this.freqOutputPath = freqOutputPath;
 		this.setMinLeaves(minimumLeaves);
+		this.setGeneRepeat(geneRepeat);
 	}
 
 	public boolean isRooted() {
@@ -64,15 +65,6 @@ public class Options {
 
 	public boolean isDuploss() {
 		return duploss;
-	}
-
-
-	public int getThrd() {
-		return thrd;
-	}
-
-	public void setThrd(int thrd) {
-		this.thrd = thrd;
 	}
 
 	public int getAlg() {
@@ -208,5 +200,13 @@ public class Options {
 
 	public void setMinLeaves(Integer minLeaves) {
 		this.minLeaves = minLeaves;
+	}
+
+	public Integer getGeneRepeat() {
+		return geneRepeat;
+	}
+
+	public void setGeneRepeat(Integer geneRepeat) {
+		this.geneRepeat = geneRepeat;
 	}
 }

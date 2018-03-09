@@ -8,7 +8,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
+import java.util.concurrent.LinkedBlockingQueue;
 
+import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
@@ -18,36 +20,34 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.tree.util.Collapse;
 
+
 /***
  * Type T corresponds to a tripartition in ASTRAL
  * @author smirarab
  *
  * @param <T>
  */
-public abstract class AbstractInference<T> {
-
-	//protected boolean rooted = true;
-	//protected boolean extrarooted = true;
+public abstract class AbstractInference<T> implements Cloneable{
+	
 	protected List<Tree> trees;
 	protected List<Tree> extraTrees = null;
-	//protected boolean exactSolution;
-	
-	//protected String[] gtTaxa;
-	//protected String[] stTaxa;
+
 
 	Collapse.CollapseDescriptor cd = null;
 	
 	AbstractDataCollection<T> dataCollection;
-	AbstractWeightCalculator<T> weightCalculator;
-//	private int addExtra;
-//	public boolean outputCompleted;
-//	boolean searchSpace;
-//	private boolean run;
+	AbstractWeightCalculatorTask<T> weightCalculator;
+	AbstractWeightCalculatorProducer<T> weightCalculatorNoCalculations;
+	Boolean done = false;
 	protected Options options;
 	DecimalFormat df;
 	
+	private LinkedBlockingQueue<Long> queueWeightResults;
+	private LinkedBlockingQueue<Iterable<VertexPair>> queueClusterResolutions;
+
 	double estimationFactor = 0;
 	
+
 	public AbstractInference(Options options, List<Tree> trees,
 			List<Tree> extraTrees) {
 		super();
@@ -55,16 +55,33 @@ public abstract class AbstractInference<T> {
 		this.trees = trees;
 		this.extraTrees = extraTrees;
 		
+		this.initDF();
+		
+	}
+
+	private void initDF() {
 		df = new DecimalFormat();
 		df.setMaximumFractionDigits(2);
 		DecimalFormatSymbols dfs = DecimalFormatSymbols.getInstance();
 		dfs.setDecimalSeparator('.');
 		df.setDecimalFormatSymbols(dfs);
-
 	}
-
+	
 	public boolean isRooted() {
 		return options.isRooted();
+	}
+	
+	public Iterable<VertexPair> getClusterResolutions(Vertex v) {
+			Iterable<VertexPair> ret = null;
+			try{
+				ret = getQueueClusterResolutions().take();
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+			return ret;
+
 	}
 	
 	protected Collapse.CollapseDescriptor doCollapse(List<Tree> trees) {
@@ -112,7 +129,7 @@ public abstract class AbstractInference<T> {
 		System.err.println("Taxa: " + GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesNames());
 		System.err.println("Taxon occupancy: " + taxonOccupancy.toString());
 	}
-	
+
 	/***
 	 * Scores a given tree. 
 	 * @param scorest
@@ -128,7 +145,6 @@ public abstract class AbstractInference<T> {
 	 */
 	List<Solution> findTreesByDP(IClusterCollection clusters) {
 		List<Solution> solutions = new ArrayList<Solution>();
-
 		/*
 		 * clusterToVertex = new HashMap<STITreeCluster, Vertex>(); for
 		 * (Set<Vertex> vs: clusters.values()) { for (Vertex vertex : vs) {
@@ -150,10 +166,10 @@ public abstract class AbstractInference<T> {
 		Vertex all = (Vertex) clusters.getTopVertex();
 
 		System.err.println("Size of largest cluster: " +all.getCluster().getClusterSize());
-
+		
 		try {
 			//vertexStack.push(all);
-			AbstractComputeMinCostTask<T> allTask = newComputeMinCostTask(this,all,clusters);
+			AbstractComputeMinCostTask<T> allTask = newComputeMinCostTask(this,all);
 			//ForkJoinPool pool = new ForkJoinPool(1);
 			allTask.compute();
 			double v = all._max_score;
@@ -166,14 +182,10 @@ public abstract class AbstractInference<T> {
 			e.printStackTrace();
 			System.exit(1);
 		}
-
-		//if (CommandLine._print) {
-			//System.err.println("Weights are: "
-				//	+ counter.weights);
-		//}
-		//System.out.println("domination calcs:" + counter.cnt);
 		
-		System.err.println("Total Number of elements weighted: "+ weightCalculator.getCalculatedWeightCount());
+		GlobalMaps.logTimeMessage("AbstractInference 193: " );
+		
+		System.err.println("Total Number of elements: "+ weightCalculator.getCalculatedWeightCount());
 
 		List<STITreeCluster> minClusters = new LinkedList<STITreeCluster>();
 		List<Double> coals = new LinkedList<Double>();
@@ -262,8 +274,10 @@ public abstract class AbstractInference<T> {
 		Long cost = getTotalCost(all);
 		sol._totalCoals = cost;
 		solutions.add(sol);
-        System.err.println("Optimization score: " + cost);
-
+		GlobalMaps.logTimeMessage("AbstractInference 283: ");
+			
+        System.err.println("Final optimization score: " + cost);
+        
 		return (List<Solution>) (List<Solution>) solutions;
 	}
 	
@@ -276,8 +290,6 @@ public abstract class AbstractInference<T> {
 		this.setupMisc();
 	}
 	
-	abstract void initializeWeightCalculator();
-
 	/***
 	 * Creates the set X 
 	 */
@@ -288,12 +300,12 @@ public abstract class AbstractInference<T> {
 
 		dataCollection = newCounter(newClusterCollection());
 		weightCalculator = newWeightCalculator();
-
+		
 		/**
 		 * Fors the set X by adding from gene trees and
 		 * by adding using ASTRAL-II hueristics
 		 */
-		dataCollection.formSetX(this);
+		dataCollection.formSetX(this); //TODO: is this necessary. 
 
 		
 		if (options.isExactSolution()) {
@@ -323,28 +335,27 @@ public abstract class AbstractInference<T> {
 
 		//counter.addExtraBipartitionsByHeuristics(clusters);
 
+		GlobalMaps.logTimeMessage("" );
+			
 		System.err.println("partitions formed in "
 			+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
-
+		
 		if (! this.options.isRunSearch() ) {
 			System.exit(0);
 		}
 		
 		// Obsolete 
 		weightCalculator.preCalculateWeights(trees, extraTrees);
-		
 
 		System.err.println("Dynamic Programming starting after "
 				+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 		
 	}
-	abstract void setupMisc();
-
+	
 	public List<Solution> inferSpeciesTree() {
-
 		
 		List<Solution> solutions;		
-
+		
 		solutions = findTreesByDP(this.dataCollection.clusters);
 
 /*		if (GlobalMaps.taxonNameMap == null && rooted && extraTrees == null && false) {
@@ -354,14 +365,30 @@ public abstract class AbstractInference<T> {
 		return (List<Solution>) solutions;
 	}
 
+	protected Object semiDeepCopy() {
+		try {
+			AbstractInference<T> clone =  (AbstractInference<T>) super.clone();
+			clone.dataCollection = (AbstractDataCollection<T>) this.dataCollection.clone();
+			clone.weightCalculator = (AbstractWeightCalculatorConsumer<T>) this.weightCalculator.clone();
+			return clone;
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
+			throw new RuntimeException("unexpected error");
+		}
+	}
+
+	abstract void initializeWeightCalculator();
+
+	abstract void setupMisc();
+
 	abstract IClusterCollection newClusterCollection();
 	
 	abstract AbstractDataCollection<T> newCounter(IClusterCollection clusters);
 	
-	abstract AbstractWeightCalculator<T> newWeightCalculator();
+	abstract AbstractWeightCalculatorTask<T> newWeightCalculator();
 
 	abstract AbstractComputeMinCostTask<T> newComputeMinCostTask(AbstractInference<T> dlInference,
-			Vertex all, IClusterCollection clusters);
+			Vertex all);
 	
 	abstract Long getTotalCost(Vertex all);
 	
@@ -373,8 +400,6 @@ public abstract class AbstractInference<T> {
 	public double getCS() {
 		return options.getCS();
 	}
-
-	
 
 	public double getCD() {
 		return options.getCD();
@@ -389,22 +414,28 @@ public abstract class AbstractInference<T> {
 		return this.options.getBranchannotation();
 	}
 
+	public boolean shouldOutputCompleted() {
+		
+		return options.isOutputCompletedGenes();
+	}
 
 	public void setDLbdWeigth(double d) {
 		options.setDLbdWeigth(d);
 	}
 
-	protected Object semiDeepCopy() {
-		try {
-			AbstractInference<T> clone =  (AbstractInference<T>) super.clone();
-			clone.dataCollection = (AbstractDataCollection<T>) this.dataCollection.clone();
-			clone.weightCalculator = (AbstractWeightCalculator<T>) this.weightCalculator.clone();
-			return clone;
-		} catch (CloneNotSupportedException e) {
-			e.printStackTrace();
-			throw new RuntimeException("unexpected error");
-		}
+	public LinkedBlockingQueue<Iterable<VertexPair>> getQueueClusterResolutions() {
+		return queueClusterResolutions;
 	}
-	
 
+	public void setQueueClusterResolutions(LinkedBlockingQueue<Iterable<VertexPair>> queueClusterResolutions) {
+		this.queueClusterResolutions = queueClusterResolutions;
+	}
+
+	public LinkedBlockingQueue<Long> getQueueWeightResults() {
+		return queueWeightResults;
+	}
+
+	public void setQueueWeightResults(LinkedBlockingQueue<Long> queueWeightResults) {
+		this.queueWeightResults = queueWeightResults;
+	}
 }

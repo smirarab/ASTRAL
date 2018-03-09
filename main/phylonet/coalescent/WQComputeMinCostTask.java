@@ -10,9 +10,8 @@ public class WQComputeMinCostTask extends AbstractComputeMinCostTask<Tripartitio
 
 	WQDataCollection wqDataCollection;
 	
-	public WQComputeMinCostTask(AbstractInference<Tripartition> inference, Vertex v,
-			IClusterCollection clusters) {
-		super(inference, v, clusters);
+	public WQComputeMinCostTask(AbstractInference<Tripartition> inference, Vertex v) {
+		super(inference, v);
 		this.wqDataCollection = (WQDataCollection)inference.dataCollection;
 	}
 	
@@ -27,9 +26,8 @@ public class WQComputeMinCostTask extends AbstractComputeMinCostTask<Tripartitio
 	}
 
 	@Override
-	protected AbstractComputeMinCostTask<Tripartition> newMinCostTask(
-			 Vertex v, IClusterCollection clusters) {
-		return new WQComputeMinCostTask(inference, v, clusters);
+	protected AbstractComputeMinCostTask newMinCostTask( Vertex v) {
+		return new WQComputeMinCostTask(inference, v);
 	}
 	
 	@Override
