@@ -115,7 +115,6 @@ public class HashClusterCollection extends AbstractClusterCollection {
 		AbstractClusterCollection ret = newInstance(size);
 		ret.clusters = this.clusters;
 		ret.topV = v;
-		ret.totalcount = -1;
 		return ret;
 	}
 	

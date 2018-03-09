@@ -574,7 +574,7 @@ implements Cloneable {
 		 * This is where we randomly sample one individual per species before
 		 * performing the next steps in construction of the set X.
 		 */
-		int firstRoundSampling = 400;
+		//int firstRoundSampling = 400;
 
 		int secondRoundSampling = getSamplingRepeationFactor(inference.options.getSamplingrounds());;
 
@@ -588,7 +588,7 @@ implements Cloneable {
 		int arraySize = this.completedGeeneTrees.size();
 		List<Tree>[] allGreedies = new List[arraySize];
 
-		int prev = 0;
+		//int prev = 0;
 		GlobalMaps.logTimeMessage(" WQDataCollection 588-591: ");
 
 
@@ -718,7 +718,7 @@ implements Cloneable {
 		}
 		GlobalMaps.logTimeMessage(" WQDataCollection 728-731: ");
 
-		prev = 0;
+		//prev = 0;
 
 		//gradiant = 0;
 		if (inference.getAddExtra() != 0) {
@@ -735,7 +735,7 @@ implements Cloneable {
 						this.speciesSimilarityMatrix,inference.options.getPolylimit());
 
 				//gradiant = clusters.getClusterCount() - prev;
-				prev = clusters.getClusterCount();
+				//prev = clusters.getClusterCount();
 
 			}
 		}
@@ -817,6 +817,36 @@ implements Cloneable {
 			if (tree.getLeafCount() != GlobalMaps.taxonIdentifier.taxonCount()) {
 				haveMissing++;
 			}
+			reroot(tree);
+			Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
+			for (TNode n: tree.postTraverse()) {
+				STINode node = (STINode) n;
+				if (node.isLeaf()) {
+					String nodeName = node.getName(); //GlobalMaps.TaxonNameMap.getSpeciesName(node.getName());
+
+					STITreeCluster cluster = GlobalMaps.taxonIdentifier.newCluster();
+					Integer taxonID = GlobalMaps.taxonIdentifier.taxonId(nodeName);
+					cluster.addLeaf(taxonID);
+
+					stack.add(cluster);
+					node.setData(cluster);
+
+				} else {
+					ArrayList<STITreeCluster> childbslist = new ArrayList<STITreeCluster>();
+					BitSet bs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
+					for (TNode child: n.getChildren()) {
+						STITreeCluster pop = stack.pop();
+						childbslist.add(pop);
+						bs.or(pop.getBitSet());
+					}
+
+					STITreeCluster cluster = GlobalMaps.taxonIdentifier.newCluster((BitSet) bs.clone());
+
+					//((STINode)node).setData(new GeneTreeBitset(node.isRoot()? -2: -1));
+					stack.add(cluster);
+					node.setData(cluster);
+				}
+			}
 			String[] gtLeaves = tree.getLeaves();
 			STITreeCluster gtAll = GlobalMaps.taxonIdentifier.newCluster();
 			long ni = gtLeaves.length;
@@ -827,7 +857,41 @@ implements Cloneable {
 		}
 		System.err.println(haveMissing + " trees have missing taxa");
 
+		
 		return haveMissing;
+	}
+
+	private void reroot(Tree tr) {
+		List<STINode> children = new ArrayList<STINode>();
+		int n = tr.getLeafCount()/2;
+		int dist = n;
+		TNode newroot = tr.getRoot();
+		for (TNode node : tr.postTraverse()) {
+			if (!node.isLeaf()) {                        
+				for (TNode child : node.getChildren()) {
+					if (child.isLeaf()) {
+						children.add((STINode) child);
+						break;
+					}
+				}
+				if (Math.abs(n - node.getLeafCount()) < dist) {
+					newroot = node;
+					dist = n - node.getLeafCount();
+				}
+			}
+		}
+		for (STINode child: children) {
+			STINode snode = child.getParent();
+			snode.removeChild((TMutableNode) child, false);
+			TMutableNode newChild = snode.createChild(child);
+			if (child == newroot) {
+				newroot = newChild;
+			}
+		}
+		if (newroot != tr.getRoot())
+			((STITree)(tr)).rerootTreeAtEdge(newroot);
+
+		
 	}
 
 	/*
