@@ -1,7 +1,3 @@
-- version 5.11.5:
-    - More refactoring.  
-    - Scoring works again
-    
 - version 5.11.4:
     - reparallelized scoreBranches in WQInference
 

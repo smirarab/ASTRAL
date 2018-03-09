@@ -54,7 +54,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
-	protected static String _version = "5.11.5";
+	protected static String _version = "5.11.4";
 
 	protected static SimpleJSAP jsap;
 
@@ -394,9 +394,8 @@ public class CommandLine {
 		if (GlobalMaps.numThreads == -1) {
 			GlobalMaps.numThreads = Runtime.getRuntime().availableProcessors();
 		}
-		
 		GlobalMaps.eService = Executors.newFixedThreadPool(GlobalMaps.numThreads);
-
+		// johng23
 		if (GlobalMaps.timerOn) {
 			System.err.println("Timer starts here");
 			GlobalMaps.timer = System.currentTimeMillis();
@@ -835,6 +834,23 @@ public class CommandLine {
 		AbstractInference inferenceConsumer = initializeInference(criterion, input, extraTrees, options);
 		inferenceConsumer.setup();
 		
+		AbstractInferenceProducer inferenceProducer = 
+				new WQInferenceProducer((AbstractInference) inferenceConsumer.semiDeepCopy());
+		inferenceProducer.setup();
+
+		TurnTaskToScores consumer = new TurnTaskToScores(inferenceConsumer, inferenceProducer.getQueueReadyTripartitions());
+		WriteTaskToQueue thread1 = new WriteTaskToQueue(inferenceProducer, consumer);
+
+		Thread producer = new Thread(thread1);
+		producer.setPriority(Thread.MAX_PRIORITY);
+		producer.start();
+		try {
+			Thread.sleep(1000); // Meant to give a bit of head-start to the producer
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		(new Thread(consumer)).start();
 
 		List<Solution> solutions = inferenceConsumer.inferSpeciesTree();
 		GlobalMaps.logTimeMessage(" CommandLine 667: ");

@@ -155,7 +155,6 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 			this.dataCollection = newCounter(clusters);
 			weightCalculator = newWeightCalculator();
-			((WQWeightCalculator)weightCalculator).done = true;
 
 			WQDataCollection wqDataCollection = (WQDataCollection) this.dataCollection;
 			wqDataCollection.preProcess(this);
@@ -770,31 +769,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 	@Override
 	void setupMisc() {
-		
 		this.maxpossible = this.calculateMaxPossible();
 		System.err.println("Number of quartet trees in the gene trees: " +
 				this.maxpossible);
 		((WQClusterCollection)this.dataCollection.clusters).preComputeHashValues();
-		
-		
-		AbstractInferenceProducer inferenceProducer = 
-				new WQInferenceProducer((AbstractInference) this.semiDeepCopy());
-		inferenceProducer.setup();
-
-		TurnTaskToScores consumer = new TurnTaskToScores(this, inferenceProducer.getQueueReadyTripartitions());
-		WriteTaskToQueue thread1 = new WriteTaskToQueue(inferenceProducer, consumer);
-
-		Thread producer = new Thread(thread1);
-		producer.setPriority(Thread.MAX_PRIORITY);
-		producer.start();
-		try {
-			Thread.sleep(1000); // Meant to give a bit of head-start to the producer
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		
-		(new Thread(consumer)).start();
-
 	}
 
 }

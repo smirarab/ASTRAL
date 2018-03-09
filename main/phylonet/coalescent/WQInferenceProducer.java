@@ -53,10 +53,9 @@ public class WQInferenceProducer extends AbstractInferenceProducer<Tripartition>
 
 	}
 
-	
-	
 	@Override
 	void setupMisc() {
+
 	}
 
 }

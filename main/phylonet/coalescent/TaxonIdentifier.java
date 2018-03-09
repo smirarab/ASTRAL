@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import phylonet.tree.model.sti.STITreeCluster;
-import phylonet.util.BitSet;
 
 public class TaxonIdentifier {
     private HashMap<String, Integer> nameToId = new HashMap<String, Integer>();
@@ -19,10 +18,6 @@ public class TaxonIdentifier {
 
     public STITreeCluster newCluster() {
     	return new STITreeCluster(this);
-    }
-    
-    public STITreeCluster newCluster(BitSet bitset) {
-    	return new STITreeCluster(this,bitset);
     }
     
     public void lock() {

@@ -22,7 +22,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 
 	protected ArrayList<Set<Vertex>> clusters;
 	protected int topClusterLength;
-	//int totalcount = 0;
+	int totalcount = 0;
 	Vertex topV;
 
 	protected void initialize(int len) {
@@ -47,9 +47,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 
 	@Override
 	public int getClusterCount() {
-		int s = 0;
-		for (Set<Vertex> l:this.clusters) s += l.size();
-		return s;
+		return totalcount;
 	}
 
 	@Override
@@ -57,6 +55,9 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 		boolean added;
 		synchronized(clusters.get(size)) {
 			added = clusters.get(size).add(vertex);
+		}
+		if (added) {
+			totalcount++;
 		}
 		return added;
 	}

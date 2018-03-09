@@ -302,7 +302,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 		weightCalculator = newWeightCalculator();
 		
 		/**
-		 * Forms the set X by adding from gene trees and
+		 * Fors the set X by adding from gene trees and
 		 * by adding using ASTRAL-II hueristics
 		 */
 		dataCollection.formSetX(this); //TODO: is this necessary. 
