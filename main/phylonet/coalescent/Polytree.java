@@ -43,25 +43,25 @@ public class Polytree {
 		 * To be used for leaves
 		 * @param n
 		 */
-		PTNode(TNode n){
-			STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
-			c.getBitSet().set(GlobalMaps.taxonIdentifier.taxonId(n.getName()));
+		PTNode(TNode n, STITreeCluster c){
+			//STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
+			//c.getBitSet().set(GlobalMaps.taxonIdentifier.taxonId(n.getName()));
 			cluster = Polytree.this.clusters.get(c);
 			children = new ArrayList<PTNode>();
 		}
-		PTNode(ArrayList<PTNode> ch, BitSet nodeBitSet, STITreeCluster s){
+		PTNode(ArrayList<PTNode> ch, STITreeCluster c, STITreeCluster topCluster){
 			children = ch;
-			STITreeCluster c =  new STITreeCluster(GlobalMaps.taxonIdentifier);
-			//STITreeCluster c2 =  new STITreeCluster(GlobalMaps.taxonIdentifier, nodeBitSet);
+			//STITreeCluster c =  new STITreeCluster(GlobalMaps.taxonIdentifier);
+			//STITreeCluster c =  new STITreeCluster(GlobalMaps.taxonIdentifier, nodeBitSet);
 			ArrayList<STITreeCluster> cs = new ArrayList<STITreeCluster>();
 			for (PTNode child: children){
 				child.parent = this;
-				c.getBitSet().xor(child.cluster.clusterRef.getBitSet());
+				//c.getBitSet().xor(child.cluster.clusterRef.getBitSet());
 				cs.add(child.cluster.clusterRef);
 			}
 			cluster = findCluster(c, this);
-			if (c.equals(s) == false){ // If this is not the root
-				STITreeCluster xc = new STITreeCluster(s);
+			if (c.equals(topCluster) == false){ // If this is not the root
+				STITreeCluster xc = new STITreeCluster(topCluster);
 				xc.getBitSet().xor(c.getBitSet());
 				cs.add(findCluster(xc, null).clusterRef);
 			}
@@ -252,6 +252,7 @@ public class Polytree {
 		// Represent gene trees as PTNodes
 		Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
 		for (Tree tr: trees){
+			//System.err.println("+");
 			nodeRoots.add(buildTree(tr.getRoot(), tit.next()));
 		}
 		
@@ -311,13 +312,17 @@ public class Polytree {
 	}
 	
 	private PTNode buildTree(TNode node, STITreeCluster s){
-		if (node.isLeaf()) return new PTNode(node);
+		//System.err.print(".");
+		if ( ((STINode<STITreeCluster>)node).getData() == null) {
+			throw new RuntimeException("why node has not cluster? \n"+node);
+		}
+		if (node.isLeaf()) return new PTNode(node,  ((STINode<STITreeCluster>)node).getData());
 		else {
 			ArrayList<PTNode> cs = new ArrayList<PTNode>();
 			for (TNode ch: node.getChildren()){
 				cs.add(buildTree(ch, s));
 			}
-			return new PTNode(cs, ((STINode<BitSet>)node).getData(), s);
+			return new PTNode(cs, ((STINode<STITreeCluster>)node).getData(), s);
 		}
 	}
 
