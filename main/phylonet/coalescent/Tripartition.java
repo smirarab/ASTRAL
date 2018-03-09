@@ -35,8 +35,10 @@ public class Tripartition extends AbstractPartition {
 		if (c1 == null || c2 == null || c3 == null) {
 			throw new RuntimeException("none cluster" +c1+" "+c2+" "+c3);
 		}
-		
-		int n1 = c1.getBitSet().nextSetBit(0), n2 = c2.getBitSet().nextSetBit(0), n3 = c3.getBitSet().nextSetBit(0);
+		c1.updateHash();
+		c2.updateHash();
+		c3.updateHash();
+		long n1 = c1.hash1, n2 = c2.hash1, n3 = c3.hash1;
 		if (n1 > n2 & n2 > n3) {
 			cluster1 = c1;
 			cluster2 = c2;
@@ -81,7 +83,7 @@ public class Tripartition extends AbstractPartition {
 	@Override
 	public int hashCode() {
 		if (_hash == 0) {
-			_hash = cluster1.hashCode() + cluster2.hashCode() + cluster3.hashCode();
+			_hash = cluster1.hashCode() * 1089 + cluster2.hashCode() * 33 + cluster3.hashCode();
 		}
 		return _hash;
 	}
