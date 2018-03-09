@@ -5,6 +5,11 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.Set;
 
+import phylonet.coalescent.AbstractClusterCollection;
+import phylonet.coalescent.GlobalMaps;
+import phylonet.coalescent.IClusterCollection;
+import phylonet.coalescent.AbstractClusterCollection.getClusterResolutionsLoop;
+import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.util.BitSet;
@@ -39,34 +44,23 @@ public class HashClusterCollection extends AbstractClusterCollection {
 		long t = System.currentTimeMillis();
 		Random rnd = GlobalMaps.random;
 		int n = GlobalMaps.taxonIdentifier.taxonCount();
-		long[] hash1 = new long[n], hash2 = new long[n];
 		boolean succeed = false;
 		while (!succeed) {
 			h1ToVertexMap = new HashMap<Long, Vertex>();
 			succeed = true;
-			for (int i = 0; i < n; i++) {
-				hash1[i] = rnd.nextLong();
-				hash2[i] = rnd.nextLong();
-			}
+			GlobalMaps.generateHashValues();
 			for (int i = 1; i <= n; i++) {
 				for (Vertex v: this.clusters.get(i)) {
-					long h1 = 0, h2 = 0;
-					BitSet b = v.getCluster().getBitSet();
-					
-					for (int k = b.nextSetBit(0); k >= 0; k = b.nextSetBit(k + 1)) {
-							h1 += hash1[k];
-							h2 += hash2[k];
-					}
-					if (h1ToVertexMap.containsKey(h1)) {
+					v.getCluster().updateHash();
+					long h1 = v.getCluster().hash1;
+					if (h1ToVertexMap.containsKey(h1) || h1 == 0 || h1 == (1L << 63)) { // make sure h1 != -h1
 						succeed = false;
 						break;
 					}
 					h1ToVertexMap.put(h1, v);
-					v.hash1 = h1;
-					v.hash2 = h2;
 					v.clusterSize = i;
 				}
-				if (!succeed) break;
+				if (!succeed) throw new RuntimeException("Bad Random Bits, bad luck. Please rerun the program.");
 			}
 		}
 		System.err.println("Computing hash values took "+((System.currentTimeMillis()-t)/1000)+" seconds");
@@ -92,11 +86,12 @@ public class HashClusterCollection extends AbstractClusterCollection {
 			Set<Vertex> small = (clusters.get(i).size() < clusters.get(clusterSize - i).size()) ? clusters.get(i) : clusters.get(clusterSize - i);
 
 			for (Vertex v1 : small) {
-				Vertex v2 = h1ToVertexMap.get(v.hash1 - v1.hash1);
+				Vertex v2 = h1ToVertexMap.get(v.getCluster().hash1 - v1.getCluster().hash1);
 				if (v2 != null) {
-					if (v.hash2 == (v1.hash2 + v2.hash2)
-						&& v.clusterSize == v1.clusterSize + v2.clusterSize) {
-						if (v1.clusterSize != v2.clusterSize || v1.hash1 < v2.hash1) { // To avoid a pair of the same size twice
+					if (v.getCluster().hash2 == (v1.getCluster().hash2 + v2.getCluster().hash2)
+						//&& v.clusterSize == v1.clusterSize + v2.clusterSize // redundant check 
+						) {
+						if (v1.clusterSize != v2.clusterSize || v1.getCluster().hash1 < v2.getCluster().hash1) { // To avoid a pair of the same size twice
 							VertexPair bi = new VertexPair(v1, v2, v);
 							ret.add(bi);
 						}
