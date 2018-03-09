@@ -9,15 +9,16 @@ public class Polytomy extends AbstractPartition {
 	
 	public Polytomy(STITreeCluster[] cs){
 		clusters = new STITreeCluster[cs.length];
-		int[] ns = new int[cs.length];
+		long[] ns = new long[cs.length];
 		for (int i = 0; i < cs.length; i++){
+			cs[i].updateHash();
 			clusters[i] = new STITreeCluster(cs[i]);
-			ns[i] = cs[i].getBitSet().nextSetBit(0);
+			ns[i] = cs[i].hash1;
 		}
 		for (int i = 0; i < cs.length; i++){
 			for (int j = i + 1; j < cs.length; j++){
 				if (ns[i] < ns[j]){
-					int tn = ns[i];
+					long tn = ns[i];
 					ns[i] = ns[j];
 					ns[j] = tn;
 					STITreeCluster tc = clusters[i];
@@ -47,8 +48,7 @@ public class Polytomy extends AbstractPartition {
 	public int hashCode() {
 		if (_hash == 0) {
 			for (int i = 0; i < clusters.length; i++){
-				_hash += clusters[i].hashCode();
-				//= _hash * 33  +
+				_hash = _hash * 33 + clusters[i].hashCode();
 			}
 		}
 		return _hash;
