@@ -31,21 +31,17 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 	WeightCalculatorAlgorithm algorithm;
 	private TraversalWeightCalculator tmpalgorithm;
 
-	public WQWeightCalculator(AbstractInference<Tripartition> inference,
-			LinkedBlockingQueue<Long> queue2) {
+	public WQWeightCalculator(AbstractInference<Tripartition> inference, LinkedBlockingQueue<Long> queue2) {
 		super(false, queue2);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
-		if(inference instanceof AbstractInferenceProducer) {
-			this.inference = (WQInferenceProducer) inference;
-		}
-		else {
-			this.inference = (WQInference) inference;
-			//this.algorithm = new TraversalWeightCalculator();
-			this.algorithm = new CondensedTraversalWeightCalculator();
-			tmpalgorithm = new TraversalWeightCalculator();
-			System.err.println("Using polytree-based weight calculation.");
-			//tmpalgorithm.setupGeneTrees((WQInference) inference);
-		}
+		this.inference = (WQInference) inference;
+
+		//this.algorithm = new TraversalWeightCalculator();
+		this.algorithm = new CondensedTraversalWeightCalculator();
+		tmpalgorithm = new TraversalWeightCalculator();
+		System.err.println("Using polytree-based weight calculation.");
+		//tmpalgorithm.setupGeneTrees((WQInference) inference);
+
 
 	}
 
@@ -239,40 +235,8 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 			List<Integer> temp = new ArrayList<Integer>(); 
 
 			Stack<Integer> stackHeight = new Stack<Integer>();
-			/**
-			 * Reroot to minimize root to tip distance (number of nodes)
-			 */
 			maxHeight = 0;
 			for (Tree tr :  inference.trees) {
-				List<STINode> children = new ArrayList<STINode>();
-				int n = tr.getLeafCount()/2;
-				int dist = n;
-				TNode newroot = tr.getRoot();
-				for (TNode node : tr.postTraverse()) {
-					if (!node.isLeaf()) {                        
-						for (TNode child : node.getChildren()) {
-							if (child.isLeaf()) {
-								children.add((STINode) child);
-								break;
-							}
-						}
-						if (Math.abs(n - node.getLeafCount()) < dist) {
-							newroot = node;
-							dist = n - node.getLeafCount();
-						}
-					}
-				}
-				for (STINode child: children) {
-					STINode snode = child.getParent();
-					snode.removeChild((TMutableNode) child, false);
-					TMutableNode newChild = snode.createChild(child);
-					if (child == newroot) {
-						newroot = newChild;
-					}
-				}
-				if (newroot != tr.getRoot())
-					((STITree)(tr)).rerootTreeAtEdge(newroot);
-
 				/**
 				 * Traverse tree and 1) build geneTreesAsInts, 2) compute maxHeight
 				 */
