@@ -148,8 +148,7 @@ public class SimilarityMatrix {
 		}
 		GlobalMaps.logTimeMessage("SimilarityMatrix 145-148: ");
 			
-		int k = 0;
-		for (Tree tree :  geneTrees) {
+		/*for (Tree tree :  geneTrees) {
 			for (TNode node : tree.postTraverse()) {
 				if (node.isLeaf()) {
 					BitSet tmp = new BitSet(n);
@@ -167,7 +166,7 @@ public class SimilarityMatrix {
 
 				}
 			}
-		}
+		}*/
 
 		ArrayList<Future<float[][][]>> futures = new ArrayList<Future<float[][][]>>();
 		for (int i = 0; i < geneTrees.size(); i+=geneTrees.size()/GlobalMaps.numThreads) {
@@ -231,14 +230,14 @@ public class SimilarityMatrix {
 					if (node.isLeaf()) { 
 						continue;
 					}
-					BitSet cluster = (BitSet) ((STINode)node).getData();
+					BitSet cluster = (BitSet) ((STITreeCluster) ((STINode)node).getData()).getBitSet();
 					BitSet others = (BitSet) treeallCL.getBitSet().clone();
 					others.andNot(cluster);
 					ArrayList<BitSet> children = new ArrayList<BitSet>();
 					long totalPairs = 0;
 					long totalUnresolvedPairs = 0;
 					for (TNode cn: node.getChildren()) {
-						BitSet c = (BitSet) ((STINode)cn).getData();
+						BitSet c = ((STITreeCluster) ((STINode)cn).getData()).getBitSet();
 						children.add(c);
 						long cc = c.cardinality();
 						totalPairs += cc*(cc-1);
