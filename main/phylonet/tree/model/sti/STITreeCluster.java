@@ -111,13 +111,13 @@ public class STITreeCluster implements Iterable<Integer>
    * This identifies the meaning of the biset set. 
    * Bit number x in the bitset corresponds to taxon with ID x. 
    */
-  private TaxonIdentifier taxonIdentifier;
+  TaxonIdentifier taxonIdentifier;
 
-  public STITreeCluster()
+  /*public STITreeCluster()
   {
     this.taxonIdentifier = GlobalMaps.taxonIdentifier;
     this._cluster = new BitSet(this.taxonIdentifier.taxonCount());
-  }
+  }*/
   
   public STITreeCluster(STITreeCluster tc)
   {
@@ -153,6 +153,7 @@ public class STITreeCluster implements Iterable<Integer>
 	    	throw new RuntimeException(i +" above the length");
   }
 
+  
   public STITreeCluster complementaryCluster() {
     STITreeCluster cc = new STITreeCluster(this.taxonIdentifier);
     BitSet bs = (BitSet)this._cluster.copy();
