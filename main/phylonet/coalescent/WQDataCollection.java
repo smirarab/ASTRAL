@@ -568,7 +568,7 @@ implements Cloneable {
 
 		System.err.println("Building set of clusters (X) from gene trees ");
 
-		GlobalMaps.logTimeMessage(" WQDataCollection 558-561: ");
+		Logging.logTimeMessage(" WQDataCollection 558-561: ");
 
 		/**
 		 * This is where we randomly sample one individual per species before
@@ -589,7 +589,7 @@ implements Cloneable {
 		List<Tree>[] allGreedies = new List[arraySize];
 
 		//int prev = 0;
-		GlobalMaps.logTimeMessage(" WQDataCollection 588-591: ");
+		Logging.logTimeMessage(" WQDataCollection 588-591: ");
 
 
 
@@ -620,11 +620,11 @@ implements Cloneable {
 
 			System.err.println("In second round sampling "
 					+ secondRoundSampling + " rounds will be done");
-			if (GlobalMaps.timerOn) {
+			if (Logging.timerOn) {
 				System.err
 				.println("TIME TOOK FROM LAST NOTICE WQDataCollection 621-624: "
-						+ (double) (System.currentTimeMillis() - GlobalMaps.timer) / 1000);
-				GlobalMaps.timer = System.currentTimeMillis();
+						+ (double) (System.currentTimeMillis() - Logging.timer) / 1000);
+				Logging.timer = System.currentTimeMillis();
 			}
 			int gtindex = 0;
 			for (Tree gt : this.completedGeeneTrees) {
@@ -660,7 +660,7 @@ implements Cloneable {
 				// + clusters.getClusterCount());
 
 			}
-			GlobalMaps.logTimeMessage("WQDataCollection 657-660: ");
+			Logging.logTimeMessage("WQDataCollection 657-660: ");
 		}
 
 		/**
@@ -695,13 +695,13 @@ implements Cloneable {
 
 
 
-		GlobalMaps.logTimeMessage(" WQDataCollection 701-704: ");
+		Logging.logTimeMessage(" WQDataCollection 701-704: ");
 
 		CountDownLatch latch = new CountDownLatch(secondRoundSampling*allGreedies.length);
 		for (int ii = 0; ii < secondRoundSampling; ii++) {
 			for (int j = 0; j < allGreedies.length; j++) {
 				//ArrayList<Tree> baseTreesCopy = new ArrayList<Tree>(baseTrees);
-				GlobalMaps.eService.execute(new FormSetXLoop(allGreedies[j].get(ii), baseTrees, latch));
+				Threading.eService.execute(new FormSetXLoop(allGreedies[j].get(ii), baseTrees, latch));
 
 			}			
 			System.err.println("------------------------------");
@@ -716,7 +716,7 @@ implements Cloneable {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		GlobalMaps.logTimeMessage(" WQDataCollection 728-731: ");
+		Logging.logTimeMessage(" WQDataCollection 728-731: ");
 
 		//prev = 0;
 
@@ -755,7 +755,7 @@ implements Cloneable {
 			}
 		}
 		System.err.println("Number of Clusters after addition by greedy: "+clusters.getClusterCount());
-		GlobalMaps.logTimeMessage(" WQDataCollection 760-763: ");
+		Logging.logTimeMessage(" WQDataCollection 760-763: ");
 
 	}
 
@@ -1101,7 +1101,7 @@ implements Cloneable {
 
 				//System.err.println("Queued: " + "polytomy of size " + greedyNode.getChildCount());
 
-				stringOutput.add(GlobalMaps.eService
+				stringOutput.add(Threading.eService
 						.submit(new addExtraBipartitionByHeuristicsLoop(
 								greedyNode, tid, th, contractedTrees, sm,
 								lock)));

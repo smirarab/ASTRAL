@@ -34,7 +34,7 @@ public class WQInferenceProducer extends AbstractInferenceProducer<Tripartition>
 	}
 
 	AbstractWeightCalculatorProducer<Tripartition> newWeightCalculator() {
-		return new WQWeightCalculatorProducer(this, super.getQueueReadyTripartitions());
+		return null;
 	}
 
 	@Override
