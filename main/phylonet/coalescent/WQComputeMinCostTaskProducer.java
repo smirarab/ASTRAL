@@ -1,6 +1,7 @@
 package phylonet.coalescent;
 
 import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;

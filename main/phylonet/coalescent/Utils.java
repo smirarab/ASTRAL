@@ -231,7 +231,7 @@ public class Utils {
     public static final Collection<Tree> greedyConsensus(Iterable<Tree> trees, 
     		double[] thresholds, boolean randomzie, int repeat, 
     		TaxonIdentifier taxonIdentifier, boolean keepclusters) {
-    	GlobalMaps.logTimeMessage("Utils 219-222: ");
+    	Logging.logTimeMessage("Utils 219-222: ");
 			
     	List<Tree> outTrees = new ArrayList<Tree>();
         HashMap<STITreeCluster, Integer> count = new HashMap<STITreeCluster, Integer>();
@@ -254,7 +254,7 @@ public class Utils {
             }
         }        
        
-        GlobalMaps.logTimeMessage("Utils 240-243: " );
+        Logging.logTimeMessage("Utils 240-243: " );
 			
         ArrayList<Future<Tree>> futures = new ArrayList<Future<Tree>>();
         for (int gi = 0; gi < repeat; gi++) {
@@ -269,7 +269,7 @@ public class Utils {
 	        for (Entry<STITreeCluster, Integer> entry : countSorted) {
 	        	if (threshold > (entry.getValue()+.0d)/treecount) {	
 	        		List<STITreeCluster> clusterCopy = new ArrayList<STITreeCluster>(clusters);
-	        		futures.add(GlobalMaps.eService.submit(new greedyConsensusLoop(taxonIdentifier, keepclusters, clusterCopy)));
+	        		futures.add(Threading.eService.submit(new greedyConsensusLoop(taxonIdentifier, keepclusters, clusterCopy)));
 	        		ti--;
 	        		if (ti < 0) {
 	        			break;
@@ -280,7 +280,7 @@ public class Utils {
 	        }
 	        while (ti >= 0) {
         		List<STITreeCluster> clusterCopy = new ArrayList<STITreeCluster>(clusters);
-        		futures.add(GlobalMaps.eService.submit(new greedyConsensusLoop(taxonIdentifier, keepclusters, clusterCopy)));
+        		futures.add(Threading.eService.submit(new greedyConsensusLoop(taxonIdentifier, keepclusters, clusterCopy)));
 	    		ti--;
 	        }
         }
@@ -295,7 +295,7 @@ public class Utils {
 				e.printStackTrace();
 			}
         }
-        GlobalMaps.logTimeMessage("Utils 269-272: " );
+        Logging.logTimeMessage("Utils 269-272: " );
 			
         return outTrees;
     }
