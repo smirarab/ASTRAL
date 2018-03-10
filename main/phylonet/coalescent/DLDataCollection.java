@@ -189,7 +189,7 @@ public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 
 		inference.weightCalculator.initializeWeightContainer(
 				geneTreeSTBCount.size() * 2);
-		inference.weightCalculatorNoCalculations.initializeWeightContainer(geneTreeSTBCount.size() * 2);
+		//inference.weightCalculatorNoCalculations.initializeWeightContainer(geneTreeSTBCount.size() * 2);
 		// System.err.println("sigma n is "+sigmaN);
 
 		if (inference.getDLbdWeigth() == -1) {			

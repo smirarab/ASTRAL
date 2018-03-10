@@ -37,7 +37,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 	
 	AbstractDataCollection<T> dataCollection;
 	AbstractWeightCalculatorTask<T> weightCalculator;
-	AbstractWeightCalculatorProducer<T> weightCalculatorNoCalculations;
+	
 	Boolean done = false;
 	protected Options options;
 	DecimalFormat df;
