@@ -54,7 +54,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
-	protected static String _version = "5.11.7";
+	protected static String _version = "5.11.8";
 
 	protected static SimpleJSAP jsap;
 
@@ -847,7 +847,7 @@ public class CommandLine {
 						+ (System.currentTimeMillis() - startTime) / 1000.0D
 						+ " secs.");
 		System.err.println("Weight calculation cumulatively took "
-				+ Polytree.time / 1000000.0D + " secs");
+				+ Polytree.time / 1000000000.0D + " secs");
 
 		Tree st = processSolution(outbuffer, bootstraps, outgroup, inferenceConsumer, solutions);
 
