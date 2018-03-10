@@ -1,3 +1,6 @@
+- version 5.11.7:
+    - Hashing used for building the polytree
+    
 - version 5.11.6:
     - Fix scoring bugs
     
