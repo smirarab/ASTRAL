@@ -170,7 +170,6 @@ public class WQInference extends AbstractInference<Tripartition> {
 		}
 
 		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
-		long sum = 0l;
 
 		List<Future<Long>> weights = new ArrayList<Future<Long>>();
 		for (TNode node: st.postTraverse()) {
@@ -223,6 +222,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 								public Long call() throws Exception {
 									return weightCalculator.getWeight(trip);
 								}
+
 							});
 							weights.add(s);
 						}
@@ -230,13 +230,15 @@ public class WQInference extends AbstractInference<Tripartition> {
 				}
 			}
 			
-			for (Future<Long> w: weights) {
-				try {
-					sum += w.get();
-				} catch (InterruptedException | ExecutionException e) {
-					e.printStackTrace();
-					throw new RuntimeException(e);
-				}
+		}
+		
+		long sum = 0l;
+		for (Future<Long> w: weights) {
+			try {
+				sum += w.get();
+			} catch (InterruptedException | ExecutionException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
 			}
 		}
 
