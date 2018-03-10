@@ -390,12 +390,13 @@ public class CommandLine {
 					Threading.usedDevices, null, null, null);
 			// johng23 end
 		}
-		Threading.numThreads = config.getInt("cpu threads");
-		if (Threading.numThreads == -1) {
-			Threading.numThreads = Runtime.getRuntime().availableProcessors();
+		int numThreads = config.getInt("cpu threads");
+		if (numThreads == -1) {
+			numThreads = Runtime.getRuntime().availableProcessors();
 		}
 		
-		Threading.eService = Executors.newFixedThreadPool(Threading.numThreads);
+		Threading.startThreading(numThreads);
+		
 
 		if (Logging.timerOn) {
 			System.err.println("Timer starts here");
@@ -704,7 +705,7 @@ public class CommandLine {
 					outbuffer, bootstrapInputSets, options, outgroup);
 		}
 		
-		Threading.eService.shutdown();
+		Threading.shutdown();
 		
 		
 		System.err.println("ASTRAL finished in "
@@ -768,7 +769,6 @@ public class CommandLine {
 
 		System.err.println("All output trees will be *arbitrarily* rooted at "
 				+ outgroup);
-		System.err.println("There are " + Threading.numThreads + "threads used to run.");
 		List<Tree> extraTrees = new ArrayList<Tree>();
 
 		try {
