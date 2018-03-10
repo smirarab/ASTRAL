@@ -5,14 +5,14 @@ import java.util.List;
 
 import phylonet.tree.model.Tree;
 
-public abstract class AbstractWeightCalculatorTask<T> {
+public abstract class AbstractWeightCalculator<T> {
 
 	protected int callcounter = 0;
 	protected HashMap<T, Long> weights;
 	protected long lastTime;
 	int counter;
 
-	public AbstractWeightCalculatorTask() {
+	public AbstractWeightCalculator() {
 		super();
 	}
 
@@ -24,7 +24,7 @@ public abstract class AbstractWeightCalculatorTask<T> {
 			return this.callcounter;
 	}
 
-	public Long getCalculatedWeight(T t) {
+	Long getCalculatedWeight(T t) {
 		return weights.get(t);
 	}
 
