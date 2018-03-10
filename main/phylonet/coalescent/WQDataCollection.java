@@ -21,6 +21,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import javax.sound.midi.SysexMessage;
+
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TMutableNode;
@@ -88,7 +90,7 @@ implements Cloneable {
 	private Options options;
 
 	// Used for cpu parallelization in a loop in FormSetX. This is used in addExtraBipartitionByHeuristics
-	private ArrayList<Object> stringOutput = new ArrayList<Object>();
+	//private ArrayList<Object> stringOutput = new ArrayList<Object>();
 
 	public WQDataCollection(WQClusterCollection clusters,
 			AbstractInference<Tripartition> inference) {
@@ -721,39 +723,30 @@ implements Cloneable {
 		//prev = 0;
 
 		//gradiant = 0;
-		if (inference.getAddExtra() != 0) {
-			this.addExtraBipartitionByDistance();
-			for (int l = 0; l < secondRoundSampling; l++) {
-				ArrayList<Tree> genes = new ArrayList<Tree>();
-				for (int j = 0; j < allGreedies.length; j++) {
-					genes.add(allGreedies[j].get(l));
-				}
-
-				this.addExtraBipartitionByHeuristics(genes,
-						GlobalMaps.taxonNameMap.getSpeciesIdMapper()
-						.getSTTaxonIdentifier(),
-						this.speciesSimilarityMatrix,inference.options.getPolylimit());
-
-				//gradiant = clusters.getClusterCount() - prev;
-				//prev = clusters.getClusterCount();
-
-			}
+		if (inference.getAddExtra() == 0) {
+			return;
 		}
-		for(int i = 0; i < stringOutput.size(); i++) {
-			if(stringOutput.get(i) instanceof String) {
-				System.err.print(stringOutput.get(i));
-			} else {
-				try {
-					System.err.print(((Future<String>)stringOutput.get(i)).get());
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (ExecutionException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+		
+		this.addExtraBipartitionByDistance();
+
+		System.err.println("Adding to X using resolutions of greedy consensus ...\n");
+
+		for (int l = 0; l < secondRoundSampling; l++) {
+			ArrayList<Tree> genes = new ArrayList<Tree>();
+			for (int j = 0; j < allGreedies.length; j++) {
+				genes.add(allGreedies[j].get(l));
 			}
+			
+			this.addExtraBipartitionByHeuristics(genes,
+					GlobalMaps.taxonNameMap.getSpeciesIdMapper()
+					.getSTTaxonIdentifier(),
+					this.speciesSimilarityMatrix,inference.options.getPolylimit());
+
+			//gradiant = clusters.getClusterCount() - prev;
+			//prev = clusters.getClusterCount();
+
 		}
+		
 		System.err.println("Number of Clusters after addition by greedy: "+clusters.getClusterCount());
 		Logging.logTimeMessage(" WQDataCollection 760-763: ");
 
@@ -1008,13 +1001,15 @@ implements Cloneable {
 
 		// Greedy trees. These will be based on sis taxon identifier
 		Collection<Tree> allGreedies;
-
-		stringOutput.add("Adding to X using resolutions of greedy consensus ...\n");
+		
+		System.err.print("Computing greedy consensus  ");
+		long t = System.currentTimeMillis();
 		for (Tree tree : contractedTrees) {
 			tree.rerootTreeAtEdge(tid.getTaxonName(0));
 			Trees.removeBinaryNodes((MutableTree) tree);
 		}
 
+		System.err.println("took "+ ((System.currentTimeMillis()-t)/1000+" seconds"));
 		/*
 		 * if (completeTrees.size() < 2) {
 		 * System.err.println("Only "+completeTrees.size() +
@@ -1041,7 +1036,7 @@ implements Cloneable {
 					+ GlobalMaps.taxonNameMap.getSpeciesIdMapper()
 					.getSpeciesCount()
 					* this.GREEDY_ADDITION_MAX_POLYTOMY_MULT;
-			stringOutput.add("Limit for sigma of degrees:" + N + "\n");
+			System.err.println("Limit for sigma of degrees:" + N + "\n");
 			int i = 0;
 			while (sumDegrees < N && i < deg.size()) {
 				sumDegrees += Math.pow(deg.get(i), 2);
@@ -1074,12 +1069,12 @@ implements Cloneable {
 		// arrayListMin(allDegNotVisitedMaxDegrees));
 
 		System.err.println("polytomy size limit : " + polytomySizeLimit);
-		System.err.print("discarded polytomies: ");
+		System.err.println("discarded polytomies: ");
 		for (int d : deg) {
 			if (d > polytomySizeLimit)
-				stringOutput.add(d + " \n");
+				System.err.println(d + " \n");
 		}
-		stringOutput.add(" " + deg + "\n");
+		System.err.println(" " + deg + "\n");
 
 		Object lock = new Object();
 		int th = 0;
@@ -1089,6 +1084,7 @@ implements Cloneable {
 		 * the tree.
 		 */
 
+		ArrayList stringOutput = new ArrayList();
 		for (Tree cons : allGreedies) {
 			double thresh = this.GREEDY_ADDITION_THRESHOLDS[th];
 			stringOutput.add("Threshold " + thresh + ":" + "\n");
@@ -1107,6 +1103,22 @@ implements Cloneable {
 
 			}
 			th = (th + 1) % this.GREEDY_ADDITION_THRESHOLDS.length;
+		}
+		
+		for(int i = 0; i < stringOutput.size(); i++) {
+			if(stringOutput.get(i) instanceof String) {
+				System.err.print(stringOutput.get(i));
+			} else {
+				try {
+					System.err.print(((Future<String>)stringOutput.get(i)).get());
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (ExecutionException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 		}
 		//stringOutput.add("max k is :" + max + "\n");
 	}
