@@ -22,13 +22,10 @@ public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeight
 
 			if(isThreadingOff()) {				
 				weight =  calculateWeight(convertToSingletonArray(t))[0];
-				int count;
 				if (save ) {
 					weights.put(t, weight);
-					count = weights.size();
-				} else {
-					count = this.callcounter;
-				}
+					weights.size();
+				} 
 				return weight;
 			}
 			else {
