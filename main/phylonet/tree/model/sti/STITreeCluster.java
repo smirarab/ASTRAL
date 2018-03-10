@@ -7,6 +7,7 @@ import phylonet.coalescent.GlobalMaps;
 import phylonet.coalescent.TaxonIdentifier;
 import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.util.BitSet;
+import phylonet.util.BitSet.ImmutableBitSet;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -67,6 +68,7 @@ public class STITreeCluster implements Iterable<Integer>
 		
 		public Vertex() {
 			super();
+			STITreeCluster.this._cluster = STITreeCluster.this._cluster.new ImmutableBitSet();
 		}
 		
 		@Override
@@ -101,7 +103,7 @@ public class STITreeCluster implements Iterable<Integer>
 	}
   
   //protected String[] _taxa;
-  public BitSet _cluster;
+  private BitSet _cluster;
   
   public long hash1 = 0, hash2 = 0;
   
@@ -126,7 +128,7 @@ public class STITreeCluster implements Iterable<Integer>
     this._cluster.or(tc._cluster);    
   }
   
-public STITreeCluster(TaxonIdentifier taxonId)
+  public STITreeCluster(TaxonIdentifier taxonId)
   {
     this.taxonIdentifier = taxonId;
     this._cluster = new BitSet(this.taxonIdentifier.taxonCount());
@@ -143,8 +145,8 @@ public STITreeCluster(TaxonIdentifier taxonId)
 	  if (i < this.taxonIdentifier.taxonCount() && this._cluster.get(i) == false){
 		  this._cluster.set(i);
 		  if (hash1 != 0){
-			  hash1 += GlobalMaps.hash1[i];
-			  hash2 += GlobalMaps.hash2[i];
+			  hash1 += GlobalMaps.taxonIdentifier.hash1[i];
+			  hash2 += GlobalMaps.taxonIdentifier.hash2[i];
 		  }
 	  }
 	    else
@@ -153,7 +155,7 @@ public STITreeCluster(TaxonIdentifier taxonId)
 
   public STITreeCluster complementaryCluster() {
     STITreeCluster cc = new STITreeCluster(this.taxonIdentifier);
-    BitSet bs = (BitSet)this._cluster.clone();
+    BitSet bs = (BitSet)this._cluster.copy();
     bs.flip(0,this.taxonIdentifier.taxonCount());
 /*    for (int i = 0; i < this._taxa.length; i++) {
       if (bs.get(i)) {
@@ -163,7 +165,9 @@ public STITreeCluster(TaxonIdentifier taxonId)
         bs.set(i, true);
       }
     }
-*/    
+*/   
+    if (this._cluster instanceof ImmutableBitSet)
+    	bs = bs.new ImmutableBitSet();
     cc.setCluster(bs);
     return cc;
   }
@@ -315,8 +319,8 @@ public Iterator<Integer> iterator() {
       if (this._cluster.get(i) == false) return;
 	  this._cluster.clear(i);
 	  if (hash1 != 0){
-		  hash1 -= GlobalMaps.hash1[i];
-		  hash2 -= GlobalMaps.hash2[i];
+		  hash1 -= GlobalMaps.taxonIdentifier.hash1[i];
+		  hash2 -= GlobalMaps.taxonIdentifier.hash2[i];
 	  }
   }
   public void setCluster(BitSet c)
@@ -373,8 +377,8 @@ public Iterator<Integer> iterator() {
 		hash2 = 0;
 		BitSet b = getBitSet();	
 		for (int k = b.nextSetBit(0); k >= 0; k = b.nextSetBit(k + 1)) {
-		  hash1 += GlobalMaps.hash1[k];
-		  hash2 += GlobalMaps.hash2[k];
+		  hash1 += GlobalMaps.taxonIdentifier.hash1[k];
+		  hash2 += GlobalMaps.taxonIdentifier.hash2[k];
 		}
 	  }
 }

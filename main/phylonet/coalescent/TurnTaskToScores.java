@@ -78,13 +78,13 @@ public class TurnTaskToScores implements Runnable {
 		this.speciesWordLength = (GlobalMaps.taxonIdentifier.taxonCount() / 64 + 1);
 		
 		//System.err.println("global work group size is : " + workGroupSize);
-		if (GlobalMaps.usedDevices == null || GlobalMaps.usedDevices.length == 0) {
+		if (Threading.usedDevices == null || Threading.usedDevices.length == 0) {
 			this.gpuRunner = null;
 		} else {
 			this.gpuRunner = new GPUCall(((WQWeightCalculator)this.wqWeightCalculator).geneTreesAsInts(), 
 					((WQDataCollection)inf.dataCollection).getAllArray(),
-					inference, pjohng23, GlobalMaps.usedDevices, 
-					GlobalMaps.context, GlobalMaps.contextProperties);
+					inference, pjohng23, Threading.usedDevices, 
+					Threading.context, Threading.contextProperties);
 		}
 
 	}
@@ -104,7 +104,7 @@ public class TurnTaskToScores implements Runnable {
 		Tripartition[] tripsForCPU = new Tripartition[cpuChunkSize];
 		int[] tripsForCPULabel = new int[cpuChunkSize];
 		int tripsForCPUCounter = 0;
-		GlobalMaps.logTimeMessage(" TurnTaskToScores:92: ");
+		Logging.logTimeMessage(" TurnTaskToScores:92: ");
 
 		while (true) {
 
@@ -121,7 +121,7 @@ public class TurnTaskToScores implements Runnable {
 				tripsForCPULabel[tripsForCPUCounter] = positionIn++;
 				tripsForCPU[tripsForCPUCounter++] = task;
 				if (tripsForCPUCounter == cpuChunkSize) {
-					GlobalMaps.eService.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel,this.inference.weightCalculator));
+					Threading.eService.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel,this.inference.weightCalculator));
 					tripsForCPU = new Tripartition[cpuChunkSize];
 					tripsForCPULabel = new int[cpuChunkSize];
 					tripsForCPUCounter = 0;
@@ -130,14 +130,14 @@ public class TurnTaskToScores implements Runnable {
 			if (!noGPU()) {
 				if (currentGPU == -1) {
 					synchronized (gpuRunner.gpuLock) {
-						for (int i = 0; i < GlobalMaps.usedDevices.length; i++) {
+						for (int i = 0; i < Threading.usedDevices.length; i++) {
 							if (gpuRunner.available[i].get()) {
 								currentGPU = i;
 								break;
 							}
 						}
 						if (currentGPU == -1) {
-							for (int i = 0; i < GlobalMaps.usedDevices.length; i++) {
+							for (int i = 0; i < Threading.usedDevices.length; i++) {
 								if (gpuRunner.storageAvailable[i].get()) {
 									currentGPU = i;
 									break;
@@ -169,14 +169,14 @@ public class TurnTaskToScores implements Runnable {
 							}
 							tripCounter = 0;
 							currentGPU = -1;
-							for (int i = 0; i < GlobalMaps.usedDevices.length; i++) {
+							for (int i = 0; i < Threading.usedDevices.length; i++) {
 								if (gpuRunner.available[i].get()) {
 									currentGPU = i;
 									break;
 								}
 							}
 							if (currentGPU == -1) {
-								for (int i = 0; i < GlobalMaps.usedDevices.length; i++) {
+								for (int i = 0; i < Threading.usedDevices.length; i++) {
 									if (gpuRunner.storageAvailable[i].get()) {
 										currentGPU = i;
 										break;
@@ -194,7 +194,7 @@ public class TurnTaskToScores implements Runnable {
 			gpuRunner.compute(tripCounter, currentGPU);
 		}
 		if (tripsForCPUCounter != 0) {
-			GlobalMaps.eService.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel, tripsForCPUCounter, this.inference.weightCalculator));
+			Threading.eService.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel, tripsForCPUCounter, this.inference.weightCalculator));
 		}
 
 		try {
@@ -440,7 +440,7 @@ public class TurnTaskToScores implements Runnable {
 		}
 
 		public void compute(long workSize, int deviceNum) {
-			GlobalMaps.eService.execute(new ComputeThread(workSize, deviceNum));
+			Threading.eService.execute(new ComputeThread(workSize, deviceNum));
 		}
 	}
 

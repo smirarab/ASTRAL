@@ -15,6 +15,84 @@ public class BitSet implements Cloneable, Serializable, Comparable {
 	private static final int BITS_PER_WORD = 64;
 	private static final int BIT_INDEX_MASK = BITS_PER_WORD - 1;
 	private static final long WORD_MASK = -1;
+	
+	public class ImmutableBitSet extends BitSet {
+
+		
+		public ImmutableBitSet() {
+			super();
+			this.hash = BitSet.this.hash;
+			this.words = BitSet.this.words;
+			this.sizeIsSticky = BitSet.this.sizeIsSticky;
+			this.wordsInUse = BitSet.this.wordsInUse;
+		}
+
+		@Override
+		public void flip(int bitIndex) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void flip(int fromIndex, int toIndex) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void set(int bitIndex) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void set(int bitIndex, boolean value) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void set(int fromIndex, int toIndex) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void set(int fromIndex, int toIndex, boolean value) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void clear(int bitIndex) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void clear(int fromIndex, int toIndex) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void clear() {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void and(BitSet set) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void or(BitSet set) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void xor(BitSet set) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void andNot(BitSet set) {
+			throw new RuntimeException("Not supported");
+		}
+		
+	}
 
 	// public static boolean PRINT = false;
 	private static int wordIndex(int bitIndex) {
@@ -499,6 +577,21 @@ public class BitSet implements Cloneable, Serializable, Comparable {
 		return result;
 
 	}
+	
+	public BitSet copy() {
+		if (!sizeIsSticky)
+			trimToSize();
+		BitSet result;
+
+		result = new BitSet();
+
+
+		result.words = (long[]) words.clone();
+		result.checkInvariants();
+		result.hash = hash;
+		return result;
+
+	}
 
 	private void trimToSize() {
 		if (wordsInUse != words.length) {
@@ -565,8 +658,8 @@ public class BitSet implements Cloneable, Serializable, Comparable {
 	private static final ObjectStreamField serialPersistentFields[] = { new ObjectStreamField(
 			"bits", Byte.class) };
 	public long words[];
-	private transient int wordsInUse;
-	private transient boolean sizeIsSticky;
+	transient int wordsInUse;
+	transient boolean sizeIsSticky;
 	private static final long serialVersionUID = 7997698588986878753L;
 	static final boolean $assertionsDisabled = true; // !java/util/BitSet.desiredAssertionStatus();
 
