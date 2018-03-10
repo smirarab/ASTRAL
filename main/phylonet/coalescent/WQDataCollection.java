@@ -1034,8 +1034,7 @@ implements Cloneable {
 		if(polylimit == -1){
 			// System.err.println(deg);
 			int N = this.GREEDY_ADDITION_MAX_POLYTOMY_MIN
-					+ GlobalMaps.taxonNameMap.getSpeciesIdMapper()
-					.getSpeciesCount()
+					+ GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount()
 					* this.GREEDY_ADDITION_MAX_POLYTOMY_MULT;
 			System.err.println("Limit for sigma of degrees:" + N + "\n");
 			int i = 0;
