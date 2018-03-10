@@ -1,4 +1,5 @@
 package phylonet.tree.model.sti;
+
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.coalescent.GlobalMaps;
 import phylonet.coalescent.TaxonIdentifier;
@@ -8,8 +9,8 @@ public class HashOnlyTreeCluster extends STITreeCluster {
 	  public HashOnlyTreeCluster(){}
 	  
 	  public HashOnlyTreeCluster(int i){
-		this.hash1 = GlobalMaps.hash1[i];
-		this.hash2 = GlobalMaps.hash2[i];
+		this.hash1 = GlobalMaps.taxonIdentifier.hash1[i];
+		this.hash2 = GlobalMaps.taxonIdentifier.hash2[i];
 	  }
 	  
 	  public HashOnlyTreeCluster(long h1, long h2){
@@ -40,7 +41,7 @@ public class HashOnlyTreeCluster extends STITreeCluster {
 	  }
 
 	  @Override
-	  public BitSet getBitSet()
+	  public final BitSet getBitSet()
 	  {
 		System.err.println("Not applicable.");
 	    return null;
@@ -67,8 +68,8 @@ public class HashOnlyTreeCluster extends STITreeCluster {
 	  @Override
 	  public void addLeaf(int i){
 		if (i < GlobalMaps.taxonIdentifier.taxonCount()){
-	      hash1 += GlobalMaps.hash1[i];
-		  hash2 += GlobalMaps.hash2[i];
+	      hash1 += GlobalMaps.taxonIdentifier.hash1[i];
+		  hash2 += GlobalMaps.taxonIdentifier.hash2[i];
 		}
 		else
 		  throw new RuntimeException(i +" above the length");
@@ -78,8 +79,8 @@ public class HashOnlyTreeCluster extends STITreeCluster {
 	  public void removeLeaf(String l)
 	  {
 	    int i = GlobalMaps.taxonIdentifier.taxonId(l);
-		hash1 -= GlobalMaps.hash1[i];
-		hash2 -= GlobalMaps.hash2[i];
+		hash1 -= GlobalMaps.taxonIdentifier.hash1[i];
+		hash2 -= GlobalMaps.taxonIdentifier.hash2[i];
 	  }
 
 	  @Override
