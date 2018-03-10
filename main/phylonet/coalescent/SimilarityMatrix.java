@@ -169,10 +169,10 @@ public class SimilarityMatrix {
 		}*/
 
 		ArrayList<Future<float[][][]>> futures = new ArrayList<Future<float[][][]>>();
-		for (int i = 0; i < geneTrees.size(); i+=geneTrees.size()/Threading.numThreads) {
+		for (int i = 0; i < geneTrees.size(); i+=geneTrees.size()/Threading.getNumThreads()) {
 			int start = i;
-			int end = Math.min(start + geneTrees.size()/Threading.numThreads, geneTrees.size());
-			futures.add((Future) Threading.eService.submit(new populateByQuartetDistanceLoop(start, end, treeAllClusters, geneTrees)));
+			int end = Math.min(start + geneTrees.size()/Threading.getNumThreads(), geneTrees.size());
+			futures.add(Threading.submit(new populateByQuartetDistanceLoop(start, end, treeAllClusters, geneTrees)));
 		}
 		for (Future future: futures) {
 			float[][][] res = null;
