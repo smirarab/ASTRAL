@@ -98,7 +98,7 @@ public abstract class AbstractInferenceProducer<T> extends AbstractInference<T> 
 	 * Sets up data structures before starting DP
 	 */
 	void setup() {
-		weightCalculator = null;
+		this.weightCalculator = null;
 		this.setupMisc();
 	}
 
@@ -112,5 +112,4 @@ public abstract class AbstractInferenceProducer<T> extends AbstractInference<T> 
 	
 	abstract AbstractDataCollection<T> newCounter(IClusterCollection clusters);
 	
-	abstract AbstractWeightCalculatorProducer<T> newWeightCalculator();
 }
