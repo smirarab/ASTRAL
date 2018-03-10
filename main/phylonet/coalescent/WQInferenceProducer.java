@@ -33,9 +33,7 @@ public class WQInferenceProducer extends AbstractInferenceProducer<Tripartition>
 		return new WQDataCollection((WQClusterCollection)clusters, this);
 	}
 
-	AbstractWeightCalculatorProducer<Tripartition> newWeightCalculator() {
-		return null;
-	}
+	
 
 	@Override
 	public double scoreGeneTree(Tree scorest, boolean initialize) {
@@ -52,11 +50,14 @@ public class WQInferenceProducer extends AbstractInferenceProducer<Tripartition>
 		this.weightCalculator.initializeWeightContainer(0);
 
 	}
-
-	
 	
 	@Override
 	void setupMisc() {
+	}
+
+	@Override
+	AbstractWeightCalculatorTask<Tripartition> newWeightCalculator() {
+		return null;
 	}
 
 }
