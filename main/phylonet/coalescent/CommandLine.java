@@ -54,7 +54,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
-	protected static String _version = "5.11.5";
+	protected static String _version = "5.11.6";
 
 	protected static SimpleJSAP jsap;
 
@@ -703,6 +703,10 @@ public class CommandLine {
 			runInference(config, criterion, rooted, extrarooted, mainTrees,
 					outbuffer, bootstrapInputSets, options, outgroup);
 		}
+		
+		GlobalMaps.eService.shutdown();
+		
+		
 		System.err.println("ASTRAL finished in "
 				+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 	}
@@ -886,7 +890,6 @@ public class CommandLine {
 			}
 		}
 		writeTreeToFile(outbuffer, solutions.get(0)._st);
-		GlobalMaps.eService.shutdown();
 
 		return st;
 	}
