@@ -125,7 +125,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 	
 				if (weight == null) {
 					T t = STB2T(bi);					
-					weight =  inference.weightCalculator.getWeight(t);
+					weight = getWeight(t);
 					//System.out.print(weight/Integer.MAX_VALUE);
 				}					
 	
@@ -183,6 +183,13 @@ public abstract class AbstractComputeMinCostTask<T> {
 		return v._max_score;
 	}
 
+	public Long getWeight(T t) {
+		Long weight;
+		weight =  inference.weightCalculator.getWeight(t);
+		return weight;
+	}
+
+
 	abstract Long defaultWeightForFullClusters();
 
 	protected abstract AbstractComputeMinCostTask<T> newMinCostTask(Vertex v);
@@ -214,5 +221,6 @@ public abstract class AbstractComputeMinCostTask<T> {
 			addAllPossibleSubClusters(c, containedVertecies);
 		}
 	}
+
 
 }

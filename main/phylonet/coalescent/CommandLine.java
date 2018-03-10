@@ -351,8 +351,8 @@ public class CommandLine {
 			cl_platform_id platform = platforms[platformIndex];
 
 			// Initialize the context properties
-			GlobalMaps.contextProperties = new cl_context_properties();
-			GlobalMaps.contextProperties.addProperty(CL_CONTEXT_PLATFORM, platform);
+			Threading.contextProperties = new cl_context_properties();
+			Threading.contextProperties.addProperty(CL_CONTEXT_PLATFORM, platform);
 
 			// Obtain the number of devices for the platform
 			int numDevicesArray[] = new int[1];
@@ -379,27 +379,27 @@ public class CommandLine {
 			// usedDevicesAL.add(devices[1]);
 			// usedDevicesAL.add(devices[2]);
 			// usedDevicesAL.add(devices[3]);
-			GlobalMaps.usedDevices = new cl_device_id[usedDevicesAL.size()];
-			GlobalMaps.usedDevices = usedDevicesAL.toArray(GlobalMaps.usedDevices);
+			Threading.usedDevices = new cl_device_id[usedDevicesAL.size()];
+			Threading.usedDevices = usedDevicesAL.toArray(Threading.usedDevices);
 			// cl_device_id device = devices[deviceIndex];
 			// context = clCreateContext(contextProperties, 1, new
 			// cl_device_id[]{device}, null, null, null);
 			// System.out.println(usedDevices.length + " " +
 			// usedDevices[0].toString());
-			GlobalMaps.context = clCreateContext(GlobalMaps.contextProperties, GlobalMaps.usedDevices.length,
-					GlobalMaps.usedDevices, null, null, null);
+			Threading.context = clCreateContext(Threading.contextProperties, Threading.usedDevices.length,
+					Threading.usedDevices, null, null, null);
 			// johng23 end
 		}
-		GlobalMaps.numThreads = config.getInt("cpu threads");
-		if (GlobalMaps.numThreads == -1) {
-			GlobalMaps.numThreads = Runtime.getRuntime().availableProcessors();
+		Threading.numThreads = config.getInt("cpu threads");
+		if (Threading.numThreads == -1) {
+			Threading.numThreads = Runtime.getRuntime().availableProcessors();
 		}
 		
-		GlobalMaps.eService = Executors.newFixedThreadPool(GlobalMaps.numThreads);
+		Threading.eService = Executors.newFixedThreadPool(Threading.numThreads);
 
-		if (GlobalMaps.timerOn) {
+		if (Logging.timerOn) {
 			System.err.println("Timer starts here");
-			GlobalMaps.timer = System.currentTimeMillis();
+			Logging.timer = System.currentTimeMillis();
 		}
 
 		if (config.getFile("mapping file") != null) {
@@ -484,7 +484,7 @@ public class CommandLine {
 
 			GlobalMaps.taxonIdentifier.lock();
 
-			GlobalMaps.logTimeMessage("");
+			Logging.logTimeMessage("");
 
 		} catch (IOException e) {
 			System.err.println("Error when reading trees.");
@@ -704,7 +704,7 @@ public class CommandLine {
 					outbuffer, bootstrapInputSets, options, outgroup);
 		}
 		
-		GlobalMaps.eService.shutdown();
+		Threading.eService.shutdown();
 		
 		
 		System.err.println("ASTRAL finished in "
@@ -768,7 +768,7 @@ public class CommandLine {
 
 		System.err.println("All output trees will be *arbitrarily* rooted at "
 				+ outgroup);
-		System.err.println("There are " + GlobalMaps.numThreads + "threads used to run.");
+		System.err.println("There are " + Threading.numThreads + "threads used to run.");
 		List<Tree> extraTrees = new ArrayList<Tree>();
 
 		try {
@@ -821,7 +821,7 @@ public class CommandLine {
 			writeTreeToFile(outbuffer, cons);
 		}
 
-		GlobalMaps.logTimeMessage(" ");
+		Logging.logTimeMessage(" ");
 
 		System.err.println("\n======== Running the main analysis");
 		runOnOneInput(criterion, extraTrees, outbuffer, mainTrees, bootstraps,
@@ -841,7 +841,7 @@ public class CommandLine {
 		
 
 		List<Solution> solutions = inferenceConsumer.inferSpeciesTree();
-		GlobalMaps.logTimeMessage(" CommandLine 667: ");
+		Logging.logTimeMessage(" CommandLine 667: ");
 
 		System.err.println("Optimal tree inferred in "
 						+ (System.currentTimeMillis() - startTime) / 1000.0D
@@ -863,11 +863,11 @@ public class CommandLine {
 	private static Tree processSolution(BufferedWriter outbuffer,
 			Iterable<Tree> bootstraps, String outgroup,
 			AbstractInference inference, List<Solution> solutions) {
-		GlobalMaps
+		Logging
 				.logTimeMessage(" CommandLine 684: ");
 
 		Tree st = solutions.get(0)._st;
-		GlobalMaps
+		Logging
 				.logTimeMessage(" CommandLine 690: ");
 
 		System.err.println(st.toNewick());
