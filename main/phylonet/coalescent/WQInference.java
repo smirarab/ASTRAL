@@ -371,7 +371,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 				}
 				stack.push(cluster);
 				processCount.incrementAndGet();
-				Threading.eService.execute(scoreBranchesLoop(weightCalculator2, nodeDataList, ni, node, nd, cluster, c1, c2, cs, processCount, lock));
+				Threading.execute(scoreBranchesLoop(weightCalculator2, nodeDataList, ni, node, nd, cluster, c1, c2, cs, processCount, lock));
 				ni++;
 			}
 		}

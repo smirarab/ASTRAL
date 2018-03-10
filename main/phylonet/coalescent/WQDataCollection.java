@@ -701,7 +701,7 @@ implements Cloneable {
 		for (int ii = 0; ii < secondRoundSampling; ii++) {
 			for (int j = 0; j < allGreedies.length; j++) {
 				//ArrayList<Tree> baseTreesCopy = new ArrayList<Tree>(baseTrees);
-				Threading.eService.execute(new FormSetXLoop(allGreedies[j].get(ii), baseTrees, latch));
+				Threading.execute(new FormSetXLoop(allGreedies[j].get(ii), baseTrees, latch));
 
 			}			
 			System.err.println("------------------------------");
@@ -1101,8 +1101,7 @@ implements Cloneable {
 
 				//System.err.println("Queued: " + "polytomy of size " + greedyNode.getChildCount());
 
-				stringOutput.add(Threading.eService
-						.submit(new addExtraBipartitionByHeuristicsLoop(
+				stringOutput.add(Threading.submit(new addExtraBipartitionByHeuristicsLoop(
 								greedyNode, tid, th, contractedTrees, sm,
 								lock)));
 
