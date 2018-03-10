@@ -10,11 +10,8 @@ import java.util.Map.Entry;
 import java.util.Stack;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import phylonet.tree.model.TMutableNode;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
-import phylonet.tree.model.sti.STINode;
-import phylonet.tree.model.sti.STITree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.util.BitSet;
 
