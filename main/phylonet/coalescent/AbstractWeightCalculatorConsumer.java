@@ -2,11 +2,11 @@ package phylonet.coalescent;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
-public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeightCalculatorTask<T> implements Cloneable {
+public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeightCalculator<T> implements Cloneable {
 	
-	boolean save;
-	LinkedBlockingQueue<Long> queue;
-	boolean done = false;
+	private boolean save;
+	private LinkedBlockingQueue<Long> queue;
+	private boolean threadingOff = false;
 	
 	public AbstractWeightCalculatorConsumer(boolean save, LinkedBlockingQueue<Long> queue) {
 		this.save = save;
@@ -20,7 +20,7 @@ public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeight
 		if (weight == null) {
 
 
-			if(done) {				
+			if(isThreadingOff()) {				
 				weight =  calculateWeight(convertToSingletonArray(t))[0];
 				int count;
 				if (save ) {
@@ -28,11 +28,6 @@ public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeight
 					count = weights.size();
 				} else {
 					count = this.callcounter;
-				}
-
-				if (count % 100000 == 0) {
-					System.err.println("Calculated "+ count +" weights; time (seconds): " + (System.currentTimeMillis() - lastTime)/1000);
-					lastTime = System.currentTimeMillis();
 				}
 				return weight;
 			}
@@ -44,7 +39,7 @@ public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeight
 					e.printStackTrace();
 				}
 				if(weight == -23) {//random number from CommandLine used as a "poison pill"
-					done = true;
+					setThreadingOff(true);
 					weight =  calculateWeight(convertToSingletonArray(t))[0];
 					int count;
 					if (save ) {
@@ -82,6 +77,14 @@ public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeight
 	}
 
 	abstract T[] convertToSingletonArray(T t);
+
+	public boolean isThreadingOff() {
+		return threadingOff;
+	}
+
+	public void setThreadingOff(boolean done) {
+		this.threadingOff = done;
+	}
 	
 	
 }
