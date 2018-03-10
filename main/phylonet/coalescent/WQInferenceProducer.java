@@ -56,7 +56,7 @@ public class WQInferenceProducer extends AbstractInferenceProducer<Tripartition>
 	}
 
 	@Override
-	AbstractWeightCalculatorTask<Tripartition> newWeightCalculator() {
+	AbstractWeightCalculator<Tripartition> newWeightCalculator() {
 		return null;
 	}
 

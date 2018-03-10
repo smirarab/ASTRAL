@@ -36,7 +36,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 	Collapse.CollapseDescriptor cd = null;
 	
 	AbstractDataCollection<T> dataCollection;
-	AbstractWeightCalculatorTask<T> weightCalculator;
+	AbstractWeightCalculator<T> weightCalculator;
 	
 	Boolean done = false;
 	protected Options options;
@@ -389,7 +389,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 	
 	abstract AbstractDataCollection<T> newCounter(IClusterCollection clusters);
 	
-	abstract AbstractWeightCalculatorTask<T> newWeightCalculator();
+	abstract AbstractWeightCalculator<T> newWeightCalculator();
 
 	abstract AbstractComputeMinCostTask<T> newComputeMinCostTask(AbstractInference<T> dlInference,
 			Vertex all);
