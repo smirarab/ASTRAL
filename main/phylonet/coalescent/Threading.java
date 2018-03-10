@@ -32,7 +32,7 @@ public class Threading {
 
 	public static void startThreading(int t) {
 		Threading.numThreads = t;
-		Executors.newFixedThreadPool(Threading.getNumThreads());
+		Threading.eService = Executors.newFixedThreadPool(Threading.numThreads);
 		System.err.println("There are " + Threading.getNumThreads() + " threads used to run.");
 		
 	}
