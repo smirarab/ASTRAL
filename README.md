@@ -38,7 +38,7 @@ Email: `astral-users@googlegroups.com` for questions.
 INSTALLATION:
 -----------
 There is no installation required to run ASTRAL.
-You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/Astral.5.11.7.zip)
+You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/Astral.5.11.8.zip)
 and extract the contents to a folder of your choice. Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/). You can run `make.sh` to build the project or simply use the jar file that is included with the repository.
 
 ASTRAL is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. Java 1.5 or later is required. We have tested ASTRAL only on Linux and MAC.
@@ -46,13 +46,13 @@ ASTRAL is a java-based application, and should run in any environment (Windows, 
 To test your installation, go to the place where you put the uncompressed ASTRAL, and run:
 
 ```
-java -Djava.library.path=. -jar astral.5.11.7.jar -i test_data/song_primates.424.gene.tre
+java -Djava.library.path=. -jar astral.5.11.8.jar -i test_data/song_primates.424.gene.tre
 ```
 
 This should quickly finish. There are also other sample input files under `test_data/` that can be used.
 
-ASTRAL can be run from any directory. You just need to run `java -jar /path/to/astral/astral.5.11.7.jar`.
-Also, you can move `astral.5.11.7.jar` to any location you like and run it from there, but note that you need
+ASTRAL can be run from any directory. You just need to run `java -jar /path/to/astral/astral.5.11.8.jar`.
+Also, you can move `astral.5.11.8.jar` to any location you like and run it from there, but note that you need
 to move the `lib` directory as well.
 
 EXECUTION:
@@ -60,7 +60,7 @@ EXECUTION:
 ASTRAL currently has no GUI. You need to run it through the command-line. In a terminal, go the location where you have downloaded the software, and issue the following command:
 
 ```
-  java -Djava.library.path=. -jar astral.5.11.7.jar
+  java -Djava.library.path=. -jar astral.5.11.8.jar
 ```
 
 This will give you a list of options available in ASTRAL.
@@ -68,18 +68,18 @@ This will give you a list of options available in ASTRAL.
 To find the species tree given a set of gene trees in a file called `in.tree`, use:
 
 ```
-java -Djava.library.path=. -jar astral.5.11.7.jar -i in.tree
+java -Djava.library.path=. -jar astral.5.11.8.jar -i in.tree
 ```
 
 The results will be outputted to the standard output. To save the results in a file use the `-o` option (**Strongly recommended**):
 
 ```
-java -Djava.library.path=. -jar astral.5.11.7.jar -i in.tree -o out.tre
+java -Djava.library.path=. -jar astral.5.11.8.jar -i in.tree -o out.tre
 ```
 To save the logs (**also recommended**), run:
 
 ```
-java -Djava.library.path=. -jar astral.5.11.7.jar -i in.tree -o out.tre 2>out.log
+java -Djava.library.path=. -jar astral.5.11.8.jar -i in.tree -o out.tre 2>out.log
 ```
 
 ###### Input: 
@@ -110,7 +110,7 @@ The output in is Newick format and gives:
 To perform 100 replicates of multi-locus bootstrapping ([Seo 2008](http://www.ncbi.nlm.nih.gov/pubmed/18281270)), use:
 
 ```
-java -Djava.library.path=. -jar astral.5.11.7.jar -i best_ml -b bs_paths -r 100
+java -Djava.library.path=. -jar astral.5.11.8.jar -i best_ml -b bs_paths -r 100
 ```
 
 In this command, `bs_paths` is a file that gives the location (file path) of gene tree bootstrap files, one line per gene. See the [tutorial](astral-tutorial.md)
@@ -136,7 +136,7 @@ Also related to bootstrapping are `-g` (to enable gene/site resampling) and `-s`
 For big datasets (say more than 200 taxa), increasing the memory available to Java can result in speedups. Note that you should give Java only as much free memory as you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke ASTRAL using the following command to make all the 3GB available to Java:
 
 ```
-java -Xmx3000M -Djava.library.path=. -jar astral.5.11.7.jar -i in.tree
+java -Xmx3000M -Djava.library.path=. -jar astral.5.11.8.jar -i in.tree
 ```
 
 Acknowledgment

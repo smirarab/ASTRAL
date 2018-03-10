@@ -320,7 +320,7 @@ public class Polytree {
 	}
 
 	public Long[] WQWeightByTraversal(Tripartition[] trips){
-		long t = System.currentTimeMillis();
+		long t = System.nanoTime();
 		Long[] ret = new Long[trips.length];
 		if (!useNativeMethod) {
 			int i = 0;

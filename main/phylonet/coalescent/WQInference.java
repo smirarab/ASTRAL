@@ -14,6 +14,8 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -155,7 +157,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 			this.dataCollection = newCounter(clusters);
 			weightCalculator = newWeightCalculator();
-			((WQWeightCalculator)weightCalculator).done = true;
+			((WQWeightCalculator)weightCalculator).setThreadingOff(true);
 
 			WQDataCollection wqDataCollection = (WQDataCollection) this.dataCollection;
 			wqDataCollection.preProcess(this);
@@ -170,6 +172,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
 		long sum = 0l;
 
+		List<Future<Long>> weights = new ArrayList<Future<Long>>();
 		for (TNode node: st.postTraverse()) {
 			if (node.isLeaf()) {
 				String nodeName = node.getName(); //GlobalMaps.TaxonNameMap.getSpeciesName(node.getName());
@@ -213,11 +216,26 @@ public class WQInference extends AbstractInference<Tripartition> {
 				for (int i = 0; i < childbslist.size(); i++) {
 					for (int j = i+1; j < childbslist.size(); j++) {
 						for (int k = j+1; k < childbslist.size(); k++) {
-							Tripartition trip = new Tripartition(childbslist.get(i),  childbslist.get(j), childbslist.get(k));
-							Long s = weightCalculator.getWeight(trip);
-							sum += s;
+							final Tripartition trip = new Tripartition(childbslist.get(i),  childbslist.get(j), childbslist.get(k));
+							Future<Long> s = Threading.submit(new Callable<Long>() {
+
+								@Override
+								public Long call() throws Exception {
+									return weightCalculator.getWeight(trip);
+								}
+							});
+							weights.add(s);
 						}
 					}					       
+				}
+			}
+			
+			for (Future<Long> w: weights) {
+				try {
+					sum += w.get();
+				} catch (InterruptedException | ExecutionException e) {
+					e.printStackTrace();
+					throw new RuntimeException(e);
 				}
 			}
 		}
