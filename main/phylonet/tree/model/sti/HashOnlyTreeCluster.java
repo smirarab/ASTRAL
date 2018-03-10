@@ -6,19 +6,24 @@ import phylonet.coalescent.TaxonIdentifier;
 import phylonet.util.BitSet;
 
 public class HashOnlyTreeCluster extends STITreeCluster {
-	  public HashOnlyTreeCluster(){}
+	  public HashOnlyTreeCluster(){
+		  super(GlobalMaps.taxonIdentifier);
+	  }
 	  
 	  public HashOnlyTreeCluster(int i){
+		super(GlobalMaps.taxonIdentifier);
 		this.hash1 = GlobalMaps.taxonIdentifier.hash1[i];
 		this.hash2 = GlobalMaps.taxonIdentifier.hash2[i];
 	  }
 	  
 	  public HashOnlyTreeCluster(long h1, long h2){
+		super(GlobalMaps.taxonIdentifier);
 		this.hash1 = h1;
 		this.hash2 = h2;
 	  }
 	  
 	  public HashOnlyTreeCluster(STITreeCluster c){
+		super(c.taxonIdentifier);
 		c.updateHash();
 		this.hash1 = c.hash1;
 		this.hash2 = c.hash2;
