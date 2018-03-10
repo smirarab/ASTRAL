@@ -121,7 +121,7 @@ public class TurnTaskToScores implements Runnable {
 				tripsForCPULabel[tripsForCPUCounter] = positionIn++;
 				tripsForCPU[tripsForCPUCounter++] = task;
 				if (tripsForCPUCounter == cpuChunkSize) {
-					Threading.eService.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel,this.inference.weightCalculator));
+					Threading.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel,this.inference.weightCalculator));
 					tripsForCPU = new Tripartition[cpuChunkSize];
 					tripsForCPULabel = new int[cpuChunkSize];
 					tripsForCPUCounter = 0;
@@ -194,7 +194,7 @@ public class TurnTaskToScores implements Runnable {
 			gpuRunner.compute(tripCounter, currentGPU);
 		}
 		if (tripsForCPUCounter != 0) {
-			Threading.eService.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel, tripsForCPUCounter, this.inference.weightCalculator));
+			Threading.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel, tripsForCPUCounter, this.inference.weightCalculator));
 		}
 
 		try {
@@ -440,7 +440,7 @@ public class TurnTaskToScores implements Runnable {
 		}
 
 		public void compute(long workSize, int deviceNum) {
-			Threading.eService.execute(new ComputeThread(workSize, deviceNum));
+			Threading.execute(new ComputeThread(workSize, deviceNum));
 		}
 	}
 
