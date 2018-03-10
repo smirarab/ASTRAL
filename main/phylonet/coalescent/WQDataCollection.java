@@ -1009,7 +1009,6 @@ implements Cloneable {
 			Trees.removeBinaryNodes((MutableTree) tree);
 		}
 
-		System.err.println("took "+ ((System.currentTimeMillis()-t)/1000+" seconds"));
 		/*
 		 * if (completeTrees.size() < 2) {
 		 * System.err.println("Only "+completeTrees.size() +
@@ -1019,6 +1018,8 @@ implements Cloneable {
 		allGreedies = Utils.greedyConsensus(contractedTrees,
 				this.GREEDY_ADDITION_THRESHOLDS, true, 1, tid, true);
 		int sumDegrees = 0;
+
+		System.err.println("took "+ ((System.currentTimeMillis()-t)/1000+" seconds"));
 
 		ArrayList<Integer> deg = new ArrayList<Integer>();
 		for (Tree cons : allGreedies) {
