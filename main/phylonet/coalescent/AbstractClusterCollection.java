@@ -94,7 +94,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 		addClusterToRet(v, size, ret);
 		CountDownLatch latch = new CountDownLatch(size - 1);
 		for (int i = size - 1 ; i > 0; i--) {
-			GlobalMaps.eService.execute(newContainedClustersLoop(ret, v, i, latch));
+			Threading.eService.execute(newContainedClustersLoop(ret, v, i, latch));
 		}
 		try {
 			latch.await();
@@ -189,7 +189,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 		Vertex vert = this.getTopVertex();
 		Future<ArrayList<VertexPair>>[] futures = new Future[topClusterLength / 2];
 		for (int i = 1; i <= (topClusterLength / 2); i++) {
-			futures[i - 1] = GlobalMaps.eService.submit(getClusterResolutionLoop(i,vert,topClusterLength));
+			futures[i - 1] = Threading.eService.submit(getClusterResolutionLoop(i,vert,topClusterLength));
 		}
 		for(int i = 0; i < futures.length; i++) {
 			try {
