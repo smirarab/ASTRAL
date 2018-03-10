@@ -7,7 +7,7 @@ import java.util.List;
 
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
-import phylonet.tree.model.sti.STINode;
+import phylonet.tree.model.sti.HashOnlyTreeCluster;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.util.BitSet;
 
@@ -43,26 +43,24 @@ public class Polytree {
 		 * To be used for leaves
 		 * @param n
 		 */
-		PTNode(TNode n, STITreeCluster c){
-			//STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
-			//c.getBitSet().set(GlobalMaps.taxonIdentifier.taxonId(n.getName()));
+
+		PTNode(TNode n){
+			HashOnlyTreeCluster c = new HashOnlyTreeCluster(GlobalMaps.taxonIdentifier.taxonId(n.getName()));
 			cluster = Polytree.this.clusters.get(c);
 			children = new ArrayList<PTNode>();
 		}
-		PTNode(ArrayList<PTNode> ch, STITreeCluster c, STITreeCluster topCluster){
+		PTNode(ArrayList<PTNode> ch, HashOnlyTreeCluster s){
 			children = ch;
-			//STITreeCluster c =  new STITreeCluster(GlobalMaps.taxonIdentifier);
-			//STITreeCluster c =  new STITreeCluster(GlobalMaps.taxonIdentifier, nodeBitSet);
+			HashOnlyTreeCluster c =  new HashOnlyTreeCluster();
 			ArrayList<STITreeCluster> cs = new ArrayList<STITreeCluster>();
 			for (PTNode child: children){
 				child.parent = this;
-				//c.getBitSet().xor(child.cluster.clusterRef.getBitSet());
+				c = c.disjointClusterMerge(child.cluster.clusterRef);
 				cs.add(child.cluster.clusterRef);
 			}
 			cluster = findCluster(c, this);
-			if (c.equals(topCluster) == false){ // If this is not the root
-				STITreeCluster xc = new STITreeCluster(topCluster);
-				xc.getBitSet().xor(c.getBitSet());
+			if (c.equals(s) == false){ // If this is not the root
+				HashOnlyTreeCluster xc = s.subclusterComplement(c);
 				cs.add(findCluster(xc, null).clusterRef);
 			}
 			if (cs.size() >= 3){
@@ -74,7 +72,7 @@ public class Polytree {
 				else partition = new PTPartition(p, this);
 			}
 		}
-		PTCluster findCluster(STITreeCluster c, PTNode n){
+		PTCluster findCluster(HashOnlyTreeCluster c, PTNode n){
 			PTCluster cluster = Polytree.this.clusters.get(c);
 			if (cluster != null) {
 				if (cluster.firstNode == null) cluster.firstNode = n;
@@ -188,17 +186,17 @@ public class Polytree {
 	}
 	
 	final class PTCluster{
-		STITreeCluster clusterRef;
+		HashOnlyTreeCluster clusterRef;
 		PTNode firstNode; // The first gene tree node that matched this cluster
 		boolean intersectionAlreadyComputed = false; 
 		int listPos = -1;
 		
-		PTCluster(STITreeCluster c, PTNode n){
+		PTCluster(HashOnlyTreeCluster c, PTNode n){
 			clusterRef = c;
 			firstNode = n;
 			Polytree.this.clusters.put(c, this);
 		}
-		PTCluster(STITreeCluster c){
+		PTCluster(HashOnlyTreeCluster c){
 			clusterRef = c;
 			firstNode = null;
 			intersectionAlreadyComputed = true;
@@ -227,7 +225,7 @@ public class Polytree {
 	}
 	
 	WQDataCollection dataCollection;
-	HashMap<STITreeCluster, PTCluster> clusters = new HashMap<STITreeCluster, PTCluster>();	
+	HashMap<HashOnlyTreeCluster, PTCluster> clusters = new HashMap<HashOnlyTreeCluster, PTCluster>();	
 	HashMap<AbstractPartition, PTPartition> partitions = new HashMap<AbstractPartition, PTPartition>();
 	ArrayList<PTNode> nodeRoots = new ArrayList<PTNode>();
 
@@ -238,22 +236,21 @@ public class Polytree {
 	private boolean useNativeMethod;
 	
 	public Polytree(List<Tree> trees, WQDataCollection dataCollection){
+		GlobalMaps.generateHashValues();
 		
 		this.dataCollection = dataCollection;
 		long t = System.currentTimeMillis();
 		
 		// Create singleton clusters and add to map
 		for (int i = 0; i < GlobalMaps.taxonIdentifier.taxonCount(); i++){
-			STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
-			c.getBitSet().set(i);
+			HashOnlyTreeCluster c = new HashOnlyTreeCluster(i);
 			new PTCluster(c);
 		}
 		
 		// Represent gene trees as PTNodes
 		Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
 		for (Tree tr: trees){
-			//System.err.println("+");
-			nodeRoots.add(buildTree(tr.getRoot(), tit.next()));
+			nodeRoots.add(buildTree(tr.getRoot(), new HashOnlyTreeCluster(tit.next())));
 		}
 		
 		// Set the isUsedFlag on gene tree nodes
@@ -311,18 +308,15 @@ public class Polytree {
 		return ret;
 	}
 	
-	private PTNode buildTree(TNode node, STITreeCluster s){
-		//System.err.print(".");
-		if ( ((STINode<STITreeCluster>)node).getData() == null) {
-			throw new RuntimeException("why node has not cluster? \n"+node);
-		}
-		if (node.isLeaf()) return new PTNode(node,  ((STINode<STITreeCluster>)node).getData());
+
+	private PTNode buildTree(TNode node, HashOnlyTreeCluster s){
+		if (node.isLeaf()) return new PTNode(node);
 		else {
 			ArrayList<PTNode> cs = new ArrayList<PTNode>();
 			for (TNode ch: node.getChildren()){
 				cs.add(buildTree(ch, s));
 			}
-			return new PTNode(cs, ((STINode<STITreeCluster>)node).getData(), s);
+			return new PTNode(cs, s);
 		}
 	}
 
