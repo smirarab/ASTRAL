@@ -272,7 +272,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 		GlobalMaps.logTimeMessage("WQInference 227: " );
 			
 		double ret = 0;
-		int[] geneTreesAsInts = ((WQWeightCalculator)this.weightCalculator).geneTreesAsInts();
+		//int[] geneTreesAsInts = ((WQWeightCalculator)this.weightCalculator).geneTreesAsInts();
 
 		weightCalculator = new BipartitionWeightCalculator(this,((WQWeightCalculator)this.weightCalculator).geneTreesAsInts());
 
@@ -347,7 +347,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 		 *   3. save the scores in a list for annotations in the next loop
 		 */
 
-		Queue<NodeData> nodeDataList = new LinkedList<NodeData>();
+		NodeData [] nodeDataList = new NodeData [st.getLeafCount()*2];
+		int ni = 0;
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
 			if (node.isLeaf()) {
@@ -370,8 +371,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 				}
 				stack.push(cluster);
 				processCount.incrementAndGet();
-				GlobalMaps.eService.execute(scoreBranchesLoop(weightCalculator2, nodeDataList, node, nd, cluster, c1, c2, cs, processCount, lock));
-
+				GlobalMaps.eService.execute(scoreBranchesLoop(weightCalculator2, nodeDataList, ni, node, nd, cluster, c1, c2, cs, processCount, lock));
+				ni++;
 			}
 		}
 		try {
@@ -391,6 +392,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 		 * according to scores and user's annotation preferences. 
 		 */
 		NodeData nd = null;
+		int nj = 0;
 		for (TNode n: st.postTraverse()) {
 			STINode node = (STINode) n;
 
@@ -399,7 +401,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 				continue;
 			} 
 
-			nd = nodeDataList.poll();
+			nd = nodeDataList[nj]; nj++;
 			if (nd == null ) {
 				node.setData(null);
 				continue;
@@ -517,8 +519,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 			} 
 		}
 		GlobalMaps.logTimeMessage("WQInference 478: ");
-			
-		if (!nodeDataList.isEmpty())
+
+		if (! (ni == nj))
 			throw new RuntimeException("Hmm, this shouldn't happen; "+nodeDataList);
 		if (this.getBranchAnnotation() == 16) {
 			try {
@@ -546,14 +548,14 @@ public class WQInference extends AbstractInference<Tripartition> {
 		return ret;
 	}
 
-	public scoreBranchesLoop scoreBranchesLoop(BipartitionWeightCalculator weightCalculator2, Queue<NodeData> nodeDataList, STINode node,
+	public scoreBranchesLoop scoreBranchesLoop(BipartitionWeightCalculator weightCalculator2,NodeData [] nodeDataList, int i, STINode node,
 			NodeData nd, STITreeCluster cluster, STITreeCluster c1, STITreeCluster c2, long cs, AtomicInteger processCount, Object lock) {
-		return new scoreBranchesLoop(weightCalculator2, nodeDataList, node, nd, cluster, c1, c2, cs, processCount, lock);
+		return new scoreBranchesLoop(weightCalculator2, nodeDataList, i, node, nd, cluster, c1, c2, cs, processCount, lock);
 	}
 
 	public class scoreBranchesLoop implements Runnable {
 		BipartitionWeightCalculator weightCalculator2;
-		Queue<NodeData> nodeDataList;
+		NodeData [] nodeDataList;
 		STINode node;
 		NodeData nd;
 		STITreeCluster cluster;
@@ -562,7 +564,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 		long cs;
 		AtomicInteger processCount;
 		Object lock;
-		public scoreBranchesLoop(BipartitionWeightCalculator weightCalculator2, Queue<NodeData> nodeDataList, STINode node,
+		int i; 
+		public scoreBranchesLoop(BipartitionWeightCalculator weightCalculator2, NodeData []  nodeDataList, int i, STINode node,
 				NodeData nd, STITreeCluster cluster, STITreeCluster c1, STITreeCluster c2, long cs, AtomicInteger processCount, Object lock) {
 			this.weightCalculator2 = weightCalculator2;
 			this.nodeDataList = nodeDataList;
@@ -573,6 +576,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 			this.c2 = c2;
 			this.cs = cs;
 			this.processCount = processCount;
+			this.i = i;
 			this.lock = lock;
 		}
 		public void run() {
@@ -585,7 +589,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 				STITreeCluster sister = sisterRemaining[0]; 
 				STITreeCluster remaining = sisterRemaining[1];				
 				nd = getNodeData(0d, 0d, 0d, 0);
-				nodeDataList.add(nd);
+				nodeDataList[i] = nd;
 
 				/**
 				 * Compute a quadripartition per each individual
@@ -643,7 +647,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 				Results s = weightCalculator2.getWeight(threequads);
 				nd = getNodeData(s.qs[0],s.qs[1],s.qs[2],s.effn);
-				nodeDataList.add(nd);
+				nodeDataList[i] = nd ;
 
 				nd.quartcount= (c1.getClusterSize()+0l)
 						* (c2.getClusterSize()+0l)
@@ -676,7 +680,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 				/**
 				 * Root or trivial branches
 				 */
-				nodeDataList.add(null);
+				nodeDataList[i] = null;
 			}
 
 			if (nd != null && nd.effn < 20) {
