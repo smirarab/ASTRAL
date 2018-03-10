@@ -1,3 +1,7 @@
+- version 5.11.8:
+    - Improve parallelization of scoring
+    - Move to java 1.7
+     
 - version 5.11.7:
     - Hashing used for building the polytree
     
