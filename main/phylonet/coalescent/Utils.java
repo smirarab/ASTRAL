@@ -269,7 +269,7 @@ public class Utils {
 	        for (Entry<STITreeCluster, Integer> entry : countSorted) {
 	        	if (threshold > (entry.getValue()+.0d)/treecount) {	
 	        		List<STITreeCluster> clusterCopy = new ArrayList<STITreeCluster>(clusters);
-	        		futures.add(Threading.eService.submit(new greedyConsensusLoop(taxonIdentifier, keepclusters, clusterCopy)));
+	        		futures.add(Threading.submit(new greedyConsensusLoop(taxonIdentifier, keepclusters, clusterCopy)));
 	        		ti--;
 	        		if (ti < 0) {
 	        			break;
@@ -280,7 +280,7 @@ public class Utils {
 	        }
 	        while (ti >= 0) {
         		List<STITreeCluster> clusterCopy = new ArrayList<STITreeCluster>(clusters);
-        		futures.add(Threading.eService.submit(new greedyConsensusLoop(taxonIdentifier, keepclusters, clusterCopy)));
+        		futures.add(Threading.submit(new greedyConsensusLoop(taxonIdentifier, keepclusters, clusterCopy)));
 	    		ti--;
 	        }
         }
