@@ -48,7 +48,7 @@ public class TurnTaskToScores implements Runnable {
 	final PriorityBlockingQueue<ComparablePair<Long, Integer>> queue2Helper;
 	final LinkedBlockingQueue<Long> queueWeightResults;
 	final LinkedBlockingQueue<Tripartition> tripartitionsQueue;
-	final AbstractWeightCalculatorTask<Tripartition> wqWeightCalculator;
+	final AbstractWeightCalculator<Tripartition> wqWeightCalculator;
 	final AbstractInference<Tripartition> inference;
 	final WQDataCollection dataCollection;
 	
@@ -456,13 +456,13 @@ public class TurnTaskToScores implements Runnable {
 		Collection<Tripartition> nulls = Arrays.asList(new Tripartition[]{null});
 		//AbstractWeightCalculatorTask<Tripartition> wqWeightCalculator;
 
-		CPUCalculationThread(Tripartition [] trips, int[] positions, AbstractWeightCalculatorTask<Tripartition> weightCalculator) {
+		CPUCalculationThread(Tripartition [] trips, int[] positions, AbstractWeightCalculator<Tripartition> weightCalculator) {
 			this.trips = trips;
 			this.positions = positions;
 			//this.wqWeightCalculator = weightCalculator;
 		}
 
-		CPUCalculationThread(Tripartition [] trips, int[] positions, int numRuns, AbstractWeightCalculatorTask<Tripartition> weightCalculator) {
+		CPUCalculationThread(Tripartition [] trips, int[] positions, int numRuns, AbstractWeightCalculator<Tripartition> weightCalculator) {
 
 			this.positions = positions;
 			this.numRuns = numRuns;
