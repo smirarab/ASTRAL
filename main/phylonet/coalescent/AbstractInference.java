@@ -183,9 +183,9 @@ public abstract class AbstractInference<T> implements Cloneable{
 			System.exit(1);
 		}
 		
-		GlobalMaps.logTimeMessage("AbstractInference 193: " );
+		Logging.logTimeMessage("AbstractInference 193: " );
 		
-		System.err.println("Total Number of elements: "+ weightCalculator.getCalculatedWeightCount());
+		System.err.println("Total Number of elements: " + countWeights());
 
 		List<STITreeCluster> minClusters = new LinkedList<STITreeCluster>();
 		List<Double> coals = new LinkedList<Double>();
@@ -274,11 +274,15 @@ public abstract class AbstractInference<T> implements Cloneable{
 		Long cost = getTotalCost(all);
 		sol._totalCoals = cost;
 		solutions.add(sol);
-		GlobalMaps.logTimeMessage("AbstractInference 283: ");
+		Logging.logTimeMessage("AbstractInference 283: ");
 			
         System.err.println("Final optimization score: " + cost);
         
 		return (List<Solution>) (List<Solution>) solutions;
+	}
+
+	public int countWeights() {
+		return weightCalculator.getCalculatedWeightCount();
 	}
 	
 	/**
@@ -335,7 +339,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 
 		//counter.addExtraBipartitionsByHeuristics(clusters);
 
-		GlobalMaps.logTimeMessage("" );
+		Logging.logTimeMessage("" );
 			
 		System.err.println("partitions formed in "
 			+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");

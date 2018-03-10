@@ -2,15 +2,14 @@ package phylonet.coalescent;
 
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
-public abstract class AbstractComputeMinCostTaskProducer<T> extends  AbstractComputeMinCostTask{
+public abstract class AbstractComputeMinCostTaskProducer<T> extends  AbstractComputeMinCostTask<T>{
 
-	//IClusterCollection clusters;
 
-	//IClusterCollection containedVertecies;
+	AbstractInferenceProducer<T> inference;
 	
 	public AbstractComputeMinCostTaskProducer(AbstractInferenceProducer<T> inference, Vertex v) {
 		super(inference, v);
-		//this.clusters = clusters;
+		this.inference = inference;
 	}
 
 	byte getDoneState() {
@@ -19,6 +18,22 @@ public abstract class AbstractComputeMinCostTaskProducer<T> extends  AbstractCom
 	
 	byte getOtherDoneState() {
 		return 1;
+	}
+	
+
+	@Override
+	public Long getWeight(T t) {
+		inference.weightCount++;
+			
+		try {
+			inference.getQueueReadyTripartitions().put(t);
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+
+		return 0L;
 	}
 
 }

@@ -36,13 +36,11 @@ public class HashClusterCollection extends AbstractClusterCollection {
 	
 	public void preComputeHashValues() {
 		long t = System.currentTimeMillis();
-		Random rnd = GlobalMaps.random;
 		int n = GlobalMaps.taxonIdentifier.taxonCount();
 		boolean succeed = false;
 		while (!succeed) {
 			h1ToVertexMap = new HashMap<Long, Vertex>();
 			succeed = true;
-			GlobalMaps.generateHashValues();
 			for (int i = 1; i <= n; i++) {
 				for (Vertex v: this.clusters.get(i)) {
 					v.getCluster().updateHash();
