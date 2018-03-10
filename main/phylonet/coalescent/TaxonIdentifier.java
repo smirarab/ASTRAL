@@ -3,6 +3,7 @@ package phylonet.coalescent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.util.BitSet;
@@ -12,6 +13,13 @@ public class TaxonIdentifier {
     private List<String> idToName = new ArrayList<String>();
     private int taxonCount = 0;
     private boolean locked = false;
+    
+	/**
+	 * Hash values for each taxon
+	 */
+	public long[] hash1, hash2;
+	
+
 
     public String[] getAllTaxonNames(){
         return idToName.toArray(new String[]{});
@@ -27,7 +35,15 @@ public class TaxonIdentifier {
     
     public void lock() {
         this.locked = true;
+		hash1 = new long[taxonCount]; 
+		hash2 = new long[taxonCount];
+		Random rnd = GlobalMaps.random;
+		for (int i = 0; i < taxonCount; i++) {
+			hash1[i] = rnd.nextLong();
+			hash2[i] = rnd.nextLong();
+		}
     }
+    
     /**
      * Returns the ID corresponding to the taxon name , if the taxon name is new it adds it unless the taxonidentifier is locked
      * @param name
