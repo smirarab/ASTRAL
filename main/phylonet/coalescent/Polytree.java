@@ -236,7 +236,6 @@ public class Polytree {
 	private boolean useNativeMethod;
 	
 	public Polytree(List<Tree> trees, WQDataCollection dataCollection){
-		GlobalMaps.generateHashValues();
 		
 		this.dataCollection = dataCollection;
 		long t = System.currentTimeMillis();
