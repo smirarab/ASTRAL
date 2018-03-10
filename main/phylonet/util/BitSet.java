@@ -589,6 +589,9 @@ public class BitSet implements Cloneable, Serializable, Comparable {
 		result.words = (long[]) words.clone();
 		result.checkInvariants();
 		result.hash = hash;
+		//result.wordsInUse = this.wordsInUse;
+		//result.sizeIsSticky = this.sizeIsSticky;
+
 		return result;
 
 	}
