@@ -21,8 +21,8 @@ import phylonet.util.BitSet;
  *
  */
 class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> {
-	public static boolean HAS_NOT = true;
-	public static boolean WRITE_OR_DEBUG = false;
+	//public static boolean HAS_NOT = true;
+	//public static boolean WRITE_OR_DEBUG = false;
 	AbstractInference<Tripartition> inference;
 	private WQDataCollection dataCollection;
 	WeightCalculatorAlgorithm algorithm;
@@ -108,11 +108,6 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 	 */
 	class TraversalWeightCalculator extends WeightCalculatorAlgorithm {
 
-		int[][] stack = new int[GlobalMaps.taxonIdentifier.taxonCount() + 2][3];
-
-		int[][] overlap = new int[GlobalMaps.taxonIdentifier.taxonCount() +1][3];
-		int[][] overlapind = new int[GlobalMaps.taxonIdentifier.taxonCount() +1][3];
-
 		int [] geneTreesAsInts;
 
 		public int maxHeight;
@@ -120,6 +115,12 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 		
 		Long calculateWeight(Tripartition trip) {
 
+			int[][] stack = new int[GlobalMaps.taxonIdentifier.taxonCount() + 2][3];
+
+			int[][] overlap = new int[GlobalMaps.taxonIdentifier.taxonCount() +1][3];
+			int[][] overlapind = new int[GlobalMaps.taxonIdentifier.taxonCount() +1][3];
+
+			
 			long weight = 0;
 			int[] allsides = null;
 			Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
