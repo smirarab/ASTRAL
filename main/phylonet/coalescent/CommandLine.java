@@ -3,6 +3,8 @@ package phylonet.coalescent;
 import static org.jocl.CL.CL_CONTEXT_PLATFORM;
 import static org.jocl.CL.CL_DEVICE_NAME;
 import static org.jocl.CL.CL_DEVICE_TYPE_ALL;
+import static org.jocl.CL.CL_DEVICE_VENDOR;
+
 import static org.jocl.CL.clCreateContext;
 import static org.jocl.CL.clGetDeviceIDs;
 import static org.jocl.CL.clGetDeviceInfo;
@@ -364,23 +366,28 @@ public class CommandLine {
 			clGetDeviceIDs(platform, deviceType, numDevices, devices, null);
 			for (int i = 0; i < numDevices; i++) {
 				String deviceName = getString(devices[i], CL_DEVICE_NAME);
+				String deviceVendor = getString(devices[i], CL_DEVICE_VENDOR);
 				System.out.println("Device " + (i + 1) + " of " + numDevices
-						+ ": " + deviceName + " " + devices[i]);
+						+ ": " + deviceName + " " + devices[i] + " Vendor: " + deviceVendor);
 			}
 			System.out
 					.println("Please enter the devices you'd like this program to use separated by spaces: ");
 			Scanner in = new Scanner(System.in);
 			ArrayList<cl_device_id> usedDevicesAL = new ArrayList<cl_device_id>();
+			ArrayList<String> deviceVendorsAL = new ArrayList<String>();
 			// while(in.hasNext()) {
 			// usedDevicesAL.add(devices[in.nextInt()-1]);
 			// }
 			// testing only
+			deviceVendorsAL.add(getString(devices[0], CL_DEVICE_VENDOR));
 			usedDevicesAL.add(devices[0]);
 			// usedDevicesAL.add(devices[1]);
 			// usedDevicesAL.add(devices[2]);
 			// usedDevicesAL.add(devices[3]);
 			Threading.usedDevices = new cl_device_id[usedDevicesAL.size()];
 			Threading.usedDevices = usedDevicesAL.toArray(Threading.usedDevices);
+			Threading.deviceVendors = new String[deviceVendorsAL.size()];
+			Threading.deviceVendors = deviceVendorsAL.toArray(Threading.deviceVendors);
 			// cl_device_id device = devices[deviceIndex];
 			// context = clCreateContext(contextProperties, 1, new
 			// cl_device_id[]{device}, null, null, null);
