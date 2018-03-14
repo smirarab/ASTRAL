@@ -334,6 +334,10 @@ public Iterator<Integer> iterator() {
       System.err.println("Null bit set.");
   }
   
+  @Override
+  public STITreeCluster clone() {
+    return new STITreeCluster(this);
+  }
 
   public String toString()
   {
