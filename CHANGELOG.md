@@ -1,3 +1,6 @@
+- version 5.11.9:
+    - Bug fix related to hashed clusters and polytomy creation
+
 - version 5.11.8:
     - Improve parallelization of scoring
     - Move to java 1.7
