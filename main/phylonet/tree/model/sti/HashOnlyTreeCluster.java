@@ -180,6 +180,11 @@ public class HashOnlyTreeCluster extends STITreeCluster {
 	    return this.hash1 + " | " + this.hash2;
 	  }
 	  
+	  @Override
+	  public HashOnlyTreeCluster clone() {
+		return new HashOnlyTreeCluster(this);
+	  }
+	  
 	  public HashOnlyTreeCluster disjointClusterMerge(HashOnlyTreeCluster c){
 		return new HashOnlyTreeCluster(this.hash1 + c.hash1, this.hash2 + c.hash2);
 	  }
