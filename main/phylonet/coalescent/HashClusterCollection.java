@@ -10,15 +10,7 @@ import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
 public class HashClusterCollection extends AbstractClusterCollection {
 
-	HashMap<Long, Vertex> h1ToVertexMap = null;
-	
-	public HashMap<Long, Vertex> getH1ToVertexMap() {
-		return h1ToVertexMap;
-	}
-
-	public void setH1ToVertexMap(HashMap<Long, Vertex> map) {
-		this.h1ToVertexMap = map;
-	}
+	private HashMap<Long, Vertex> h1ToVertexMap = null;
 
 	public HashClusterCollection(int n) {
 		this.initialize(n);
@@ -27,8 +19,8 @@ public class HashClusterCollection extends AbstractClusterCollection {
 	@Override
 	public AbstractClusterCollection newInstance(int size) {
 		HashClusterCollection newInst = new HashClusterCollection(size);
-		if (this.getH1ToVertexMap() != null) {
-			newInst.setH1ToVertexMap(this.getH1ToVertexMap());
+		if (this.h1ToVertexMap != null) {
+			newInst.h1ToVertexMap = (this.h1ToVertexMap);
 		}
 		return newInst;
 		
