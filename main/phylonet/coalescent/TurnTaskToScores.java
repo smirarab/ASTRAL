@@ -38,7 +38,9 @@ import org.jocl.cl_program;
 public class TurnTaskToScores implements Runnable {
 	private static final int LOG_FREQ = 100000;
 	private static final long workGroupSize = 1L << 13;
-	private static final String clFile = "calculateWeight.cl";
+	private static final String clFileNVidia = "calculateWeightNVidia.cl";
+	private static final String clFileAMD = "calculateWeightAMD.cl";
+	
 	private static final int cpuChunkSize = 64;
 	public static final Object POISON_PILL = new Object();
 	
@@ -253,7 +255,9 @@ public class TurnTaskToScores implements Runnable {
 
 		private cl_context context;
 		private cl_context_properties contextProperties;
-		private cl_kernel kernel;
+		private cl_kernel kernelNVidia;
+		private cl_kernel kernelAMD;
+		
 		private cl_mem d_geneTreesAsInts;
 		private cl_mem[] d_tripartitions1;
 		private cl_mem[] d_tripartitions2;
@@ -303,27 +307,26 @@ public class TurnTaskToScores implements Runnable {
 		public void initCL() {
 			int treeheight = ((WQWeightCalculator) inference.weightCalculator).maxHeight();
 			System.err.println("TREE HEIGHT IS: " + treeheight);
-			// Program Setup
-			String source = readFile(getClass().getResourceAsStream(clFile));
-			// String source = readFile(clFile);
-			source = source.replaceAll("SPECIES_WORD_LENGTH - 1", Long.toString(speciesWordLength - 1));
-			source = source.replaceAll("SPECIES_WORD_LENGTH", Long.toString(speciesWordLength));
-			source = source.replaceAll("LONG_BIT_LENGTH", "64");
-			source = source.replaceAll("STACK_SIZE", Integer.toString(treeheight + 2));
-			source = source.replaceAll("TAXON_SIZE", Integer.toString(GlobalMaps.taxonIdentifier.taxonCount()));
-			source = source.replaceAll("INT_MIN", "SHRT_MIN");
-			source = source.replaceAll("WORK_GROUP_SIZE", Long.toString(workGroupSize));
-
-			cl_program cpProgram = clCreateProgramWithSource(context, 1, new String[] { source }, null, null);
-
-			// Build the program
-			if (p)
-				clBuildProgram(cpProgram, 0, null, "-cl-opt-disable", null, null);
-			else
-				clBuildProgram(cpProgram, 0, null, "-cl-mad-enable -cl-strict-aliasing", null, null);
-
-			// Create the kernel
-			kernel = clCreateKernel(cpProgram, "calcWeight", null);
+			
+			boolean NVidia = false;
+			boolean AMD = false;
+			
+			for(int i = 0; i < devices.length; i++) {
+				if(Threading.deviceVendors[i].toLowerCase().contains("nvidia")) {
+					NVidia = true;
+				}
+				else {
+					AMD = true;
+				}
+			}
+			
+			// Program Setup. We want to avoid compiling twice. The true is for compiling nvidia code. The false if for compiling amd code.
+			if(NVidia) {
+				buildKernel(treeheight, true);
+			}
+			if(AMD) {
+				buildKernel(treeheight, false);
+			}
 
 			d_tripartitions1 = new cl_mem[devices.length];
 			d_tripartitions2 = new cl_mem[devices.length];
@@ -346,10 +349,56 @@ public class TurnTaskToScores implements Runnable {
 				d_weightArray[i] = clCreateBuffer(context, CL_MEM_WRITE_ONLY, Sizeof.cl_long * weightArray[i].length,
 						null, null);
 				commandQueues[i] = clCreateCommandQueue(context, devices[i], 0, null);
-				clSetKernelArg(kernel, 0, Sizeof.cl_mem, Pointer.to(d_geneTreesAsInts));
-				clSetKernelArg(kernel, 1, Sizeof.cl_int, Pointer.to(new int[] { geneTreesAsInts.length }));
-				clSetKernelArg(kernel, 2, Sizeof.cl_mem, Pointer.to(d_allArray));
+				
+				if(Threading.deviceVendors[i].toLowerCase().contains("nvidia")) {
+					clSetKernelArg(kernelNVidia, 0, Sizeof.cl_mem, Pointer.to(d_geneTreesAsInts));
+					clSetKernelArg(kernelNVidia, 1, Sizeof.cl_int, Pointer.to(new int[] { geneTreesAsInts.length }));
+					clSetKernelArg(kernelNVidia, 2, Sizeof.cl_mem, Pointer.to(d_allArray));
+				}
+				else {
+					clSetKernelArg(kernelAMD, 0, Sizeof.cl_mem, Pointer.to(d_geneTreesAsInts));
+					clSetKernelArg(kernelAMD, 1, Sizeof.cl_int, Pointer.to(new int[] { geneTreesAsInts.length }));
+					clSetKernelArg(kernelAMD, 2, Sizeof.cl_mem, Pointer.to(d_allArray));
+				}
+				
 			}
+		}
+
+		public void buildKernel(int treeheight, boolean NVidia) {
+			String source = "";
+			if(NVidia) {
+				source = readFile(getClass().getResourceAsStream(clFileNVidia));
+			}
+			else {
+				source = readFile(getClass().getResourceAsStream(clFileAMD));
+			}
+						
+			source = setupGPUSourceFile(treeheight, source);
+
+			cl_program cpProgram = clCreateProgramWithSource(context, 1, new String[] { source }, null, null);
+
+			// Build the program
+			if (p)
+				clBuildProgram(cpProgram, 0, null, "-cl-opt-disable", null, null);
+			else
+				clBuildProgram(cpProgram, 0, null, "-cl-mad-enable -cl-strict-aliasing", null, null);
+
+			// Create the kernel
+			if(NVidia)
+				kernelNVidia = clCreateKernel(cpProgram, "calcWeight", null);
+			else
+				kernelAMD = clCreateKernel(cpProgram, "calcWeight", null);
+		}
+
+		public String setupGPUSourceFile(int treeheight, String source) {
+			source = source.replaceAll("SPECIES_WORD_LENGTH - 1", Long.toString(speciesWordLength - 1));
+			source = source.replaceAll("SPECIES_WORD_LENGTH", Long.toString(speciesWordLength));
+			source = source.replaceAll("LONG_BIT_LENGTH", "64");
+			source = source.replaceAll("STACK_SIZE", Integer.toString(treeheight + 2));
+			source = source.replaceAll("TAXON_SIZE", Integer.toString(GlobalMaps.taxonIdentifier.taxonCount()));
+			source = source.replaceAll("INT_MIN", "SHRT_MIN");
+			source = source.replaceAll("WORK_GROUP_SIZE", Long.toString(workGroupSize));
+			return source;
 		}
 
 		private String readFile(InputStream inputStream) {
@@ -399,6 +448,12 @@ public class TurnTaskToScores implements Runnable {
 					currentLabel[deviceIndex] = -labelIndex + 1;
 					synchronized (gpuLock) {
 						storageAvailable[deviceIndex].set(true);
+					}
+					cl_kernel kernel;
+					if(Threading.deviceVendors[deviceIndex].toLowerCase().contains("nvidia")) {
+						kernel = kernelNVidia;
+					} else {
+						kernel = kernelAMD;
 					}
 					synchronized (kernel) {
 						clSetKernelArg(kernel, 3, Sizeof.cl_mem, Pointer.to(d_tripartitions1[deviceIndex]));
