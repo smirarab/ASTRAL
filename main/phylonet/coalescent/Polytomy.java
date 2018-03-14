@@ -12,7 +12,7 @@ public class Polytomy extends AbstractPartition {
 		long[] ns = new long[cs.length];
 		for (int i = 0; i < cs.length; i++){
 			cs[i].updateHash();
-			clusters[i] = new STITreeCluster(cs[i]);
+			clusters[i] = cs[i].clone();
 			ns[i] = cs[i].hash1;
 		}
 		for (int i = 0; i < cs.length; i++){
