@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -19,6 +20,13 @@ import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STINode;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.util.BitSet;
+
+
+/*
+ * TO-DO
+ * 1. check if PhyDstar uses -99 and UPGMA uses 1/0
+ * 2. parallelize populateByBranchDistance
+ */
 
 public class DistanceMatrix extends AbstractMatrix implements Matrix {
 
@@ -55,10 +63,12 @@ public class DistanceMatrix extends AbstractMatrix implements Matrix {
     List<BitSet> PhyDstar(SpeciesMapper spm) {
         /* Write the distance matrix to a file, then use the file as input for PhyD*.
          * Call PhyD* to construct a tree. */
-        File matrix;
+        //File matrix;
+        long pmTime = System.currentTimeMillis();
+        String newick;
         try {
-            matrix = File.createTempFile("distance", ".matrix");
-            BufferedWriter out = new BufferedWriter(new FileWriter(matrix));
+            //matrix = File.createTempFile("distance", ".matrix");
+            StringWriter out = new StringWriter();
             out.write(n + "\n");
             for (int i = 0; i < n; i++) {
                 out.write(spm.getSpeciesName(i) + " ");
@@ -67,13 +77,17 @@ public class DistanceMatrix extends AbstractMatrix implements Matrix {
                 }
                 out.write("\n");
             }
-            out.close();
-            String[] arg = new String[]{"java","-jar","PhyDstar.java","-i",matrix.getCanonicalPath()};
-            System.err.println("Invoking PhyDstar with " + Arrays.toString(arg));
-            PhyDstar.main(arg);
+            String matrix = out.toString();
+            //out.close();
+            String[] arg = new String[]{"java","-jar","PhyDstar.java","-i",matrix};
+            
+            long pTime = System.currentTimeMillis();
+            newick = new PhyDstar().main(arg);
+     //       System.err.println("PhyDstar takes "
+     //               + (System.currentTimeMillis() - pTime) / 1000.0D + " secs");
         } catch (IOException e) { throw new RuntimeException(); }
     
-        Tree phyDtree = generatePhyDstarTree(matrix);
+        Tree phyDtree = generatePhyDstarTree(newick);
     
         List<BitSet> ret = new ArrayList<BitSet>();
         /* Extract list of BitSets of leaf-sets */
@@ -94,10 +108,13 @@ public class DistanceMatrix extends AbstractMatrix implements Matrix {
                 ret.add(newbs);
             }
         }
+    //    System.err.println("PhyDstar method takes "
+    //            + (System.currentTimeMillis() - pmTime) / 1000.0D + " secs");
         return ret;
     }
 
     List<BitSet> resolveByPhyDstar(List<BitSet> bsList, boolean original) {
+        long rbpTime = System.currentTimeMillis();
         int size = bsList.size();
         float[][] internalMatrix = new float[size][size];
         HashMap<Integer, BitSet> bitMap = new HashMap<Integer, BitSet>(size);
@@ -141,25 +158,31 @@ public class DistanceMatrix extends AbstractMatrix implements Matrix {
             }
         }
     
-        File matrix;
+        //StringBuilder out;
+        String newick = null;
         try {
-            matrix = File.createTempFile("internal", ".matrix");
-            BufferedWriter out = new BufferedWriter(new FileWriter(matrix));
-            out.write(size + "\n");
+            //out = new StringBuilder();
+            StringBuilder out = new StringBuilder();
+            out.append(size + "\n");
             for (int i = 0; i < size; i++) {
-                out.write(i + " ");
+                out.append(i + " ");
                 for (int j = 0; j < size; j++) {
-                    out.write(internalMatrix[i][j] + " ");
+                    out.append(internalMatrix[i][j] + " ");
                 }
-                out.write("\n");
+                out.append("\n");
             }
-            out.close();
+            //out.close();
     
-            String[] arg = new String[]{"java","-jar","PhyDstar.java","-i",matrix.getCanonicalPath()};
-            PhyDstar.main(arg);
-        } catch (IOException e) { throw new RuntimeException(e); }
+            String[] arg = new String[]{"java","-jar","PhyDstar.java","-i", out.toString()};
+            System.err.println("Invoking phyd* using " + size + " rows");
+            long prpTime = System.currentTimeMillis();
+            PhyDstar pd = new PhyDstar();
+            newick = pd.main(arg);
+         //   System.err.println("PhyDstar in resolvebyPhyDstar takes "
+         //           + (System.currentTimeMillis() - prpTime) / 1000.0D + " secs");
+        } catch (IOException e) { throw new RuntimeException(); }
     
-        Tree phyDtree = generatePhyDstarTree(matrix);
+        Tree phyDtree = generatePhyDstarTree(newick);
     
         List<BitSet> ret = new ArrayList<BitSet>();
     
@@ -186,6 +209,8 @@ public class DistanceMatrix extends AbstractMatrix implements Matrix {
                 ret.add(newbs);
             }
         }
+     //   System.err.println("resolvebyPhyDstar takes "
+     //           + (System.currentTimeMillis() - rbpTime) / 1000.0D + " secs");
         return ret;
     }
     
@@ -318,11 +343,11 @@ public class DistanceMatrix extends AbstractMatrix implements Matrix {
        return new DistanceMatrix(from);
     }
 
-    private Tree generatePhyDstarTree(File matrix) {
+    private Tree generatePhyDstarTree(String newick) {
     
             /* Write PhyD* tree back into ASTRAL */
-            String newick;
-            try {
+            //String newick;
+            /*try {
                 File phyDtree = new File(matrix.getCanonicalPath() + "_bionj.t");
                 BufferedReader in = new BufferedReader(new FileReader(phyDtree));
                 newick = in.readLine();
@@ -330,7 +355,7 @@ public class DistanceMatrix extends AbstractMatrix implements Matrix {
                 matrix.delete();
                 phyDtree.delete(); 
             } catch (IOException e) { throw new RuntimeException("Cannot find file: " + e); }
-    
+    */
             /* Read the newick tree as an actual tree */
             Tree phyDstar_t = null;
     
