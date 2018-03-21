@@ -45,83 +45,83 @@ import java.util.*;
 public class PhyDstar
 {
     //##### menu #####
-    static String[] option;
-    static BufferedReader cin;
-    static String ligne;
-    static int multifile;                     // number of dataset
-    static int p;                             // threshold parameter for agglomeration
-    static String choix;                      // for the start menu
-    static String outgroup;                   // name of the outgroup taxon
-    static boolean ok, nj, unj, bionj, mvr;   // to make some tests
+     String[] option;
+     BufferedReader cin;
+     String ligne;
+     int multifile;                     // number of dataset
+     int p;                             // threshold parameter for agglomeration
+     String choix;                      // for the start menu
+     String outgroup;                   // name of the outgroup taxon
+     boolean ok, nj, unj, bionj, mvr;   // to make some tests
 
     //##### data structures #####
-    static int n;                // number of taxa
-    static String[] taxa;        // list of taxa name
-    static Matrix dM, dMinit;    // distance matrix
-    static int[][] tT;           // tree topology
-    static double[][] tD;        // tree branch lengths
-    static int center;           // the coordinate of the center inside the tree structure
-    static boolean[] activeTaxa; // list of taxa present in the distance matrix
-    static int[] tree2dist;      // indicate the rank of a node in the distance matrix
-    static int hole;             // number of missing distances
-    static int[] missing;        // number of missing distances per taxa
-    static Matrix vM;            // variance matrix
+     int n;                // number of taxa
+     String[] taxa;        // list of taxa name
+     Matrix dM, dMinit;    // distance matrix
+     int[][] tT;           // tree topology
+     double[][] tD;        // tree branch lengths
+     int center;           // the coordinate of the center inside the tree structure
+     boolean[] activeTaxa; // list of taxa present in the distance matrix
+     int[] tree2dist;      // indicate the rank of a node in the distance matrix
+     int hole;             // number of missing distances
+     int[] missing;        // number of missing distances per taxa
+     Matrix vM;            // variance matrix
     
     //##### reading data #####
-    static String dinfile, vinfile;
-    static BufferedReader ind;   // to read the distance input file 
-    static BufferedReader inv;   // to read the variance input file 
-    static int endOfLine;        // for the lower triangular format
-    static int b;                // temp var
-    static int b2;               // temp var
-    static String tempString;    // temp String var
-    static double tempDouble;    // temp double var
-    static double tempDouble2;   // temp double var
-    static int tempInt;          // temp int var
-    static String line;
+     String dinfile, vinfile;
+     BufferedReader ind;   // to read the distance input file 
+     BufferedReader inv;   // to read the variance input file 
+     int endOfLine;        // for the lower triangular format
+     int b;                // temp var
+     int b2;               // temp var
+     String tempString;    // temp String var
+     double tempDouble;    // temp double var
+     double tempDouble2;   // temp double var
+     int tempInt;          // temp int var
+     String line;
     
     //##### building tree #####
-    static int r;                // size of the distance matrix during the agglomerative algorithm
-    static double[] sumR;        // sum of the known distances for Q criterion
-    static double[] sumS;        // sum of the weights
-    static double _Q;            // current value of the Q criterion
-    static double _Qmax;         // max value of the Q criterion
-    static Matrix _Qstar;        // values of the Q* criterion
-    static Matrix _Sstar;        // normalizers of the Q* criterion
-    static double _Qcur;         // current value of the Q* criterion
-    static double _Scur;         // current normalizer of the Q* criterion
-    static Comparator<Object> compDesc;
-    static TreeSet<CriterionTuple> tabQstar;
-    static CriterionTuple ct;
-    static Iterator<CriterionTuple> it;
-    static double tabQstar_min;  // min value of the tabQ table
-    static double dNcur;         // current value of the discrete N* criterion
-    static double cNcur;         // current value of the continuous N* criterion
-    static double dNmax;         // max value of the discrete N* criterion
-    static double cNmax;         // max value of the continuous N* criterion
-    static double _Smax;         // normalizer of the max value of the discrete N* criterion
-    static int _j;               // ij is the current neighborable pair to test
-    static int _i;               // ij is the current neighborable pair to test
-    static int x;                // first taxon of the agglomerated pair
-    static int y;                // second taxon of the agglomerated pair
-    static double sum1;
-    static double sum2;
-    static int u;                // rank of the created node
-    static int rankmin;          // rank of the minimum rank active taxon
-    static double txu;           // length of branch T_xu
-    static double tyu;           // length of branch T_yu
-    static double un[];          // weights for computing reduction distance matrice (UNJ*)
-    static double mu;            // constant for the computing of w's (MVR*)
-    static double[] w;           // weights for computing branch lengths
-    static double[] lambda;      // weights for computing reduction distance matrices 
+     int r;                // size of the distance matrix during the agglomerative algorithm
+     double[] sumR;        // sum of the known distances for Q criterion
+     double[] sumS;        // sum of the weights
+     double _Q;            // current value of the Q criterion
+     double _Qmax;         // max value of the Q criterion
+     Matrix _Qstar;        // values of the Q* criterion
+     Matrix _Sstar;        // normalizers of the Q* criterion
+     double _Qcur;         // current value of the Q* criterion
+     double _Scur;         // current normalizer of the Q* criterion
+     Comparator<Object> compDesc;
+     TreeSet<CriterionTuple> tabQstar;
+     CriterionTuple ct;
+     Iterator<CriterionTuple> it;
+     double tabQstar_min;  // min value of the tabQ table
+     double dNcur;         // current value of the discrete N* criterion
+     double cNcur;         // current value of the continuous N* criterion
+     double dNmax;         // max value of the discrete N* criterion
+     double cNmax;         // max value of the continuous N* criterion
+     double _Smax;         // normalizer of the max value of the discrete N* criterion
+     int _j;               // ij is the current neighborable pair to test
+     int _i;               // ij is the current neighborable pair to test
+     int x;                // first taxon of the agglomerated pair
+     int y;                // second taxon of the agglomerated pair
+     double sum1;
+     double sum2;
+     int u;                // rank of the created node
+     int rankmin;          // rank of the minimum rank active taxon
+     double txu;           // length of branch T_xu
+     double tyu;           // length of branch T_yu
+     double un[];          // weights for computing reduction distance matrice (UNJ*)
+     double mu;            // constant for the computing of w's (MVR*)
+     double[] w;           // weights for computing branch lengths
+     double[] lambda;      // weights for computing reduction distance matrices 
 
     //##### newick output tree #####
-    static BufferedWriter out;        // to write the trees inside an output file 
-    static String newick;             // outputed tree in newick format
-    static BitSet nodeFixed;          // to set the postfixed nodes
-    static int root;                  // the leaf root of the outputed tree
+     Writer out;        // to write the trees inside an output file 
+     String newick;             // outputed tree in newick format
+     BitSet nodeFixed;          // to set the postfixed nodes
+     int root;                  // the leaf root of the outputed tree
     
-    public static void main(String[] args) throws IOException {
+    public  String main(String[] args) throws IOException {
 
     compDesc = new Comparator<Object>() {     // a comparator dedicated to the DistanceTuple class
         CriterionTuple ct1; CriterionTuple ct2;
@@ -182,13 +182,10 @@ public class PhyDstar
         b = -1;
         while ( ++b < args.length ) {
         if ( args[b].toLowerCase().equals("-i") ) {
-            try { 
+           
             dinfile = args[++b];
-            ind = new BufferedReader(new FileReader(new File(dinfile)));
-            } catch( FileNotFoundException e ) {
-            System.out.println("Incorrect input file name (option -i)");
-            System.exit(0);
-            }
+            ind = new BufferedReader(new StringReader(dinfile));
+            
             continue;
         }
         if ( args[b].toLowerCase().equals("-v") ) {
@@ -397,7 +394,7 @@ public class PhyDstar
         System.out.print("\n");
     }
 
-    if ( bionj ) out = new BufferedWriter(new FileWriter(new File (dinfile + "_bionj.t")));
+    if ( bionj ) out = new StringWriter();
     if ( nj )  out = new BufferedWriter(new FileWriter(new File (dinfile + "_nj.t")));
     if ( unj ) out = new BufferedWriter(new FileWriter(new File (dinfile + "_unj.t")));
     if ( mvr ) out = new BufferedWriter(new FileWriter(new File (dinfile + "_mvr.t")));
@@ -1557,10 +1554,10 @@ public class PhyDstar
         } // end of while(multifile
 
 
-
+    String outS = out.toString();
     out.close();
 //    System.out.println("");
-
+    return outS;
 
     }
 
@@ -1568,7 +1565,7 @@ public class PhyDstar
 
 
     //##### recursive function to compute the newick tree representation #####
-    static StringBuffer makeTree( int node ) {
+     StringBuffer makeTree( int node ) {
     int x,y,u;
     nodeFixed.set(node);  // to mark the node
     if ( node < n )
@@ -1595,13 +1592,13 @@ public class PhyDstar
 
 
     //##### function to compute a clean String representation of a double #####
-    static StringBuffer double2String(double d , int limit) {
+     StringBuffer double2String(double d , int limit) {
     return new StringBuffer(String.format(Locale.ENGLISH , "%." + limit + "f" , new Double(d)));
     }
 
 
     //##### function to compute distance-based confidence values at branches #####
-    static String setConfidenceValues(Matrix dm , String tr) {
+     String setConfidenceValues(Matrix dm , String tr) {
     int _b1, _b2, _b3, _b4, _b5;
     ArrayList<String> _tax, _l1, _l2, _l3, _l4;
     StringBuffer _sb;
@@ -1737,7 +1734,7 @@ public class PhyDstar
     }
     
     //##### returns the taxon set from newick that are from start to end #####
-    static ArrayList<String> taxonSet (StringBuffer newick , int start , int end) {
+     ArrayList<String> taxonSet (StringBuffer newick , int start , int end) {
     ArrayList<String> set = new ArrayList<String>(0);
     int __b2;
     int __b1 = start - 1;
@@ -1759,7 +1756,7 @@ public class PhyDstar
 
 
     //##### returns the index of the closing parenthesis corresponding to the open parenthesis at the specified index #####
-    static int parenthesisForward(StringBuffer newick , int start) {
+     int parenthesisForward(StringBuffer newick , int start) {
     int ___b, ___p;
     ___p = 1; ___b = start;
     while ( ___p != 0 ) {
@@ -1775,7 +1772,7 @@ public class PhyDstar
 
 
     //##### class to store a pairwise distance and its two corresponding taxon numbers #####
-    static class CriterionTuple {
+     class CriterionTuple {
     double Q; int I, J;
     CriterionTuple(double q , int iii , int jjj) { this.Q = q; this.I = iii; this.J = jjj; }
     }
@@ -1783,7 +1780,7 @@ public class PhyDstar
 
 
     //##### class for symetric matrices that shares only the lower triangular entries with a boolean table for missing values #####
-    static class Matrix {
+    class Matrix {
 
     float[][] matrice;          // distance matrix
     boolean[][] presence;       // presence matrix
