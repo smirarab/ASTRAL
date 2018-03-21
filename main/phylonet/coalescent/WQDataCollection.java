@@ -1132,7 +1132,6 @@ implements Cloneable {
 		TaxonIdentifier tid;
 		int th;
 		Collection<Tree> contractedTrees;
-		Matrix sm;
 		Object lock;
 
 		public addExtraBipartitionByHeuristicsLoop(TNode greedyNode,
@@ -1143,7 +1142,6 @@ implements Cloneable {
 			this.tid = tid;
 			this.th = th;
 			this.contractedTrees = contractedTrees;
-			this.sm = sm;
 			this.lock = lock;
 		}
 
@@ -1187,7 +1185,8 @@ implements Cloneable {
 			for (int j = 0; j < GREEDY_ADDITION_DEFAULT_RUNS + k; j++) {
 
 				boolean quadratic = (SLOW
-						|| (th < GREEDY_DIST_ADDITTION_LAST_THRESHOLD_INDX && j < GREEDY_ADDITION_DEFAULT_RUNS)) && greedyNode.getChildCount() <= polytomySizeLimit;
+						|| (th < GREEDY_DIST_ADDITTION_LAST_THRESHOLD_INDX && j < GREEDY_ADDITION_DEFAULT_RUNS)) 
+								&& greedyNode.getChildCount() <= polytomySizeLimit;
 
 
 				if (sampleAndResolve(childbs, contractedTrees, quadratic, tid, true, false) && k < GREEDY_ADDITION_MAX) {
