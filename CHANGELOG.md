@@ -1,3 +1,6 @@
+- version 5.12.0:
+    - Merge similarity matrix changes of Yuan with multi-threaded
+     
 - version 5.11.9:
     - Bug fix related to hashed clusters and polytomy creation
 
