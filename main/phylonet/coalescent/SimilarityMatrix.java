@@ -22,11 +22,8 @@ import phylonet.util.BitSet;
  * @author smirarab
  *
  */
-public class SimilarityMatrix {
+public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 
-	private float[][] similarityMatrix;
-	private List<TreeSet<Integer>> orderedTaxonBySimilarity;
-	private Integer n;
 
 	public SimilarityMatrix(int n) {
 		this.n = n;
@@ -34,95 +31,35 @@ public class SimilarityMatrix {
 
 	public SimilarityMatrix(float[][] from) {
 		this.n = from.length;
-		this.similarityMatrix = new float[from.length][from[0].length];
-		for (int i = 0; i < from.length; i++) {
+        this.matrix = from;
+		this.matrix = new float[from.length][from[0].length];
+		/*for (int i = 0; i < from.length; i++) {
 			float[] l = from[i];
 			for (int j = 0; j < l.length; j++) {
-				this.similarityMatrix[i][j] = l[j];
+				this.matrix[i][j] = l[j];
 			}
-		}
+		}*/
 	}
+	
+    int compareTwoValues(float f1, float f2) {
+        int vc = Float.compare(f1,f2);
+        return - vc;
+    }
 
-	public int getSize() {
-		return n;
-	}
-
-	public float get(int i, int j) {
-		return this.similarityMatrix[i][j];
-	}
-
-	int getBetterSideByFourPoint(int x, int a, int b, int c) {
-		double xa = this.similarityMatrix[x][a];
-		double xb = this.similarityMatrix[x][b];
-		double xc = this.similarityMatrix[x][c];
-		double ab = this.similarityMatrix[a][b];
-		double ac = this.similarityMatrix[a][c];
-		double bc = this.similarityMatrix[b][c];
-		double ascore = xa + bc  - (xb + ac); // Note this is similartiy, not distance
-		double bscore = xb + ac  - (xa + bc); 
-		double cscore = xc + ab - (xb + ac); 
-		return ascore >= bscore ?
-				ascore >= cscore ? a : c :
-					bscore >= cscore ? b : c;	
-	}
-
-	private List<TreeSet<Integer>> sortByDistance(float[][] refMatrix) {
-		List<TreeSet<Integer>> ret = new ArrayList<TreeSet<Integer>>(n);
-		List<Integer> range = Utils.getRange(n);
-		for (int i = 0; i < n; i++) {
-			final float[] js = refMatrix[i];
-			TreeSet<Integer> indices = sortColumn(range, js);
-			ret.add(indices);
-		}
-		return ret;
-	}
-
-	private TreeSet<Integer> sortColumn(List<Integer> range, final float[] js) {
-		TreeSet<Integer> indices = new TreeSet<Integer>(new Comparator<Integer>() {
-
-			@Override
-			public int compare(Integer o1, Integer o2) {
-				if (o1 == o2) {
-					return 0;
-				}
-				int comp = Float.compare(js[o1], js[o2]) ;
-				return  comp == 0 ? - o1.compareTo(o2) : - comp;
-			}
-		});
-		indices.addAll(range);
-		return indices;
-	}
-
-	private void assureOrderedTaxa () {
-		if (this.orderedTaxonBySimilarity == null) {
-			this.orderedTaxonBySimilarity = this.sortByDistance(this.similarityMatrix);
-		}
-	}
-
-	/**
-	 * Returns the id of the closest taxon that is either present in presentBS or
-	 * has a smaller id than mssingId
-	 * @param presentBS
-	 * @param missingId
-	 * @return
-	 */
-	int getClosestPresentTaxonId(BitSet presentBS, int missingId) {
-		this.assureOrderedTaxa();
-		int closestId = -1;
-		for (Integer other: this.orderedTaxonBySimilarity.get(missingId)){
-			if ( missingId > other // other is already added
-					|| presentBS.get(other) // other was in original tree
-					) {
-				closestId = other;
-				break;
-			}
-		}
-		if (closestId == -1) {
-			throw new RuntimeException("Bug: this should not be reached");
-		}
-		return closestId;
-	}
-
+    public int getBetterSideByFourPoint(int x, int a, int b, int c) {
+        double xa = this.matrix[x][a];
+        double xb = this.matrix[x][b];
+        double xc = this.matrix[x][c];
+        double ab = this.matrix[a][b];
+        double ac = this.matrix[a][c];
+        double bc = this.matrix[b][c];
+        double ascore = xa + bc  - (xb + ac); // Note this is similartiy, not distance
+        double bscore = xb + ac  - (xa + bc); 
+        double cscore = xc + ab - (xb + ac); 
+        return ascore >= bscore ?
+                ascore >= cscore ? a : c :
+                    bscore >= cscore ? b : c;	
+    }
 
 
 	private void updateQuartetDistanceTri(BitSet left,
@@ -138,14 +75,8 @@ public class SimilarityMatrix {
 	}
 
 	void populateByQuartetDistance(List<STITreeCluster> treeAllClusters, List<Tree> geneTrees) {
-		this.similarityMatrix = new float[n][n];
+		this.matrix = new float[n][n];
 		long [][] denom = new long [n][n];
-		//fillZero2D(this.similarityMatrix);
-		for(int i = 0; i < n; i++) {
-			for(int j = 0; j < n; j++) {
-				denom[i][j] = 0L;
-			}
-		}
 		Logging.logTimeMessage("SimilarityMatrix 145-148: ");
 			
 		/*for (Tree tree :  geneTrees) {
@@ -187,7 +118,7 @@ public class SimilarityMatrix {
 			}
 			for(int i = 0; i < n; i++) {
 				for(int j = 0; j < n; j++) {
-					similarityMatrix[i][j] += res[0][i][j];
+					matrix[i][j] += res[0][i][j];
 					denom[i][j] += res[1][i][j];
 				}
 			}
@@ -197,13 +128,13 @@ public class SimilarityMatrix {
 		for (int i = 0; i < n; i++) {
 			for (int j = i; j < n; j++) {
 				if (denom[i][j] == 0)
-					similarityMatrix[i][j] = 0F;
+					matrix[i][j] = 0F;
 				else
-					similarityMatrix[i][j] = similarityMatrix[i][j] / (denom[i][j]/2);
+					matrix[i][j] = matrix[i][j] / (denom[i][j]/2);
 				if (i == j) {
-					similarityMatrix[i][j] = 1F;
+					matrix[i][j] = 1F;
 				}
-				similarityMatrix[j][i] = similarityMatrix[i][j];
+				matrix[j][i] = matrix[i][j];
 			}
 		}
 	}
@@ -284,82 +215,32 @@ public class SimilarityMatrix {
 		}
 	}
 
+    @Override
+    public boolean isDistance() {
+        return false;
+    }
+    
+	@Override
+    public List<BitSet> inferTreeBitsets() {
+    
+        return UPGMA();
+    }
 
-	SimilarityMatrix getInducedMatrix(HashMap<String, Integer> randomSample, TaxonIdentifier id) {
+    @Override
+    public Matrix populate(List<STITreeCluster> treeAllClusters, List<Tree> geneTrees, SpeciesMapper spm) {
+        this.populateByQuartetDistance(treeAllClusters, geneTrees);
+        return spm.convertToSpeciesDistance(this);
+    }
 
-		int sampleSize = randomSample.size();
-		float[][] sampleSimMatrix = new float [sampleSize][sampleSize];
+    @Override
+    public List<BitSet> resolvePolytomy(List<BitSet> bsList, boolean original) {
+        return resolveByUPGMA(bsList, original);
+    }
 
-		for (Entry<String, Integer> row : randomSample.entrySet()) {
-			int rowI = id.taxonId(row.getKey());
-			int i = row.getValue();
-			for (Entry<String, Integer> col : randomSample.entrySet()) {
-				int colJ = id.taxonId(col.getKey());
-				sampleSimMatrix[i][col.getValue()] = this.similarityMatrix[rowI][colJ];
-			}
-		}
-		SimilarityMatrix ret = new SimilarityMatrix(sampleSize);
-		ret.similarityMatrix = sampleSimMatrix;
-		return ret;
-	}
-
-	SimilarityMatrix getInducedMatrix(List<Integer> sampleOrigIDs) {
-
-		int sampleSize = sampleOrigIDs.size();
-		SimilarityMatrix ret = new SimilarityMatrix(sampleSize);
-		ret.similarityMatrix = new float [sampleSize][sampleSize];
-
-		int i = 0;
-		for (Integer rowI : sampleOrigIDs) {
-			int j = 0;
-			for (Integer colJ : sampleOrigIDs) {
-				ret.similarityMatrix[i][j] = this.similarityMatrix[rowI][colJ];
-				j++;
-			}
-			i++;
-		}
-		return ret;
-	}
-
-	//TODO: generate iterable, not list
-	Iterable<BitSet> getQuadraticBitsets() {
-		List<BitSet> newBitSets = new ArrayList<BitSet>();
-		ArrayList<Integer> inds = new ArrayList<Integer> (n);
-		for (int i = 0; i < n; i++) {
-			inds.add(i);
-		}
-		for (final float[] fs : this.similarityMatrix) {
-			Collections.sort(inds, new Comparator<Integer>() {
-
-				@Override
-				public int compare(Integer i1, Integer i2) {
-					if (i1 == i2) {
-						return 0;
-					}
-					int vc = Float.compare(fs[i1],fs[i2]);
-					if (vc != 0) {
-						return - vc;
-					}
-					return i1 > i2 ? 1 : -1;
-				}
-			});
-			BitSet stBS = new BitSet(n);
-			//Float previous = fs[inds.get(1)];
-			//Float lastStep = 0;
-			for (int sp : inds) {
-				stBS.set(sp);
-				/*if (previous - fs[sp] < 0) {
-						continue;
-					}*/
-				newBitSets.add((BitSet) stBS.clone());
-				//lastStep = previous - fs[sp];
-				//previous = fs[sp];
-			}
-			//System.err.println(this.clusters.getClusterCount());
-		}
-		return newBitSets;
-	}
-
+    @Override
+    Matrix factory(float[][] from) {
+        return new SimilarityMatrix(from);
+    }
 
 	List<BitSet> resolveByUPGMA(List<BitSet> bsList, boolean original) {
 
@@ -383,7 +264,7 @@ public class SimilarityMatrix {
 				internalBSList.add(internalBS);
 			}
 
-			final float[] is = new float[size];// this.similarityMatrix[i].clone();
+			final float[] is = new float[size];// this.matrix[i].clone();
 			BitSet bsI = bsList.get(i);
 			weights.add(bsI.cardinality());
 			sims.add(is);
@@ -398,7 +279,7 @@ public class SimilarityMatrix {
 				}
 				for (int k = bsI.nextSetBit(0); k >= 0; k = bsI.nextSetBit(k + 1)) {
 					for (int l = bsJ.nextSetBit(0); l >= 0; l = bsJ.nextSetBit(l + 1)) {
-						is[j] += this.similarityMatrix[k][l];
+						is[j] += this.matrix[k][l];
 						c++;
 					}
 				}
@@ -429,7 +310,7 @@ public class SimilarityMatrix {
 			BitSet bs = new BitSet();
 			bs.set(i);
 			bsList.add(bs);
-			final float[] is = this.similarityMatrix[i].clone();
+			final float[] is = this.matrix[i].clone();
 			sims.add(is);
 			range.remove(i);
 			TreeSet<Integer> sortColumn = this.sortColumn(range, is);
