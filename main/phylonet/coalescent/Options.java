@@ -24,6 +24,7 @@ public class Options {
 	private Integer minLeaves;
 	private Integer geneRepeat;
 	
+	private boolean ustarDist;
 
 	public Options(boolean rooted, boolean extrarooted, 
 			boolean exactSolution, boolean duploss, int alg, int addExtra,
@@ -47,6 +48,7 @@ public class Options {
 		this.freqOutputPath = freqOutputPath;
 		this.setMinLeaves(minimumLeaves);
 		this.setGeneRepeat(geneRepeat);
+		this.setUstarDist(false);
 	}
 
 	public boolean isRooted() {
@@ -178,6 +180,14 @@ public class Options {
 		this.samplingrounds = samplingrounds;
 	}
 
+    public boolean isUstarDist() {
+        return ustarDist;
+    }
+
+    public void setUstarDist(boolean ustarDist) {
+        this.ustarDist = ustarDist;
+    }
+    
 	public int getPolylimit() {
 		return polylimit;
 	}
