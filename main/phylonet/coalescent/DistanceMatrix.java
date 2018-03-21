@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -68,6 +69,7 @@ public class DistanceMatrix extends AbstractMatrix implements Matrix {
             }
             out.close();
             String[] arg = new String[]{"java","-jar","PhyDstar.java","-i",matrix.getCanonicalPath()};
+            System.err.println("Invoking PhyDstar with " + Arrays.toString(arg));
             PhyDstar.main(arg);
         } catch (IOException e) { throw new RuntimeException(); }
     
@@ -155,7 +157,7 @@ public class DistanceMatrix extends AbstractMatrix implements Matrix {
     
             String[] arg = new String[]{"java","-jar","PhyDstar.java","-i",matrix.getCanonicalPath()};
             PhyDstar.main(arg);
-        } catch (IOException e) { throw new RuntimeException(); }
+        } catch (IOException e) { throw new RuntimeException(e); }
     
         Tree phyDtree = generatePhyDstarTree(matrix);
     
