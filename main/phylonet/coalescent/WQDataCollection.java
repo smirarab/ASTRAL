@@ -52,11 +52,11 @@ implements Cloneable {
 	/**
 	 * Similarity matrices for individuals. Used for setting up set X
 	 */
-	SimilarityMatrix similarityMatrix;
+	Matrix geneMatrix;
 	/**
 	 * Similarity matrices for species. Used for setting up set X
 	 */
-	SimilarityMatrix speciesSimilarityMatrix;
+	Matrix speciesMatrix;
 
 	// Parameters of ASTRAL-II heuristics
 	private boolean SLOW = false;
@@ -202,7 +202,7 @@ implements Cloneable {
 
 						//					int sampleAndResolveRounds = 4;
 						//					for (int j = 0; j < sampleAndResolveRounds; j++) {
-						//						sampleAndResolve(polytomy,inputTrees, false, speciesSimilarityMatrix, GlobalMaps.taxonNameMap
+						//						sampleAndResolve(polytomy,inputTrees, false, speciesMatrix, GlobalMaps.taxonNameMap
 						//								.getSpeciesIdMapper()
 						//								.getSTTaxonIdentifier(), false, true);
 						//					}
@@ -273,7 +273,7 @@ implements Cloneable {
 		for (int missingId = gtAllBS.nextClearBit(0); missingId < GlobalMaps.taxonIdentifier
 				.taxonCount(); missingId = gtAllBS.nextClearBit(missingId + 1)) {
 
-			int closestId = similarityMatrix.getClosestPresentTaxonId(gtAllBS,
+			int closestId = geneMatrix.getClosestPresentTaxonId(gtAllBS,
 					missingId);
 
 			STINode closestNode = trc.getNode(GlobalMaps.taxonIdentifier
@@ -308,7 +308,7 @@ implements Cloneable {
 					c2random = GlobalMaps.taxonIdentifier.taxonId(Utils
 							.getLeftmostLeaf(c2));
 				}
-				int betterSide = similarityMatrix.getBetterSideByFourPoint(
+				int betterSide = geneMatrix.getBetterSideByFourPoint(
 						missingId, closestId, c1random, c2random);
 				if (betterSide == closestId) {
 					break;
@@ -500,7 +500,7 @@ implements Cloneable {
 	// System.err.println("------------\n"
 	// + "Round " +r +" of individual  sampling ...");
 	// SingleIndividualSample taxonSample = new
-	// SingleIndividualSample(spm,this.similarityMatrix);
+	// SingleIndividualSample(spm,this.geneMatrix);
 	//
 	// System.err.println("taxon sample " +
 	// Arrays.toString(taxonSample.getTaxonIdentifier().getAllTaxonNames()));
@@ -615,7 +615,7 @@ implements Cloneable {
 				//System.err.println("------------\n" + "sample " + (r+1)
 				//	+ " of individual  sampling ...");
 				SingleIndividualSample taxonSample = new SingleIndividualSample(
-						spm, this.similarityMatrix);
+						spm, this.geneMatrix);
 				firstRoundSamples.add(taxonSample);
 
 			}
@@ -670,28 +670,30 @@ implements Cloneable {
 		 */
 
 		ArrayList<Tree> baseTrees = new ArrayList<Tree>();
-		List<STITreeCluster> upgma = new ArrayList<STITreeCluster>();
-		for (BitSet b : this.speciesSimilarityMatrix.UPGMA()) {
-
-
+		List<STITreeCluster> STls = new ArrayList<STITreeCluster>();
+		for (BitSet b : this.speciesMatrix.inferTreeBitsets()) {
 
 			STITreeCluster sti = new STITreeCluster(GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
 			sti.setCluster(b);
-			upgma.add(sti);
+			STls.add(sti);
 		}
-		Tree UPGMA = Utils.buildTreeFromClusters(upgma, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), false);
+		Tree ST = Utils.buildTreeFromClusters(STls, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), false);
+        //		Tree PhyDstar = Utils.buildTreeFromClusters(phyDstar, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), false);
+        //		System.out.println(UPGMA.toNewick());
+        //        System.err.println();
+        //        java.lang.System.exit(0);
 
 
 		///		Tree allGenesGreedy = Utils.greedyConsensus(greedyCandidates, false,
 		//				GlobalMaps.taxonNameMap.getSpeciesIdMapper()
 		//						.getSTTaxonIdentifier(), true);
-		////		resolveByUPGMA((MutableTree) allGenesGreedy, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(),
-		//				this.speciesSimilarityMatrix);
+		//		resolveByUPGMA((MutableTree) allGenesGreedy, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(),
+		//				this.speciesMatrix);
 
 
 		//	baseTrees.add(allGenesGreedy);
-		baseTrees.add(UPGMA);
-		addBipartitionsFromSignleIndTreesToX(UPGMA, baseTrees,
+		baseTrees.add(ST);
+		addBipartitionsFromSignleIndTreesToX(ST, baseTrees,
 
 				GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier()); 
 
@@ -739,8 +741,7 @@ implements Cloneable {
 			
 			this.addExtraBipartitionByHeuristics(genes,
 					GlobalMaps.taxonNameMap.getSpeciesIdMapper()
-					.getSTTaxonIdentifier(),
-					this.speciesSimilarityMatrix,inference.options.getPolylimit());
+					.getSTTaxonIdentifier(),inference.options.getPolylimit());
 
 			//gradiant = clusters.getClusterCount() - prev;
 			//prev = clusters.getClusterCount();
@@ -785,14 +786,18 @@ implements Cloneable {
 		System.err
 		.println("Calculating quartet distance matrix (for completion of X)");
 
-		this.similarityMatrix = new SimilarityMatrix(
-				GlobalMaps.taxonIdentifier.taxonCount());
-		this.similarityMatrix.populateByQuartetDistance(treeAllClusters,
-				this.originalInompleteGeneTrees);
-		this.speciesSimilarityMatrix = GlobalMaps.taxonNameMap
-				.getSpeciesIdMapper().convertToSpeciesDistance(
-						this.similarityMatrix);// this.similarityMatrix.convertToSpeciesDistance(spm);
-	}
+        if (options.isUstarDist()) {
+            // Note that matricesByBranchDistance both populates the similarity matrix and returns the speces level matrix. 
+            this.geneMatrix = new DistanceMatrix(GlobalMaps.taxonIdentifier.taxonCount());
+
+        } else {
+            this.geneMatrix = new SimilarityMatrix(GlobalMaps.taxonIdentifier.taxonCount());
+        }
+
+        this.speciesMatrix = this.geneMatrix.populate( treeAllClusters, 
+                this.originalInompleteGeneTrees,
+                GlobalMaps.taxonNameMap.getSpeciesIdMapper());	
+    }
 
 	/**
 	 * Computes the set of available leaves per gene tree.
@@ -965,22 +970,21 @@ implements Cloneable {
 	 */
 	public void addExtraBipartitionByDistance() {
 
-		for (BitSet bs : speciesSimilarityMatrix.UPGMA()) {
+
+        for (BitSet bs : speciesMatrix.inferTreeBitsets()) {
 			STITreeCluster g = GlobalMaps.taxonNameMap.getSpeciesIdMapper()
 					.getGeneClusterForSTCluster(bs);
 			this.addCompletedSpeciesFixedBipartionToX(g,
 					g.complementaryCluster());
-			// upgmac.add(g);
 		}
-		;
+
 		if (SLOW) {
-			for (BitSet bs : speciesSimilarityMatrix.getQuadraticBitsets()) {
+			for (BitSet bs : speciesMatrix.getQuadraticBitsets()) {
 				STITreeCluster g = GlobalMaps.taxonNameMap.getSpeciesIdMapper()
 						.getGeneClusterForSTCluster(bs);
 				this.addCompletedSpeciesFixedBipartionToX(g,
 						g.complementaryCluster());
 			}
-			;
 		}
 
 		System.err.println("Number of Clusters after addition by distance: "
@@ -997,7 +1001,7 @@ implements Cloneable {
 	 *            : the single-individual subsample information
 	 */
 	void addExtraBipartitionByHeuristics(Collection<Tree> contractedTrees,
-			TaxonIdentifier tid, SimilarityMatrix sm, int polylimit) {
+			TaxonIdentifier tid, int polylimit) {
 
 		// Greedy trees. These will be based on sis taxon identifier
 		Collection<Tree> allGreedies;
@@ -1098,7 +1102,7 @@ implements Cloneable {
 				//System.err.println("Queued: " + "polytomy of size " + greedyNode.getChildCount());
 
 				stringOutput.add(Threading.submit(new addExtraBipartitionByHeuristicsLoop(
-								greedyNode, tid, th, contractedTrees, sm,
+								greedyNode, tid, th, contractedTrees,
 								lock)));
 
 			}
@@ -1128,12 +1132,12 @@ implements Cloneable {
 		TaxonIdentifier tid;
 		int th;
 		Collection<Tree> contractedTrees;
-		SimilarityMatrix sm;
+		Matrix sm;
 		Object lock;
 
 		public addExtraBipartitionByHeuristicsLoop(TNode greedyNode,
 				TaxonIdentifier tid, int th,
-				Collection<Tree> contractedTrees, SimilarityMatrix sm,
+				Collection<Tree> contractedTrees, 
 				Object lock) {
 			this.greedyNode = greedyNode;
 			this.tid = tid;
@@ -1168,11 +1172,10 @@ implements Cloneable {
 
 			ret = "polytomy of size " + greedyNode.getChildCount();
 
-			// First resolve the polytomy using UPGMA.
-			// this.resolveByUPGMA(childbs, tid ,
-			// this.speciesSimilarityMatrix);
-			addSubSampledBitSetToX(
-					speciesSimilarityMatrix.resolveByUPGMA(
+			// First resolve the polytomy using distances.
+
+			WQDataCollection.this.addSubSampledBitSetToX(
+					WQDataCollection.this.speciesMatrix.resolvePolytomy(
 							Arrays.asList(childbs), true), tid);
 
 			// Resolve by subsampling the greedy.
@@ -1187,7 +1190,7 @@ implements Cloneable {
 						|| (th < GREEDY_DIST_ADDITTION_LAST_THRESHOLD_INDX && j < GREEDY_ADDITION_DEFAULT_RUNS)) && greedyNode.getChildCount() <= polytomySizeLimit;
 
 
-				if (sampleAndResolve(childbs, contractedTrees, quadratic, sm, tid, true, false) && k < GREEDY_ADDITION_MAX) {
+				if (sampleAndResolve(childbs, contractedTrees, quadratic, tid, true, false) && k < GREEDY_ADDITION_MAX) {
 					k += GREEDY_ADDITION_IMPROVEMENT_REWARD;
 		
 				}
@@ -1214,19 +1217,12 @@ implements Cloneable {
 			return Collections.min(input);
 	}
 
-	/**
-	 * Resolves a polytomy using UPGMA and adds resulting new bipartitions to
-	 * the set X. Make sure bipartitions added to set X are consistent with
-	 * species mapping.
-	 * 
-	 * @param polytomyBSList
-	 * @return
-	 */
+	/*
 	private boolean resolveByUPGMA(BitSet[] polytomyBSList,
 			SingleIndividualSample sis, TaxonIdentifier id) {
-		return this.addSubSampledBitSetToX(sis.getSimilarityMatrix()
+		return this.addSubSampledBitSetToX(sis.getMatrix()
 				.resolveByUPGMA(Arrays.asList(polytomyBSList), true), id);
-	}
+	}*/
 
 	/**
 	 * This is the first step of the greedy algorithm where one counts how many
@@ -1273,7 +1269,7 @@ implements Cloneable {
 	 */
 	private boolean sampleAndResolve(BitSet[] polytomyBSList,
 			Collection<Tree> inputTrees, boolean addQuadratic,
-			SimilarityMatrix sm, TaxonIdentifier tid, boolean addByDistance,
+			TaxonIdentifier tid, boolean addByDistance,
 			boolean forceResolution) {
 
 		boolean addedHighFreq = false;
@@ -1284,7 +1280,7 @@ implements Cloneable {
 		addedHighFreq = resolveLinearly(polytomyBSList, inputTrees,
 				randomSample, tid, forceResolution);
 		if (addByDistance)
-			resolveByDistance(polytomyBSList, randomSample, addQuadratic, sm,
+			resolveByDistance(polytomyBSList, randomSample, addQuadratic,
 					tid);
 
 		return addedHighFreq;
@@ -1402,7 +1398,7 @@ implements Cloneable {
 					children.add(rest);
 
 				// addSubSampledBitSetToX(polytomyBSList,
-				// this.similarityMatrix.resolveByUPGMA(children, true));
+				// this.geneMatrix.resolveByUPGMA(children, true));
 				// //TODO: addback
 
 				while (children.size() > 2) {
@@ -1426,14 +1422,13 @@ implements Cloneable {
 
 	private boolean resolveByDistance(BitSet[] polytomyBSList,
 			HashMap<String, Integer> randomSample, boolean quartetAddition,
-			SimilarityMatrix sm, TaxonIdentifier tid) {
+			TaxonIdentifier tid) {
 		boolean added = false;
 
-		SimilarityMatrix sampleSimMatrix = sm.getInducedMatrix(randomSample,
-				tid);
+		Matrix sampleSimMatrix = this.speciesMatrix.getInducedMatrix(randomSample,tid);
 
 		added |= this.addDoubleSubSampledBitSetToX(polytomyBSList,
-				sampleSimMatrix.UPGMA(), tid);
+				sampleSimMatrix.inferTreeBitsets(), tid);
 
 		if (quartetAddition) {
 			added |= this.addDoubleSubSampledBitSetToX(polytomyBSList,
@@ -1511,7 +1506,7 @@ implements Cloneable {
 	// }
 	// if (children.size() > 2) {
 	//
-	// for (BitSet bs: sample.getSimilarityMatrix().resolveByUPGMA(poly,false))
+	// for (BitSet bs: sample.getMatrix().resolveByUPGMA(poly,false))
 	// {
 	// TMutableNode newChild = ((TMutableNode)node).createChild();
 	// for(int i = bs.nextSetBit(0); i >=0; i = bs.nextSetBit(i+1) ) {
@@ -1528,8 +1523,8 @@ implements Cloneable {
 	// }
 	// }
 
-	private void resolveByUPGMA(MutableTree tree, TaxonIdentifier ti,
-			SimilarityMatrix sm) {
+	/*private void resolveByUPGMA(MutableTree tree, TaxonIdentifier ti,
+			Matrix sm) {
 		Stack<BitSet> stack = new Stack<BitSet>();
 		for (TNode node : tree.postTraverse()) {
 			BitSet bitset = new BitSet(ti.taxonCount());
@@ -1562,7 +1557,7 @@ implements Cloneable {
 			}
 			stack.push(bitset);
 		}
-	}
+	}*/
 
 	public Object clone() throws CloneNotSupportedException {
 		WQDataCollection clone = (WQDataCollection) super.clone();
