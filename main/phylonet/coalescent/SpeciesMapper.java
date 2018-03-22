@@ -237,11 +237,26 @@ public class SpeciesMapper {
 				denum[stJ][stI] ++;
 			}
 		}
+		for (int i = 0; i < this.getSpeciesCount(); i++) {
+//		    System.out.print(this.getSpeciesName(i) + " ");
+			for (int j = 0; j < this.getSpeciesCount(); j++) {
+			    if (i == j) {
+			        STsimMatrix[i][j] = 0;
+			    } else {
+			        STsimMatrix[i][j] = denum[i][j] == 0 ? -99 : 
+			            STsimMatrix[i][j] / denum[i][j];
+			    }
+//			    System.out.print(STsimMatrix[i][j] + " ");
+			}
+//			System.out.println();
+//			STsimMatrix[i][i] = 1;
+			//System.err.println(Arrays.toString(this.distSTMatrix[i]));
+		}
 //		System.out.println(this.getSpeciesCount());
 		for (int i = 0; i < this.getSpeciesCount(); i++) {
 //		    System.out.print(this.getSpeciesName(i) + " ");
 			for (int j = 0; j < this.getSpeciesCount(); j++) {
-				STsimMatrix[i][j] = denum[i][j] == 0 ? 0 : 
+				STsimMatrix[i][j] = denum[i][j] == -99 ? 0 : 
 					STsimMatrix[i][j] / denum[i][j];
 			}
 			STsimMatrix[i][i] = new Float(1.0);
