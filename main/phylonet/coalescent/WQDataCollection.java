@@ -679,7 +679,7 @@ implements Cloneable {
 		}
 		Tree ST = Utils.buildTreeFromClusters(STls, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), false);
         //		Tree PhyDstar = Utils.buildTreeFromClusters(phyDstar, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), false);
-        //		System.out.println(UPGMA.toNewick());
+        //		System.err.println(UPGMA.toNewick());
         //        System.err.println();
         //        java.lang.System.exit(0);
 
