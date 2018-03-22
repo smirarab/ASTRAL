@@ -32,8 +32,8 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 	public SimilarityMatrix(float[][] from) {
 		this.n = from.length;
         this.matrix = from;
-		this.matrix = new float[from.length][from[0].length];
-		/*for (int i = 0; i < from.length; i++) {
+        /*this.matrix = new float[from.length][from[0].length];
+		for (int i = 0; i < from.length; i++) {
 			float[] l = from[i];
 			for (int j = 0; j < l.length; j++) {
 				this.matrix[i][j] = l[j];

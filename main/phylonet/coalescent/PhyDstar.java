@@ -193,7 +193,7 @@ public class PhyDstar
             vinfile = args[++b];
             inv = new BufferedReader(new FileReader(new File(vinfile)));
             } catch( FileNotFoundException e ) {
-            System.out.println("Incorrect input file name (option -v)");
+            System.err.println("Incorrect input file name (option -v)");
             System.exit(0);
             }
             option[8] = "Yes";
@@ -258,27 +258,27 @@ public class PhyDstar
         }
         }
         if ( dinfile.equals("") ) {
-        System.out.println("  No distance matrix file name");
+        System.err.println("  No distance matrix file name");
         System.exit(0);
         }    
     }
     else {        // menu
-        System.out.println("\nPhyD* version 1.1");
+        System.err.println("\nPhyD* version 1.1");
         cin = new BufferedReader((new InputStreamReader(System.in)));
         while ( option[0].equals("No") ) {
-        System.out.println("\n\n\n\nSettings for this run:");
-        System.out.println("   D             Method (BioNJ*, MVR*, NJ*, UNJ*)?  " + option[7]);
+        System.err.println("\n\n\n\nSettings for this run:");
+        System.err.println("   D             Method (BioNJ*, MVR*, NJ*, UNJ*)?  " + option[7]);
         if ( option[7].equals("MVR*") )
-            System.out.println("   V                     Use variance matrix file?  " + option[8]);
-        System.out.println("   P    Taxon pairs selected by NJ-like filtering?  " + option[9]);
-        System.out.println("   N              Negative branch lengths allowed?  " + option[5]);
-        System.out.println("   B                                  Binary tree?  " + option[6]);
-        System.out.println("   O                                Outgroup root?  " + option[4]);
-        System.out.println("   C                Confidence values at branches?  " + option[10]);
-        System.out.println("   L                 Lower-triangular data matrix?  " + option[1]);
-        System.out.println("   S                                Subreplicates?  " + option[2]);
-        System.out.println("   M                   Analyse multiple data sets?  " + option[3]);
-        System.out.print("\n   Y to accept these or type the letter for one to change   ");
+            System.err.println("   V                     Use variance matrix file?  " + option[8]);
+        System.err.println("   P    Taxon pairs selected by NJ-like filtering?  " + option[9]);
+        System.err.println("   N              Negative branch lengths allowed?  " + option[5]);
+        System.err.println("   B                                  Binary tree?  " + option[6]);
+        System.err.println("   O                                Outgroup root?  " + option[4]);
+        System.err.println("   C                Confidence values at branches?  " + option[10]);
+        System.err.println("   L                 Lower-triangular data matrix?  " + option[1]);
+        System.err.println("   S                                Subreplicates?  " + option[2]);
+        System.err.println("   M                   Analyse multiple data sets?  " + option[3]);
+        System.err.print("\n   Y to accept these or type the letter for one to change   ");
         
         choix = cin.readLine();
         
@@ -293,7 +293,7 @@ public class PhyDstar
         
         if ( (choix.equals("M")) || (choix.equals("m")) )
             if ( multifile == 1 ) {
-            System.out.print("   How many data sets? ");
+            System.err.print("   How many data sets? ");
             choix = cin.readLine();
             multifile = (new Integer(choix)).intValue();
             option[3] = "Yes, " + multifile + " sets";
@@ -305,7 +305,7 @@ public class PhyDstar
         
         if ( (choix.equals("O")) || (choix.equals("o")) )
             if ( outgroup.equals("") ) {
-            System.out.print("   Please enter the outgroup taxon name> ");
+            System.err.print("   Please enter the outgroup taxon name> ");
             choix = cin.readLine();
             outgroup = choix;
             option[4] = "Yes (" + outgroup + ")";
@@ -344,7 +344,7 @@ public class PhyDstar
             if ( option[8].equals("No") ) option[8] = "Yes"; else option[8] = "No";
         
         if ( (choix.equals("P")) || (choix.equals("p")) ) {
-            System.out.print("   How many neighborable pairs to test? ");
+            System.err.print("   How many neighborable pairs to test? ");
             choix = cin.readLine();
             p = (new Integer(choix)).intValue();
             option[9] = "" + p;
@@ -365,8 +365,8 @@ public class PhyDstar
             ok = false;
         }
         catch(FileNotFoundException e) {
-            System.out.println("\nCan't find input file \"" + dinfile + "\"");
-            System.out.print("Please enter a new file name> ");
+            System.err.println("\nCan't find input file \"" + dinfile + "\"");
+            System.err.print("Please enter a new file name> ");
             choix = cin.readLine();
         }
         }
@@ -384,14 +384,14 @@ public class PhyDstar
             ok = false;
             }
             catch(FileNotFoundException e) {
-            System.out.println("\nCan't find input file \"i" + vinfile + "\"");
-            System.out.print("Please enter a new file name> ");
+            System.err.println("\nCan't find input file \"i" + vinfile + "\"");
+            System.err.print("Please enter a new file name> ");
             choix = cin.readLine();
             }
         }
         }
     
-        System.out.print("\n");
+        //System.err.print("\n");
     }
 
     if ( bionj ) out = new StringWriter();
@@ -405,9 +405,9 @@ public class PhyDstar
 
         multifile--;
         if (multifile > 1)
-        System.out.print("\r                                   \r   Computing tree " + multifile);
-        if ( multifile == 1)
-        System.out.print("\r                                   ");
+        System.err.print("\r                                   \r   Computing tree " + multifile);
+        //if ( multifile == 1)
+        //System.err.print("\r                                   ");
 
         // #################################################
         // ##### reading inpud.d and initializing data #####
@@ -614,7 +614,7 @@ public class PhyDstar
         if ( hole > 0 ) {
 
         for (int i = n ; --i >= 0 ; ) {
-            //System.out.print("\r        \r" + i);
+            //System.err.print("\r        \r" + i);
             for (int j = i ; --j >= 0 ; ) {
             if ( dM.exists(tree2dist[i] , tree2dist[j]) ) {
                 _Qstar.setValue(tree2dist[i] , tree2dist[j] , 0);
@@ -650,7 +650,7 @@ public class PhyDstar
         }
         }
 
-        //System.out.print("##########\n");
+        //System.err.print("##########\n");
 
         // ################################
         // ##### agglomerative scheme #####
@@ -835,9 +835,9 @@ public class PhyDstar
             } // z
         }
 
-        //System.out.println(x + " " + y);
+        //System.err.println(x + " " + y);
         if ( x == y ) { // no possible agglomeration => exiting the agglomerative scheme
-            System.out.println( (char) 7);
+            System.err.println( x+ " "+y+ (char) 7);
             break;
         }
         if ( x == rankmin ) rankmin++;
@@ -1376,7 +1376,7 @@ public class PhyDstar
             else // mvr
                 txu += 0.5 * dM.getValue(tree2dist[tT[center][x]] , tree2dist[tT[center][y]]);
             }
-            //System.out.println(txu);
+            //System.err.println(txu);
             
             tD[center][x] = txu; //dM[tree2dist[tT[2*n][x]]][tree2dist[u]] - tD[u][2];
             if (tT[center][x] < n)
@@ -1547,7 +1547,7 @@ public class PhyDstar
         }
 
         if ( option[10].equals("Yes") ) newick = setConfidenceValues( dMinit , newick );
-        //System.out.println(newick);
+        //System.err.println(newick);
         out.write(newick + "\n");
 
 
@@ -1556,7 +1556,7 @@ public class PhyDstar
 
     String outS = out.toString();
     out.close();
-//    System.out.println("");
+//    System.err.println("");
     return outS;
 
     }
@@ -1626,7 +1626,7 @@ public class PhyDstar
         _b1 = _sb.indexOf("," , _b1 );
     }
     _sb = _sb.insert( _b1 , "):-99" ).insert( 1 , "(" );
-    //System.out.println( "\n" + _sb.toString() );
+    //System.err.println( "\n" + _sb.toString() );
     
     _b1 = 0;
     while ( true ) {                           // exploration of all quartet taxon sets
@@ -1714,15 +1714,15 @@ public class PhyDstar
             }
             }
         }
-        //System.out.println(_q_ok + " " + _q_total);
+        //System.err.println(_q_ok + " " + _q_total);
         _sb = _sb.insert( _b2+1 , ((int) (100 * _q_ok / _q_total)) );
         }
         else {
-        //System.out.println("\n" + _l1.toString());
-        //System.out.println(_l2.toString());
-        //System.out.println(_l3.toString());
-        //System.out.println(_l4.toString());
-        //System.out.println(_b1 + " " + _b3);
+        //System.err.println("\n" + _l1.toString());
+        //System.err.println(_l2.toString());
+        //System.err.println(_l3.toString());
+        //System.err.println(_l4.toString());
+        //System.err.println(_b1 + " " + _b3);
         }   
     }
 
