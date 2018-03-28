@@ -2,7 +2,6 @@ package phylonet.coalescent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Random;
 import java.util.Set;
 
 import phylonet.tree.model.sti.STITreeCluster;
