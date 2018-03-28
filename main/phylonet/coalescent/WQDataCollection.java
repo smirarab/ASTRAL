@@ -21,8 +21,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import javax.sound.midi.SysexMessage;
-
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TMutableNode;
@@ -1072,13 +1070,13 @@ implements Cloneable {
 		// polytomySizeLimit = Math.max(arrayListMax(allDegVisitedMaxDegrees),
 		// arrayListMin(allDegNotVisitedMaxDegrees));
 
-		System.err.println("polytomy size limit : " + polytomySizeLimit);
+		System.err.println("polytomy size limit : > " + polytomySizeLimit);
+		System.err.println(" " + deg );
 		System.err.println("discarded polytomies: ");
 		for (int d : deg) {
 			if (d > polytomySizeLimit)
-				System.err.println(d + " \n");
+				System.err.println(d);
 		}
-		System.err.println(" " + deg + "\n");
 
 		Object lock = new Object();
 		int th = 0;
