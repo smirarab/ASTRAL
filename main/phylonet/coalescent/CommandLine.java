@@ -4,7 +4,6 @@ import static org.jocl.CL.CL_CONTEXT_PLATFORM;
 import static org.jocl.CL.CL_DEVICE_NAME;
 import static org.jocl.CL.CL_DEVICE_TYPE_ALL;
 import static org.jocl.CL.CL_DEVICE_VENDOR;
-
 import static org.jocl.CL.clCreateContext;
 import static org.jocl.CL.clGetDeviceIDs;
 import static org.jocl.CL.clGetDeviceInfo;
@@ -31,7 +30,6 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
-import java.util.concurrent.Executors;
 
 import org.jocl.CL;
 import org.jocl.Pointer;
@@ -370,9 +368,9 @@ public class CommandLine {
 				System.out.println("Device " + (i + 1) + " of " + numDevices
 						+ ": " + deviceName + " " + devices[i] + " Vendor: " + deviceVendor);
 			}
-			System.out
-					.println("Please enter the devices you'd like this program to use separated by spaces: ");
-			Scanner in = new Scanner(System.in);
+			//System.out
+			//		.println("Please enter the devices you'd like this program to use separated by spaces: ");
+			//Scanner in = new Scanner(System.in);
 			ArrayList<cl_device_id> usedDevicesAL = new ArrayList<cl_device_id>();
 			ArrayList<String> deviceVendorsAL = new ArrayList<String>();
 			// while(in.hasNext()) {
