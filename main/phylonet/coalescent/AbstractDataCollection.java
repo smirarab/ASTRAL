@@ -1,9 +1,6 @@
 package phylonet.coalescent;
 
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
