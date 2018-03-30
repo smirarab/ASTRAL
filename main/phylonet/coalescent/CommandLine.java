@@ -365,7 +365,7 @@ public class CommandLine {
 			for (int i = 0; i < numDevices; i++) {
 				String deviceName = getString(devices[i], CL_DEVICE_NAME);
 				String deviceVendor = getString(devices[i], CL_DEVICE_VENDOR);
-				System.out.println("Device " + (i + 1) + " of " + numDevices
+				System.err.println("Device " + (i + 1) + " of " + numDevices
 						+ ": " + deviceName + " " + devices[i] + " Vendor: " + deviceVendor);
 			}
 			//System.out
@@ -868,12 +868,10 @@ public class CommandLine {
 	private static Tree processSolution(BufferedWriter outbuffer,
 			Iterable<Tree> bootstraps, String outgroup,
 			AbstractInference inference, List<Solution> solutions) {
-		Logging
-				.logTimeMessage(" CommandLine 684: ");
+		Logging.logTimeMessage(" CommandLine 684: ");
 
 		Tree st = solutions.get(0)._st;
-		Logging
-				.logTimeMessage(" CommandLine 690: ");
+		Logging.logTimeMessage(" CommandLine 690: ");
 
 		System.err.println(st.toNewick());
 
