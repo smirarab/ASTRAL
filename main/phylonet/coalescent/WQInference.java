@@ -166,6 +166,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 			//System.err.println(this.maxpossible);
 		}
 
+		((WQWeightCalculator)weightCalculator).setThreadingOff(true);
 		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
 
 		List<Future<Long>> weights = new ArrayList<Future<Long>>();
@@ -217,8 +218,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 								@Override
 								public Long call() throws Exception {
-									long a = weightCalculator.getWeight2(trip);
-									return a;
+									return weightCalculator.getWeight(trip);
+									//return a;
 								}
 
 							});
