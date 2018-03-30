@@ -217,7 +217,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 								@Override
 								public Long call() throws Exception {
-									return weightCalculator.getWeight(trip);
+									long a = weightCalculator.getWeight2(trip);
+									return a;
 								}
 
 							});
@@ -228,7 +229,6 @@ public class WQInference extends AbstractInference<Tripartition> {
 			}
 			
 		}
-		
 		long sum = 0l;
 		for (Future<Long> w: weights) {
 			try {
