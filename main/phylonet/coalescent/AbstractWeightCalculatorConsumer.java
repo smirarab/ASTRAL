@@ -72,7 +72,7 @@ public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeight
 		return weight;
 
 	}
-	public Long getWeight2(T t) {
+	/*public Long getWeight2(T t) {
 		this.callcounter ++;
 		Long weight = getCalculatedWeight(t);
 		if (weight == null) {
@@ -85,10 +85,8 @@ public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeight
 				} 
 		}
 		return weight;
-
-		
-
 	}
+	*/
 	abstract T[] convertToSingletonArray(T t);
 
 	public boolean isThreadingOff() {
