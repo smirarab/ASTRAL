@@ -1,3 +1,6 @@
+- version 5.12.1:
+    - Fix scoring bug
+     
 - version 5.12.0:
     - Merge similarity matrix changes of Yuan with multi-threaded
      
