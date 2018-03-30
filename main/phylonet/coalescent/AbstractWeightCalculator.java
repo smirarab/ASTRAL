@@ -17,7 +17,7 @@ public abstract class AbstractWeightCalculator<T> {
 	}
 
 	public void initializeWeightContainer(int size) {
-		weights = new HashMap<T, Long>(size);
+		weights = new HashMap<T, Long>(size); 
 	}
 
 	public int getCalculatedWeightCount() {
@@ -32,7 +32,7 @@ public abstract class AbstractWeightCalculator<T> {
 	protected Object clone() throws CloneNotSupportedException {
 		return super.clone();
 	}
-	public abstract Long getWeight2(T t);
+	//public abstract Long getWeight2(T t);
 
 	protected abstract Long[] calculateWeight(T[] t);
 
