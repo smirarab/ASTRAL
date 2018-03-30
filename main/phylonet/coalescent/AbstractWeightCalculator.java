@@ -32,7 +32,8 @@ public abstract class AbstractWeightCalculator<T> {
 	protected Object clone() throws CloneNotSupportedException {
 		return super.clone();
 	}
-	
+	public abstract Long getWeight2(T t);
+
 	protected abstract Long[] calculateWeight(T[] t);
 
 	public abstract void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees);
