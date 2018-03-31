@@ -121,7 +121,7 @@ public class BitSet implements Cloneable, Serializable, Comparable {
 		hash = 0;
 	}
 
-	public BitSet() {
+	private  BitSet() {
 		wordsInUse = 0;
 		sizeIsSticky = false;
 		initWords(BITS_PER_WORD);
