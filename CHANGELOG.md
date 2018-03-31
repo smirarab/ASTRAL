@@ -1,4 +1,7 @@
 - version 5.12.1:
+    - Merge fixes from mergedMP
+
+- version 5.12.1:
     - Fix scoring bug
      
 - version 5.12.0:
