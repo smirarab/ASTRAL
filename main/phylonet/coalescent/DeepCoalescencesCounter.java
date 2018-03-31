@@ -218,7 +218,7 @@ public class DeepCoalescencesCounter {
 
 		Map map = new HashMap();
 		for (TNode node : st.postTraverse()) {
-			BitSet bs = new BitSet();
+			BitSet bs = new BitSet(0);
 			if (node.isLeaf()) {
 				for (int i = 0; i < taxa.length; i++) {
 					if (node.getName().equals(taxa[i])) {
@@ -271,7 +271,7 @@ public class DeepCoalescencesCounter {
 
 		Map map = new HashMap();
 		for (TNode node : st.postTraverse()) {
-			BitSet bs = new BitSet();
+			BitSet bs = new BitSet(0);
 			if (node.isLeaf()) {
 				for (int i = 0; i < stTaxa.length; i++) {
 					if (node.getName().equals(stTaxa[i])) {
@@ -392,7 +392,7 @@ public class DeepCoalescencesCounter {
 		for (TNode node : tr.postTraverse()) {
 			if (node.isLeaf()) {
 				int index = GlobalMaps.taxonIdentifier.taxonId(node.getName());
-				BitSet bs = new BitSet();
+				BitSet bs = new BitSet(0);
 
 				bs.set(index);
 				if (cluster.containsCluster(bs)) {
@@ -401,7 +401,7 @@ public class DeepCoalescencesCounter {
 
 				map.put(node, bs);
 			} else {
-				BitSet bs = new BitSet();
+				BitSet bs = new BitSet(0);
 				int intersect = 0;
 				int childCount = node.getChildCount();
 				for (TNode child : node.getChildren()) {
