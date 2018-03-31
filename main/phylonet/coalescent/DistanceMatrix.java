@@ -91,7 +91,8 @@ public class DistanceMatrix extends AbstractMatrix implements Matrix {
 			if (node.isRoot()) {
 				continue;
 			} else if (node.isLeaf()) {
-				BitSet leaf = new BitSet();
+				BitSet leaf = new BitSet(GlobalMaps.taxonNameMap.getSpeciesIdMapper()
+						.getSTTaxonIdentifier().taxonCount());
 				leaf.set(GlobalMaps.taxonNameMap.getSpeciesIdMapper()
 						.getSTTaxonIdentifier().taxonId(node.getName()));
 				((STINode) node).setData(leaf);
