@@ -303,7 +303,7 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 		List<Integer> weights = Utils.getOnes(n);
 
 		for (int i = 0; i< n; i++) {
-			BitSet bs = new BitSet();
+			BitSet bs = new BitSet(64);
 			bs.set(i);
 			bsList.add(bs);
 			final float[] is = this.matrix[i].clone();
