@@ -18,7 +18,7 @@ inline uint popcnt(const ulong i) {
         asm("popc.b64 %0, %1;" : "=r"(n) : "l" (i));
         return n;
 }
-inline int bitIntersectionSize(__global const long input1[SPECIES_WORD_LENGTH], __global const long input2[SPECIES_WORD_LENGTH]) {
+inline int bitIntersectionSize(__global const long* input1, __global const long* input2) {
 	int out = 0;
 	for (int i = 0; i < SPECIES_WORD_LENGTH; i++) {
 		out += popcnt(input1[i]&input2[i * WORK_GROUP_SIZE]);
