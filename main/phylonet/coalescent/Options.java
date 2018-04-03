@@ -30,7 +30,7 @@ public class Options {
 			boolean exactSolution, boolean duploss, int alg, int addExtra,
 			boolean outputCompletedGenes, boolean outSearch, boolean run,
 			int branchannotation, double lambda, String outputFile, int samplingrounds, int polylimit,
-			String freqOutputPath, Integer minimumLeaves, Integer geneRepeat) {
+			String freqOutputPath, Integer minimumLeaves, Integer geneRepeat, boolean useInnerNodeDist) {
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
 		this.exactSolution = exactSolution;
@@ -48,7 +48,7 @@ public class Options {
 		this.freqOutputPath = freqOutputPath;
 		this.setMinLeaves(minimumLeaves);
 		this.setGeneRepeat(geneRepeat);
-		this.setUstarDist(false);
+		this.setUstarDist(useInnerNodeDist);
 	}
 
 	public boolean isRooted() {
