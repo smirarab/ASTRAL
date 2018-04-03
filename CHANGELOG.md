@@ -1,4 +1,7 @@
-- version 5.12.1:
+- version 5.12.3:
+    - Fix BitSet by setting BitSets correctly
+
+- version 5.12.2:
     - Merge fixes from mergedMP
 
 - version 5.12.1:
