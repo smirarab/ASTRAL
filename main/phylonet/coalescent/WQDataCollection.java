@@ -781,8 +781,6 @@ implements Cloneable {
 	 * gene tree completion.
 	 */
 	private void calculateDistances() {
-		System.err
-		.println("Calculating quartet distance matrix (for completion of X)");
 
         if (options.isUstarDist()) {
             // Note that matricesByBranchDistance both populates the similarity matrix and returns the speces level matrix. 
@@ -792,9 +790,13 @@ implements Cloneable {
             this.geneMatrix = new SimilarityMatrix(GlobalMaps.taxonIdentifier.taxonCount());
         }
 
+		System.err
+		.print("Calculating distance matrix (for completion of X) ....");
         this.speciesMatrix = this.geneMatrix.populate( treeAllClusters, 
                 this.originalInompleteGeneTrees,
                 GlobalMaps.taxonNameMap.getSpeciesIdMapper());	
+        System.err.println();
+        
     }
 
 	/**
