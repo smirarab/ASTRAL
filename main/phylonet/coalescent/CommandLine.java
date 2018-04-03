@@ -54,7 +54,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
-	protected static String _version = "5.12.3";
+	protected static String _version = "5.12.4";
 
 	protected static SimpleJSAP jsap;
 
@@ -79,11 +79,6 @@ public class CommandLine {
 						+ " This software can also solve MGD and MGDL problems (see options) instead of ASTRAL.",
 
 				new Parameter[] {
-						new Switch("cpu only", 'C', "cpu-only"),
-
-						new FlaggedOption("cpu threads", JSAP.INTEGER_PARSER,
-								"-1", JSAP.NOT_REQUIRED, 'T', "cpu-threads"),
-
 						new FlaggedOption("input file", FileStringParser
 								.getParser().setMustExist(true), null,
 								JSAP.REQUIRED, 'i', "input",
@@ -97,7 +92,17 @@ public class CommandLine {
 								'o',
 								"output",
 								"a filename for storing the output species tree. Defaults to outputting to stdout."),
+	
+						new Switch("cpu only", 'C', "cpu-only", 
+								"Do not use GPUs."),
 
+						new FlaggedOption("cpu threads", JSAP.INTEGER_PARSER,
+								"-1", JSAP.NOT_REQUIRED, 'T', "cpu-threads",
+								"Number of threads to use. "),
+
+						new Switch("internode-dist", 'A', "internode",
+								"USe NJst-like internode distances instead of quartet distance for building the search space (X)"),
+								
 						new FlaggedOption(
 								"score species trees",
 								FileStringParser.getParser().setMustExist(true),
@@ -619,7 +624,8 @@ public class CommandLine {
 				config.getDouble("lambda"), outfileName,
 				samplingrounds == null ? -1 : samplingrounds,
 				polylimit == null ? -1 : polylimit, freqPath, minleaves,
-				config.getInt("gene repetition"));
+				config.getInt("gene repetition"),
+				config.getBoolean("internode-dist"));
 		options.setDLbdWeigth(wh);
 		options.setCS(1d);
 		options.setCD(1d);
