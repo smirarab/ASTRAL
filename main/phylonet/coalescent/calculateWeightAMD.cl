@@ -13,7 +13,7 @@ struct cl_Tripartition {
 	__global const long * cluster2;
 	__global const long * cluster3;
 };
-inline int bitIntersectionSize(__global const long input1[SPECIES_WORD_LENGTH], __global const long input2[SPECIES_WORD_LENGTH]) {
+inline int bitIntersectionSize(__global const long* input1, __global const long* input2) {
 	int out = 0;
 	for (int i = 0; i < SPECIES_WORD_LENGTH; i++) {
 		out += popcount(input1[i]&input2[i * WORK_GROUP_SIZE]);
