@@ -1,3 +1,6 @@
+- version 5.12.4:
+    - Add the `-A` option to use internode distance
+     
 - version 5.12.3:
     - Fix BitSet by setting BitSets correctly
 
