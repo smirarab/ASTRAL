@@ -151,26 +151,14 @@ public class TurnTaskToScores implements Runnable {
 					gpuRunner.label[gpuRunner.currentLabel[currentGPU]][currentGPU][tripCounter] = positionIn++;
 
 					for (int i = speciesWordLength - 1; i >= 0; i--){
-						if(i>=task.cluster1.getBitSet().words.length)	
-							gpuRunner.tripartitions1[currentGPU][(speciesWordLength - i - 1) * (int) workGroupSize
-						                               + tripCounter] = 0;
-						else
 							gpuRunner.tripartitions1[currentGPU][(speciesWordLength - i - 1) * (int) workGroupSize
 						                               + tripCounter] = task.cluster1.getBitSet().words[i];
 					}
 					for (int i = speciesWordLength - 1; i >= 0; i--){
-						if(i>=task.cluster2.getBitSet().words.length)	
-							gpuRunner.tripartitions2[currentGPU][(speciesWordLength - i - 1) * (int) workGroupSize
-						                               + tripCounter] = 0;
-						else
 							gpuRunner.tripartitions2[currentGPU][(speciesWordLength - i - 1) * (int) workGroupSize
 						                               + tripCounter] = task.cluster2.getBitSet().words[i];
 					}
 					for (int i = speciesWordLength - 1; i >= 0; i--){
-						if(i>=task.cluster3.getBitSet().words.length)	
-							gpuRunner.tripartitions3[currentGPU][(speciesWordLength - i - 1) * (int) workGroupSize
-						                               + tripCounter] = 0;
-						else
 							gpuRunner.tripartitions3[currentGPU][(speciesWordLength - i - 1) * (int) workGroupSize
 						                               + tripCounter] = task.cluster3.getBitSet().words[i];
 					}
