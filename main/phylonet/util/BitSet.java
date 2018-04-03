@@ -144,10 +144,11 @@ public class BitSet implements Cloneable, Serializable, Comparable {
 	private void initWords(int nbits) {
 		words = new long[wordIndex(nbits - 1) + 1];
 	}
+	
 
 	private BitSet(long words[]) {
-		wordsInUse = 0;
-		sizeIsSticky = false;
+		this.wordsInUse = 0;
+		this.sizeIsSticky = false;
 		this.words = words;
 		this.wordsInUse = words.length;
 		checkInvariants();
@@ -583,15 +584,11 @@ public class BitSet implements Cloneable, Serializable, Comparable {
 			trimToSize();
 		BitSet result;
 
-		result = new BitSet();
-
-
-		result.words = (long[]) words.clone();
-		result.checkInvariants();
+		result = new BitSet((long[]) words.clone());
 		result.hash = hash;
-		//result.wordsInUse = this.wordsInUse;
-		//result.sizeIsSticky = this.sizeIsSticky;
-
+		result.wordsInUse = this.wordsInUse;
+		result.sizeIsSticky = this.sizeIsSticky;
+		
 		return result;
 
 	}
