@@ -48,7 +48,7 @@ public class Options {
 		this.freqOutputPath = freqOutputPath;
 		this.setMinLeaves(minimumLeaves);
 		this.setGeneRepeat(geneRepeat);
-		this.setUstarDist(true);
+		this.setUstarDist(false);
 	}
 
 	public boolean isRooted() {
