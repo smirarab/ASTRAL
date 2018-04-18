@@ -1,3 +1,6 @@
+- version 5.12.5:
+    - added log info to indicate that effni is zero
+
 - version 5.12.4:
     - Add the `-A` option to use internode distance
      
