@@ -431,9 +431,13 @@ public class WQInference extends AbstractInference<Tripartition> {
 			Double effni = nd.effn + 0.0;
 
 
-			if ( Math.abs((f1+f2+f3) - effni) > 0.001 ) {
+			if ( Math.abs((f1+f2+f3) - effni) > 0.00000000001 ) {
 				//System.err.println("Adjusting effective N from\t" + effni + "\tto\t" + (f1 + f2 + f3) + ". This should only happen as a result of polytomies in gene trees.");
 				effni = f1 + f2 + f3;
+			}
+			
+			if (effni == 0) {
+				System.err.println("Warning: node has effective N ==0 and so no quartet resolutions: \n" + n);
 			}
 
 			if (this.options.getGeneRepeat() != 1) {
@@ -452,7 +456,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 			if (this.getBranchAnnotation() == 0){
 				node.setData(null);
 			} else if (this.getBranchAnnotation() == 1){
-				node.setData(df.format((f1+.0)/effni*100));
+				if (effni != 0)
+					node.setData(df.format((f1+.0)/effni*100));
+				else 
+					node.setData(null);
 			} else if (this.getBranchAnnotation() == 10) {
 				df.setMaximumFractionDigits(5);
 				double pval = post.getPvalue();

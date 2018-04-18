@@ -54,7 +54,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
-	protected static String _version = "5.12.4";
+	protected static String _version = "5.12.5";
 
 	protected static SimpleJSAP jsap;
 
@@ -634,6 +634,8 @@ public class CommandLine {
 	}
 
 	public static void main(String[] args) throws Exception {
+		
+
 
 		long startTime = System.currentTimeMillis();
 
