@@ -337,68 +337,74 @@ public class CommandLine {
 		}
 		// johng23
 		if (!config.getBoolean("cpu only")) {
-			final int platformIndex = 0;
-			final long deviceType = CL_DEVICE_TYPE_ALL;
-			final int deviceIndex = 0;
-
-			// Enable exceptions and subsequently omit error checks in this
-			// sample
-			CL.setExceptionsEnabled(true);
-
-			// Obtain the number of platforms
-			int numPlatformsArray[] = new int[1];
-			clGetPlatformIDs(0, null, numPlatformsArray);
-			int numPlatforms = numPlatformsArray[0];
-
-			// Obtain a platform ID
-			cl_platform_id platforms[] = new cl_platform_id[numPlatforms];
-			clGetPlatformIDs(platforms.length, platforms, null);
-			cl_platform_id platform = platforms[platformIndex];
-
-			// Initialize the context properties
-			Threading.contextProperties = new cl_context_properties();
-			Threading.contextProperties.addProperty(CL_CONTEXT_PLATFORM, platform);
-
-			// Obtain the number of devices for the platform
-			int numDevicesArray[] = new int[1];
-			clGetDeviceIDs(platform, deviceType, 0, null, numDevicesArray);
-			int numDevices = numDevicesArray[0];
-
-			// Obtain a device ID
-			cl_device_id devices[] = new cl_device_id[numDevices];
-			clGetDeviceIDs(platform, deviceType, numDevices, devices, null);
-			for (int i = 0; i < numDevices; i++) {
-				String deviceName = getString(devices[i], CL_DEVICE_NAME);
-				String deviceVendor = getString(devices[i], CL_DEVICE_VENDOR);
-				System.err.println("Device " + (i + 1) + " of " + numDevices
-						+ ": " + deviceName + " " + devices[i] + " Vendor: " + deviceVendor);
+			try {
+				final int platformIndex = 0;
+				final long deviceType = CL_DEVICE_TYPE_ALL;
+				final int deviceIndex = 0;
+	
+				// Enable exceptions and subsequently omit error checks in this
+				// sample
+				CL.setExceptionsEnabled(true);
+	
+				// Obtain the number of platforms
+				int numPlatformsArray[] = new int[1];
+				clGetPlatformIDs(0, null, numPlatformsArray);
+				int numPlatforms = numPlatformsArray[0];
+	
+				// Obtain a platform ID
+				cl_platform_id platforms[] = new cl_platform_id[numPlatforms];
+				clGetPlatformIDs(platforms.length, platforms, null);
+				cl_platform_id platform = platforms[platformIndex];
+	
+				// Initialize the context properties
+				Threading.contextProperties = new cl_context_properties();
+				Threading.contextProperties.addProperty(CL_CONTEXT_PLATFORM, platform);
+	
+				// Obtain the number of devices for the platform
+				int numDevicesArray[] = new int[1];
+				clGetDeviceIDs(platform, deviceType, 0, null, numDevicesArray);
+				int numDevices = numDevicesArray[0];
+	
+				// Obtain a device ID
+				cl_device_id devices[] = new cl_device_id[numDevices];
+				clGetDeviceIDs(platform, deviceType, numDevices, devices, null);
+				for (int i = 0; i < numDevices; i++) {
+					String deviceName = getString(devices[i], CL_DEVICE_NAME);
+					String deviceVendor = getString(devices[i], CL_DEVICE_VENDOR);
+					System.err.println("Device " + (i + 1) + " of " + numDevices
+							+ ": " + deviceName + " " + devices[i] + " Vendor: " + deviceVendor);
+				}
+				//System.out
+					//		.println("Please enter the devices you'd like this program to use separated by spaces: ");
+				//Scanner in = new Scanner(System.in);
+				ArrayList<cl_device_id> usedDevicesAL = new ArrayList<cl_device_id>();
+				ArrayList<String> deviceVendorsAL = new ArrayList<String>();
+				// while(in.hasNext()) {
+				// usedDevicesAL.add(devices[in.nextInt()-1]);
+				// }
+				// testing only
+				deviceVendorsAL.add(getString(devices[0], CL_DEVICE_VENDOR));
+				usedDevicesAL.add(devices[0]);
+				// usedDevicesAL.add(devices[1]);
+				// usedDevicesAL.add(devices[2]);
+				// usedDevicesAL.add(devices[3]);
+				Threading.usedDevices = new cl_device_id[usedDevicesAL.size()];
+				Threading.usedDevices = usedDevicesAL.toArray(Threading.usedDevices);
+				Threading.deviceVendors = new String[deviceVendorsAL.size()];
+				Threading.deviceVendors = deviceVendorsAL.toArray(Threading.deviceVendors);
+				// cl_device_id device = devices[deviceIndex];
+				// context = clCreateContext(contextProperties, 1, new
+				// cl_device_id[]{device}, null, null, null);
+				// System.out.println(usedDevices.length + " " +
+				// usedDevices[0].toString());
+				Threading.context = clCreateContext(Threading.contextProperties, Threading.usedDevices.length,
+						Threading.usedDevices, null, null, null);
+				// johng23 end
 			}
-			//System.out
-			//		.println("Please enter the devices you'd like this program to use separated by spaces: ");
-			//Scanner in = new Scanner(System.in);
-			ArrayList<cl_device_id> usedDevicesAL = new ArrayList<cl_device_id>();
-			ArrayList<String> deviceVendorsAL = new ArrayList<String>();
-			// while(in.hasNext()) {
-			// usedDevicesAL.add(devices[in.nextInt()-1]);
-			// }
-			// testing only
-			deviceVendorsAL.add(getString(devices[0], CL_DEVICE_VENDOR));
-			usedDevicesAL.add(devices[0]);
-			// usedDevicesAL.add(devices[1]);
-			// usedDevicesAL.add(devices[2]);
-			// usedDevicesAL.add(devices[3]);
-			Threading.usedDevices = new cl_device_id[usedDevicesAL.size()];
-			Threading.usedDevices = usedDevicesAL.toArray(Threading.usedDevices);
-			Threading.deviceVendors = new String[deviceVendorsAL.size()];
-			Threading.deviceVendors = deviceVendorsAL.toArray(Threading.deviceVendors);
-			// cl_device_id device = devices[deviceIndex];
-			// context = clCreateContext(contextProperties, 1, new
-			// cl_device_id[]{device}, null, null, null);
-			// System.out.println(usedDevices.length + " " +
-			// usedDevices[0].toString());
-			Threading.context = clCreateContext(Threading.contextProperties, Threading.usedDevices.length,
-					Threading.usedDevices, null, null, null);
-			// johng23 end
+			catch (Exception e) {
+				System.err.println("Problem using GPU. Proceeding without GPU");
+				Threading.usedDevices = null;
+			}
 		}
 		int numThreads = config.getInt("cpu threads");
 		if (numThreads == -1) {

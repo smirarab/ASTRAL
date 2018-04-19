@@ -1,5 +1,6 @@
 - version 5.12.5:
     - added log info to indicate that effni is zero
+    - exception is caught when GPU fails to load and now proceeds without GPU
 
 - version 5.12.4:
     - Add the `-A` option to use internode distance
