@@ -394,7 +394,30 @@ implements Cloneable {
 			boolean extraTreeRooted) {
 
 		// List<Tree> completedExtraGeeneTrees = new ArrayList<Tree>();
+		ArrayList<Future> res = new ArrayList();
 		for (Tree tr : extraTrees) {
+			res.add(Threading.submit(new addExtraBipartitionByInputLoop(tr)));
+		}
+		
+		for (Future f : res)
+			try {
+				f.get();
+			} catch (InterruptedException | ExecutionException e) {
+				throw new RuntimeException(e);
+			}
+	}
+	
+	public class addExtraBipartitionByInputLoop implements Callable<Boolean> {
+		
+		public addExtraBipartitionByInputLoop(Tree tr) {
+			super();
+			this.tr = tr;
+		}
+
+		Tree tr;
+
+		@Override
+		public Boolean call() throws Exception {
 			String[] gtLeaves = tr.getLeaves();
 			STITreeCluster gtAll = GlobalMaps.taxonIdentifier.newCluster();
 			for (int i = 0; i < gtLeaves.length; i++) {
@@ -403,8 +426,7 @@ implements Cloneable {
 			Tree trc = getCompleteTree(tr, gtAll.getBitSet());
 
 			STITree stTrc = new STITree(trc);
-			GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt(
-					(MutableTree) stTrc);
+			GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) stTrc);
 			if (hasPolytomy(stTrc)) {
 				throw new RuntimeException(
 						"Extra tree shouldn't have polytomy ");
@@ -412,8 +434,9 @@ implements Cloneable {
 			ArrayList<Tree> st = new ArrayList<Tree>();
 			st.add(stTrc);
 			addBipartitionsFromSignleIndTreesToX(stTrc,st, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
+			return Boolean.TRUE;
 		}
-
+		
 	}
 
 	public boolean hasPolytomy(Tree tr) {
