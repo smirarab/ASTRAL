@@ -410,6 +410,51 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 
 	}
 	
+	
+	public void removeTreeBipartitionsFromSetX(STITree st){
+		System.err.println(st.toNewick());
+		List<STITreeCluster> stClusters = Utils.getGeneClusters(st, GlobalMaps.taxonIdentifier);	
+		int size;
+
+		for(int i = 0; i < stClusters.size(); i++){
+			STITreeCluster cluster = stClusters.get(i);
+			size =  cluster.getClusterSize();
+			removeCluster(cluster, size);
+//			System.err.println(size+ cluster.toString());
+			STITreeCluster comp = cluster.complementaryCluster();
+			
+			if(comp.getClusterSize() < GlobalMaps.taxonIdentifier.taxonCount() - 1){
+				
+//				System.err.println("comp"+comp.toString());
+				removeCluster(comp, size);
+			}
+				
+		}
+
+	}
+	
+	public void removeExtraBipartitionsByInput(List<Tree> extraTrees,
+			boolean extraTreeRooted) {
+
+		//List<Tree> completedExtraGeeneTrees = new ArrayList<Tree>();
+		for (Tree tr : extraTrees) {
+			System.err.println(tr.toNewick());
+			String[] gtLeaves = tr.getLeaves();
+			STITreeCluster gtAll = GlobalMaps.taxonIdentifier.newCluster();
+			for (int i = 0; i < gtLeaves.length; i++) {
+				gtAll.addLeaf(GlobalMaps.taxonIdentifier.taxonId(gtLeaves[i]));
+			}
+//			Tree trc = getCompleteTree(tr, gtAll.getBitSet());
+			
+			STITree stTrc = new STITree(tr);
+			GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) stTrc);
+			removeTreeBipartitionsFromSetX(stTrc);
+
+		}
+		
+
+	}
+	
 	public boolean hasPolytomy(Tree tr){
 		for (TNode node : tr.postTraverse()) {
 			if(node.getChildCount() > 2){

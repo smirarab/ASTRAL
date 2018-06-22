@@ -38,7 +38,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine{
-    protected static String _versinon = "5.6.1";
+    protected static String _versinon = "5.6.2";
 
     protected static SimpleJSAP jsap;
     
@@ -199,6 +199,11 @@ public class CommandLine{
                             FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 
                             'f', "extra-species",
                             "provide extra trees (with species labels) used to enrich the set of clusters searched"),
+                    
+                    new FlaggedOption("remove extra tree bipartitions", 
+                            FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 
+                            JSAP.NO_SHORTFLAG, "remove-bipartitions",
+                            "removes bipartitions of the provided extra trees (with species labels)"),
 
                     new FlaggedOption("trimming threshold", 
 	                        JSAP.DOUBLE_PARSER, "0", JSAP.NOT_REQUIRED,
@@ -444,7 +449,7 @@ public class CommandLine{
     			config.getDouble("lambda"),
     			outfileName, samplingrounds == null ? -1 : samplingrounds, polylimit == null ? -1 : polylimit,
     			config.getDouble("trimming threshold"), freqPath, minleaves,
-    			config.getInt("gene repetition"));
+    			config.getInt("gene repetition"), config.contains("remove extra tree bipartitions"));
     	options.setDLbdWeigth(wh); 
     	options.setCS(1d);
     	options.setCD(1d);
@@ -610,6 +615,14 @@ public class CommandLine{
 		        System.err.println(extraTrees.size() + " extra trees read from "
 		                + config.getFile("extra trees"));
 		    }
+		    
+		    if (config.getFile("remove extra tree bipartitions") != null) {
+	    		readInputTrees(extraTrees,
+	        	readTreeFileAsString(config.getFile("remove extra tree bipartitions")), 
+	                extrarooted, true, true, null, 1, null);
+	        System.err.println(extraTrees.size() + " extra trees to remove from search space read from "
+	                + config.getFile("remove extra tree bipartitions"));
+	    }
 		    
 		} catch (IOException e) {
 		    System.err.println("Error when reading extra trees.");

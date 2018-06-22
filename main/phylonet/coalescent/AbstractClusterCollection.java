@@ -47,6 +47,16 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 		}
 		return added;
 	}
+	
+	@Override	
+	public boolean removeCluster(Vertex vertex, int size) {
+		
+		boolean removed = clusters.get(size).remove(vertex);
+		if(removed){
+			totalcount--;
+		}
+		return removed;
+	}
 
 	@Override
 	public boolean contains(Vertex vertex) {

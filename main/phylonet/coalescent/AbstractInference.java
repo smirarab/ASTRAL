@@ -30,6 +30,7 @@ public abstract class AbstractInference<T> {
 	//protected boolean extrarooted = true;
 	protected List<Tree> trees;
 	protected List<Tree> extraTrees = null;
+	protected boolean removeExtraTree;
 	//protected boolean exactSolution;
 	
 	//protected String[] gtTaxa;
@@ -54,6 +55,7 @@ public abstract class AbstractInference<T> {
 		this.options = options;
 		this.trees = trees;
 		this.extraTrees = extraTrees;
+		this.removeExtraTree = options.isRemoveExtraTree();
 		
 		df = new DecimalFormat();
 		df.setMaximumFractionDigits(2);
@@ -302,7 +304,7 @@ public abstract class AbstractInference<T> {
 		}
 
 	      
-		if (extraTrees != null && extraTrees.size() > 0) {		
+		if (extraTrees != null && extraTrees.size() > 0 && ! this.removeExtraTree) {		
 	        System.err.println("calculating extra bipartitions from extra input trees ...");
 			dataCollection.addExtraBipartitionsByInput(extraTrees,options.isExtrarooted());
 			int s = this.dataCollection.clusters.getClusterCount();
@@ -310,6 +312,17 @@ public abstract class AbstractInference<T> {
 			 * for (Integer c: clusters2.keySet()){ s += clusters2.get(c).size(); }
 			 */
 			System.err.println("Number of Clusters after additions from extra trees: "
+					+ s);
+		}
+		
+		if (extraTrees != null && extraTrees.size() > 0 && this.removeExtraTree) {		
+	        System.err.println("removing extra bipartitions from extra input trees ...");
+			dataCollection.removeExtraBipartitionsByInput(extraTrees,options.isExtrarooted());
+			int s = this.dataCollection.clusters.getClusterCount();
+			/*
+			 * for (Integer c: clusters2.keySet()){ s += clusters2.get(c).size(); }
+			 */
+			System.err.println("Number of Clusters after deletion of extra tree bipartitions: "
 					+ s);
 		}
 		
