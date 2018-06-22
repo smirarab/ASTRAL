@@ -21,6 +21,8 @@ public interface IClusterCollection {
 	int getClusterCount();
 
 	boolean addCluster(Vertex nv, int size);
+	
+	boolean removeCluster(Vertex nv, int size);
 
 	boolean contains(Vertex reverse);
 
