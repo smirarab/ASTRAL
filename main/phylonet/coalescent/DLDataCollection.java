@@ -380,6 +380,12 @@ public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 		return 0;
 	}
 
+	@Override
+	public void removeExtraBipartitionsByInput(List<Tree> extraTrees, boolean extraTreeRooted) {
+		// TODO Auto-generated method stub
+		
+	}
+
 
 	/*
 	 * public void addGoodSTB (STBipartition good, int size) {
