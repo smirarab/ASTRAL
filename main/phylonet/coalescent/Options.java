@@ -24,13 +24,14 @@ public class Options {
 	private double trim;
 	private Integer minLeaves;
 	private Integer geneRepeat;
+	private boolean removeExtraTree;
 	
 
 	public Options(boolean rooted, boolean extrarooted, 
 			boolean exactSolution, boolean duploss, int alg, int addExtra,
 			boolean outputCompletedGenes, boolean outSearch, boolean run,
 			int branchannotation, double lambda, String outputFile, int samplingrounds, int polylimit,
-			double trim, String freqOutputPath, Integer minimumLeaves, Integer geneRepeat) {
+			double trim, String freqOutputPath, Integer minimumLeaves, Integer geneRepeat, boolean removeExtraTree) {
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
 		this.exactSolution = exactSolution;
@@ -49,6 +50,7 @@ public class Options {
 		this.freqOutputPath = freqOutputPath;
 		this.setMinLeaves(minimumLeaves);
 		this.setGeneRepeat(geneRepeat);
+		this.setRemoveExtraTree(removeExtraTree);
 	}
 
 	public boolean isRooted() {
@@ -197,6 +199,14 @@ public class Options {
 		this.polylimit = polylimit;
 	}
 	
+	public boolean isRemoveExtraTree() {
+		return removeExtraTree;
+	}
+
+	public void setRemoveExtraTree(boolean removeExtraTree) {
+		this.removeExtraTree = removeExtraTree;
+	}
+
 	public String getFreqOutputPath() {
 		return freqOutputPath;
 	}
