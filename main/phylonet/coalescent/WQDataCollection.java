@@ -410,6 +410,39 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 
 	}
 	
+	
+	public void removeTreeBipartitionsFromSetX(STITree st){
+		List<STITreeCluster> stClusters = Utils.getGeneClusters(st, GlobalMaps.taxonIdentifier);	
+		int size;
+
+		for(int i = 0; i < stClusters.size(); i++){
+			STITreeCluster cluster = stClusters.get(i);
+			size =  cluster.getClusterSize();
+			removeCluster(cluster, size);
+//			System.err.println(size+ cluster.toString());
+			STITreeCluster comp = cluster.complementaryCluster();			
+			if(comp.getClusterSize() < GlobalMaps.taxonIdentifier.taxonCount() - 1){
+				removeCluster(comp, size);
+			}
+				
+		}
+
+	}
+	
+	public void removeExtraBipartitionsByInput(List<Tree> extraTrees,
+			boolean extraTreeRooted) {
+		
+		for (Tree tr : extraTrees) {
+			System.err.println(tr.toNewick());	
+			STITree stTrc = new STITree(tr);
+			GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) stTrc);
+			removeTreeBipartitionsFromSetX(stTrc);
+
+		}
+		
+
+	}
+	
 	public boolean hasPolytomy(Tree tr){
 		for (TNode node : tr.postTraverse()) {
 			if(node.getChildCount() > 2){
