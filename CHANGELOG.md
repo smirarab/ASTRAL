@@ -1,3 +1,6 @@
+- version 5.6.2:
+	- added new option to remove bipartitions of a provided extra tree from search space
+
 - version 5.6.1:
 	- added a new option '-w x' to count each gene tree as 1/x when computing support values
 
