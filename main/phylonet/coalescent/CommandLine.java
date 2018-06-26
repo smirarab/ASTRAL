@@ -38,7 +38,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine{
-    protected static String _versinon = "5.6.1";
+    protected static String _versinon = "5.6.2";
 
     protected static SimpleJSAP jsap;
     
@@ -199,6 +199,11 @@ public class CommandLine{
                             FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 
                             'f', "extra-species",
                             "provide extra trees (with species labels) used to enrich the set of clusters searched"),
+                    
+                    new FlaggedOption("remove extra tree bipartitions", 
+                            FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 
+                            JSAP.NO_SHORTFLAG, "remove-bipartitions",
+                            "removes bipartitions of the provided extra trees (with species labels)"),
 
                     new FlaggedOption("trimming threshold", 
 	                        JSAP.DOUBLE_PARSER, "0", JSAP.NOT_REQUIRED,
@@ -444,7 +449,7 @@ public class CommandLine{
     			config.getDouble("lambda"),
     			outfileName, samplingrounds == null ? -1 : samplingrounds, polylimit == null ? -1 : polylimit,
     			config.getDouble("trimming threshold"), freqPath, minleaves,
-    			config.getInt("gene repetition"));
+    			config.getInt("gene repetition"), config.contains("remove extra tree bipartitions"));
     	options.setDLbdWeigth(wh); 
     	options.setCS(1d);
     	options.setCD(1d);
@@ -543,7 +548,7 @@ public class CommandLine{
 		System.err.println("Scoring: " + toScore.size() +" trees");
 		
 		AbstractInference inference =
-		        initializeInference(criterion, mainTrees, new ArrayList<Tree>(), options);           
+		        initializeInference(criterion, mainTrees, new ArrayList<Tree>(), new ArrayList<Tree>(), options);           
 		double score = Double.NEGATIVE_INFINITY;
 		List<Tree> bestTree = new ArrayList<Tree>(); 
 		for (String trs : toScore) {   
@@ -592,6 +597,7 @@ public class CommandLine{
 		System.err.println("All output trees will be *arbitrarily* rooted at "+outgroup);
 		
 		List<Tree> extraTrees = new ArrayList<Tree>();
+		List<Tree> toRemoveExtraTrees = new ArrayList<Tree>();
 		
 		try {
 
@@ -611,6 +617,14 @@ public class CommandLine{
 		                + config.getFile("extra trees"));
 		    }
 		    
+		    if (config.getFile("remove extra tree bipartitions") != null) {
+	    		readInputTrees(toRemoveExtraTrees,
+	        	readTreeFileAsString(config.getFile("remove extra tree bipartitions")), 
+	                true, true, true, null, 1, null);
+	        System.err.println(toRemoveExtraTrees.size() + " extra trees to remove from search space read from "
+	                + config.getFile("remove extra tree bipartitions"));
+	    }
+		    
 		} catch (IOException e) {
 		    System.err.println("Error when reading extra trees.");
 		    System.err.println(e.getMessage());
@@ -627,7 +641,7 @@ public class CommandLine{
 		    readInputTrees(trees, input, rooted, false, false, options.getMinLeaves(),
             		config.getInt("branch annotation level"), null);
 		    bootstraps.add(runOnOneInput(criterion, 
-		             extraTrees, outbuffer, trees, null, outgroup, options));
+		             extraTrees,toRemoveExtraTrees, outbuffer, trees, null, outgroup, options));
 		}
 		
 		if (bootstraps != null && bootstraps.size() != 0) {
@@ -639,14 +653,14 @@ public class CommandLine{
 		}
 
 		System.err.println("\n======== Running the main analysis");
-		runOnOneInput(criterion, extraTrees, outbuffer, mainTrees, bootstraps, 
+		runOnOneInput(criterion, extraTrees, toRemoveExtraTrees,outbuffer, mainTrees, bootstraps, 
 		        outgroup, options);
 		   
 		outbuffer.close();
 	}
 
     private static Tree runOnOneInput(int criterion, List<Tree> extraTrees,
-    		BufferedWriter outbuffer, List<Tree> input, 
+    		List<Tree> toRemoveExtraTrees, BufferedWriter outbuffer, List<Tree> input, 
             Iterable<Tree> bootstraps, String outgroup, Options options) {
         long startTime;
         startTime = System.currentTimeMillis();
@@ -664,7 +678,7 @@ public class CommandLine{
 //        }
 //        System.err.println("removed trees"+ removedTrees);	
         AbstractInference inference =
-                initializeInference(criterion, input, extraTrees, options);
+                initializeInference(criterion, input, extraTrees,toRemoveExtraTrees, options);
         
         inference.setup(); 
         
@@ -710,13 +724,13 @@ public class CommandLine{
 
     private static AbstractInference initializeInference(int criterion, 
             List<Tree> trees, List<Tree> extraTrees,
-            Options options) {
+            List<Tree> toRemoveExtraTrees, Options options) {
         AbstractInference inference;		
 		if (criterion == 1 || criterion == 0) {
 			inference = new DLInference(options, 
-					trees, extraTrees);			
+					trees, extraTrees, toRemoveExtraTrees);			
 		} else if (criterion == 2) {
-			inference = new WQInference(options, trees, extraTrees );
+			inference = new WQInference(options, trees, extraTrees, toRemoveExtraTrees);
 		} else {
 			throw new RuntimeException("criterion not set?");
 		}		
