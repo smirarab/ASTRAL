@@ -1,4 +1,7 @@
 - version 5.6.2:
+	- add a zero length branch to the root branch that is not the outgroup. Needed for FigTree visualizaiton of multiind
+	
+- version 5.6.2:
 	- added new option to remove bipartitions of a provided extra tree from search space
 
 - version 5.6.1:
