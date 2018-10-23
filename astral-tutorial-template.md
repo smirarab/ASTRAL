@@ -19,7 +19,7 @@ Email: `astral-users@googlegroups.com` for questions. Please subscribe to the ma
 * [Scoring existing trees](#scoring-existing-trees)
   * [Extensive branch annotations](#extensive-branch-annotations)
   * [Prior hyper\-parameter](#prior-hyper-parameter)
-* [Multi\-locus Bootstrapping:](#multi-locus-bootstrapping)
+* [Multi-locus Bootstrapping:](#multi-locus-bootstrapping)
     * [Bootsraping output:](#bootsraping-output)
 * [The Search space of ASTRAL](#the-search-space-of-astral)
   * [Exact version](#exact-version)

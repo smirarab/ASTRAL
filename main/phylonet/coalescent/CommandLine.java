@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -24,6 +25,7 @@ import java.util.TreeSet;
 import phylonet.tree.io.NewickReader;
 import phylonet.tree.io.ParseException;
 import phylonet.tree.model.MutableTree;
+import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITree;
 import phylonet.tree.util.Trees;
@@ -38,7 +40,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine{
-    protected static String _versinon = "5.6.2";
+    protected static String _versinon = "5.6.3";
 
     protected static SimpleJSAP jsap;
     
@@ -711,6 +713,10 @@ public class CommandLine{
 		GlobalMaps.taxonNameMap.getSpeciesIdMapper().stToGt((MutableTree) st);
 		inference.scoreSpeciesTreeWithGTLabels(st, false);
 		GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) st);
+		Iterator<TNode> ci = (Iterator<TNode>) st.getRoot().getChildren().iterator();
+		TNode c = ci.next();
+		while (c.isLeaf()) c=ci.next();
+		c.setParentDistance(0);
 		
         if ((bootstraps != null) && (bootstraps.iterator().hasNext())) {
             for (Solution solution : solutions) {
