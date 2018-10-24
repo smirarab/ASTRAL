@@ -14,14 +14,6 @@ Email: `astral-users@googlegroups.com` for questions.
 
 
 
-#### Documentations
-
-1. The rest of this README file
-- **Our [tutorial](astral-tutorial.md)**.
-- The chapter of Siavash Mirarab's dissertation that describes ASTRAL in detail is provided [here](thesis-astral.pdf).
-- Publications below have scientific details
-- A [developer guide](developer-guide.md).
-
 ##### Publications:
 
 - The original algorithm (ASTRAL-I) is described in:
@@ -31,11 +23,19 @@ Email: `astral-users@googlegroups.com` for questions.
 - Since version 5.1.1, the code corresponds to **ASTRAL-III**, described in:
     * Zhang, Chao, Maryam Rabiee, Erfan Sayyari, and Siavash Mirarab. “ASTRAL-III: Polynomial Time Species Tree Reconstruction from Partially Resolved Gene Trees.” BMC Bioinformatics 19, no. S6 (May 8, 2018): 153. https://doi.org/10.1186/s12859-018-2129-y.
 - For **multi-individual** datasets, the relevant paper to cite is:
-	* Rabiee M, Sayyari E, Mirarab S. Multi-allele species reconstruction using ASTRAL. bioRxiv. 2018:439489. [doi:10.1101/439489](https://doi.org/10.1101/439489)
+	* Rabiee M, Sayyari E, Mirarab S. Multi-allele species reconstruction using ASTRAL. MPE (in press). bioRxiv. 2018:439489. [doi:10.1101/439489](https://doi.org/10.1101/439489)
 - Since version 4.10.0, ASTRAL can also compute branch length (in coalescent units) and a measure of support called “local posterior probability”, described here:
     * Sayyari, Erfan, and Siavash Mirarab. “Fast Coalescent-Based Computation of Local Branch Support from Quartet Frequencies.” Molecular Biology and Evolution 33 (7): 1654–68. 2016. [doi:10.1093/molbev/msw079](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1)
 
 
+Documentations
+-----------
+
+- The rest of this README file
+- **Our [tutorial](astral-tutorial.md)**.
+- The chapter of Siavash Mirarab's dissertation that describes ASTRAL in detail is provided [here](thesis-astral.pdf).
+- Publications shown above have scientific details
+- A [developer guide](developer-guide.md).
 
 INSTALLATION:
 -----------
@@ -102,40 +102,17 @@ The output in is Newick format and gives:
 
 * the species tree topology, 
 * branch lengths in coalescent units (only for internal branches or for terminal branches if that species has multiple individuals),
-* branch supports measured as [local posterior probabilities](). 
+* branch supports measured as [local posterior probabilities](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1). 
 * It can also annotate branches with other quantities, such as quartet support, as described in the [tutorial](astral-tutorial.md).
 
+The ASTRAL tree leaves the branch length of terminal branches empty. Some tools for visualization and tree editing do not like this (e.g., ape). In FigTree, if you open the tree several times, it eventually opens up (at least on our machines). In ape, if you ask it to ignore branch lengths all together, it works. In general, if you tool does not like the lack of terminal branches, you can add a dummy branch length, [as in this script](https://github.com/smirarab/global/blob/master/src/mirphyl/utils/add-bl.py). 
 
+### Other features (local posterior, bootstrapping):
 
-### Bootstrapping:
-
-To perform 100 replicates of multi-locus bootstrapping ([Seo 2008](http://www.ncbi.nlm.nih.gov/pubmed/18281270)), use:
-
-```
-java -jar astral.5.6.3.jar -i best_ml -b bs_paths -r 100
-```
-
-In this command, `bs_paths` is a file that gives the location (file path) of gene tree bootstrap files, one line per gene. See the [tutorial](astral-tutorial.md)
-for more details.
-`best_ml` has all the "main" trees (e.g. best ML trees) in one file.
-
-##### Bootstrap Output:
-
-The output file generated when using the bootstrapping feature with 100 replicates (`-r 100`) contains the following trees, in this order:
-
-* 100 bootstrapped replicate trees; each tree is the result of running ASTRAL on a set of bootstrap gene trees (one per gene).
-* A greedy consensus of the 100 bootstrapped replicate trees; this tree has support values drawn on branches based on the bootstrap replicate trees. Support values show the percentage of bootstrap replicates that contain a branch.
-* The “main” ASTRAL tree; this is the results of running ASTRAL on the `best_ml` input gene trees. This main tree also includes support values, which are again drawn based on the 100 bootstrap replicate trees.
-
-If `-r` option is set to anything other than 100, the number of replicates would be accordingly adjusted.
-**Note** that by default (i.e., when no `-r` is given), ASTRAL only performs 100 replicates regardless of the number of replicates in your bootstrapped gene trees.
-If you want to bootstrap with a different number of replicates, you must use `-r`.
-
-Also related to bootstrapping are `-g` (to enable gene/site resampling) and `-s` (to set the seed number) options.
-
+Please refer to the [tutorial](astral-tutorial.md) for all other features, including bootstrapping, branch annotation, and local posterior probability.
 
 ### Memory:
-For big datasets (say more than 200 taxa), increasing the memory available to Java can result in speedups. Note that you should give Java only as much free memory as you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke ASTRAL using the following command to make all the 3GB available to Java:
+For big datasets (say more than 5000 taxa), increasing the memory available to Java can result in speedups. Note that you should give Java only as much free memory as you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke ASTRAL using the following command to make all the 3GB available to Java:
 
 ```
 java -Xmx3000M -jar astral.5.6.3.jar -i in.tree
