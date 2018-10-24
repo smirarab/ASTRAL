@@ -21,7 +21,6 @@ Email: `astral-users@googlegroups.com` for questions. Please subscribe to the ma
   * [Extensive branch annotations](#extensive-branch-annotations)
   * [Prior hyper\-parameter](#prior-hyper-parameter)
 * [Multi-locus Bootstrapping:](#multi-locus-bootstrapping)
-    * [Bootsraping output:](#bootsraping-output)
 * [The Search space of ASTRAL](#the-search-space-of-astral)
   * [Exact version](#exact-version)
     * [Example where exact helps](#example-where-exact-helps)
@@ -283,7 +282,7 @@ To start multi-locus bootstrapping using ASTRAL, you need to provide the locatio
 * Now run:
 
 ```
-java -jar ../astral.5.6.3.jar -i song_mammals.424.gene.tre -b bs-files
+java -jar ../astral.5.6.3.jar -i song_mammals.424.gene.tre -b bs-files -o song_mammals.bootstrapped.astral.tre
 ```
 
 This will run 100 replicates of bootstrapping in addition to one run of ASTRAL on the main trees. 
@@ -297,15 +296,13 @@ This will run 100 replicates of bootstrapping in addition to one run of ASTRAL o
 
 #### Output
 
-The output of multi-locus bootstrapping is:
+The output file (here, `song_mammals.bootstrapped.astral.tre`) includes:
 
 1. 100 bootstrapped replicate trees; each tree is the result of running ASTRAL on a set of bootstrap gene trees (one per gene).
 2. A greedy consensus of the 100 bootstrapped replicate trees; this tree has support values drawn on branches based on the bootstrap replicate trees. Support values show the percentage of bootstrap replicates that contain a branch.
 3. The “main” ASTRAL tree; this is the results of running ASTRAL on the `best_ml` input gene trees. This main tree also includes support values, which are again drawn based on the 100 bootstrap replicate trees.
 
-**Note**: Support values are 
-- shown as branch length (i.e., after a colon sign) and 
-- shown as percentages (as opposed to local posterior probabilities that are shown as a number between 0 and 1). 
+**Note**: Support values are shown as percentages, as opposed to local posterior probabilities that are shown as a number between 0 and 1. When you perform bootstrapping, local posterior probabilities are not computed. If you want those as well, use the output of bootstrapping as input to astral with `-q` to annotate branches with posterior probabilities (see [branch annotations](#extensive-branch-annotations)).
 
 As ASTRAL performs bootstrapping, it continually outputs the bootstrapped ASTRAL tree for each replicate. So, if the number of replicates is set to 100, it first outputs 100 trees. Then, it outputs a greedy consensus of all the 100 bootstrapped trees (with support drawn on branches). Finally, it performs the main analysis (i.e., on trees provided using `-i` option) and draws branch support on this main tree using the bootstrap replicates. Therefore, in this example, the output file will include 102 trees. 
 
@@ -319,7 +316,7 @@ By default, ASTRAL performs 100 bootstrap replicates, but the `-r` option can be
 For example, 
 
 ```
-java -jar ../astral.5.6.3.jar -i song_mammals.424.gene.tre -b bs-files -r 150
+java -jar ../astral.5.6.3.jar -i song_mammals.424.gene.tre -b bs-files -r 150 -o song_mammals.bootstrapped.150.astral.tre
 ```
 
 will do 150 replicates. Note that your input gene tree bootstrap files need to have enough bootstrap replicates for the number of replicates requested using `-r`. For example, if you have `-r 150`, each file listed in `bs-files` should contain at least 150 bootstrap replicates.
@@ -330,7 +327,7 @@ will do 150 replicates. Note that your input gene tree bootstrap files need to h
 ASTRAL performs site-only resampling by default (see [Seo, 2008](http://www.ncbi.nlm.nih.gov/pubmed/18281270)). ASTRAL can also perform gene+site resampling, which can be activated with the `-g` option:
 
 ```
-java -jar ../astral.5.6.3.jar -i song_mammals.424.gene.tre -b bs-files -g -r 100
+java -jar ../astral.5.6.3.jar -i song_mammals.424.gene.tre -b bs-files -g -r 100 -o song_mammals.bootstrapped.gs.astral.tre
 ```
 
 Note that when you perform gene/site resampling, you need more gene tree replicates than the number of multi-locus bootstrapping replicates you requested using `-r`. For example, if you have `-g -r 100`, you might need 150 replicates for some genes (and less than 100 replicates for other genes). This is because when genes are resampled, some genes will be sampled more often than others by chance.
@@ -339,13 +336,11 @@ Note that when you perform gene/site resampling, you need more gene tree replica
 ASTRAL can also perform gene-only bootstrapping using the `--gene-only` option. This form of bootstrapping requires only one input file, which is given using `-i`. Thus, for this, you don't need to use `-b`. The following performs bootstrapping by resampling genes in the input file:
 
 ```
-java -jar ../astral.5.6.3.jar -i song_mammals.424.gene.tre --gene-only
+java -jar ../astral.5.6.3.jar -i song_mammals.424.gene.tre --gene-only -o song_mammals.bootstrapped.go.astral.tre
 ```
 
 
 Finally, since bootstrapping involves a random process, a seed number can be provided to ASTRAL to ensure reproducibility. The seed number can be set using the `-s` option (by default 692 is used). 
-
-
 
 
 The Search space of ASTRAL
