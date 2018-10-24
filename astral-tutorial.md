@@ -1,3 +1,4 @@
+
 ASTRAL is a java program for estimating a species tree given a set of unrooted gene trees. ASTRAL is statistically consistent under multi-species coalescent model (and thus is useful for handling ILS). The optimization problem solved by ASTRAL seeks to find the tree that maximizes the number of induced quartet trees in gene trees that are shared by the species tree. The optimization problem is solved exactly for a constrained version of the problem that restricts the search space. An exact solution to the unconstrained version is also implemented and can run on small datasets (less than 18 taxa). The current repository (master branch) includes the ASTRAL-III algorithm.  
 
 Read the [README](README.md) file in addition to this tutorial. 
@@ -268,9 +269,14 @@ Note that setting lambda to 0 results in reporting ML estimates of the branch le
 
 Multi-locus Bootstrapping:
 ---
-Recent versions of ASTRAL output a branch support value even without bootstrapping. Our [analyses](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1) have revealed that this form of support is more reliable than bootstrapping (under the conditions we explored). Nevertheless, you may want to run bootstrapping as well. 
+ASTRAL outputs a branch support value even without bootstrapping. Our [analyses](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1) show that this form of support is more reliable than bootstrapping (under the conditions we explored). Nevertheless, you may want to run bootstrapping. ASTRAL can perform multi-locus bootstrapping ([Seo, 2008](http://www.ncbi.nlm.nih.gov/pubmed/18281270)). 
 
-ASTRAL can perform multi-locus bootstrapping ([Seo, 2008](http://www.ncbi.nlm.nih.gov/pubmed/18281270)). To be able to perform multi-locus bootstrapping, ASTRAL needs to have access to bootstrap replicates for each gene. To start multi-locus bootstrapping using ASTRAL, you need to provide the location of all gene tree bootstrap replicates. To run bootstrapping on our test input files, 
+To be able to perform multi-locus bootstrapping, ASTRAL needs to have access to bootstrap replicate trees for each gene. 
+
+#### Example
+
+To start multi-locus bootstrapping using ASTRAL, you need to provide the location of all gene tree bootstrap replicates. To run bootstrapping on our test input files, 
+
 
 * go to `test_data` directory, and 
 * decompress the file called `song_mammals.424genes.bs-trees.zip`. 
@@ -280,15 +286,45 @@ ASTRAL can perform multi-locus bootstrapping ([Seo, 2008](http://www.ncbi.nlm.ni
 java -jar ../astral.5.6.3.jar -i song_mammals.424.gene.tre -b bs-files
 ```
 
-This will run 100 replicates of bootstrapping. The argument after `-i` (here `song_mammals.424.gene.tre`) contains all the maximum likelihood gene trees (just like the case where bootstrapping was not used). The `-b` option tells ASTRAL that bootstrapping needs to be performed. Following `-b` is the name of a file (here `bs-files`) that contains the location of gene tree bootstrap files, one line per gene. For example, the first line is `424genes/100/raxmlboot.gtrgamma/RAxML_bootstrap.allbs`, which tells ASTRAL that the gene tree bootstrap replicates of the first gene can be found in a file called `424genes/100/raxmlboot.gtrgamma/RAxML_bootstrap.allbs`.
+This will run 100 replicates of bootstrapping in addition to one run of ASTRAL on the main trees. 
 
-By default, ASTRAL performs 100 bootstrap replicates, but the `-r` option can be used to perform any number of replicates. For example, 
+#### Input
+
+* The argument after `-i` (here `song_mammals.424.gene.tre`) contains all the maximum likelihood gene trees (just like the case where bootstrapping was not used). 
+* The `-b` option tells ASTRAL that bootstrapping needs to be performed. Following `-b` is the name of a file (here `bs-files`) that contains the **file path** of gene tree bootstrap files, one line per gene. Thus, the input file is **not** a file full of trees. It's a file full of paths of files full of trees.
+    * For example, the first line is `424genes/100/raxmlboot.gtrgamma/RAxML_bootstrap.allbs`, which tells ASTRAL that the gene tree bootstrap replicates of the first gene can be found in a file called `424genes/100/raxmlboot.gtrgamma/RAxML_bootstrap.allbs`. In this case, `bs-files` has 424 lines (the number of genes) and each file named in `bs-files` has 100 trees (the number of bootstrap replicates). 
+
+
+#### Output
+
+The output of multi-locus bootstrapping is:
+
+1. 100 bootstrapped replicate trees; each tree is the result of running ASTRAL on a set of bootstrap gene trees (one per gene).
+2. A greedy consensus of the 100 bootstrapped replicate trees; this tree has support values drawn on branches based on the bootstrap replicate trees. Support values show the percentage of bootstrap replicates that contain a branch.
+3. The “main” ASTRAL tree; this is the results of running ASTRAL on the `best_ml` input gene trees. This main tree also includes support values, which are again drawn based on the 100 bootstrap replicate trees.
+
+**Note**: Support values are 
+- shown as branch length (i.e., after a colon sign) and 
+- shown as percentages (as opposed to local posterior probabilities that are shown as a number between 0 and 1). 
+
+As ASTRAL performs bootstrapping, it continually outputs the bootstrapped ASTRAL tree for each replicate. So, if the number of replicates is set to 100, it first outputs 100 trees. Then, it outputs a greedy consensus of all the 100 bootstrapped trees (with support drawn on branches). Finally, it performs the main analysis (i.e., on trees provided using `-i` option) and draws branch support on this main tree using the bootstrap replicates. Therefore, in this example, the output file will include 102 trees. 
+
+**What to use:** The most important tree is the tree outputted at the end; this is the ASTRAL tree on main input trees, with support values drawn based on bootstrap replicates. Our [analyses](https://academic.oup.com/sysbio/article-lookup/doi/10.1093/sysbio/syu063) have shown this tree to be better than the consensus tree in most cases.  
+
+
+#### Number of replicates 
+
+By default, ASTRAL performs 100 bootstrap replicates, but the `-r` option can be used to perform any number of replicates.
+**Note:**  when no `-r` is given, ASTRAL only performs 100 replicates regardless of the number of replicates in your bootstrapped gene trees.
+For example, 
 
 ```
 java -jar ../astral.5.6.3.jar -i song_mammals.424.gene.tre -b bs-files -r 150
 ```
 
 will do 150 replicates. Note that your input gene tree bootstrap files need to have enough bootstrap replicates for the number of replicates requested using `-r`. For example, if you have `-r 150`, each file listed in `bs-files` should contain at least 150 bootstrap replicates.
+
+
 
 #### Gene+site resampling:
 ASTRAL performs site-only resampling by default (see [Seo, 2008](http://www.ncbi.nlm.nih.gov/pubmed/18281270)). ASTRAL can also perform gene+site resampling, which can be activated with the `-g` option:
@@ -309,8 +345,6 @@ java -jar ../astral.5.6.3.jar -i song_mammals.424.gene.tre --gene-only
 
 Finally, since bootstrapping involves a random process, a seed number can be provided to ASTRAL to ensure reproducibility. The seed number can be set using the `-s` option (by default 692 is used). 
 
-#### Bootsraping output:
-As ASTRAL performs bootstrapping, it outputs the bootstrapped ASTRAL tree for each replicate. So, if the number of replicates is set to 100, it first outputs 100 trees. Then, it outputs a greedy consensus of all the 100 bootstrapped trees (with support drawn on branches). Finally, it performs the main analysis (i.e., on trees provided using `-i` option) and draws branch support on this main tree using the bootstrap replicates. Therefore, in this example, the output file will include 102 trees. The most important tree is the tree outputted at the end; this is the ASTRAL tree on main input trees, with support values drawn based on bootstrap replicates. Support values are shown as branch length (i.e., after a colon sign) and are percentages (as opposed to local posterior probabilities that when present are shown as a number between 0 and 1). 
 
 
 
