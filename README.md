@@ -21,9 +21,9 @@ Email: `astral-users@googlegroups.com` for questions.
 - All the versions between 4.7.4  and 5.1.0 corresponds to ASTRAL-II, described in:
     * Mirarab, Siavash, and Tandy Warnow. “ASTRAL-II: Coalescent-Based Species Tree Estimation with Many Hundreds of Taxa and Thousands of Genes.”. Bioinformatics (ISMB special issue) 31 (12): i44–i52. 2015. [doi:10.1093/bioinformatics/btv234](http://bioinformatics.oxfordjournals.org/content/31/12/i44)
 - Since version 5.1.1, the code corresponds to **ASTRAL-III**, described in:
-    * Zhang, Chao, Maryam Rabiee, Erfan Sayyari, and Siavash Mirarab. “ASTRAL-III: Polynomial Time Species Tree Reconstruction from Partially Resolved Gene Trees.” BMC Bioinformatics 19, no. S6 (May 8, 2018): 153. https://doi.org/10.1186/s12859-018-2129-y.
+    * Zhang, Chao, Maryam Rabiee, Erfan Sayyari, and Siavash Mirarab. 2018. “ASTRAL-III: Polynomial Time Species Tree Reconstruction from Partially Resolved Gene Trees.” BMC Bioinformatics 19 (S6): 153. [doi:10.1186/s12859-018-2129-y](https://doi.org/10.1186/s12859-018-2129-y).
 - For **multi-individual** datasets, the relevant paper to cite is:
-	* Rabiee M, Sayyari E, Mirarab S. Multi-allele species reconstruction using ASTRAL. MPE (in press). bioRxiv. 2018:439489. [doi:10.1101/439489](https://doi.org/10.1101/439489)
+    * Rabiee, Maryam, Erfan Sayyari, and Siavash Mirarab. 2018. “Multi-Allele Species Reconstruction Using ASTRAL.” Molecular Phylogenetics and Evolution 130 (2018): 439489. [doi:10.1016/j.ympev.2018.10.033](https://www.sciencedirect.com/science/article/pii/S1055790317308424?dgcid=author).
 - Since version 4.10.0, ASTRAL can also compute branch length (in coalescent units) and a measure of support called “local posterior probability”, described here:
     * Sayyari, Erfan, and Siavash Mirarab. “Fast Coalescent-Based Computation of Local Branch Support from Quartet Frequencies.” Molecular Biology and Evolution 33 (7): 1654–68. 2016. [doi:10.1093/molbev/msw079](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1)
 
