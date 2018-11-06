@@ -229,7 +229,7 @@ Here is a description of various information that can be turned on by using `-t`
    * `QC`: this shows the total number of quartets defined around each branch (this is what our paper calls `m`).
    * `EN`: this is the effective number of genes for the branch. If you don't have any missing data, this would be the number of branches in your tree. When there are missing data, some gene trees might have nothing to say about a branch. Thus, the effective number of genes might be smaller than the total number of genes. 
 * *Alternative quartet topologies* (`-t 8`): Outputs `q1`, `q2`, `q3`; these three values show quartet support (as defined in the description of `-t 1`) for the main topology, the first alternative, and the second alternative, respectively.
-* *Polytomy test* (`-t 10`): runs an experimental test to see if a null hypothesis that the branch is a polytomy could be rejected. See [this arXiv note](arxiv.org/abs/1708.08916). 
+* *Polytomy test* (`-t 10`): runs an experimental test to see if a null hypothesis that the branch is a polytomy could be rejected. See [this paper: doi:10.3390/genes9030132](http://www.mdpi.com/2073-4425/9/3/132). 
 * *.csv* (`-t 16`): produces a .csv file called `freqQuad.csv` with quartet frequencies.
 
 Run:
