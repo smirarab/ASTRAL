@@ -26,6 +26,8 @@ Email: `astral-users@googlegroups.com` for questions.
 	* Rabiee, Maryam, Erfan Sayyari, and Siavash Mirarab. 2018. “Multi-Allele Species Reconstruction Using ASTRAL.” Molecular Phylogenetics and Evolution 130 (2018): 439489. [doi:10.1016/j.ympev.2018.10.033](https://www.sciencedirect.com/science/article/pii/S1055790317308424?dgcid=author).
 - Since version 4.10.0, ASTRAL can also compute branch length (in coalescent units) and a measure of support called “local posterior probability”, described here:
     * Sayyari, Erfan, and Siavash Mirarab. “Fast Coalescent-Based Computation of Local Branch Support from Quartet Frequencies.” Molecular Biology and Evolution 33 (7): 1654–68. 2016. [doi:10.1093/molbev/msw079](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1)
+- ASTRAL can also perform a test of polytomies in species trees (`-t 10` option):
+    * Sayyari, Erfan, and Siavash Mirarab. “Testing for Polytomies in Phylogenetic Species Trees Using Quartet Frequencies.” Genes 9 (3): 132. 2018. [doi:10.3390/genes9030132](http://www.mdpi.com/2073-4425/9/3/132).
 
 
 Documentations
