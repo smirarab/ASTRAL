@@ -18,7 +18,7 @@ Email: `astral-users@googlegroups.com` for questions.
 - Since version 5.1.1, the code corresponds to **ASTRAL-III**, described in:
     * Zhang, Chao, Maryam Rabiee, Erfan Sayyari, and Siavash Mirarab. 2018. “ASTRAL-III: Polynomial Time Species Tree Reconstruction from Partially Resolved Gene Trees.” BMC Bioinformatics 19 (S6): 153. [doi:10.1186/s12859-018-2129-y](https://doi.org/10.1186/s12859-018-2129-y).
 - For **multi-individual** datasets, the relevant paper to cite is:
-	* Rabiee, Maryam, Erfan Sayyari, and Siavash Mirarab. 2018. “Multi-Allele Species Reconstruction Using ASTRAL.” Molecular Phylogenetics and Evolution 130 (2018): 439489. [doi:10.1016/j.ympev.2018.10.033](https://www.sciencedirect.com/science/article/pii/S1055790317308424?dgcid=author).
+	* Rabiee, Maryam, Erfan Sayyari, and Siavash Mirarab. 2019. “Multi-Allele Species Reconstruction Using ASTRAL.” Molecular Phylogenetics and Evolution 130 (January). 286–96. [doi:10.1016/j.ympev.2018.10.033](https://doi.org/10.1016/j.ympev.2018.10.033).
 - Since version 4.10.0, ASTRAL can also compute branch length (in coalescent units) and a measure of support called **local posterior probability**, described here:
     * Sayyari, Erfan, and Siavash Mirarab. 2016. “Fast Coalescent-Based Computation of Local Branch Support from Quartet Frequencies.” Molecular Biology and Evolution 33 (7): 1654–68.  [doi:10.1093/molbev/msw079](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1)
 - ASTRAL can also perform a **polytomy test** (`-t 10` option):
@@ -33,7 +33,7 @@ Email: `astral-users@googlegroups.com` for questions.
     * Mirarab, Siavash, and Tandy Warnow. 2015. “ASTRAL-II: Coalescent-Based Species Tree Estimation with Many Hundreds of Taxa and Thousands of Genes.” Bioinformatics 31 (12): i44–52. [doi:10.1093/bioinformatics/btv234](http://bioinformatics.oxfordjournals.org/content/31/12/i44)
 
 
-#### Papers related to ASTRAL
+#### Papers with relevance to ASTRAL:
     
 These papers do not describe features in ASTRAL, but are also relveant and we encourage you to read them:
 
