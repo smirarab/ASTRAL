@@ -219,8 +219,8 @@ public class Polytree {
 		private static final int batchSize = 32;
 		
 
-		private static native void cppInit(int n, int listSize, int[] q, long[][] c);
-		private static native void cppBatchCompute(long[] result, long[][] a, long[][] b, long[][] c);
+		static native void cppInit(int n, int listSize, int[] q, long[][] c);
+		static native void cppBatchCompute(long[] result, long[][] a, long[][] b, long[][] c);
 
 	}
 	

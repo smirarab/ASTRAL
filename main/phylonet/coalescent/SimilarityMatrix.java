@@ -59,13 +59,15 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 
 
 	private void updateQuartetDistanceTri(BitSet left,
-			BitSet right, float[][] matrix, double d) {
+			BitSet right, Float[][] matrix, Float d) {
 		if (d == 0)
 			return;
 		for (int l = left.nextSetBit(0); l >= 0; l=left.nextSetBit(l+1)) {
 			for (int r = right.nextSetBit(0); r >= 0; r=right.nextSetBit(r+1)) {
-				matrix[l][r] += d;
-				matrix[r][l] = matrix[l][r];
+				synchronized (matrix[l][r]) {
+					matrix[l][r] += d;
+					matrix[r][l] = matrix[l][r];
+				}
 			}
 		}
 	}
@@ -95,16 +97,30 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 			}
 		}*/
 
+		int chunksize = (int) Math.ceil(geneTrees.size()/(Threading.getNumThreads()+0.0));
+		
+		int memchunkcount = (int) Math.min(Threading.getNumThreads(), (10^9/n^2)/2 );
+		Float[][][] a = new Float[memchunkcount][n][n];
+		Float[][][] d = new Float[memchunkcount][n][n];
+		for (int c = 0 ; c < memchunkcount; c++)
+			for(int i = 0; i < n; i++) {
+				for(int j = 0; j < n; j++) {
+					a[c][i][j]  = 0f;
+					d[c][i][j] = 0f;
+				}
+			}
+		
+		int memchunksize = (int) Math.ceil((geneTrees.size()+0.0)/memchunkcount);
+			
 		ArrayList<Future<float[][][]>> futures = new ArrayList<Future<float[][][]>>();
-		for (int i = 0; i < geneTrees.size(); i+=geneTrees.size()/Threading.getNumThreads()) {
+		for (int i = 0; i < geneTrees.size(); i+= chunksize) {
 			int start = i;
-			int end = Math.min(start + geneTrees.size()/Threading.getNumThreads(), geneTrees.size());
-			futures.add(Threading.submit(new populateByQuartetDistanceLoop(start, end, treeAllClusters, geneTrees)));
+			int end = Math.min(start + chunksize, geneTrees.size());
+			futures.add(Threading.submit(new populateByQuartetDistanceLoop(start, end, treeAllClusters, geneTrees, a[i / memchunksize], d[i / memchunksize])));
 		}
 		for (Future future: futures) {
-			float[][][] res = null;
 			try {
-				res = (float[][][])future.get();
+				future.get();
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -112,13 +128,14 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
+		for (int c = 0 ; c < memchunkcount; c++)
 			for(int i = 0; i < n; i++) {
 				for(int j = 0; j < n; j++) {
-					matrix[i][j] += res[0][i][j];
-					denom[i][j] += res[1][i][j];
+					matrix[i][j] += a[c][i][j];
+					denom[i][j] += d[c][i][j];
 				}
 			}
-		}
 		Logging.logTimeMessage("SimilarityMatrix 161-164: ");
 			
 		for (int i = 0; i < n; i++) {
@@ -133,21 +150,32 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 				matrix[j][i] = matrix[i][j];
 			}
 		}
+		/*System.err.println();
+		for (int i = 0; i < n; i++) {
+			for (int j = 0; j < n; j++) {
+				System.err.print(matrix[i][j]);
+				System.err.print(",");
+			}
+			System.err.println();
+		}*/
 	}
-	public class populateByQuartetDistanceLoop implements Callable<float[][][]>{
+	public class populateByQuartetDistanceLoop implements Callable<Boolean>{
 		List<STITreeCluster> treeAllClusters;
 		List<Tree> geneTrees;
 		int start;
 		int end;
-		public populateByQuartetDistanceLoop(int start, int end, List<STITreeCluster> treeAllClusters, List<Tree> geneTrees) {
+		Float[][] array;
+		Float[][] denom;
+		
+		public populateByQuartetDistanceLoop(int start, int end, List<STITreeCluster> treeAllClusters, List<Tree> geneTrees, Float[][] a, Float[][] d) {
 			this.geneTrees = geneTrees;
 			this.start = start;
 			this.end = end;
 			this.treeAllClusters = treeAllClusters;
+			this.array = a;
+			this.denom = d;
 		}
-		public float[][][] call() {
-			float[][] array = new float[n][n];
-			float[][] denom = new float[n][n];
+		public Boolean call() {
 			for(int w = start; w < end; w++) {
 				STITreeCluster treeallCL = treeAllClusters.get(w);
 				Tree tree = geneTrees.get(w);
@@ -190,7 +218,7 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 							long rc = right.cardinality();
 							long rcu = rc * (treeall - lc - rc);
 							long rcp = rc*(rc-1)/2;
-							double sim = (totalPairs - lcp - rcp) // the number of fully resolved quartets
+							float sim = (totalPairs - lcp - rcp) // the number of fully resolved quartets
 									//+ (totalUnresolvedPairs - lcu - rcu) / 3.0 // we count partially resolved quartets
 									; 
 							updateQuartetDistanceTri( left, right, array, sim);
@@ -202,12 +230,14 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 				int c = all.cardinality() - 2;
 				for (int l = all.nextSetBit(0); l >= 0; l=all.nextSetBit(l+1)) {
 					for (int r = all.nextSetBit(0); r >= 0; r=all.nextSetBit(r+1)) {
-						denom[l][r] += c*(c-1)/2;
-						denom[r][l] = denom[l][r];
+						synchronized (denom[l][r]) {
+							denom[l][r] += c*(c-1)/2;
+							denom[r][l] = denom[l][r];
+						}
 					}
 				}
 			}
-			return new float[][][]{array, denom};
+			return Boolean.TRUE;
 		}
 	}
 
@@ -380,4 +410,5 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 			}
 		}
 	}
+	
 }
