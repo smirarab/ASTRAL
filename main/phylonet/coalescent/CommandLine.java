@@ -51,7 +51,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
-	protected static String _version = "5.14.0";
+	protected static String _version = "5.14.1";
 	protected static SimpleJSAP jsap;
 
 	private static void exitWithErr(String extraMessage) {
