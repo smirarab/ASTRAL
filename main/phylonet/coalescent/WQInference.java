@@ -27,15 +27,18 @@ import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.util.BitSet;
 
+
+
 public class WQInference extends AbstractInference<Tripartition> {
 
 	int forceAlg = -1;
 	long maxpossible;
 
-	public WQInference(Options inOptions, List<Tree> trees, List<Tree> extraTrees) {
-		super(inOptions, trees, extraTrees);
+	public WQInference(Options inOptions, List<Tree> trees, List<Tree> extraTrees, List<Tree> toRemoveExtraTrees) {
+		super(inOptions, trees, extraTrees, toRemoveExtraTrees);
 		this.setQueueWeightResults(new LinkedBlockingQueue<Long>());
 		this.setQueueClusterResolutions(new LinkedBlockingQueue<Iterable<VertexPair>>());
+
 		this.forceAlg = inOptions.getAlg();
 	}
 
