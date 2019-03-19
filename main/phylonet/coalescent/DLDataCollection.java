@@ -362,6 +362,7 @@ public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 			BitSet r_Minus_l = (BitSet) and.clone();
 			r_Minus_l.xor(r_cluster.getBitSet());
 			STITreeCluster rml = new STITreeCluster(GlobalMaps.taxonIdentifier);
+
 			rml.setCluster(r_Minus_l);
 
 			if (!rml.getBitSet().isEmpty()) {
@@ -380,106 +381,9 @@ public class DLDataCollection extends AbstractDataCollection<STBipartition>{
 		return 0;
 	}
 
-
-	/*
-	 * public void addGoodSTB (STBipartition good, int size) {
-	 * goodSTBs.get(size).add(good); }
-	 */
-	/*
-	 * public Set<STBipartition> getClusterBiPartitions(STITreeCluster cluster)
-	 * {
-	 * 
-	 * return clusterToSTBs.get(cluster); }
-	 */
-
-	/*
-	 * public boolean addCompleteryVertx(Vertex x, STITreeCluster refCluster) {
-	 * STITreeCluster c = x._cluster; Vertex reverse = new Vertex();
-	 * reverse._cluster = new STITreeCluster(refCluster);
-	 * reverse._cluster.getCluster().xor(c.getCluster()); int size =
-	 * reverse._cluster.getClusterSize(); if
-	 * (!clusters.get(size).contains(reverse)){ clusters.get(size).add(reverse);
-	 * return true; //System.err.println("Clusters: "+clusters); } return false;
-	 * }
-	 */
-	/*
-	 * private void addSTBToX(STBipartition stb, int size) {
-	 * //System.err.println("Adding to X: "+stb+" "+stb.c
-	 * +" "+clusterToSTBs.containsKey(stb.c)); if
-	 * (clusterToSTBs.containsKey(stb.c) &&
-	 * clusterToSTBs.get(stb.c).contains(stb)){ return; } //int size =
-	 * stb.c.getClusterSize(); // TODO: following line is algorithmically
-	 * harmless, // but inefficient. is it necessary?
-	 * //geneTreeSTBCount.put(stb, 0); addToClusters(stb.c, size, false); //
-	 * Following needed for Fast //Set<STBipartition> stbs =
-	 * clusterToSTBs.get(c); //stbs = (stbs== null)? new
-	 * HashSet<STBipartition>() : stbs; //stbs.add(stb); //clusterToSTBs.put(c,
-	 * stbs); //System.err.println("X updated: "+STBCountInGeneTrees);
-	 * //System.err.println("X updated: "+clusterToSTBs); }
-	 */
-
-	/*
-	 * private STITreeCluster treeComplementary(STITreeCluster gtCluster,
-	 * String[] leaves){ //System.err.print("Tree complementary of "+gtCluster);
-	 * STITreeCluster newGTCluster = gtCluster.complementaryCluster();
-	 * //System.err.println(" is: "+newGTCluster.getCluster()); STITreeCluster
-	 * newSTCluster = new STITreeCluster(); for (String s :
-	 * newGTCluster.getClusterLeaves()) {
-	 * newSTCluster.addLeaf(getSpeciesName(s)); }
-	 * //System.err.println("Tree complementary of "
-	 * +gtCluster+" is: "+newSTCluster); return newSTCluster; }
-	 */
-
-	/*
-	 * private STITreeCluster treeComplementary(List<String> treeNames, Cluster
-	 * c , TaxonNameMap taxonMap){ HashSet<String> set = new HashSet<String> ();
-	 * set.add(cluster); return treeComplementary(treeNames, set, taxonMap); }
-	 */
-
-	/*
-	 * void addExtraBipartitionsByHeuristics(ClusterCollection clusters2) {
-	 * //goodSTBs = X; //if (true) return; int added = 0; for (int i=1;
-	 * i<goodSTBs.size(); i++) { Set<STBipartition> curr_set = goodSTBs.get(i);
-	 * for (STBipartition stb1:curr_set) { //if (Math.random() < 0.70) continue;
-	 * for (int j=i; j<goodSTBs.size(); j++) { Set<STBipartition> other_set =
-	 * goodSTBs.get(j); //if (Math.random() < 0.70) continue; for (STBipartition
-	 * stb2:other_set) { //System.out.println(stb1 +" **AND** " + stb2); if
-	 * (stb1.cluster1.getClusterSize() < 3 || stb1.cluster2.getClusterSize() < 3
-	 * || stb2.cluster1.getClusterSize() < 3 || stb2.cluster2.getClusterSize() <
-	 * 3) { if (tryToAdd(stb1,stb2,bipToAddToX) != null) added++; } }
-	 * System.err.println(bipToAddToX.size() + " " + i); } } }
-	 * 
-	 * for (STBipartition stb: bipToAddToX) { //System.err.println( "Adding: " +
-	 * stb); addSTBToX(clusters, stb); } System.out.println("\n\nAdded " +
-	 * added+ " bipartitions:\n");
-	 * 
-	 * int s = 0; for (Integer c: clusters.keySet()){ s +=
-	 * clusters.get(c).size(); }
-	 * System.out.println("Number of Clusters After Addition: " +s);
-	 * 
-	 * }
-	 * 
-	 * 
-	 * private STBipartition tryAddingExtraSTB_AndreRule(STBipartition stb1,
-	 * STBipartition stb2, Set<STBipartition> bipToAddToX) { if
-	 * (stb1.equals(stb2)) return null; if ( stb1.isDominatedBy(stb2) ||
-	 * stb2.isDominatedBy(stb1) ) return null;
-	 * 
-	 * if ( stb1.c.isDisjoint(stb2.c) ) return null;
-	 * 
-	 * if ( stb1.cluster1.isDisjoint(stb2.cluster2) &&
-	 * stb1.cluster2.isDisjoint(stb2.cluster1)) { STITreeCluster cl1 = new
-	 * STITreeCluster(stb1.cluster1); cl1 = cl1.merge(stb2.cluster1);
-	 * STITreeCluster cl2 = new STITreeCluster(stb1.cluster2); cl2 =
-	 * cl2.merge(stb2.cluster2); STITreeCluster cl = new STITreeCluster(stb1.c);
-	 * cl = cl.merge(stb2.c); STBipartition r = new STBipartition(cl1,cl2,cl);
-	 * bipToAddToX.add(r); return r; } else if (
-	 * stb1.cluster1.isDisjoint(stb2.cluster1) &&
-	 * stb1.cluster2.isDisjoint(stb2.cluster2) ) { STITreeCluster cl1 = new
-	 * STITreeCluster(stb1.cluster1); cl1 = cl1.merge(stb2.cluster2);
-	 * STITreeCluster cl2 = new STITreeCluster(stb1.cluster2); cl2 =
-	 * cl2.merge(stb2.cluster1); STITreeCluster cl = new STITreeCluster(stb1.c);
-	 * cl = cl.merge(stb2.c); STBipartition r = new STBipartition(cl1,cl2,cl);
-	 * bipToAddToX.add(r); return r; } return null; }
-	 */
+	@Override
+	public void removeExtraBipartitionsByInput(List<Tree> extraTrees, boolean extraTreeRooted) {
+		// TODO Auto-generated method stub
+		
+	}
 }
