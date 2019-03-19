@@ -336,7 +336,7 @@ public class DistanceMatrix extends AbstractMatrix implements Matrix {
 
 	@Override
 	public List<BitSet> inferTreeBitsets() {
-		System.err.print ("Running PhyD* ...");
+		//System.err.print ("Running PhyD* ...");
 		return PhyDstar(GlobalMaps.taxonNameMap.getSpeciesIdMapper());
 	}
 
