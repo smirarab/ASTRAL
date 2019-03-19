@@ -38,7 +38,7 @@ Email: `astral-users@googlegroups.com` for questions.
 INSTALLATION:
 -----------
 There is no installation required to run ASTRAL.
-You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/Astral.5.13.0.zip)
+You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/Astral.5.13.1.zip)
 and extract the contents to a folder of your choice. Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/). You can run `make.sh` to build the project or simply use the jar file that is included with the repository.
 
 ASTRAL is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. Java 1.6 or later is required. 
@@ -46,7 +46,7 @@ ASTRAL is a java-based application, and should run in any environment (Windows, 
 To test your installation, go to the place where you put the uncompressed ASTRAL, and run:
 
 ``` bash
-java -Djava.library.path=lib/ -jar astral.5.13.0.jar -i test_data/song_primates.424.gene.tre
+java -Djava.library.path=lib/ -jar astral.5.13.1.jar -i test_data/song_primates.424.gene.tre
 ```
 
 This should quickly finish. There are also other sample input files under `test_data/` that can be used.
@@ -54,15 +54,15 @@ This should quickly finish. There are also other sample input files under `test_
 ASTRAL can be run from any directory (e.g., `/path/to/astral/`). Then, you just need to run:
 
 ``` bash
-java -Djava.library.path=/path/to/astral/lib/ -jar /path/to/astral/astral.5.13.0.jar
+java -Djava.library.path=/path/to/astral/lib/ -jar /path/to/astral/astral.5.13.1.jar
 ```
 
-Also, you can move `astral.5.13.0.jar` to any location you like and run it from there, but note that you need to move the `lib` directory with it as well.
+Also, you can move `astral.5.13.1.jar` to any location you like and run it from there, but note that you need to move the `lib` directory with it as well.
 
 Finally, you can omit `-Djava.library.path=/path/to/astral/lib/` and run the following, but your runs can become 4X or more slower. 
 
 ``` bash
-java  -jar /path/to/astral/astral.5.13.0.jar
+java  -jar /path/to/astral/astral.5.13.1.jar
 ```
 
 EXECUTION:
@@ -70,7 +70,7 @@ EXECUTION:
 ASTRAL currently has no GUI. You need to run it through the command-line. In a terminal, go the location where you have downloaded the software, and issue the following command:
 
 ```
-  java -Djava.library.path=lib/ -jar astral.5.13.0.jar
+  java -Djava.library.path=lib/ -jar astral.5.13.1.jar
 ```
 
 This will give you a list of options available in ASTRAL.
@@ -78,18 +78,18 @@ This will give you a list of options available in ASTRAL.
 To find the species tree given a set of gene trees in a file called `in.tree`, use:
 
 ```
-java -Djava.library.path=lib/ -jar astral.5.13.0.jar -i in.tree
+java -Djava.library.path=lib/ -jar astral.5.13.1.jar -i in.tree
 ```
 
 The results will be outputted to the standard output. To save the results in a file use the `-o` option (**Strongly recommended**):
 
 ```
-java -Djava.library.path=lib/ -jar astral.5.13.0.jar -i in.tree -o out.tre
+java -Djava.library.path=lib/ -jar astral.5.13.1.jar -i in.tree -o out.tre
 ```
 To save the logs (**also recommended**), run:
 
 ```
-java -Djava.library.path=lib/ -jar astral.5.13.0.jar -i in.tree -o out.tre 2>out.log
+java -Djava.library.path=lib/ -jar astral.5.13.1.jar -i in.tree -o out.tre 2>out.log
 ```
 
 ###### Input: 
@@ -120,7 +120,7 @@ The output in is Newick format and gives:
 To perform 100 replicates of multi-locus bootstrapping ([Seo 2008](http://www.ncbi.nlm.nih.gov/pubmed/18281270)), use:
 
 ```
-java -Djava.library.path=lib/ -jar astral.5.13.0.jar -i best_ml -b bs_paths -r 100
+java -Djava.library.path=lib/ -jar astral.5.13.1.jar -i best_ml -b bs_paths -r 100
 ```
 
 In this command, `bs_paths` is a file that gives the location (file path) of gene tree bootstrap files, one line per gene. See the [tutorial](astral-tutorial.md)
@@ -149,7 +149,7 @@ ASTRAL will try to use all the cores and all the GPUs on your machine. To preven
 For big datasets (say more than 200 taxa), increasing the memory available to Java can result in speedups. Note that you should give Java only as much free memory as you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke ASTRAL using the following command to make all the 3GB available to Java:
 
 ```
-java -Xmx3000M -Djava.library.path=lib/ -jar astral.5.13.0.jar -i in.tree
+java -Xmx3000M -Djava.library.path=lib/ -jar astral.5.13.1.jar -i in.tree
 ```
 
 Acknowledgment
