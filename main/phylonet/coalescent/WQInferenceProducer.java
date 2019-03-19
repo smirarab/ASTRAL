@@ -6,8 +6,8 @@ import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
 public class WQInferenceProducer extends AbstractInferenceProducer<Tripartition> {
 	
-	public WQInferenceProducer(Options inOptions, List<Tree> trees, List<Tree> extraTrees) {
-		super(inOptions, trees, extraTrees);
+	public WQInferenceProducer(Options inOptions, List<Tree> trees, List<Tree> extraTrees,List<Tree> toRemoveExtraTrees) {
+		super(inOptions, trees, extraTrees, toRemoveExtraTrees);
 	}
 
 	public WQInferenceProducer(AbstractInference semiDeepCopy) {
