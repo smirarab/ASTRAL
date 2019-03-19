@@ -1,4 +1,15 @@
-<<<<<<< HEAD
+- version 5.14.0:
+	- Merge in changes from master (version 5.6.2)
+
+- version 5.13.1:
+	- Better error reporting and handling for ASTRAL-MP
+	
+- version 5.13.0:
+	- Update make files so that AVX and GPU work on more machines
+
+- version 5.12.6:
+	- Compute at most min(# Threads, (10^9/n^2)/2 ) similarity matrices at the same time 
+	
 - version 5.12.5:
     - added log info to indicate that effni is zero
     - exception is caught when GPU fails to load and now proceeds without GPU
@@ -61,13 +72,10 @@
 
 - version 5.9.0:
 	- AVX batch computation
-=======
-- version 5.6.2:
-	- add a zero length branch to the root branch that is not the outgroup. Needed for FigTree visualizaiton of multiind
 	
 - version 5.6.2:
+	- add a zero length branch to the root branch that is not the outgroup. Needed for FigTree visualizaiton of multiind
 	- added new option to remove bipartitions of a provided extra tree from search space
->>>>>>> master
 
 - version 5.6.1:
 	- added a new option '-w x' to count each gene tree as 1/x when computing support values
