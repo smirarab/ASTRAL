@@ -54,7 +54,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
-	protected static String _version = "5.13.0";
+	protected static String _version = "5.13.1";
 
 	protected static SimpleJSAP jsap;
 
@@ -670,7 +670,8 @@ public class CommandLine {
 		catch (Throwable e) {
 			//e.printStackTrace(); 
 			System.err.println("Warning: \n Fail to load native library "+System.mapLibraryName("Astral")+"; use Java default computing method without AVX2, which is 4X slower. \n"
-					+ " Make sure you are using the correct Djava.library.path.");
+					+ " Make sure you are using the correct Djava.library.path (to the `lib` directory under ASTRAL where "+System.mapLibraryName("Astral")+ " can be found). \n" +
+					  " Trying running make.sh. For mode debugging, run: java -Djava.library.path=lib/ -jar native_library_tester.jar" );
 		}
 		
 		jsap = getJSAP();

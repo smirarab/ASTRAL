@@ -143,7 +143,16 @@ Also related to bootstrapping are `-g` (to enable gene/site resampling) and `-s`
 
 ### Multi-threading, GPU, vectorization. 
 
-ASTRAL will try to use all the cores and all the GPUs on your machine. To prevent that, you can use options `-C` and `-T`. See the help. Also, the cumbersome `-Djava.library.path=lib/` will enable ASTRAL to use AVX2, which speeds things around 4X. These features are all added and described in our (in press) paper on ASTRAL-MP. AVX2 is sometimes not used because our precompiled packages do not match what you have on your system. Look for `Using native AVX batch computing.` in the log file. Soon, we will add more about this to the tutorial. 
+- ASTRAL will try to use all the cores and all the GPUs on your machine. To prevent that, you can use options `-C` and `-T`. See the help.
+
+- The cumbersome `-Djava.library.path=lib/` will enable ASTRAL to use AVX2, which speeds things around 4X. These features are all added and described in our (in press) paper on ASTRAL-MP. AVX2 is sometimes not used because our precompiled packages do not match what you have on your system. Look for `Using native AVX batch computing.` in the log file. If there is a warning that AVX is not used, you can ignore it if you don't care about running time. If you want to make it work, then, try making the package by running 
+``` bash
+./make.sh
+````. If that doesn't work, try debugging by running the following from the `Astral` directory:
+```
+java -Djava.library.path=lib/ -jar ../native_library_tester.jar
+```
+Soon, we will add more about this to the tutorial. 
 
 ### Memory:
 For big datasets (say more than 200 taxa), increasing the memory available to Java can result in speedups. Note that you should give Java only as much free memory as you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke ASTRAL using the following command to make all the 3GB available to Java:
