@@ -1,4 +1,5 @@
-for word in `java -XshowSettings:properties -version 2>&1 | grep java.home`; do DIR=${word}/../include/; done && for word in `ls -d ${DIR}*/`; do SUBDIR=${word}; done || (( DIR=. && SUBDIR=. ))
+for word in `java -XshowSettings:properties -version 2>&1 | grep java.home`; do test -d ${word}/include/ && DIR=${word}/include/ || DIR=${word}/../include/; done && for word in `ls -d ${DIR}*/`; do SUBDIR=${word}; done || (( DIR=. && SUBDIR=. ))
+test `uname` == "Darwin" && ext='dylib' || ext='so'
 if [ -z $JAVA_HOME ]; then DIR2=.; SUBDIR2=.; else DIR2=$JAVA_HOME; for word in `ls -d ${DIR2}/*/`; do SUBDIR2=${word}; done || (( DIR2=. && SUBDIR2=. )); fi
 for word in `java -XshowSettings:properties -version 2>&1 | grep java.home`; do DIR3=${word}/include/; done && for word in `ls -d ${DIR3}*/`; do SUBDIR3=${word}; done || (( DIR3=. && SUBDIR3=. ))
 if [ -z $JAVA_HOME ]; then DIR4=.; SUBDIR4=.; else DIR4=$JAVA_HOME; for word in `ls -d ${DIR4}/`; do SUBDIR4=${word}; done || (( DIR4=. && SUBDIR4=. )); fi

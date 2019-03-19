@@ -19,7 +19,8 @@ public class NativeLibraryTester {
 		}
 		catch (Throwable e) {
 			useNativeMethod = false;
-			System.err.println("Fail to load native library "+System.mapLibraryName("Astral")+"! Is library path set correctly?");
+			System.err.println("Fail to load native library "+System.mapLibraryName("Astral")+"! Is library path set correctly using -Djava.library.path=lib/?");
+			System.err.println("\n\n" + e);
 		}
 		
 		if (useNativeMethod) {
@@ -34,6 +35,7 @@ public class NativeLibraryTester {
 				System.err.println("Or you can compile the library using following command:");
 				System.err.println("g++ -std=c++11 -I\"PATH_TO_FOLDER_CONTAINING_JNI_DOT_H\" -I\"PATH_TO_FOLDER_CONTAINING_JNI_DOT_H/OS\" -march=native -Ofast -fPIC -o lib/libAstral.so -shared main/phylonet_coalescent_Polytree_PTNative.cpp");
 				System.err.println("You can also set -D\"java.library.path=lib/no_avx2\" to check whether such version of library functions correctly.");
+				System.err.println("\n\n" + e);
 			}
 		}
 	}

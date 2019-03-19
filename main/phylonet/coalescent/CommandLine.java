@@ -54,7 +54,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
-	protected static String _version = "5.12.6a";
+	protected static String _version = "5.13.1";
 
 	protected static SimpleJSAP jsap;
 
@@ -101,7 +101,7 @@ public class CommandLine {
 								"Number of threads to use. "),
 
 						new Switch("internode-dist", 'A', "internode",
-								"USe NJst-like internode distances instead of quartet distance for building the search space (X)"),
+								"USe NJst-like internode distances instead of quartet distance for building the search space (X). Unpublished work. "),
 								
 						new FlaggedOption(
 								"score species trees",
@@ -402,8 +402,12 @@ public class CommandLine {
 				// johng23 end
 			}
 			catch (Exception e) {
-				System.err.println("Problem using GPU. Proceeding without GPU");
+				System.err.println("Warning:\n\n Problem using GPU. Proceeding without GPU");
 				Threading.usedDevices = null;
+			}
+			catch (Error e) {
+				System.err.println("Warning:\n\n Problem using GPU. Proceeding without GPU");
+				Threading.usedDevices = null;	
 			}
 		}
 		int numThreads = config.getInt("cpu threads");
@@ -659,6 +663,17 @@ public class CommandLine {
 				.println("\n================== ASTRAL ===================== \n");
 		System.err.println("This is ASTRAL version " + _version);
 
+		try {
+			System.loadLibrary("Astral");
+			System.err.println("Using native AVX batch computing.");
+		}
+		catch (Throwable e) {
+			//e.printStackTrace(); 
+			System.err.println("Warning: \n Fail to load native library "+System.mapLibraryName("Astral")+"; use Java default computing method without AVX2, which is 4X slower. \n"
+					+ " Make sure you are using the correct Djava.library.path (to the `lib` directory under ASTRAL where "+System.mapLibraryName("Astral")+ " can be found). \n" +
+					  " Trying running make.sh. For mode debugging, run: java -Djava.library.path=lib/ -jar native_library_tester.jar" );
+		}
+		
 		jsap = getJSAP();
 		config = jsap.parse(args);
 		if (jsap.messagePrinted()) {
