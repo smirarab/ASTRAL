@@ -51,7 +51,7 @@ ASTRAL currently has no GUI. You need to run it through command-line.
  To see the help, issue the following command:
 
 ```
-  java java -Djava.library.path=./lib/ -jar -jar __astral.jar__
+  java -Djava.library.path=./lib/ -jar __astral.jar__
 ```
 
 This will print the list of options available in ASTRAL. If no errors are printed, your ASTRAL installation is fine and you can proceed to the next sections. 
@@ -61,13 +61,13 @@ This will print the list of options available in ASTRAL. If no errors are printe
 We will next run ASTRAL on an input dataset. From the ASTRAL directory, run:
 
 ```
-java java -Djava.library.path=./lib/ -jar -jar __astral.jar__ -i test_data/song_mammals.424.gene.tre
+java -Djava.library.path=./lib/ -jar __astral.jar__ -i test_data/song_mammals.424.gene.tre
 ```
 
 The results will be outputted to the standard output. To save the results in an output file use the `-o` option:
 
 ```
-java java -Djava.library.path=./lib/ -jar -jar __astral.jar__ -i test_data/song_mammals.424.gene.tre -o test_data/song_mammals.tre
+java -Djava.library.path=./lib/ -jar __astral.jar__ -i test_data/song_mammals.424.gene.tre -o test_data/song_mammals.tre
 ```
 
 Here, the main input is just a file that contains all the input gene trees in Newick format. The input gene trees are treated as unrooted, whether or not they have a root. Note that the **output of ASTRAL should also be treated as an unrooted tree**. 
@@ -80,7 +80,7 @@ The input gene trees can have polytomies (unresolved branches) since [version 4.
 We will now run ASTRAL on a larger dataset. Run:
 
 ```
-java java -Djava.library.path=./lib/ -jar -jar __astral.jar__ -i test_data/100-simulated-boot
+java -Djava.library.path=./lib/ -jar __astral.jar__ -i test_data/100-simulated-boot
 ```
 
 The input file here is a simulated dataset with 100 sequences and 100 replicates of bootstrapped gene trees for 25 loci (thus 2,500 input trees). Note that ASTRAL finishes on this dataset in a matter of seconds. 
@@ -89,7 +89,7 @@ A larger real dataset from the [1kp](http://www.pnas.org/content/early/2014/10/2
 424 genes from 103 species. Run:
 
 ```
-java java -Djava.library.path=./lib/ -jar -jar __astral.jar__ -i test_data/1KP-genetrees.tre -o test_data/1kp.tre 2> test_data/1kp.log
+java -Djava.library.path=./lib/ -jar __astral.jar__ -i test_data/1KP-genetrees.tre -o test_data/1kp.tre 2> test_data/1kp.log
 ```
 
 This takes about a minute to run on a laptop. On this dataset, notice in the ASTRAL log information that it originally starts with 11043 clusters in its search space, and using heuristics implemented in ASTRAL-II, it increases the search space slightly to 11085 clusters. For more challenging datasets (i.e., more discordance or fewer genes) this number might increase a lot. 
@@ -108,7 +108,7 @@ nw_ed  1KP-genetrees.tre 'i & b<=10' o > 1KP-genetrees-BS10.tre
 To create a file `1KP-genetrees-BS10.tre` that includes the 1KP dataset with branches of 10% support or lower contracted. If you don't have newick utilities, don't worry. The contracted file is part of the ASTRAL distribution. 
 
 ```
-java java -Djava.library.path=./lib/ -jar -jar __astral.jar__ -i test_data/1KP-genetrees-BS10.tre -o test_data/1kp-BS10.tre 2> test_data/1kp-bs10.log
+java -Djava.library.path=./lib/ -jar __astral.jar__ -i test_data/1KP-genetrees-BS10.tre -o test_data/1kp-BS10.tre 2> test_data/1kp-bs10.log
 ```
 
 Compare the species tree generated here with that generated with the fully resolved gene trees. You can confirm that the tree topology has not changed in this case, but the branch lengths and the branch support have all changed (and that they tend to both increase). By comparing the log files you can also see that after contracting low support branches, the normalized quartet score increases to 0.92321 (from 0.89467 with no contraction). This is expected as low support branches tend to increase not decrease discordance. 
@@ -167,7 +167,7 @@ ASTRAL outputs lots of useful information to your screen ([stderr](https://en.wi
 by directing your stderr to a file. Capturing the log is highly recommended. Here is how you would capture stderr:
 
 ```
-java java -Djava.library.path=./lib/ -jar -jar __astral.jar__ -i test_data/song_mammals.424.gene.tre -o test_data/song_mammals.tre 2> song_mammals.log
+java -Djava.library.path=./lib/ -jar __astral.jar__ -i test_data/song_mammals.424.gene.tre -o test_data/song_mammals.tre 2> song_mammals.log
 ```
 
 Here are some of the important information captured in the log:
@@ -188,7 +188,7 @@ You can use the `-q` option in ASTRAL to score an existing species tree to produ
 To score a tree using ASTRAL, run:
 
 ```
-java java -Djava.library.path=./lib/ -jar -jar __astral.jar__ -q test_data/simulated_14taxon.default.tre -i test_data/simulated_14taxon.gene.tre -o test_data/simulated_scored.tre 2> test_data/simulated_scored.log
+java -Djava.library.path=./lib/ -jar __astral.jar__ -q test_data/simulated_14taxon.default.tre -i test_data/simulated_14taxon.gene.tre -o test_data/simulated_scored.tre 2> test_data/simulated_scored.log
 ```
 
 This will score the species tree given in `test_data/simulated_14taxon.default.tre` with respect to the gene trees given in `test_data/simulated_14taxon.gene.tre`. It will output the following in the log:
@@ -236,16 +236,16 @@ Here is a description of various information that can be turned on by using `-t`
 Run:
 
 ```
-java java -Djava.library.path=./lib/ -jar -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 2 -o test_data/1kp-scored-t2.tre
+java -Djava.library.path=./lib/ -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 2 -o test_data/1kp-scored-t2.tre
 ```
 ```
-java java -Djava.library.path=./lib/ -jar -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 4 -o test_data/1kp-scored-t4.tre
+java -Djava.library.path=./lib/ -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 4 -o test_data/1kp-scored-t4.tre
 ```
 ```
-java java -Djava.library.path=./lib/ -jar -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 8 -o test_data/1kp-scored-t8.tre
+java -Djava.library.path=./lib/ -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 8 -o test_data/1kp-scored-t8.tre
 ```
 ```
-java java -Djava.library.path=./lib/ -jar -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 10 -o test_data/1kp-scored-t8.tre
+java -Djava.library.path=./lib/ -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 10 -o test_data/1kp-scored-t8.tre
 ```
 read all the values given for a couple of branches and try to make sense of them. 
 
@@ -257,11 +257,11 @@ Our calculations of the local posterior probabilities and branch lengths use a Y
 Run the following two commands and compare the lengths of the longest branches:
 
 ```
-java java -Djava.library.path=./lib/ -jar -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -c 2 -o test_data/1kp-scored-c2.tre
+java -Djava.library.path=./lib/ -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -c 2 -o test_data/1kp-scored-c2.tre
 ```
 
 ```
-java java -Djava.library.path=./lib/ -jar -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -c 0.001 -o test_data/1kp-scored-cs.tre
+java -Djava.library.path=./lib/ -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -c 0.001 -o test_data/1kp-scored-cs.tre
 ``` 
 
 Note that setting lambda to 0 results in reporting ML estimates of the branch lengths instead of MAP. However, for branches with no discordance, we cannot compute a branch lengths. For these, we currently arbitrarily set ML to 10 coalescent units (we might change this in future versions).
@@ -283,11 +283,7 @@ To start multi-locus bootstrapping using ASTRAL, you need to provide the locatio
 * Now run:
 
 ```
-<<<<<<< HEAD
-java java -Djava.library.path=./lib/ -jar -jar ../__astral.jar__ -i song_mammals.424.gene.tre -b bs-files
-=======
-java -jar ../__astral.jar__ -i song_mammals.424.gene.tre -b bs-files -o song_mammals.bootstrapped.astral.tre
->>>>>>> master
+java -Djava.library.path=./lib/  -jar ../__astral.jar__ -i song_mammals.424.gene.tre -b bs-files -o song_mammals.bootstrapped.astral.tre
 ```
 
 This will run 100 replicates of bootstrapping in addition to one run of ASTRAL on the main trees. 
@@ -321,11 +317,7 @@ By default, ASTRAL performs 100 bootstrap replicates, but the `-r` option can be
 For example, 
 
 ```
-<<<<<<< HEAD
-java java -Djava.library.path=./lib/ -jar -jar ../__astral.jar__ -i song_mammals.424.gene.tre -b bs-files -r 150
-=======
-java -jar ../__astral.jar__ -i song_mammals.424.gene.tre -b bs-files -r 150 -o song_mammals.bootstrapped.150.astral.tre
->>>>>>> master
+java -Djava.library.path=./lib/ -jar ../__astral.jar__ -i song_mammals.424.gene.tre -b bs-files -r 150 -o song_mammals.bootstrapped.150.astral.tre
 ```
 
 will do 150 replicates. Note that your input gene tree bootstrap files need to have enough bootstrap replicates for the number of replicates requested using `-r`. For example, if you have `-r 150`, each file listed in `bs-files` should contain at least 150 bootstrap replicates.
@@ -336,11 +328,7 @@ will do 150 replicates. Note that your input gene tree bootstrap files need to h
 ASTRAL performs site-only resampling by default (see [Seo, 2008](http://www.ncbi.nlm.nih.gov/pubmed/18281270)). ASTRAL can also perform gene+site resampling, which can be activated with the `-g` option:
 
 ```
-<<<<<<< HEAD
-java java -Djava.library.path=./lib/ -jar -jar ../__astral.jar__ -i song_mammals.424.gene.tre -b bs-files -g -r 100
-=======
-java -jar ../__astral.jar__ -i song_mammals.424.gene.tre -b bs-files -g -r 100 -o song_mammals.bootstrapped.gs.astral.tre
->>>>>>> master
+java -Djava.library.path=./lib/ -jar ../__astral.jar__ -i song_mammals.424.gene.tre -b bs-files -g -r 100 -o song_mammals.bootstrapped.gs.astral.tre
 ```
 
 Note that when you perform gene/site resampling, you need more gene tree replicates than the number of multi-locus bootstrapping replicates you requested using `-r`. For example, if you have `-g -r 100`, you might need 150 replicates for some genes (and less than 100 replicates for other genes). This is because when genes are resampled, some genes will be sampled more often than others by chance.
@@ -349,11 +337,7 @@ Note that when you perform gene/site resampling, you need more gene tree replica
 ASTRAL can also perform gene-only bootstrapping using the `--gene-only` option. This form of bootstrapping requires only one input file, which is given using `-i`. Thus, for this, you don't need to use `-b`. The following performs bootstrapping by resampling genes in the input file:
 
 ```
-<<<<<<< HEAD
-java java -Djava.library.path=./lib/ -jar -jar ../__astral.jar__ -i song_mammals.424.gene.tre --gene-only
-=======
-java -jar ../__astral.jar__ -i song_mammals.424.gene.tre --gene-only -o song_mammals.bootstrapped.go.astral.tre
->>>>>>> master
+java -Djava.library.path=./lib/ -jar ../__astral.jar__ -i song_mammals.424.gene.tre --gene-only -o song_mammals.bootstrapped.go.astral.tre
 ```
 
 
@@ -369,13 +353,13 @@ ASTRAL has an exact and a heuristic version. The heuristic version solves the op
 Since the mammalian dataset we have used so far has 37 taxa, the exact version cannot run on it. However, we have created a subset of this dataset that has all 9 primates, tree shrew, rat, rabbit, horse, and the sloth (a total of 14 taxa). We can run the exact version of ASTRAL on this reduced dataset. Run:
 
 ```
-java java -Djava.library.path=./lib/ -jar -jar __astral.jar__ -i test_data/song_primates.424.gene.tre -o test_data/song_primates.424.exact.tre -x
+java -Djava.library.path=./lib/ -jar __astral.jar__ -i test_data/song_primates.424.gene.tre -o test_data/song_primates.424.exact.tre -x
 ```
 
 Using the `-x` option results in running the exact version of the ASTRAL algorithm. This run should finish in about 30 seconds. Now, we will run ASTRAL on the same input using the default heuristic algorithm:
 
 ```
-java java -Djava.library.path=./lib/ -jar -jar __astral.jar__ -i test_data/song_primates.424.gene.tre -o test_data/song_primates.424.default.tre
+java -Djava.library.path=./lib/ -jar __astral.jar__ -i test_data/song_primates.424.gene.tre -o test_data/song_primates.424.default.tre
 ```
 This time, ASTRAL finished in under a second. So, is there a difference between the output of the exact and the heuristic version? Open up the two trees in your tree viewer tool and compare them. You will notice they are identical. You could also compare the scores outputted by ASTRAL and notice that they are identical. 
 
@@ -391,13 +375,13 @@ We tried hard to find a subset of genes in the biological primates dataset where
 Run
 
 ```
-java java -Djava.library.path=./lib/ -jar -jar __astral.jar__ -i test_data/simulated_14taxon.gene.tre -o test_data/simulated_14taxon.default.tre
+java -Djava.library.path=./lib/ -jar __astral.jar__ -i test_data/simulated_14taxon.gene.tre -o test_data/simulated_14taxon.default.tre
 ```
 
 and then
 
 ```
-java java -Djava.library.path=./lib/ -jar -jar __astral.jar__ -i test_data/simulated_14taxon.gene.tre -o test_data/simulated_14taxon.exact.tre -x
+java -Djava.library.path=./lib/ -jar __astral.jar__ -i test_data/simulated_14taxon.gene.tre -o test_data/simulated_14taxon.exact.tre -x
 ```
 
 Now you see that the tree outputted by the exact version has a slightly higher score (4812=48.07% versus 4803=47.98%), and a slightly different topology compared to the heuristic version. Thus, in extreme cases (i.e., lots of ILS and/or gene tree estimation error and few available gene trees compared to the number of taxa), one could observe differences between the exact and heuristic versions. Note that how many genes should be considered few depends on the number of taxa you have, and also how much missing data there is. 
@@ -416,7 +400,7 @@ impact on running time.
 To expand the search space, you can run:
 
 ```
-java java -Djava.library.path=./lib/ -jar -jar __astral.jar__ -i test_data/simulated_primates_5X.10.gene.tre -o test_data/simulated_primates_5X.10.species.tre -e test_data/simulated_primates_5X.10.bootstrap.gene.tre
+java -Djava.library.path=./lib/ -jar __astral.jar__ -i test_data/simulated_primates_5X.10.gene.tre -o test_data/simulated_primates_5X.10.species.tre -e test_data/simulated_primates_5X.10.bootstrap.gene.tre
 ```
 Here, the `-e` option is used to input a set of extra trees that ASTRAL uses to expand its search space. The file provided simply has 200 bootstrap replicates for each of the these 10 simulated genes.
 A similar option `-f` can be used when input trees have species labels instead of gene labels (only consequential when for multi-individual datasets).
