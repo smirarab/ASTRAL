@@ -402,8 +402,12 @@ public class CommandLine {
 				// johng23 end
 			}
 			catch (Exception e) {
-				System.err.println("Problem using GPU. Proceeding without GPU");
+				System.err.println("Warning:\n\n Problem using GPU. Proceeding without GPU");
 				Threading.usedDevices = null;
+			}
+			catch (Error e) {
+				System.err.println("Warning:\n\n Problem using GPU. Proceeding without GPU");
+				Threading.usedDevices = null;	
 			}
 		}
 		int numThreads = config.getInt("cpu threads");
