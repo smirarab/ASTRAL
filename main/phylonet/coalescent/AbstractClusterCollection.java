@@ -22,7 +22,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 
 	protected ArrayList<Set<Vertex>> clusters;
 	protected int topClusterLength;
-	//int totalcount = 0;
+	int totalcount = 0;
 	Vertex topV;
 
 	protected void initialize(int len) {
@@ -59,6 +59,16 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 			added = clusters.get(size).add(vertex);
 		}
 		return added;
+	}
+	
+	@Override	
+	public boolean removeCluster(Vertex vertex, int size) {
+		
+		boolean removed = clusters.get(size).remove(vertex);
+		if(removed){
+			totalcount--;
+		}
+		return removed;
 	}
 
 	@Override
