@@ -27,11 +27,13 @@ import phylonet.tree.util.Collapse;
  *
  * @param <T>
  */
+
 public abstract class AbstractInference<T> implements Cloneable{
 	
 	protected List<Tree> trees;
 	protected List<Tree> extraTrees = null;
-
+	protected List<Tree> toRemoveExtraTrees = null;
+	protected boolean removeExtraTree;
 
 	Collapse.CollapseDescriptor cd = null;
 	
@@ -41,23 +43,26 @@ public abstract class AbstractInference<T> implements Cloneable{
 	Boolean done = false;
 	protected Options options;
 	DecimalFormat df;
+
 	
 	private LinkedBlockingQueue<Long> queueWeightResults;
 	private LinkedBlockingQueue<Iterable<VertexPair>> queueClusterResolutions;
 
 	double estimationFactor = 0;
-	
 
 	public AbstractInference(Options options, List<Tree> trees,
-			List<Tree> extraTrees) {
+			List<Tree> extraTrees, List<Tree> toRemoveExtraTrees) {
 		super();
 		this.options = options;
 		this.trees = trees;
 		this.extraTrees = extraTrees;
+		this.removeExtraTree = options.isRemoveExtraTree();
+		this.toRemoveExtraTrees = toRemoveExtraTrees;
 		
 		this.initDF();
-		
+
 	}
+
 
 	private void initDF() {
 		df = new DecimalFormat();
@@ -84,11 +89,12 @@ public abstract class AbstractInference<T> implements Cloneable{
 
 	}
 	
+	
 	protected Collapse.CollapseDescriptor doCollapse(List<Tree> trees) {
 		Collapse.CollapseDescriptor cd = Collapse.collapse(trees);
 		return cd;
 	}
-
+	
 	protected void restoreCollapse(List<Solution> sols, Collapse.CollapseDescriptor cd) {
 		for (Solution sol : sols) {
 			Tree tr = sol._st;
@@ -106,6 +112,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 		}
 		return total;
 	}
+
 
 	//TODO: Check whether this is in the right class
 	public void mapNames() {
@@ -304,12 +311,14 @@ public abstract class AbstractInference<T> implements Cloneable{
 
 		dataCollection = newCounter(newClusterCollection());
 		weightCalculator = newWeightCalculator();
-		
+
 		/**
-		 * Forms the set X by adding from gene trees and
+		 * Fors the set X by adding from gene trees and
 		 * by adding using ASTRAL-II hueristics
 		 */
-		dataCollection.formSetX(this); //TODO: is this necessary. 
+		dataCollection.formSetX(this);
+		
+		
 
 		
 		if (options.isExactSolution()) {
@@ -329,6 +338,19 @@ public abstract class AbstractInference<T> implements Cloneable{
 					+ s);
 		}
 		
+		
+		if (toRemoveExtraTrees != null && toRemoveExtraTrees.size() > 0 && this.removeExtraTree) {		
+	        System.err.println("Removing extra bipartitions from extra input trees ...");
+			dataCollection.removeExtraBipartitionsByInput(toRemoveExtraTrees,true);
+			int s = this.dataCollection.clusters.getClusterCount();
+			/*
+			 * for (Integer c: clusters2.keySet()){ s += clusters2.get(c).size(); }
+			 */
+			System.err.println("Number of Clusters after deletion of extra tree bipartitions: "
+					+ s);
+		}
+		
+		
 		if (this.options.isOutputSearchSpace()) {
 			for (Set<Vertex> s: dataCollection.clusters.getSubClusters()) {
 				for (Vertex v : s) {
@@ -336,14 +358,12 @@ public abstract class AbstractInference<T> implements Cloneable{
 				}
 			}
 		}
-
-		//counter.addExtraBipartitionsByHeuristics(clusters);
-
+		
 		Logging.logTimeMessage("" );
-			
+		
 		System.err.println("partitions formed in "
 			+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
-		
+
 		if (! this.options.isRunSearch() ) {
 			System.exit(0);
 		}

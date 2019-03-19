@@ -35,6 +35,15 @@ public abstract class AbstractDataCollection <T> {
 		Vertex nv = c.new Vertex();
 		return clusters.addCluster(nv, size);
 	}
+	
+	protected boolean removeCluster(STITreeCluster c, int size) {
+		if (size == GlobalMaps.taxonIdentifier.taxonCount()
+		|| size == 0) {
+			return false;
+		}	
+		Vertex nv = c.new Vertex();
+		return clusters.removeCluster(nv, size);
+	}
 
 	// TODO: Figure out what to do with this in case of a mapper
 	// Should only add species-consistent bipartitions?
@@ -60,6 +69,9 @@ public abstract class AbstractDataCollection <T> {
 
 	public abstract void addExtraBipartitionsByInput(
 			List<Tree> trees, boolean extraTreeRooted);
+	
+	public abstract void removeExtraBipartitionsByInput(List<Tree> extraTrees,
+			boolean extraTreeRooted);
 	
 	//public abstract void computeTreePartitions(AbstractInference<T> inference);
 
