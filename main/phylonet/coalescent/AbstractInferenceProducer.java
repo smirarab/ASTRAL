@@ -15,12 +15,12 @@ public abstract class AbstractInferenceProducer<T> extends AbstractInference<T> 
 	public int weightCount = 0;
 	
 	public AbstractInferenceProducer(Options options, List<Tree> trees,
-			List<Tree> extraTrees) {
-		super(options, trees, extraTrees);
+			List<Tree> extraTrees, List<Tree> toRemoveExtraTrees) {
+		super(options, trees, extraTrees, toRemoveExtraTrees);
 	}
 	
 	public AbstractInferenceProducer(AbstractInference in) {
-		super(in.options, in.trees, in.extraTrees);
+		super(in.options, in.trees, in.extraTrees, in.toRemoveExtraTrees);
 		this.dataCollection = in.dataCollection;
 		this.setQueueClusterResolutions(in.getQueueClusterResolutions());
 		this.queueReadyTripartitions = (new LinkedBlockingQueue<T>());
