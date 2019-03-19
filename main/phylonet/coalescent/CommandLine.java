@@ -54,7 +54,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
-	protected static String _version = "5.12.6a";
+	protected static String _version = "5.13.0";
 
 	protected static SimpleJSAP jsap;
 
@@ -101,7 +101,7 @@ public class CommandLine {
 								"Number of threads to use. "),
 
 						new Switch("internode-dist", 'A', "internode",
-								"USe NJst-like internode distances instead of quartet distance for building the search space (X)"),
+								"USe NJst-like internode distances instead of quartet distance for building the search space (X). Unpublished work. "),
 								
 						new FlaggedOption(
 								"score species trees",
@@ -659,6 +659,16 @@ public class CommandLine {
 				.println("\n================== ASTRAL ===================== \n");
 		System.err.println("This is ASTRAL version " + _version);
 
+		try {
+			System.loadLibrary("Astral");
+			System.err.println("Using native AVX batch computing.");
+		}
+		catch (Throwable e) {
+			//e.printStackTrace(); 
+			System.err.println("Warning: \n Fail to load native library "+System.mapLibraryName("Astral")+"; use Java default computing method without AVX2, which is 4X slower. \n"
+					+ " Make sure you are using the correct Djava.library.path.");
+		}
+		
 		jsap = getJSAP();
 		config = jsap.parse(args);
 		if (jsap.messagePrinted()) {
