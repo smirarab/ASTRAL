@@ -28,6 +28,7 @@ cd Astral
 ln -s ../lib .
 ln -s ../README.md .
 ln -s ../astral.$version.jar .
+ln -s ../native_library_tester.jar .
 ln -s ../main/test_data .
 ln -s ../astral-tutorial.pdf .
 ln -s ../thesis-astral.pdf .
