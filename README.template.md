@@ -15,6 +15,8 @@ Email: `astral-users@googlegroups.com` for questions.
 ## Publications:
 
 #### Papers on the current version:
+- Since version 5.9.0, the code includes Multi-Threading versions described as **ASTRAL-MP**:
+	* Yin, John, Chao Zhang, and Siavash Mirarab. “ASTRAL-MP : Scaling ASTRAL to Very Large Datasets Using Randomization and Parallelization.” Bioinformatics in press (2019). 
 - Since version 5.1.1, the code corresponds to **ASTRAL-III**, described in:
     * Zhang, Chao, Maryam Rabiee, Erfan Sayyari, and Siavash Mirarab. 2018. “ASTRAL-III: Polynomial Time Species Tree Reconstruction from Partially Resolved Gene Trees.” BMC Bioinformatics 19 (S6): 153. [doi:10.1186/s12859-018-2129-y](https://doi.org/10.1186/s12859-018-2129-y).
 - For **multi-individual** datasets, the relevant paper to cite is:
@@ -143,49 +145,25 @@ The output in is Newick format and gives:
 The ASTRAL tree leaves the branch length of terminal branches empty. Some tools for visualization and tree editing do not like this (e.g., ape). In FigTree, if you open the tree several times, it eventually opens up (at least on our machines). In ape, if you ask it to ignore branch lengths all together, it works. In general, if you tool does not like the lack of terminal branches, you can add a dummy branch length, [as in this script](https://github.com/smirarab/global/blob/master/src/mirphyl/utils/add-bl.py). 
 
 ### Other features (local posterior, bootstrapping):
+Please refer to the [tutorial](astral-tutorial.md) for all other features, including bootstrapping, branch annotation, and local posterior probability.
 
-<<<<<<< HEAD
-### Bootstrapping:
-
-To perform 100 replicates of multi-locus bootstrapping ([Seo 2008](http://www.ncbi.nlm.nih.gov/pubmed/18281270)), use:
-
-```
-java -Djava.library.path=lib/ -jar __astral.jar__ -i best_ml -b bs_paths -r 100
-```
-
-In this command, `bs_paths` is a file that gives the location (file path) of gene tree bootstrap files, one line per gene. See the [tutorial](astral-tutorial.md)
-for more details.
-`best_ml` has all the "main" trees (e.g. best ML trees) in one file.
-
-##### Bootstrap Output:
-
-The output file generated when using the bootstrapping feature with 100 replicates (`-r 100`) contains the following trees, in this order:
-
-* 100 bootstrapped replicate trees; each tree is the result of running ASTRAL on a set of bootstrap gene trees (one per gene).
-* A greedy consensus of the 100 bootstrapped replicate trees; this tree has support values drawn on branches based on the bootstrap replicate trees. Support values show the percentage of bootstrap replicates that contain a branch.
-* The “main” ASTRAL tree; this is the results of running ASTRAL on the `best_ml` input gene trees. This main tree also includes support values, which are again drawn based on the 100 bootstrap replicate trees.
-
-If `-r` option is set to anything other than 100, the number of replicates would be accordingly adjusted.
-**Note** that by default (i.e., when no `-r` is given), ASTRAL only performs 100 replicates regardless of the number of replicates in your bootstrapped gene trees.
-If you want to bootstrap with a different number of replicates, you must use `-r`.
-
-Also related to bootstrapping are `-g` (to enable gene/site resampling) and `-s` (to set the seed number) options.
 
 ### Multi-threading, GPU, vectorization. 
 
 - ASTRAL will try to use all the cores and all the GPUs on your machine. To prevent that, you can use options `-C` and `-T`. See the help.
 
 - The cumbersome `-Djava.library.path=lib/` will enable ASTRAL to use AVX2, which speeds things around 4X. These features are all added and described in our (in press) paper on ASTRAL-MP. AVX2 is sometimes not used because our precompiled packages do not match what you have on your system. Look for `Using native AVX batch computing.` in the log file. If there is a warning that AVX is not used, you can ignore it if you don't care about running time. If you want to make it work, then, try making the package by running 
-``` bash
-./make.sh
-````. If that doesn't work, try debugging by running the following from the `Astral` directory:
-```
-java -Djava.library.path=lib/ -jar ../native_library_tester.jar
-```
+
+	``` bash
+	./make.sh
+	``` 
+	
+	If that doesn't work, try debugging by running the following from the `Astral` directory:
+	
+	```bash
+	java -Djava.library.path=lib/ -jar ../native_library_tester.jar
+	```
 Soon, we will add more about this to the tutorial. 
-=======
-Please refer to the [tutorial](astral-tutorial.md) for all other features, including bootstrapping, branch annotation, and local posterior probability.
->>>>>>> master
 
 ### Memory:
 For big datasets (say more than 5000 taxa), increasing the memory available to Java can result in speedups. Note that you should give Java only as much free memory as you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke ASTRAL using the following command to make all the 3GB available to Java:
