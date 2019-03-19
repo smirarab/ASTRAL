@@ -20,6 +20,7 @@ public class NativeLibraryTester {
 		catch (Throwable e) {
 			useNativeMethod = false;
 			System.err.println("Fail to load native library "+System.mapLibraryName("Astral")+"! Is library path set correctly using -Djava.library.path=lib/?");
+			System.err.println("\n\n" + e);
 		}
 		
 		if (useNativeMethod) {
