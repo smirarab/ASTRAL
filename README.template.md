@@ -16,7 +16,7 @@ Email: `astral-users@googlegroups.com` for questions.
 
 #### Papers on the current version:
 - Since version 5.9.0, the code includes Multi-Threading versions described as **ASTRAL-MP**:
-	* Yin, John, Chao Zhang, and Siavash Mirarab. “ASTRAL-MP : Scaling ASTRAL to Very Large Datasets Using Randomization and Parallelization.” Bioinformatics in press (2019). 
+    * Yin, John, Chao Zhang, and Siavash Mirarab. “ASTRAL-MP: Scaling ASTRAL to Very Large Datasets Using Randomization and Parallelization.” Edited by Russell Schwartz. Bioinformatics btz211 (2019). https://doi.org/10.1093/bioinformatics/btz211.
 - Since version 5.1.1, the code corresponds to **ASTRAL-III**, described in:
     * Zhang, Chao, Maryam Rabiee, Erfan Sayyari, and Siavash Mirarab. 2018. “ASTRAL-III: Polynomial Time Species Tree Reconstruction from Partially Resolved Gene Trees.” BMC Bioinformatics 19 (S6): 153. [doi:10.1186/s12859-018-2129-y](https://doi.org/10.1186/s12859-018-2129-y).
 - For **multi-individual** datasets, the relevant paper to cite is:
