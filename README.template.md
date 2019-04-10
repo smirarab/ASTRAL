@@ -24,6 +24,7 @@ Email: `astral-users@googlegroups.com` for questions.
 - ASTRAL can also perform a **polytomy test** (`-t 10` option):
     * Sayyari, Erfan, and Siavash Mirarab. 2018. “Testing for Polytomies in Phylogenetic Species Trees Using Quartet Frequencies.” Genes 9 (3): 132. [doi:10.3390/genes9030132](http://www.mdpi.com/2073-4425/9/3/132).
 
+- For practical tips on using ASTRAL see [this preprint book chapter](https://arxiv.org/pdf/1904.03826.pdf).
 
 #### Papers on older versions:
 
@@ -40,7 +41,7 @@ These papers do not describe features in ASTRAL, but are also relveant and we en
 1. **DiscoVista**: This paper shows how quartet scores (more broadly, genome discordance) can be visualized in interpretable ways. The visualization of quartet scores, in particular, is closely tied to the ASTRAL method. 
     - Sayyari, Erfan, J.B. James B. Whitfield, and Siavash Mirarab. 2018. “DiscoVista: Interpretable Visualizations of Gene Tree Discordance.” Molecular Phylogenetics and Evolution 122 (May): 110–15. [doi:10.1016/j.ympev.2018.01.019](https://doi.org/10.1016/j.ympev.2018.01.019).
 - **Fragmentary data**: The following paper made the case that before inferring gene trees, removing fragmentary data (e.g., those that have uncharacteristically large numbers of gaps) should be removed. It also showed RAxML gene trees are preferable to FastTree trees. 
-    -     Sayyari, Erfan, James B Whitfield, and Siavash Mirarab. 2017. “Fragmentary Gene Sequences Negatively Impact Gene Tree and Species Tree Reconstruction.” Molecular Biology and Evolution 34 (12): 3279–91. [doi:10.1093/molbev/msx261](https://doi.org/10.1093/molbev/msx261).
+    - Sayyari, Erfan, James B Whitfield, and Siavash Mirarab. 2017. “Fragmentary Gene Sequences Negatively Impact Gene Tree and Species Tree Reconstruction.” Molecular Biology and Evolution 34 (12): 3279–91. [doi:10.1093/molbev/msx261](https://doi.org/10.1093/molbev/msx261).
 - **Missing data**: The following paper showed that excluding genes because they have missing data is often detrimental to accuracy. 
 	- Molloy, Erin K., and Tandy Warnow. 2018. “To Include or Not to Include: The Impact of Gene Filtering on Species Tree Estimation Methods.” Systematic Biology 67 (2): 285–303. [doi:10.1093/sysbio/syx077](https://doi.org/10.1093/sysbio/syx077).
 - **TreeShrink**: This paper introduced a method for removing very long branches from gene trees in a statistically motivated way. These branches make gene trees less accurate. 
@@ -58,29 +59,35 @@ Documentations
 
 - The rest of this README file
 - **Our [tutorial](astral-tutorial.md)**.
+- For practical tips on using ASTRAL, including on how to prepare input and interpret output, see [this paper](https://arxiv.org/pdf/1904.03826.pdf).
 - The chapter of Siavash Mirarab's dissertation that describes ASTRAL in detail is provided [here](thesis-astral.pdf).
 - Publications shown above have scientific details
 - A [developer guide](developer-guide.md).
 
 INSTALLATION:
 -----------
-There is no installation required to run ASTRAL.
-You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/__astral.zip__)
-and extract the contents to a folder of your choice. Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/). You can run `make.sh` to build the project or simply use the jar file that is included with the repository.
+* There is no installation required to run ASTRAL.
+* Download using one of two approaches:
+    * You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/__astral.zip__) and extract the contents to a folder of your choice. 
+    * Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/). You then run `make.sh` to build the project or simply uncompress the zip file that is included with the repository.
+* ASTRAL is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. 
+  Java 1.5 or later is required. We have tested ASTRAL only on Linux and MAC.
+* To test your installation, go to the place where you put the uncompressed ASTRAL, and run:
 
-ASTRAL is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. Java 1.5 or later is required. We have tested ASTRAL only on Linux and MAC.
+  ``` bash
+   java -jar __astral.jar__ -i test_data/song_primates.424.gene.tre
+   ```
 
-To test your installation, go to the place where you put the uncompressed ASTRAL, and run:
+  This should quickly finish. There are also other sample input files under `test_data/` that can be used.
 
-```
-java -jar __astral.jar__ -i test_data/song_primates.424.gene.tre
-```
+* ASTRAL can be run from any directory (e.g., `/path/to/astral/`). Then, you just need to run:
 
-This should quickly finish. There are also other sample input files under `test_data/` that can be used.
+  ``` bash
+  java -jar /path/to/astral/__astral.jar__
+  ```
 
-ASTRAL can be run from any directory. You just need to run `java -jar /path/to/astral/__astral.jar__`.
-Also, you can move `__astral.jar__` to any location you like and run it from there, but note that you need
-to move the `lib` directory as well.
+* Also, you can move `__astral.jar__` to any location you like and run it from there, but note that you need to move the `lib` directory with it as well.
+
 
 EXECUTION:
 -----------
@@ -133,7 +140,6 @@ The output in is Newick format and gives:
 The ASTRAL tree leaves the branch length of terminal branches empty. Some tools for visualization and tree editing do not like this (e.g., ape). In FigTree, if you open the tree several times, it eventually opens up (at least on our machines). In ape, if you ask it to ignore branch lengths all together, it works. In general, if you tool does not like the lack of terminal branches, you can add a dummy branch length, [as in this script](https://github.com/smirarab/global/blob/master/src/mirphyl/utils/add-bl.py). 
 
 ### Other features (local posterior, bootstrapping):
-
 Please refer to the [tutorial](astral-tutorial.md) for all other features, including bootstrapping, branch annotation, and local posterior probability.
 
 ### Memory:
