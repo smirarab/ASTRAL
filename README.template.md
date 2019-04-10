@@ -15,8 +15,8 @@ Email: `astral-users@googlegroups.com` for questions.
 ## Publications:
 
 #### Papers on the current version:
-- Since version 5.9.0, the code includes Multi-Threading versions described as **ASTRAL-MP**:
-    * Yin, John, Chao Zhang, and Siavash Mirarab. “ASTRAL-MP: Scaling ASTRAL to Very Large Datasets Using Randomization and Parallelization.” Edited by Russell Schwartz. Bioinformatics btz211 (2019). https://doi.org/10.1093/bioinformatics/btz211.
+- Since version 5.9.0, the code includes Multi-Threading, and is called  **ASTRAL-MP**. The algorithms  of ASTRAL-MP and ASTRAL-III  are identical and outputs are similar (random choices can act differently for ASTRAL-MP):
+    * Yin, John, Chao Zhang, and Siavash Mirarab. “ASTRAL-MP : Scaling ASTRAL to Very Large Datasets Using Randomization and Parallelization.” Bioinformatics, btz211 (2019). [doi:10.1093/bioinformatics/btz211](https://doi.org/10.1093/bioinformatics/btz211)
 - Since version 5.1.1, the code corresponds to **ASTRAL-III**, described in:
     * Zhang, Chao, Maryam Rabiee, Erfan Sayyari, and Siavash Mirarab. 2018. “ASTRAL-III: Polynomial Time Species Tree Reconstruction from Partially Resolved Gene Trees.” BMC Bioinformatics 19 (S6): 153. [doi:10.1186/s12859-018-2129-y](https://doi.org/10.1186/s12859-018-2129-y).
 - For **multi-individual** datasets, the relevant paper to cite is:
@@ -76,7 +76,7 @@ INSTALLATION:
 * To test your installation, go to the place where you put the uncompressed ASTRAL, and run:
 
   ``` bash
-  java -Djava.library.path=lib/ -jar __astral.jar__ -i test_data/song_primates.424.gene.tre
+  java -D"java.library.path=lib/" -jar __astral.jar__ -i test_data/song_primates.424.gene.tre
    ```
 
   This should quickly finish. There are also other sample input files under `test_data/` that can be used.
@@ -84,11 +84,11 @@ INSTALLATION:
 * ASTRAL can be run from any directory (e.g., `/path/to/astral/`). Then, you just need to run:
 
   ``` bash
-  java -Djava.library.path=/path/to/astral/lib/ -jar /path/to/astral/__astral.jar__
+  java -D"java.library.path=/path/to/astral/lib/" -jar /path/to/astral/__astral.jar__
   ```
 
 * Also, you can move `__astral.jar__` to any location you like and run it from there, but note that you need to move the `lib` directory with it as well.
-* Finally, you can omit `-Djava.library.path=/path/to/astral/lib/` and run the following, but your runs can become 4X or more slower. 
+* Finally, you can omit `-"Djava.library.path=/path/to/astral/lib/"` and run the following, but your runs can become 4X or more slower. 
    ``` bash
    java  -jar /path/to/astral/__astral.jar__
    ```
@@ -100,12 +100,12 @@ To get ASTRAL to correctly use AVX2, some steps may or may not be needed.
 1. To test if AVX2 works as is, from the uncompressed Astral folder (`Astral`) try:
 
    ``` bash
-   java -Djava.library.path=lib/ -jar ../native_library_tester.jar
+   java -D"java.library.path=lib/" -jar ../native_library_tester.jar
    ```
 
    If this tells you that AVX is working, you are done. No further steps needed. 
 
-2. If not and you get a error to the effect of `java.lang.UnsatisfiedLinkError: no Astral in java.library.path`, then check the `lib/` directory exists where you are. If it does not, you are in the wrong directory. Go to where Astral is unzipped. 
+2. If not and you get a error to the effect of `java.lang.UnsatisfiedLinkError: no Astral in java.library.path`, then check the `lib/` directory exists where you are. If it does not, you are in the wrong directory. Go to where Astral is unzipped. Or, give the correct path to the `-D` option. 
 
 3. If `lib` exists and the test command is complaining about other things, like wrong GLBIC version, then you can run 
 
@@ -113,7 +113,7 @@ To get ASTRAL to correctly use AVX2, some steps may or may not be needed.
    cd ..
    ./make.sh
    cd Astral
-   java -Djava.library.path=lib/ -jar ../native_library_tester.jar
+   java -D"java.library.path=lib/" -jar ../native_library_tester.jar
    ```
 
    This will the build the project for your machine.  For this to work, you need to have cloned the git repo. Test again. If it still does not work, write to us. We will try to help. 
@@ -126,7 +126,7 @@ EXECUTION:
 ASTRAL currently has no GUI. You need to run it through the command-line. In a terminal, go the location where you have downloaded the software, and issue the following command:
 
 ```
-  java -Djava.library.path=lib/ -jar __astral.jar__
+  java -D"java.library.path=lib/" -jar __astral.jar__
 ```
 
 This will give you a list of options available in ASTRAL.
@@ -134,18 +134,18 @@ This will give you a list of options available in ASTRAL.
 To find the species tree given a set of gene trees in a file called `in.tree`, use:
 
 ```
-java -Djava.library.path=lib/ -jar __astral.jar__ -i in.tree
+java -D"java.library.path=lib/" -jar __astral.jar__ -i in.tree
 ```
 
 The results will be outputted to the standard output. To save the results in a file use the `-o` option (**Strongly recommended**):
 
 ```
-java -Djava.library.path=lib/ -jar __astral.jar__ -i in.tree -o out.tre
+java -D"java.library.path=lib/" -jar __astral.jar__ -i in.tree -o out.tre
 ```
 To save the logs (**also recommended**), run:
 
 ```
-java -Djava.library.path=lib/ -jar __astral.jar__ -i in.tree -o out.tre 2>out.log
+java -D"java.library.path=lib/" -jar __astral.jar__ -i in.tree -o out.tre 2>out.log
 ```
 
 ###### Input: 
@@ -179,14 +179,14 @@ Please refer to the [tutorial](astral-tutorial.md) for all other features, inclu
 
 - ASTRAL will try to use all the cores and all the GPUs on your machine. To prevent that, you can use options `-C` and `-T`. See the help.
 
-- The cumbersome `-Djava.library.path=lib/` will enable ASTRAL to use AVX2, which speeds things around 4X. These features are all added and described in our (in press) paper on ASTRAL-MP. Look for `Using native AVX batch computing.` in the log file to see if AVX was used in your run. 
+- The cumbersome `-D"java.library.path=lib/"` will enable ASTRAL to use AVX2, which speeds things around 4X. These features are all added and described in our (in press) paper on ASTRAL-MP. Look for `Using native AVX batch computing.` in the log file to see if AVX was used in your run. 
   If there is a warning that AVX is not used, you can ignore it if you don't care about running time. If you want to make it work, then, try making the package by running. See the installation section for more information. 
 
 ### Memory:
 For big datasets (say more than 5000 taxa), increasing the memory available to Java can result in speedups. Note that you should give Java only as much free memory as you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke ASTRAL using the following command to make all the 3GB available to Java:
 
 ```
-java -Xmx3000M -Djava.library.path=lib/ -jar __astral.jar__ -i in.tree
+java -Xmx3000M -D"java.library.path=lib/" -jar __astral.jar__ -i in.tree
 ```
 
 Acknowledgment
