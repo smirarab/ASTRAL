@@ -5,8 +5,8 @@ ASTRAL is statistically consistent under the multi-species coalescent model (and
 ASTRAL finds the species tree that has the maximum number of shared induced quartet trees with the set of gene trees, subject to the constraint that the set of bipartitions in the species tree comes from a predefined set of bipartitions. This predefined set is empirically decided by ASTRAL (but see tutorial on how to expand it). The current code corresponds to **ASTRAL-III** (see below for the publication).
 
 
-The algorithm was designed by Tandy Warnow and Siavash Mirarab originally. ASTRAL-III incorporates many ideas by Chao Zhang and Maryam Rabiee.
-[Code developers](https://github.com/smirarab/ASTRAL/graphs/contributors) are mainly Siavash Mirarab, Chao Zhang, Maryam Rabiee, and Erfan Sayyari.
+The algorithm was designed by Tandy Warnow and Siavash Mirarab originally. ASTRAL-III incorporates many ideas by Chao Zhang and Maryam Rabiee and ASTRAL-MP is based on ideas by John Yin and Chao Zhang.
+[Code developers](https://github.com/smirarab/ASTRAL/graphs/contributors) are mainly Siavash Mirarab, Chao Zhang, John Yin,  Maryam Rabiee, and Erfan Sayyari.
 
 Email: `astral-users@googlegroups.com` for questions.
 
@@ -26,6 +26,7 @@ Email: `astral-users@googlegroups.com` for questions.
 - ASTRAL can also perform a **polytomy test** (`-t 10` option):
     * Sayyari, Erfan, and Siavash Mirarab. 2018. “Testing for Polytomies in Phylogenetic Species Trees Using Quartet Frequencies.” Genes 9 (3): 132. [doi:10.3390/genes9030132](http://www.mdpi.com/2073-4425/9/3/132).
 
+- For practical tips on using ASTRAL see [this preprint book chapter](https://arxiv.org/pdf/1904.03826.pdf).
 
 #### Papers on older versions:
 
@@ -60,7 +61,8 @@ Documentations
 
 - The rest of this README file
 - **Our [tutorial](astral-tutorial.md)**.
-- The chapter of Siavash Mirarab's dissertation that describes ASTRAL in detail is provided [here](thesis-astral.pdf).'
+- For practical tips on using ASTRAL, including on how to prepare input and interpret output, see [this paper](https://arxiv.org/pdf/1904.03826.pdf).
+- The chapter of Siavash Mirarab's dissertation that describes ASTRAL in detail is provided [here](thesis-astral.pdf).
 - Publications shown above have scientific details
 - A [developer guide](developer-guide.md).
 
