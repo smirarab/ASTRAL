@@ -1,2 +1,0 @@
-Main-Class: phylonet.coalescent.CommandLine
-Class-Path: lib/main.jar lib/JSAP-2.1.jar lib/colt.jar lib/jocl-2.0.0.jar
