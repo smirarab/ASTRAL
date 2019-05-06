@@ -17,6 +17,7 @@ public class Threading {
 	static cl_device_id[] usedDevices;
 	static String[] deviceVendors;
 	private static int numThreads = Runtime.getRuntime().availableProcessors();
+	private static int distMatrixChunks = -1;
 	
 	public static Future submit(Callable c) {
 		return Threading.eService.submit(c);
@@ -41,5 +42,12 @@ public class Threading {
 	public static int getNumThreads() {
 		return numThreads;
 	}
+	
+	public static int getDistMatrixChunkSize() {
+		return distMatrixChunks;
+	}
 
+	static void setDistMatrixChunkSize(int chunks) {
+		distMatrixChunks  = chunks;
+	}
 }
