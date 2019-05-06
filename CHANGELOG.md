@@ -1,3 +1,7 @@
+- version 5.14.2:
+	- Fix a bug in ASTRAL-MP for multi-threading
+	- Add a `--matrixcount` option to help reduce memory footprint for large n
+
 - version 5.14.0:
 	- Merge in changes from master (version 5.6.2)
 
