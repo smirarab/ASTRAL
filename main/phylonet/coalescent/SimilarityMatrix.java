@@ -99,7 +99,8 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 
 		int chunksize = (int) Math.ceil(geneTrees.size()/(Threading.getNumThreads()+0.0));
 		
-		int memchunkcount = (int) Math.min(Threading.getNumThreads(), (10^9/n^2)/2 );
+		int memchunkcount = Threading.getDistMatrixChunkSize();
+		System.err.println("with " + memchunkcount + " distance matrices in parallel");
 		Float[][][] a = new Float[memchunkcount][n][n];
 		Float[][][] d = new Float[memchunkcount][n][n];
 		for (int c = 0 ; c < memchunkcount; c++)
