@@ -45,19 +45,16 @@ public abstract class AbstractInferenceProducer<T> extends AbstractInference<T> 
 		if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) {
 			clusterResolutions = new ArrayList<VertexPair>();
 			Vertex v1 = null;
-			int smallestSize = 1;
+			int smallestSize = -1;
 			while (v1 == null) {
+				smallestSize++;
 				Set<Vertex> cs = containedVertecies.getSubClusters(smallestSize);
-				if (cs.size() != 0) {
-					for(Vertex csi : cs) {
-						if(csi.getCluster().getBitSet().nextSetBit(0) == 0) {
-							v1 = csi;
-							break;
-						}
-					}				
+				for(Vertex csi : cs) {
+					if(csi.getCluster().getBitSet().nextSetBit(0) == 0) {
+						v1 = csi;
+						break;
+					}
 				}
-				else 
-					smallestSize++;
 			}
 			for (Vertex v2: containedVertecies.getSubClusters(GlobalMaps.taxonIdentifier.taxonCount()-smallestSize))
 			{
