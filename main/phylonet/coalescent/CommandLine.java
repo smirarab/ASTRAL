@@ -51,7 +51,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine {
-	protected static String _version = "5.14.1";
+	protected static String _version = "5.14.2";
 	protected static SimpleJSAP jsap;
 
 	private static void exitWithErr(String extraMessage) {
@@ -161,6 +161,10 @@ public class CommandLine {
 								FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED,
 								JSAP.NO_SHORTFLAG, "remove-bipartitions",
 								"removes bipartitions of the provided extra trees (with species labels)"),
+						new FlaggedOption("matrixcount", JSAP.INTEGER_PARSER, null, JSAP.NOT_REQUIRED, JSAP.NO_SHORTFLAG,
+								"matrixcount",
+								"Sets the number of concurrent threads used for similarity matrix calculation. "
+								+ " Reducing this can help reducing memory footprint. "),
 						new FlaggedOption("trimming threshold", JSAP.DOUBLE_PARSER, "0", JSAP.NOT_REQUIRED, 'd',
 								"trimming",
 								"trimming threshold is user's estimate on normalized score; the closer user's estimate is, the faster astral runs."),
@@ -271,6 +275,7 @@ public class CommandLine {
 			numThreads = Runtime.getRuntime().availableProcessors();
 		}
 		Threading.startThreading(numThreads);
+		
 		if (Logging.timerOn) {
 			System.err.println("Timer starts here");
 			Logging.timer = System.currentTimeMillis();
@@ -424,6 +429,12 @@ public class CommandLine {
 				System.exit(0);
 			}
 		}
+		
+		if (config.contains("matrixcount"))
+			Threading.setDistMatrixChunkSize(config.getInt("matrixcount"));
+		else
+			Threading.setDistMatrixChunkSize( Math.min(Threading.getNumThreads(), (10^9/GlobalMaps.taxonIdentifier.taxonCount()^2)/2 ) );
+		
 		Options options = new Options(rooted, extrarooted, config.getBoolean("exact"), criterion > 0, 1,
 				config.getInt("extraLevel"), keepOptions.contains("completed"),
 				keepOptions.contains("searchspace_norun") || keepOptions.contains("searchspace"),
