@@ -11,6 +11,15 @@ The algorithm was designed by Tandy Warnow and Siavash Mirarab originally. ASTRA
 Email: `astral-users@googlegroups.com` for questions.
 
 
+### Other branches
+
+**NOTE**: 
+Several new  features of ASTRAL are not merged in this branch and are available in other branches. 
+Please use those branches if you find these features useful. 
+
+* **Multi-threaded ASTRAL**: A multi-threaded version of ASTRAL is now available on [this branch](https://github.com/smirarab/ASTRAL/tree/MP)
+* **Astral with user constraints**: A version of ASTRAL that can satisfy user constraints is available [here](https://github.com/maryamrabiee/Constrained-search)
+* **Tree updates**:  An ASTRAL-based algorithm called INSTRAL enables inserting  new species onto and existing ASTRAL tree is available [here](https://github.com/maryamrabiee/INSTRAL)
 
 ## Publications:
 
