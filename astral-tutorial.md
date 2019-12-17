@@ -203,7 +203,9 @@ In addition to giving an overall score, when you score a tree, branch lengths
 and branch support are also computed and outputted. In the next section, we will
 introduce ways to output even more information per branch. 
 
-When scoring a tree, you probably want to capture the stderr using `2>name_of_a_file` redirection, as described before. 
+* When scoring a tree, you probably want to capture the stderr using `2>name_of_a_file` redirection, as described before. 
+
+* Just like the use of ASTRAL for inferring species trees, you can combine `-a` and `-q` to compute branch support values for multi-individual dataset.  
 
 ### Extensive branch annotations
 Where you are inferring a species tree or scoring one using the `-q` option,
