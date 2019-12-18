@@ -1,3 +1,9 @@
+- version 5.7.0:
+	- **Important Bug Fix**: The normalized quartet score was incorrect for multi-individual gene trees with polytomies. Absolute quartet score was correct but normalizing factor was not
+
+- version 5.6.3:
+	- Add bl for the root clade.
+
 - version 5.6.2:
 	- add a zero length branch to the root branch that is not the outgroup. Needed for FigTree visualizaiton of multiind
 	
