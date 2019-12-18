@@ -211,7 +211,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
 		long sum = 0l;
-
+		boolean poly = false;
 		for (TNode node: st.postTraverse()) {
 			if (node.isLeaf()) {
 				String nodeName = node.getName(); //GlobalMaps.TaxonNameMap.getSpeciesName(node.getName());
@@ -248,6 +248,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 					}
 					System.err.println(" (polytomy)");*/
 					if (this.getBranchAnnotation() % 2 == 0) {
+						poly = true;
 						continue;
 					}
 				}
@@ -255,9 +256,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 				for (int i = 0; i < childbslist.size(); i++) {
 					for (int j = i+1; j < childbslist.size(); j++) {
 						for (int k = j+1; k < childbslist.size(); k++) {
-							Tripartition trip = new Tripartition(childbslist.get(i),  childbslist.get(j), childbslist.get(k));
-							Long s = weightCalculator.getWeight(trip, null);
-							sum += s;
+							sum += weightCalculator.getWeight(
+									new Tripartition(childbslist.get(i),  childbslist.get(j), childbslist.get(k)), 
+									null);
 						}
 					}					       
 				}
@@ -265,9 +266,17 @@ public class WQInference extends AbstractInference<Tripartition> {
 		}
 
 
-		System.err.println("Final quartet score is: " + sum/4l);
-		System.err.println("Final normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
-		//System.out.println(st.toNewickWD());
+		if (poly) {
+			System.err.println("Final quartet score is: won't report because of the existense of polytomies and to save time. "
+					+ "To get the score run with -t 1 and you can score the tree below using -q. ");
+			System.err.println("Final normalized quartet score is: won't report because of the existense of polytomies and to save time. "
+					+ "To get the score run with -t 1 and you can score the tree below using -q. ");
+		} else {
+			
+			System.err.println("Final quartet score is: " + sum/4l);
+			System.err.println("Final normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
+			//System.out.println(st.toNewickWD());
+		}
 
 		if (this.getBranchAnnotation() == 0){
 			for (TNode n: st.postTraverse()) {
