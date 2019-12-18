@@ -1,3 +1,6 @@
+- version 5.7.1:
+	- Bug fix: `-t 0`, `-t 2`,  `-t 4`, and  `-t 8` reported wrong quartet score for multi-ind datasets. Fixed to give a warning instead of wrong score. 
+
 - version 5.7.0:
 	- **Important Bug Fix**: The normalized quartet score was incorrect for multi-individual gene trees with polytomies. Absolute quartet score was correct but normalizing factor was not
 
