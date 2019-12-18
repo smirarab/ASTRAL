@@ -120,8 +120,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 	        }
 	        Tree t = ti.next();
 	        
-	        for (int s = 0 ; s < counts.length; s++) {
-	        	long count = counts[s];
+	        for (int species = 0 ; species < counts.length; species++) {
+	        	long count = counts[species];
 	        	
 	        	if ( count < 3 ) continue;
 	        	
@@ -137,7 +137,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 				for (TNode n: t.postTraverse()) {
 		        	//System.err.println(n);
 					Long c = 0l; //new long [GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount()];
-		        	if (n.isLeaf() && GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesIdForTaxon(GlobalMaps.taxonIdentifier.taxonId(n.getName()))==s) {
+		        	if (n.isLeaf() && GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesIdForTaxon(GlobalMaps.taxonIdentifier.taxonId(n.getName()))==species) {
 		        		c +=1;// [GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesIdForTaxon(GlobalMaps.taxonIdentifier.taxonId(n.getName()))]++;
 		        	} else {
 		    			List<Long > l = new ArrayList<Long>();
@@ -154,19 +154,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 								s3 += Math.pow(l.get(i),3);
 								s4 += Math.pow(l.get(i),4);
 			        		}
-	        				four += Math.pow(c,4) - 7 * s4 - 2*s2*s2 + 8*s1*s3;
-	        				th += Math.pow(c,3) - s3;
-			        		for (int i = 0; i < l.size(); i++) {
-		        				double ai2 = Math.pow(l.get(i),2);
-				        		for (int j = i+1; j <  l.size(); j++) {
-				        			long aij = l.get(i)*l.get(j);
-				        			long ai2j2 = aij*(l.get(i)+l.get(j));
-			        				double aj2 = Math.pow(l.get(j),2);
-			        				four -=  4 * (aij*(ai2+aj2+s2) + s1*ai2j2)  
-			        					   - 6 * Math.pow(aij,2);
-			        				th -= 3 * ai2j2;
-				        		}
-			        		}
+	        				four += Math.pow(c,4) - 6*s4 + 3*s2*s2 + 8*s1*s3 -6*s1*s1*s2;
+	        				th += Math.pow(c,3) + 2*s3 -3*s1*s2;
 		        		}
 		        	}
 	        		stack.push(c);
@@ -176,7 +165,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 	        }
 	        
 		}
-		System.err.println("four: "+four/24l);
+		//System.err.println("four: "+four/24l);
 		ret -= (three + four/24l);
 		return ret;
 	}
