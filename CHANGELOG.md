@@ -1,3 +1,6 @@
+- version 5.14.3:
+	- Merge with 5.7.1 of the master  (bug fix)
+	
 - version 5.14.2:
 	- Fix a bug in ASTRAL-MP for multi-threading
 	- Add a `--matrixcount` option to help reduce memory footprint for large n
@@ -76,6 +79,15 @@
 
 - version 5.9.0:
 	- AVX batch computation
+
+- version 5.7.1:
+	- Bug fix: `-t 0`, `-t 2`,  `-t 4`, and  `-t 8` reported wrong quartet score for multi-ind datasets. Fixed to give a warning instead of wrong score. 
+
+- version 5.7.0:
+	- **Important Bug Fix**: The normalized quartet score was incorrect for multi-individual gene trees with polytomies. Absolute quartet score was correct but normalizing factor was not
+
+- version 5.6.3:
+	- Add bl for the root clade.
 	
 - version 5.6.2:
 	- add a zero length branch to the root branch that is not the outgroup. Needed for FigTree visualizaiton of multiind
