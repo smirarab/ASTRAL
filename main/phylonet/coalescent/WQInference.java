@@ -107,18 +107,77 @@ public class WQInference extends AbstractInference<Tripartition> {
 		if (GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleIndividual())
 			return 0;
 		long ret = 0;
+		long four = 0;
+		long three = 0;
+		Iterator<Tree> ti = this.trees.iterator();
 		for (STITreeCluster gtCL : ((WQDataCollection)this.dataCollection).treeAllClusters) {
+			
 			long[] counts = new long [GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount()];
 			long size = gtCL.getClusterSize();
 			BitSet bs = gtCL.getBitSet();
 	        for (int i = bs.nextSetBit(0); i >=0 ; i = bs.nextSetBit(i+1)) {
 	            counts[(GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesIdForTaxon(i))]++;
 	        }
-	        for (long count : counts) {
-	        	ret += (count*(count-1l)*(count-2l))/6l*(size-count)+
+	        Tree t = ti.next();
+	        
+	        for (int s = 0 ; s < counts.length; s++) {
+	        	long count = counts[s];
+	        	
+	        	if ( count < 3 ) continue;
+	        	
+				long o = (size-count);
+				
+				// First compute how many quartets there are from single inds
+	        	ret += (count*(count-1l)*(count-2l))/6l*(o)+
 	        			(count*(count-1l)*(count-2l)*(count-3l))/24l;
+	        
+		        // Some of these quartets may be unresolved. Count them up and subtract their count
+	        	double th = 0;
+			    Stack<Long > stack =new Stack<Long>();
+				for (TNode n: t.postTraverse()) {
+		        	//System.err.println(n);
+					Long c = 0l; //new long [GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount()];
+		        	if (n.isLeaf() && GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesIdForTaxon(GlobalMaps.taxonIdentifier.taxonId(n.getName()))==s) {
+		        		c +=1;// [GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesIdForTaxon(GlobalMaps.taxonIdentifier.taxonId(n.getName()))]++;
+		        	} else {
+		    			List<Long > l = new ArrayList<Long>();
+		        		for (int i = 0; i < n.getChildCount(); i++) {
+		        			long pop = stack.pop();
+							l.add(pop);
+		        			c += pop;
+						}
+		        		if (c!=0) {
+		        			double s1 = 0, s2 = 0, s3 = 0,  s4 = 0;
+			        		for (int i = 0; i < l.size(); i++) {
+								s1 += l.get(i);
+								s2 += Math.pow(l.get(i),2);
+								s3 += Math.pow(l.get(i),3);
+								s4 += Math.pow(l.get(i),4);
+			        		}
+	        				four += Math.pow(c,4) - 7 * s4 - 2*s2*s2 + 8*s1*s3;
+	        				th += Math.pow(c,3) - s3;
+			        		for (int i = 0; i < l.size(); i++) {
+		        				double ai2 = Math.pow(l.get(i),2);
+				        		for (int j = i+1; j <  l.size(); j++) {
+				        			long aij = l.get(i)*l.get(j);
+				        			long ai2j2 = aij*(l.get(i)+l.get(j));
+			        				double aj2 = Math.pow(l.get(j),2);
+			        				four -=  4 * (aij*(ai2+aj2+s2) + s1*ai2j2)  
+			        					   - 6 * Math.pow(aij,2);
+			        				th -= 3 * ai2j2;
+				        		}
+			        		}
+		        		}
+		        	}
+	        		stack.push(c);
+	        		if (c == count) break;
+		        }
+        		three += th*o/6;
 	        }
+	        
 		}
+		System.err.println("four: "+four/24l);
+		ret -= (three + four/24l);
 		return ret;
 	}
 
