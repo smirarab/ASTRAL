@@ -11,6 +11,15 @@ The algorithm was designed by Tandy Warnow and Siavash Mirarab originally. ASTRA
 Email: `astral-users@googlegroups.com` for questions.
 
 
+### Other branches
+
+**NOTE**: 
+Several new  features of ASTRAL are not merged in this branch and are available in other branches. 
+Please use those branches if you find these features useful. 
+
+* **Multi-threaded ASTRAL**: A multi-threaded version of ASTRAL is now available on [this branch](https://github.com/smirarab/ASTRAL/tree/MP)
+* **Astral with user constraints**: A version of ASTRAL that can satisfy user constraints is available [here](https://github.com/maryamrabiee/Constrained-search)
+* **Tree updates**:  An ASTRAL-based algorithm called INSTRAL enables inserting  new species onto and existing ASTRAL tree is available [here](https://github.com/maryamrabiee/INSTRAL)
 
 ## Publications:
 
@@ -121,6 +130,7 @@ To get ASTRAL to correctly use AVX2, some steps may or may not be needed.
    This will the build the project for your machine.  For this to work, you need to have cloned the git repo. Test again. If it still does not work, write to us. We will try to help. 
 
 Also, if you couldn't get AVX2 to work, don't worry. AVX2 is only for speed (3-4X). It does not affect results. Just run without it. 
+
 
 
 EXECUTION:
