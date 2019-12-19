@@ -138,31 +138,29 @@ public class WQInference extends AbstractInference<Tripartition> {
 	        	double th = 0;
 			    Stack<Long > stack =new Stack<Long>();
 				for (TNode n: t.postTraverse()) {
-					Long c = 0l; // Number of inds of this species 
-		        	if (n.isLeaf() && GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesIdForTaxon(GlobalMaps.taxonIdentifier.taxonId(n.getName()))==species) {
-		        		c +=1;
+					long s1 = 0l, s2 = 0, s3 = 0,  s4 = 0; // Number of inds of this species and its moments
+		        	if (n.isLeaf() && GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesIdForTaxon(
+		        			GlobalMaps.taxonIdentifier.taxonId(n.getName()))==species) {
+		        		s1 += 1;
 		        	} else {
-		    			long [] l = new long[n.getChildCount()];
 		        		for (int i = 0; i < n.getChildCount(); i++) {
 		        			long pop = stack.pop();
-							l[i] = pop;
-		        			c += pop;
+		        			if (pop != 0) {
+			        			s1 += pop;
+			        			long popp = pop*pop;
+			        			s2 += popp;
+								s3 += popp*pop;
+								s4 += popp*popp;
+		        			}
 						}
-		        		if (c!=0) {
-		        			double s1 = 0, s2 = 0, s3 = 0,  s4 = 0;
-			        		for (int i = 0; i < l.length; i++) {
-								s1 += l[i];
-								s2 += Math.pow(l[i],2);
-								s3 += Math.pow(l[i],3);
-								s4 += Math.pow(l[i],4);
-			        		}
-	        				four += Math.pow(c,4) - 6*s4 + 8*s1*s3 - 6*s1*s1*s2 + 3*s2*s2;
-	        				th += Math.pow(c,3) + 2*s3 -3*s1*s2;
+		        		if (s1 !=0 ) {
+	        				four += s1*(Math.pow(s1,3)  + 8*s3 - 6*s1*s2) - 6*s4 + 3*s2*s2;
+	        				th += Math.pow(s1,3) + 2*s3 -3*s1*s2;
 		        		}
 		        	}
-	        		stack.push(c);
+	        		stack.push(s1);
 	        		
-	        		if (c == count) break;
+	        		if (s1 == count) break;
 		        }
         		three += th*others;
 	        }
