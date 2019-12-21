@@ -1,3 +1,7 @@
+- version 5.7.2:
+	- Make the hidden `-t16` work for multi-ind
+	- Make the fix of 5.7.0 a bit faster. 
+
 - version 5.7.1:
 	- Bug fix: `-t 0`, `-t 2`,  `-t 4`, and  `-t 8` reported wrong quartet score for multi-ind datasets. Fixed to give a warning instead of wrong score. 
 
