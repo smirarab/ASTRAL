@@ -154,33 +154,33 @@ public class WQInference extends AbstractInference<Tripartition> {
 				
         		for (int i = 0; i < n.getChildCount(); i++) {
         			long[] pops = stack.pop();
-        			int sind = 0;
+        			int s = 0;
         			for (Integer species : seenspecies){
         				long pop = pops[species];
 	        			if (pop != 0) {
 		        			sum1[species] += pop;
 		        			long popp = pop*pop;
-		        			sum2[sind] += popp;
-							sum3[sind] += popp*pop;
-							sum4[sind] += popp*popp;
+		        			sum2[s] += popp;
+							sum3[s] += popp*pop;
+							sum4[s] += popp*popp;
 	        			}
 
 		        		if (sum1[species] == counts[species]) {
 		        			donespecies.add(species);
 		        		}
-	        			sind++;
+	        			s++;
         			}
         		}
         		stack.push(sum1);
         		
-        		int sind = 0;
+        		int sindex = 0;
     			for (Integer species : seenspecies){
-		        	long s1 = sum1[species], s2 = sum2[sind], s3 = sum3[sind], s4 = sum4[sind];
+		        	long s1 = sum1[species], s2 = sum2[sindex], s3 = sum3[sindex], s4 = sum4[sindex];
 	        		if (s1 != 0 ) {
         				four += s1*(Math.pow(s1,3)  + 8*s3 - 6*s1*s2) - 6*s4 + 3*s2*s2;
     	        		three += (Math.pow(s1,3) + 2*s3 -3*s1*s2)*(size-counts[species]);
 	        		}
-	        		sind++;
+	        		sindex++;
 	        	}
 		        
     			seenspecies.removeAll(donespecies);
@@ -355,7 +355,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 		BufferedWriter freqWriter = null;
 		BufferedWriter Rscript = null;
 		//List<String> freqWriterLines = new ArrayList<String>();
-		if (this.getBranchAnnotation() == 16) {
+		if (this.getBranchAnnotation() % 16 == 0) {
 			String freqOutputPath = this.options.getFreqOutputPath();
 			try {
 				Rscript = new BufferedWriter(new FileWriter(freqOutputPath + File.separator+ "freqQuadVisualization.R"));
@@ -394,7 +394,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 				//((STINode)node).setData(new GeneTreeBitset(node.isRoot()? -2: -1));
 				stack.add(cluster);
 				node.setData(cluster);
-				if (options.getBranchannotation() == 16) {
+				if (options.getBranchannotation() % 16 == 0) {
 					String ndName = "N" + Integer.toString(numNodes);
 					numNodes += 1;
 					node.setName(ndName);
@@ -515,7 +515,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 							System.err.print(c1.toString()+c2.toString()+"|"+sister.toString()+remaining.toString()+"\n");
 						}
 					}
-					if (this.getBranchAnnotation() == 6 || this.getBranchAnnotation() == 16) {
+					if (this.getBranchAnnotation() == 6 || this.getBranchAnnotation() % 16 == 0) {
 						STITreeCluster c1plussis = GlobalMaps.taxonIdentifier.newCluster();
 
 						c1plussis.setCluster((BitSet) c1.getBitSet().clone());
@@ -647,30 +647,46 @@ public class WQInference extends AbstractInference<Tripartition> {
 								"'[q1="+df.format((f1)/effni)+
 								";q2="+df.format((f2)/effni)+
 								";q3="+df.format((f3)/effni)+"]'");
-					} else if (this.getBranchAnnotation() == 16) {
+					} else if (this.getBranchAnnotation() % 16 == 0) {
 						node.setData("'[pp1="+df.format(postQ1)+";pp2="+df.format(postQ2)+";pp3="+df.format(postQ3)+"]'");	
 						Quadrapartition[] threequads = nd.quads;
 						//STBipartition[] biparts = nd.bipartitions;
 
 						if (threequads == null)
 							continue;
-						String lineTmp = node.getName() + "\t" + "t1" + "\t" + threequads[0].toString2() + "\t" + 
-								Double.toString(postQ1) + "\t" + Double.toString(f1) +
-								"\t" + Double.toString(effni);
-
+						
 						try {
-							freqWriter.write(lineTmp + "\n");
-
-							lineTmp = node.getName() + "\t" + "t2" + "\t" + threequads[1].toString2() + "\t" + 
-									Double.toString(postQ2) + "\t" + Double.toString(f2) + 
+							if (this.getBranchAnnotation() == 16) {
+								String lineTmp = node.getName() + "\t" + "t1" + "\t" + threequads[0].toString2() + "\t" + 
+									Double.toString(postQ1) + "\t" + Double.toString(f1) +
 									"\t" + Double.toString(effni);
-
-							freqWriter.write(lineTmp + "\n");
-
-							lineTmp = node.getName() + "\t" + "t3" + "\t" + threequads[2].toString2() + "\t" +
-									Double.toString(postQ3) + "\t" + Double.toString(f3) +
-									"\t" + Double.toString(effni);
-							freqWriter.write(lineTmp + "\n");
+								freqWriter.write(lineTmp + "\n");
+	
+								lineTmp = node.getName() + "\t" + "t2" + "\t" + threequads[1].toString2() + "\t" + 
+										Double.toString(postQ2) + "\t" + Double.toString(f2) + 
+										"\t" + Double.toString(effni);
+								freqWriter.write(lineTmp + "\n");
+	
+								lineTmp = node.getName() + "\t" + "t3" + "\t" + threequads[2].toString2() + "\t" +
+										Double.toString(postQ3) + "\t" + Double.toString(f3) +
+										"\t" + Double.toString(effni);
+								freqWriter.write(lineTmp + "\n"); } 
+							else {
+								String lineTmp = node.getName() + "\t" + "t1" + "\t" + threequads[0].toString2() + "\t" + 
+										Double.toString((f1)/effni) + "\t" + Double.toString(f1) +
+										"\t" + Double.toString(effni);
+								freqWriter.write(lineTmp + "\n");
+	
+								lineTmp = node.getName() + "\t" + "t2" + "\t" + threequads[1].toString2() + "\t" + 
+										Double.toString((f2)/effni) + "\t" + Double.toString(f2) + 
+										"\t" + Double.toString(effni);
+								freqWriter.write(lineTmp + "\n");
+	
+								lineTmp = node.getName() + "\t" + "t3" + "\t" + threequads[2].toString2() + "\t" +
+										Double.toString((f3)/effni) + "\t" + Double.toString(f3) +
+										"\t" + Double.toString(effni);
+								freqWriter.write(lineTmp + "\n"); 
+								}
 						} catch (IOException e) {
 							throw new RuntimeException(e);
 						}
@@ -682,7 +698,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 		}
 		if (!nodeDataList.isEmpty())
 			throw new RuntimeException("Hmm, this shouldn't happen; "+nodeDataList);
-		if (this.getBranchAnnotation() == 16) {
+		if (this.getBranchAnnotation() % 16 == 0) {
 			try {
 				Rscript.write("#!/usr/bin/env Rscript\n");
 				Rscript.write("red='#d53e4f';orange='#1d91c0';blue='#41b6c4';colormap = c(red,orange,blue)\n");
