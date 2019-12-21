@@ -40,7 +40,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine{
-    protected static String _versinon = "5.7.2";
+    protected static String _versinon = "5.7.3";
 
     protected static SimpleJSAP jsap;
     
@@ -92,7 +92,8 @@ public class CommandLine{
                             + "3 (default): only the posterior probability for the main resolution.\n"
                             + "4: three alternative posterior probabilities.\n"
                             + "8: three alternative quartet scores.\n"
-                            + "10: p-values of a polytomy null hypothesis test (arxiv: 1708.08916)."),
+                            + "16/32: hidden commands useful to create a file called freqQuad.csv.\n"
+                            + "10: p-values of a polytomy null hypothesis test."),
                             
 	                new FlaggedOption("bootstraps", 
 	                        FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED,
@@ -249,12 +250,12 @@ public class CommandLine{
         }
         
         if (outfile == null) {
-            if (config.getInt("branch annotation level") == 16) {
+            if (config.getInt("branch annotation level") % 16 == 0) {
             	File extraTreeFile = config.getFile("score species trees");
             	freqPath = extraTreeFile.getAbsoluteFile().getParentFile().getAbsolutePath();
             }
         } else {
-        	if (config.getInt("branch annotation level") == 16) {
+        	if (config.getInt("branch annotation level") % 16 == 0) {
         		freqPath = outfile.getAbsoluteFile().getParentFile().getAbsolutePath();
         	}
 			outfileName = config.getFile("output file") == null? 
