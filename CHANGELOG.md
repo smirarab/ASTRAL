@@ -1,3 +1,6 @@
+- version 5.7.3:
+	- Added -t32
+
 - version 5.7.2:
 	- Make the hidden `-t16` work for multi-ind
 	- Make the fix of 5.7.0 a bit faster. 
