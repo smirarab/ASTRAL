@@ -7,10 +7,12 @@ import java.io.PrintWriter;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 import java.util.Stack;
 
 import phylonet.coalescent.BipartitionWeightCalculator.Quadrapartition;
@@ -110,6 +112,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 		long four = 0;
 		long three = 0;
 		Iterator<Tree> ti = this.trees.iterator();
+		System.err.print("Counting unresolvable quartets ... ");
 		for (STITreeCluster gtCL : ((WQDataCollection)this.dataCollection).treeAllClusters) {
 			
 			long[] counts = new long [GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount()]; // number of inds of each species
@@ -121,53 +124,72 @@ public class WQInference extends AbstractInference<Tripartition> {
 	        
 	        Tree t = ti.next();
 	        
-	        for (int species = 0 ; species < counts.length; species++) {
-	        	
-	        	long count = counts[species];
-	        	
-	        	if ( count < 3 ) continue;
-	        	
-	        	long others = (size-count);
+	        for (Long count: counts) {  
 				
 				// First compute how many quartets there are from single inds
-	        	ret += (count*(count-1l)*(count-2l))/6l*(others)+        // 3 inds of this species + 1 other
+	        	ret += (count*(count-1l)*(count-2l))/6l*(size-count)+        // 3 inds of this species + 1 other
 	        			(count*(count-1l)*(count-2l)*(count-3l))/24l;    // 4 inds of this species
+				
+	        }
 	        
-		        // Some of these quartets may be unresolved. Count them up and subtract their count
-	        	//    compute these for 3+1 and 4 quartets separately. Just cleaner looking. 
-	        	double th = 0;
-			    Stack<Long > stack =new Stack<Long>();
-				for (TNode n: t.postTraverse()) {
-					long s1 = 0l, s2 = 0, s3 = 0,  s4 = 0; // Number of inds of this species and its moments
-		        	if (n.isLeaf() && GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesIdForTaxon(
-		        			GlobalMaps.taxonIdentifier.taxonId(n.getName()))==species) {
-		        		s1 += 1;
-		        	} else {
-		        		for (int i = 0; i < n.getChildCount(); i++) {
-		        			long pop = stack.pop();
-		        			if (pop != 0) {
-			        			s1 += pop;
-			        			long popp = pop*pop;
-			        			s2 += popp;
-								s3 += popp*pop;
-								s4 += popp*popp;
-		        			}
-						}
-		        		if (s1 !=0 ) {
-	        				four += s1*(Math.pow(s1,3)  + 8*s3 - 6*s1*s2) - 6*s4 + 3*s2*s2;
-	        				th += Math.pow(s1,3) + 2*s3 -3*s1*s2;
+	        Set<Integer> seenspecies = new HashSet<Integer>();
+	        	
+		    Stack<long []> stack =new Stack<long[]>();
+			for (TNode n: t.postTraverse()) {
+				if (n.isLeaf()) {
+					int sp = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesIdForTaxon(
+		        			GlobalMaps.taxonIdentifier.taxonId(n.getName()));
+					if (counts[sp] >=3)
+						seenspecies.add(sp);
+	        		long[] p = new long[counts.length];
+	        		p[sp] = p[sp]+1;
+	        		stack.push(p);
+	        		continue;
+	        	}
+    			Set<Integer> donespecies = new HashSet<Integer>();
+    			long[]  sum1 = new long[counts.length], 
+    					sum2 = new long[seenspecies.size()],
+    					sum3 = new long[seenspecies.size()],
+    					sum4 = new long[seenspecies.size()];
+				
+        		for (int i = 0; i < n.getChildCount(); i++) {
+        			long[] pops = stack.pop();
+        			int sind = 0;
+        			for (Integer species : seenspecies){
+        				long pop = pops[species];
+	        			if (pop != 0) {
+		        			sum1[species] += pop;
+		        			long popp = pop*pop;
+		        			sum2[sind] += popp;
+							sum3[sind] += popp*pop;
+							sum4[sind] += popp*popp;
+	        			}
+
+		        		if (sum1[species] == counts[species]) {
+		        			donespecies.add(species);
 		        		}
-		        	}
-	        		stack.push(s1);
-	        		
-	        		if (s1 == count) break;
-		        }
-        		three += th*others;
+	        			sind++;
+        			}
+        		}
+        		stack.push(sum1);
+        		
+        		int sind = 0;
+    			for (Integer species : seenspecies){
+		        	long s1 = sum1[species], s2 = sum2[sind], s3 = sum3[sind], s4 = sum4[sind];
+	        		if (s1 != 0 ) {
+        				four += s1*(Math.pow(s1,3)  + 8*s3 - 6*s1*s2) - 6*s4 + 3*s2*s2;
+    	        		three += (Math.pow(s1,3) + 2*s3 -3*s1*s2)*(size-counts[species]);
+	        		}
+	        		sind++;
+	        	}
+		        
+    			seenspecies.removeAll(donespecies);
 	        }
 	        
 		}
 		//System.err.println("four: "+four/24l);
 		ret -= (three/6 + four/24l);
+		System.err.println(ret);
 		return ret;
 	}
 
@@ -630,6 +652,8 @@ public class WQInference extends AbstractInference<Tripartition> {
 						Quadrapartition[] threequads = nd.quads;
 						//STBipartition[] biparts = nd.bipartitions;
 
+						if (threequads == null)
+							continue;
 						String lineTmp = node.getName() + "\t" + "t1" + "\t" + threequads[0].toString2() + "\t" + 
 								Double.toString(postQ1) + "\t" + Double.toString(f1) +
 								"\t" + Double.toString(effni);
