@@ -246,7 +246,7 @@ java -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 
 java -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 8 -o test_data/1kp-scored-t8.tre
 ```
 ```
-java -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 10 -o test_data/1kp-scored-t8.tre
+java -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 10 -o test_data/1kp-scored-t10.tre
 ```
 read all the values given for a couple of branches and try to make sense of them. 
 
