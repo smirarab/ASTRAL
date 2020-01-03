@@ -77,12 +77,12 @@ Documentations
 
 INSTALLATION:
 -----------
-* There is no installation required to run ASTRAL but for ASTRAL-MP to work properly with AVX2 to you may need installation (see below).
+* There is no installation required to run ASTRAL *but for ASTRAL-MP to work properly with AVX2 to **you may** need installation (see below)*.
 
 #### Vanilla:
 * Download:
-    * You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/Astral.5.14.3.zip) and extract the contents to a folder of your choice. 
-    * Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/). 
+    * You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/MP/Astral.5.14.3.zip) and extract the contents to a folder of your choice. 
+    * Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/) and swith to the `MP` branch. 
 * Then, you simply use the jar file that is included with the repository. ASTRAL is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. Java 1.6 or later is required. 
 * To test your installation, go to the place where you put the uncompressed ASTRAL, and run:
 
