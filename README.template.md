@@ -82,7 +82,7 @@ INSTALLATION:
 #### Vanilla:
 * Download:
     * You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/MP/__astral.zip__) and extract the contents to a folder of your choice. 
-    * Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/) and swith to the `MP` branch. 
+    * Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/) and swith to the `MP` branch (`git checkout MP`). 
 * Then, you simply use the jar file that is included with the repository. ASTRAL is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. Java 1.6 or later is required. 
 * To test your installation, go to the place where you put the uncompressed ASTRAL, and run:
 
@@ -108,23 +108,24 @@ INSTALLATION:
 
 To get ASTRAL to correctly use AVX2, some steps may or may not be needed. 
 
-1. To test if AVX2 works as is, from the uncompressed Astral folder (`Astral`) try:
+1. To test if AVX2 works as is, from the uncompressed Astral folder (`Astral`) or base ASTRAL reop try:
 
    ``` bash
-   java -D"java.library.path=lib/" -jar ../native_library_tester.jar
+   java -D"java.library.path=lib/" -jar native_library_tester.jar
    ```
 
    If this tells you that AVX is working, you are done. No further steps needed. 
 
-2. If not and you get a error to the effect of `java.lang.UnsatisfiedLinkError: no Astral in java.library.path`, then check the `lib/` directory exists where you are. If it does not, you are in the wrong directory. Go to where Astral is unzipped. Or, give the correct path to the `-D` option. 
+2. If not, 
+    * You need to make sure you have cloned the github (as opposed to downloading the zip file). 
+    * Make sure you have checked out the `MP` branch ((`git checkout MP`))
+    * If you get a error to the effect of `java.lang.UnsatisfiedLinkError: no Astral in java.library.path`, then check the `lib/` directory exists where you are. If it does not, you are in the wrong directory. Give the correct path to the `lib` directory to the `-D` option. 
 
-3. If `lib` exists and the test command is complaining about other things, like wrong GLBIC version, then you can run 
+3. If `lib` exists and the test command is complaining about other things, like wrong GLBIC version, then you can go to the base of ASTRAL github and run 
 
    ``` bash
-   cd ..
    ./make.sh
-   cd Astral
-   java -D"java.library.path=lib/" -jar ../native_library_tester.jar
+   java -D"java.library.path=lib/" -jar native_library_tester.jar
    ```
 
    This will the build the project for your machine.  For this to work, you need to have cloned the git repo. Test again. If it still does not work, write to us. We will try to help. 
