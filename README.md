@@ -111,7 +111,7 @@ To get ASTRAL to correctly use AVX2, some steps may or may not be needed.
 1. To test if AVX2 works as is, from the uncompressed Astral folder (`Astral`) try:
 
    ``` bash
-   java -D"java.library.path=lib/" -jar ../native_library_tester.jar
+   java -D"java.library.path=lib/" -jar native_library_tester.jar
    ```
 
    If this tells you that AVX is working, you are done. No further steps needed. 
