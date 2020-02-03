@@ -20,6 +20,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -52,7 +53,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 
 public class CommandLine {
-	protected static String _version = "5.14.3";
+	protected static String _version = "5.14.4";
 	protected static SimpleJSAP jsap;
 
 	private static void exitWithErr(String extraMessage) {
@@ -80,6 +81,8 @@ public class CommandLine {
 						new Switch("cpu only", 'C', "cpu-only", "Do not use GPUs."),
 						new FlaggedOption("cpu threads", JSAP.INTEGER_PARSER, "-1", JSAP.NOT_REQUIRED, 'T',
 								"cpu-threads", "Number of threads to use. "),
+						new FlaggedOption("GPU", JSAP.STRING_PARSER, null, JSAP.NOT_REQUIRED, 'G', "GPU",
+								" the index of GPUs to be used, provided as a comma-separated list. If missing, all GPUs are used. (default)"),
 						new Switch("internode-dist", 'A', "internode",
 								"USe NJst-like internode distances instead of quartet distance for building the search space (X). Unpublished work. "),
 						new FlaggedOption("score species trees", FileStringParser.getParser().setMustExist(true), null,
@@ -238,6 +241,16 @@ public class CommandLine {
 				// Obtain a device ID
 				cl_device_id devices[] = new cl_device_id[numDevices];
 				clGetDeviceIDs(platform, deviceType, numDevices, devices, null);
+				Arrays.sort(devices, new Comparator<cl_device_id>() {
+
+					@Override
+					public int compare(cl_device_id arg0, cl_device_id arg1) {
+						
+						return getString(arg0, CL_DEVICE_NAME).compareTo(getString(arg1, CL_DEVICE_NAME));
+					}
+				});
+				
+				System.err.println("Detected GPU devices: ");
 				for (int i = 0; i < numDevices; i++) {
 					String deviceName = getString(devices[i], CL_DEVICE_NAME);
 					String deviceVendor = getString(devices[i], CL_DEVICE_VENDOR);
@@ -245,14 +258,34 @@ public class CommandLine {
 							+ " Vendor: " + deviceVendor);
 				}
 
+				ArrayList<cl_device_id> usedGPUs = new ArrayList<cl_device_id>();
+				if (config.getString("GPU") != null) {
+					try {
+						for (String  si : config.getString("GPU").split(",")) {
+							if (!usedGPUs.contains(devices[Integer.parseInt(si)-1]))
+								usedGPUs.add(devices[Integer.parseInt(si)-1]);
+						}
+					} catch (Exception e) {
+						exitWithErr("Could not parse GPU selection '" +config.getString("GPU")+"'. "
+								+ "This should be comma-delimited list of integers between 1 and "+ numDevices+"\n"+e.toString());
+						
+					}
+				} else {
+					for (int i = 0; i < devices.length; i++) {
+						usedGPUs.add(devices[i]);
+					}
+				}
+				
 				ArrayList<cl_device_id> usedDevicesAL = new ArrayList<cl_device_id>();
 				ArrayList<String> deviceVendorsAL = new ArrayList<String>();
-				// while(in.hasNext()) {
-				// usedDevicesAL.add(devices[in.nextInt()-1]);
-				// }
+				for (cl_device_id d : usedGPUs) {
+					deviceVendorsAL.add(getString(d, CL_DEVICE_VENDOR));	
+					usedDevicesAL.add(d);
+					System.err.println("Will use Device : " + getString(d, CL_DEVICE_NAME));
+				}
 				// testing only
-				deviceVendorsAL.add(getString(devices[0], CL_DEVICE_VENDOR));
-				usedDevicesAL.add(devices[0]);
+				// deviceVendorsAL.add(getString(devices[0], CL_DEVICE_VENDOR));
+				// usedDevicesAL.add(devices[0]);
 				// usedDevicesAL.add(devices[1]);
 				// usedDevicesAL.add(devices[2]);
 				// usedDevicesAL.add(devices[3]);
@@ -264,10 +297,10 @@ public class CommandLine {
 						Threading.usedDevices, null, null, null);
 				// johng23 end
 			} catch (Exception e) {
-				System.err.println("Warning:\n\n Problem using GPU. Proceeding without GPU");
+				System.err.println("Warning:\n\n Problem using GPU. Proceeding without GPU\n"+e);
 				Threading.usedDevices = null;
 			} catch (Error e) {
-				System.err.println("Warning:\n\n Problem using GPU. Proceeding without GPU");
+				System.err.println("Warning:\n\n Problem using GPU. Proceeding without GPU\n"+e);
 				Threading.usedDevices = null;
 			}
 		}
