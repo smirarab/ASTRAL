@@ -1,3 +1,7 @@
+- version 5.14.4:
+	- Bug fix: use all GPUs
+	- Added `-G` to allow choosing specific GPUs
+
 - version 5.14.3:
 	- Merge with 5.7.1 of the master  (bug fix)
 	
