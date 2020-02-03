@@ -77,17 +77,17 @@ Documentations
 
 INSTALLATION:
 -----------
-* There is no installation required to run ASTRAL *but for ASTRAL-MP to work properly with AVX2 to **you may** need installation (see below)*.
+* There is no installation required to run ASTRAL but for ASTRAL-MP to work properly with AVX2 to you may need installation (see below).
 
 #### Vanilla:
 * Download:
-    * You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/MP/Astral.5.14.3.zip) and extract the contents to a folder of your choice. 
+    * You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/MP/Astral.5.14.4.zip) and extract the contents to a folder of your choice. 
     * Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/) and swith to the `MP` branch (`git checkout MP`). 
 * Then, you simply use the jar file that is included with the repository. ASTRAL is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. Java 1.6 or later is required. 
 * To test your installation, go to the place where you put the uncompressed ASTRAL, and run:
 
   ``` bash
-  java -D"java.library.path=lib/" -jar astral.5.14.3.jar -i test_data/song_primates.424.gene.tre
+  java -D"java.library.path=lib/" -jar astral.5.14.4.jar -i test_data/song_primates.424.gene.tre
    ```
 
   This should quickly finish. There are also other sample input files under `test_data/` that can be used.
@@ -95,20 +95,20 @@ INSTALLATION:
 * ASTRAL can be run from any directory (e.g., `/path/to/astral/`). Then, you just need to run:
 
   ``` bash
-  java -D"java.library.path=/path/to/astral/lib/" -jar /path/to/astral/astral.5.14.3.jar
+  java -D"java.library.path=/path/to/astral/lib/" -jar /path/to/astral/astral.5.14.4.jar
   ```
 
-* Also, you can move `astral.5.14.3.jar` to any location you like and run it from there, but note that you need to move the `lib` directory with it as well.
+* Also, you can move `astral.5.14.4.jar` to any location you like and run it from there, but note that you need to move the `lib` directory with it as well.
 * Finally, you can omit `-"Djava.library.path=/path/to/astral/lib/"` and run the following, but your runs can become 4X or more slower. 
    ``` bash
-   java  -jar /path/to/astral/astral.5.14.3.jar
+   java  -jar /path/to/astral/astral.5.14.4.jar
    ```
 
 #### AVX2
 
 To get ASTRAL to correctly use AVX2, some steps may or may not be needed. 
 
-1. To test if AVX2 works as is, from the uncompressed Astral folder (`Astral`) try:
+1. To test if AVX2 works as is, from the uncompressed Astral folder (`Astral`) or base ASTRAL reop try:
 
    ``` bash
    java -D"java.library.path=lib/" -jar native_library_tester.jar
@@ -117,8 +117,8 @@ To get ASTRAL to correctly use AVX2, some steps may or may not be needed.
    If this tells you that AVX is working, you are done. No further steps needed. 
 
 2. If not, 
-    * You need to make sure you have cloned the github (as opposed to download the zip file). 
-    * Make sure you have checked out the `MP` branch (`git checkout MP`)
+    * You need to make sure you have cloned the github (as opposed to downloading the zip file). 
+    * Make sure you have checked out the `MP` branch ((`git checkout MP`))
     * If you get a error to the effect of `java.lang.UnsatisfiedLinkError: no Astral in java.library.path`, then check the `lib/` directory exists where you are. If it does not, you are in the wrong directory. Give the correct path to the `lib` directory to the `-D` option. 
 
 3. If `lib` exists and the test command is complaining about other things, like wrong GLBIC version, then you can go to the base of ASTRAL github and run 
@@ -127,7 +127,7 @@ To get ASTRAL to correctly use AVX2, some steps may or may not be needed.
    ./make.sh
    java -D"java.library.path=lib/" -jar native_library_tester.jar
    ```
-   
+
    This will the build the project for your machine.  For this to work, you need to have cloned the git repo. Test again. If it still does not work, write to us. We will try to help. 
 
 Also, if you couldn't get AVX2 to work, don't worry. AVX2 is only for speed (3-4X). It does not affect results. Just run without it. 
@@ -139,7 +139,7 @@ EXECUTION:
 ASTRAL currently has no GUI. You need to run it through the command-line. In a terminal, go the location where you have downloaded the software, and issue the following command:
 
 ```
-  java -D"java.library.path=lib/" -jar astral.5.14.3.jar
+  java -D"java.library.path=lib/" -jar astral.5.14.4.jar
 ```
 
 This will give you a list of options available in ASTRAL.
@@ -147,18 +147,18 @@ This will give you a list of options available in ASTRAL.
 To find the species tree given a set of gene trees in a file called `in.tree`, use:
 
 ```
-java -D"java.library.path=lib/" -jar astral.5.14.3.jar -i in.tree
+java -D"java.library.path=lib/" -jar astral.5.14.4.jar -i in.tree
 ```
 
 The results will be outputted to the standard output. To save the results in a file use the `-o` option (**Strongly recommended**):
 
 ```
-java -D"java.library.path=lib/" -jar astral.5.14.3.jar -i in.tree -o out.tre
+java -D"java.library.path=lib/" -jar astral.5.14.4.jar -i in.tree -o out.tre
 ```
 To save the logs (**also recommended**), run:
 
 ```
-java -D"java.library.path=lib/" -jar astral.5.14.3.jar -i in.tree -o out.tre 2>out.log
+java -D"java.library.path=lib/" -jar astral.5.14.4.jar -i in.tree -o out.tre 2>out.log
 ```
 
 ###### Input: 
@@ -199,7 +199,7 @@ Please refer to the [tutorial](astral-tutorial.md) for all other features, inclu
 For big datasets (say more than 5000 taxa), increasing the memory available to Java can result in speedups. Note that you should give Java only as much free memory as you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke ASTRAL using the following command to make all the 3GB available to Java:
 
 ```
-java -Xmx3000M -D"java.library.path=lib/" -jar astral.5.14.3.jar -i in.tree
+java -Xmx3000M -D"java.library.path=lib/" -jar astral.5.14.4.jar -i in.tree
 ```
 
 Acknowledgment
