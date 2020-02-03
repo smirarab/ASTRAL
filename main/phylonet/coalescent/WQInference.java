@@ -119,67 +119,84 @@ public class WQInference extends AbstractInference<Tripartition> {
 		long four = 0;
 		long three = 0;
 		Iterator<Tree> ti = this.trees.iterator();
+		System.err.print("Counting unresolvable quartets ... ");
 		for (STITreeCluster gtCL : ((WQDataCollection)this.dataCollection).treeAllClusters) {
 			
 			long[] counts = new long [GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount()]; // number of inds of each species
 			long size = gtCL.getClusterSize();
 			BitSet bs = gtCL.getBitSet();
-
 	        for (int i = bs.nextSetBit(0); i >=0 ; i = bs.nextSetBit(i+1)) {
 	            counts[(GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesIdForTaxon(i))]++;
 	        }
 	        
 	        Tree t = ti.next();
 	        
-	        for (int species = 0 ; species < counts.length; species++) {
-	        	
-	        	long count = counts[species];
-	        	
-	        	if ( count < 3 ) continue;
-	        	
-	        	long others = (size-count);
+	        for (Long count: counts) {  
 				
 				// First compute how many quartets there are from single inds
-	        	ret += (count*(count-1l)*(count-2l))/6l*(others)+        // 3 inds of this species + 1 other
+	        	ret += (count*(count-1l)*(count-2l))/6l*(size-count)+        // 3 inds of this species + 1 other
 	        			(count*(count-1l)*(count-2l)*(count-3l))/24l;    // 4 inds of this species
+				
+	        }
 	        
-		        // Some of these quartets may be unresolved. Count them up and subtract their count
-	        	//    compute these for 3+1 and 4 quartets separately. Just cleaner looking. 
-	        	double th = 0;
-			    Stack<Long > stack =new Stack<Long>();
-				for (TNode n: t.postTraverse()) {
-					Long c = 0l; // Number of inds of this species 
-		        	if (n.isLeaf() && GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesIdForTaxon(GlobalMaps.taxonIdentifier.taxonId(n.getName()))==species) {
-		        		c +=1;
-		        	} else {
-		    			long [] l = new long[n.getChildCount()];
-		        		for (int i = 0; i < n.getChildCount(); i++) {
-		        			long pop = stack.pop();
-							l[i] = pop;
-		        			c += pop;
-						}
-		        		if (c!=0) {
-		        			double s1 = 0, s2 = 0, s3 = 0,  s4 = 0;
-			        		for (int i = 0; i < l.length; i++) {
-								s1 += l[i];
-								s2 += Math.pow(l[i],2);
-								s3 += Math.pow(l[i],3);
-								s4 += Math.pow(l[i],4);
-			        		}
-	        				four += Math.pow(c,4) - 6*s4 + 8*s1*s3 - 6*s1*s1*s2 + 3*s2*s2;
-	        				th += Math.pow(c,3) + 2*s3 -3*s1*s2;
+	        Set<Integer> seenspecies = new HashSet<Integer>();
+	        	
+		    Stack<long []> stack =new Stack<long[]>();
+			for (TNode n: t.postTraverse()) {
+				if (n.isLeaf()) {
+					int sp = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesIdForTaxon(
+		        			GlobalMaps.taxonIdentifier.taxonId(n.getName()));
+					if (counts[sp] >=3)
+						seenspecies.add(sp);
+	        		long[] p = new long[counts.length];
+	        		p[sp] = p[sp]+1;
+	        		stack.push(p);
+	        		continue;
+	        	}
+    			Set<Integer> donespecies = new HashSet<Integer>();
+    			long[]  sum1 = new long[counts.length], 
+    					sum2 = new long[seenspecies.size()],
+    					sum3 = new long[seenspecies.size()],
+    					sum4 = new long[seenspecies.size()];
+				
+        		for (int i = 0; i < n.getChildCount(); i++) {
+        			long[] pops = stack.pop();
+        			int s = 0;
+        			for (Integer species : seenspecies){
+        				long pop = pops[species];
+	        			if (pop != 0) {
+		        			sum1[species] += pop;
+		        			long popp = pop*pop;
+		        			sum2[s] += popp;
+							sum3[s] += popp*pop;
+							sum4[s] += popp*popp;
+	        			}
+
+		        		if (sum1[species] == counts[species]) {
+		        			donespecies.add(species);
 		        		}
-		        	}
-	        		stack.push(c);
-	        		
-	        		if (c == count) break;
-		        }
-        		three += th*others;
+	        			s++;
+        			}
+        		}
+        		stack.push(sum1);
+        		
+        		int sindex = 0;
+    			for (Integer species : seenspecies){
+		        	long s1 = sum1[species], s2 = sum2[sindex], s3 = sum3[sindex], s4 = sum4[sindex];
+	        		if (s1 != 0 ) {
+        				four += s1*(Math.pow(s1,3)  + 8*s3 - 6*s1*s2) - 6*s4 + 3*s2*s2;
+    	        		three += (Math.pow(s1,3) + 2*s3 -3*s1*s2)*(size-counts[species]);
+	        		}
+	        		sindex++;
+	        	}
+		        
+    			seenspecies.removeAll(donespecies);
 	        }
 	        
 		}
 		//System.err.println("four: "+four/24l);
 		ret -= (three/6 + four/24l);
+		System.err.println(ret);
 		return ret;
 	}
 
@@ -370,7 +387,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 		BufferedWriter freqWriter = null;
 		BufferedWriter Rscript = null;
 		//List<String> freqWriterLines = new ArrayList<String>();
-		if (this.getBranchAnnotation() == 16) {
+		if (this.getBranchAnnotation() % 16 == 0) {
 			String freqOutputPath = this.options.getFreqOutputPath();
 			try {
 				Rscript = new BufferedWriter(new FileWriter(freqOutputPath + File.separator+ "freqQuadVisualization.R"));
@@ -409,7 +426,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 				//((STINode)node).setData(new GeneTreeBitset(node.isRoot()? -2: -1));
 				stack.add(cluster);
 				node.setData(cluster);
-				if (options.getBranchannotation() == 16) {
+				if (options.getBranchannotation() % 16 == 0) {
 					String ndName = "N" + Integer.toString(numNodes);
 					numNodes += 1;
 					node.setName(ndName);
@@ -577,32 +594,49 @@ public class WQInference extends AbstractInference<Tripartition> {
 								"'[q1="+df.format((f1)/effni)+
 								";q2="+df.format((f2)/effni)+
 								";q3="+df.format((f3)/effni)+"]'");
-					} else if (this.getBranchAnnotation() == 16) {
+					} else if (this.getBranchAnnotation() % 16 == 0) {
 						node.setData("'[pp1="+df.format(postQ1)+";pp2="+df.format(postQ2)+";pp3="+df.format(postQ3)+"]'");	
 						Quadrapartition[] threequads = nd.quads;
 						//STBipartition[] biparts = nd.bipartitions;
 
-						String lineTmp = node.getName() + "\t" + "t1" + "\t" + threequads[0].toString2() + "\t" + 
-								Double.toString(postQ1) + "\t" + Double.toString(f1) +
-								"\t" + Double.toString(effni);
-
+						if (threequads == null)
+							continue;
+						
 						try {
-							freqWriter.write(lineTmp + "\n");
-
-							lineTmp = node.getName() + "\t" + "t2" + "\t" + threequads[1].toString2() + "\t" + 
-									Double.toString(postQ2) + "\t" + Double.toString(f2) + 
+							if (this.getBranchAnnotation() == 16) {
+								String lineTmp = node.getName() + "\t" + "t1" + "\t" + threequads[0].toString2() + "\t" + 
+									Double.toString(postQ1) + "\t" + Double.toString(f1) +
 									"\t" + Double.toString(effni);
-
-							freqWriter.write(lineTmp + "\n");
-
-							lineTmp = node.getName() + "\t" + "t3" + "\t" + threequads[2].toString2() + "\t" +
-									Double.toString(postQ3) + "\t" + Double.toString(f3) +
-									"\t" + Double.toString(effni);
-							freqWriter.write(lineTmp + "\n");
+								freqWriter.write(lineTmp + "\n");
+	
+								lineTmp = node.getName() + "\t" + "t2" + "\t" + threequads[1].toString2() + "\t" + 
+										Double.toString(postQ2) + "\t" + Double.toString(f2) + 
+										"\t" + Double.toString(effni);
+								freqWriter.write(lineTmp + "\n");
+	
+								lineTmp = node.getName() + "\t" + "t3" + "\t" + threequads[2].toString2() + "\t" +
+										Double.toString(postQ3) + "\t" + Double.toString(f3) +
+										"\t" + Double.toString(effni);
+								freqWriter.write(lineTmp + "\n"); } 
+							else {
+								String lineTmp = node.getName() + "\t" + "t1" + "\t" + threequads[0].toString2() + "\t" + 
+										Double.toString((f1)/effni) + "\t" + Double.toString(f1) +
+										"\t" + Double.toString(effni);
+								freqWriter.write(lineTmp + "\n");
+	
+								lineTmp = node.getName() + "\t" + "t2" + "\t" + threequads[1].toString2() + "\t" + 
+										Double.toString((f2)/effni) + "\t" + Double.toString(f2) + 
+										"\t" + Double.toString(effni);
+								freqWriter.write(lineTmp + "\n");
+	
+								lineTmp = node.getName() + "\t" + "t3" + "\t" + threequads[2].toString2() + "\t" +
+										Double.toString((f3)/effni) + "\t" + Double.toString(f3) +
+										"\t" + Double.toString(effni);
+								freqWriter.write(lineTmp + "\n"); 
+								}
 						} catch (IOException e) {
 							throw new RuntimeException(e);
 						}
-
 					}
 				}
 				//i++;
@@ -612,7 +646,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 
 		if (! (ni == nj))
 			throw new RuntimeException("Hmm, this shouldn't happen; "+nodeDataList);
-		if (this.getBranchAnnotation() == 16) {
+		if (this.getBranchAnnotation()  % 16 == 0) {
 			try {
 				Rscript.write("#!/usr/bin/env Rscript\n");
 				Rscript.write("red='#d53e4f';orange='#1d91c0';blue='#41b6c4';colormap = c(red,orange,blue)\n");
@@ -750,7 +784,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 						System.err.print(c1.toString()+c2.toString()+"|"+sister.toString()+remaining.toString()+"\n");
 					}
 				}
-				if (getBranchAnnotation() == 6 || getBranchAnnotation() == 16) {
+				if (getBranchAnnotation() == 6 || getBranchAnnotation()  % 16 == 0) {
 					STITreeCluster c1plussis = GlobalMaps.taxonIdentifier.newCluster();
 
 					c1plussis.setCluster((BitSet) c1.getBitSet().clone());
