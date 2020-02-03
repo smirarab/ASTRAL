@@ -1,3 +1,5 @@
+- version 5.14.5:
+	- Import 5.7.3 changs from master\
 - version 5.14.4:
 	- Bug fix: use all GPUs
 	- Added `-G` to allow choosing specific GPUs
