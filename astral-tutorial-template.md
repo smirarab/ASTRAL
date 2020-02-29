@@ -128,8 +128,11 @@ Some rules about the mapping file:
 * The same individual name should not be mapped to multiple species
 * Each individual name should appear in at least one gene name
 
-We will soon add an example here. 
+For example, you can run
 
+```
+java -jar __astral.jar__ -i test_data/1KP-genetrees.tre -o test_data/1KP-speciestrees-multiind.tre -a test_data/namemap-1kp.txt 2> test_data/1kp-speciestree-multiind.log
+```
 
 Interpreting output
 -----
