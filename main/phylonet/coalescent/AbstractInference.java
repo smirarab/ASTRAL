@@ -75,20 +75,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 	public boolean isRooted() {
 		return options.isRooted();
 	}
-	
-	public Iterable<VertexPair> getClusterResolutions(Vertex v) {
-			Iterable<VertexPair> ret = null;
-			try{
-				ret = getQueueClusterResolutions().take();
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
-			return ret;
 
-	}
-	
 	
 	protected Collapse.CollapseDescriptor doCollapse(List<Tree> trees) {
 		Collapse.CollapseDescriptor cd = Collapse.collapse(trees);
