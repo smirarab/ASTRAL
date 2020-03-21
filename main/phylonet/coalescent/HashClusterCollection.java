@@ -1,15 +1,16 @@
 package phylonet.coalescent;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
+import java.util.concurrent.*; 
+
 public class HashClusterCollection extends AbstractClusterCollection {
 
-	private HashMap<Long, Vertex> h1ToVertexMap = null;
+	protected HashMap<Long, Vertex> h1ToVertexMap = null;
 
 	public HashClusterCollection(int n) {
 		this.initialize(n);
@@ -51,20 +52,19 @@ public class HashClusterCollection extends AbstractClusterCollection {
 
 
 	@Override
-	public getClusterResolutionsLoop getClusterResolutionLoop(int i, Vertex vert, int clusterSize) {
-		return new hashClusterResolutionsLoop( i, vert, clusterSize);
+	public getClusterResolutionsLoop getClusterResolutionLoop(int i, Vertex vert, int clusterSize, BlockingQueue<VertexPair> ret)  {
+		return new hashClusterResolutionsLoop( i, vert, clusterSize, ret);
 	}
 	public class hashClusterResolutionsLoop extends getClusterResolutionsLoop{
 
-		public hashClusterResolutionsLoop(int i, Vertex v, int clusterSize) {
-			super( i, v, clusterSize);
+		public hashClusterResolutionsLoop(int i, Vertex v, int clusterSize, BlockingQueue<VertexPair> ret) {
+			super( i, v, clusterSize, ret);
 		}
-		public ArrayList<VertexPair> call() {
-			ArrayList<VertexPair> ret = new ArrayList<VertexPair>();
+		public Integer call() {
 
 			if (clusters.get(i) == null || clusters.get(i).size() == 0 ||
 				clusters.get(clusterSize - i) == null || clusters.get(clusterSize - i).size() == 0) {
-				return null;
+				return 0;
 			}
 			Set<Vertex> small = (clusters.get(i).size() < clusters.get(clusterSize - i).size()) ? clusters.get(i) : clusters.get(clusterSize - i);
 
@@ -76,12 +76,16 @@ public class HashClusterCollection extends AbstractClusterCollection {
 						) {
 						if (v1.clusterSize != v2.clusterSize || v1.getCluster().hash1 < v2.getCluster().hash1) { // To avoid a pair of the same size twice
 							VertexPair bi = new VertexPair(v1, v2, v);
-							ret.add(bi);
+							try {
+								ret.put(bi);
+							} catch (InterruptedException e) {
+								throw new RuntimeException(e);
+							}
 						}
-					}
+						}
 				}
 			}
-			return ret;
+			return 0; 
 		}
 	}
 	
