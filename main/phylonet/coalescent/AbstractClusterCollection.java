@@ -13,6 +13,7 @@ import java.util.concurrent.Future;
 
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
+import java.util.concurrent.*; 
 
 public abstract class AbstractClusterCollection implements IClusterCollection, Cloneable {
 	static int countResolutions = 0;
@@ -164,57 +165,26 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 
 	@Override
 	public Iterable<VertexPair> getClusterResolutions() {
-		//long start = System.nanoTime();
-		//System.out.println(topClusterLength+ " "+getTopVertex());
 		//TODO: return an iterator directly instead of building a collection.
-		ArrayList<VertexPair> ret = new ArrayList<VertexPair>();
-		/*Iterable<VertexPair> r= new Iterable<IClusterCollection.VertexPair>() {
-
-			@Override
-			public Iterator<VertexPair> iterator() {
-
-				return new Iterator<VertexPair>() {
-
-					@Override
-					public boolean hasNext() {
-						// TODO Auto-generated method stub
-						return false;
-					}
-
-					@Override
-					public VertexPair next() {
-						// TODO Auto-generated method stub
-						return null;
-					}
-
-					@Override
-					public void remove() {
-						throw new UnsupportedOperationException();
-					}
-				};
-			}
-		};*/
+		BlockingQueue<VertexPair> ret = new LinkedBlockingQueue<VertexPair>();
 
 		//int clusterSize = topClusterLength;
 		Vertex vert = this.getTopVertex();
-		Future<ArrayList<VertexPair>>[] futures = new Future[topClusterLength / 2];
+		Future<Integer> []  futures = new Future[topClusterLength / 2];
 		for (int i = 1; i <= (topClusterLength / 2); i++) {
-			futures[i - 1] = Threading.submit(getClusterResolutionLoop(i,vert,topClusterLength));
+			futures[i-1] = Threading.submit(getClusterResolutionLoop(i,vert,topClusterLength,ret));
 		}
 		for(int i = 0; i < futures.length; i++) {
 			try {
-				ArrayList<VertexPair> partialRet = (ArrayList<VertexPair>) futures[i].get();
-				if(partialRet != null)
-					ret.addAll(partialRet);
+				futures[i].get();
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (ExecutionException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 
 		}
+		
 		/*
 		timeResolutions += System.nanoTime() - start;
 		countResolutions++;
@@ -228,30 +198,31 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 		return ret;
 	}
 	
-	public getClusterResolutionsLoop getClusterResolutionLoop(int i, Vertex vert, int clusterSize) {
-		return new getClusterResolutionsLoop( i, vert, clusterSize);
+	public getClusterResolutionsLoop getClusterResolutionLoop(int i, Vertex vert, int clusterSize, BlockingQueue<VertexPair> ret) {
+		return new getClusterResolutionsLoop( i, vert, clusterSize,ret);
 	}
 	
 	public class getClusterResolutionsLoop implements Callable{
 		int i;
 		//ArrayList<Set<Vertex>> clusters;
+		BlockingQueue<VertexPair> ret;
 		Vertex v;
 		int clusterSize;
-		public getClusterResolutionsLoop(int i, Vertex v, int clusterSize) {
+		public getClusterResolutionsLoop(int i, Vertex v, int clusterSize, BlockingQueue<VertexPair> ret) {
 			this.i = i;
 			this.v = v;
 			this.clusterSize = clusterSize;
+			this.ret = ret;
 		}
-		public ArrayList<VertexPair> call() {
-			ArrayList<VertexPair> ret = new ArrayList<VertexPair>();
+		public Integer call() {
 
 			Set<Vertex> left = clusters.get(i);
 			if (left == null || left.size() == 0) {
-				return null;
+				return 0;
 			}
 			Set<Vertex> right = clusters.get(clusterSize - i);
 			if (right == null || right.size() == 0) {
-				return null;
+				return 0;
 			}
 			for (Vertex smallV : left) {
 
@@ -261,10 +232,14 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 					}
 					VertexPair bi = new VertexPair(
 							smallV, bigv, v);
-					ret.add(bi);
+					try {
+						ret.put(bi);
+					} catch (InterruptedException e) {
+						throw new RuntimeException(e);
+					}
 				}
 			}
-			return ret;
+			return 0;
 		}
 	}
 
