@@ -1,14 +1,10 @@
 package phylonet.coalescent;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.Tree;
-import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
 public abstract class AbstractInferenceProducer<T> extends AbstractInference<T> {
 	
@@ -36,10 +32,6 @@ public abstract class AbstractInferenceProducer<T> extends AbstractInference<T> 
 		return super.inferSpeciesTree();
 	}
 
-	@Override
-	public Iterable<VertexPair> getClusterResolutions(Vertex v) {
-		throw new RuntimeException("Shouldn't be called");
-	}
 
 	@Override
 	public int countWeights() {
