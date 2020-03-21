@@ -70,7 +70,13 @@ public abstract class AbstractComputeMinCostTask<T> {
 			return v._max_score;
 		}
 	
-		Iterable<VertexPair> clusterResolutions = this.inference.getClusterResolutions(this.v);
+		Iterable<VertexPair> clusterResolutions;
+		try {
+			clusterResolutions = this.inference.getQueueClusterResolutions().take();
+		} catch (InterruptedException e1) {
+			throw new RuntimeException(e1);
+		}
+		
 	
 		long clusterLevelCost = 0;
 		/*

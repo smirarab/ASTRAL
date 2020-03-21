@@ -163,86 +163,8 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 		ret.addCluster(vertex, size);	
 	}
 
-	@Override
-	public Iterable<VertexPair> getClusterResolutions() {
-		//TODO: return an iterator directly instead of building a collection.
-		BlockingQueue<VertexPair> ret = new LinkedBlockingQueue<VertexPair>();
-
-		//int clusterSize = topClusterLength;
-		Vertex vert = this.getTopVertex();
-		Future<Integer> []  futures = new Future[topClusterLength / 2];
-		for (int i = 1; i <= (topClusterLength / 2); i++) {
-			futures[i-1] = Threading.submit(getClusterResolutionLoop(i,vert,topClusterLength,ret));
-		}
-		for(int i = 0; i < futures.length; i++) {
-			try {
-				futures[i].get();
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			} catch (ExecutionException e) {
-				e.printStackTrace();
-			}
-
-		}
-		
-		/*
-		timeResolutions += System.nanoTime() - start;
-		countResolutions++;
-		if(countResolutions >= 10000) {
-			countResolutions -= 10000;
-			System.err.println("The time for this round of 10000 getClusterResolutions is: " + (double)timeResolutions/1000000000);
-			timeResolutions = 0;
-		}
-		 */
-
-		return ret;
-	}
 	
-	public getClusterResolutionsLoop getClusterResolutionLoop(int i, Vertex vert, int clusterSize, BlockingQueue<VertexPair> ret) {
-		return new getClusterResolutionsLoop( i, vert, clusterSize,ret);
-	}
 	
-	public class getClusterResolutionsLoop implements Callable{
-		int i;
-		//ArrayList<Set<Vertex>> clusters;
-		BlockingQueue<VertexPair> ret;
-		Vertex v;
-		int clusterSize;
-		public getClusterResolutionsLoop(int i, Vertex v, int clusterSize, BlockingQueue<VertexPair> ret) {
-			this.i = i;
-			this.v = v;
-			this.clusterSize = clusterSize;
-			this.ret = ret;
-		}
-		public Integer call() {
-
-			Set<Vertex> left = clusters.get(i);
-			if (left == null || left.size() == 0) {
-				return 0;
-			}
-			Set<Vertex> right = clusters.get(clusterSize - i);
-			if (right == null || right.size() == 0) {
-				return 0;
-			}
-			for (Vertex smallV : left) {
-
-				for (Vertex bigv : right) {
-					if (!smallV.getCluster().isDisjoint(bigv.getCluster())) {
-						continue;
-					}
-					VertexPair bi = new VertexPair(
-							smallV, bigv, v);
-					try {
-						ret.put(bi);
-					} catch (InterruptedException e) {
-						throw new RuntimeException(e);
-					}
-				}
-			}
-			return 0;
-		}
-	}
-
 	public abstract AbstractClusterCollection newInstance(int size);
 
 	@Override
