@@ -1,28 +1,35 @@
 package phylonet.coalescent;
 
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+
+
 import phylonet.coalescent.IClusterCollection.VertexPair;
-import java.util.*;
-import java.util.concurrent.*; 
 
-public abstract class AbstractComputeMinCostTaskProducer<T> extends  AbstractComputeMinCostTask<T>{
+public class ComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Tripartition>{
 
 
-	AbstractInferenceProducer<T> inference;
+	AbstractInferenceProducer<Tripartition> inference;
+	WQDataCollection wqDataCollection;
 	//public static final VertexPair  POISON_PILL = new VertexPair(null,null,null);
 	
-	public AbstractComputeMinCostTaskProducer(AbstractInferenceProducer<T> inference, Vertex v) {
+	public ComputeMinCostTaskProducer(AbstractInferenceProducer<Tripartition> inference, Vertex v) {
 		super(inference, v);
 		this.inference = inference;
+		this.wqDataCollection = (WQDataCollection)inference.dataCollection;
 	}
 
-	byte getDoneState() {
-		return 3;
-	}
+	final byte getDoneState = 3;	
+	final byte getOtherDoneState = 1;
 	
-	byte getOtherDoneState() {
-		return 1;
-	}
 	
 	@Override
 	double computeMinCost() throws CannotResolveException {
@@ -48,7 +55,6 @@ public abstract class AbstractComputeMinCostTaskProducer<T> extends  AbstractCom
 			return v._max_score;
 		}
 	
-		//Iterable<VertexPair> clusterResolutions = this.inference.getClusterResolutions(this.v);
 		final IClusterCollection containedVertecies = this.inference.dataCollection.clusters.getContainedClusters(v);
 		
 		final BlockingQueue<VertexPair> clusterResolutions  = new LinkedBlockingQueue<VertexPair>();
@@ -82,7 +88,6 @@ public abstract class AbstractComputeMinCostTaskProducer<T> extends  AbstractCom
 			
 		} else {
 
-			Vertex vert = v;
 			Future<Integer> []  futures = new Future[clusterSize / 2];
 			final Object lock = new Object();
 			for (int j = 1; j <= (clusterSize / 2); j++) {
@@ -132,19 +137,12 @@ public abstract class AbstractComputeMinCostTaskProducer<T> extends  AbstractCom
 			}
 
 		}
-	
-		long clusterLevelCost = 0;
 
 		try {
-			//(clusterResolutions).put(AbstractComputeMinCostTaskProducer.POISON_PILL);
 			this.inference.getQueueClusterResolutions().put(clusterResolutions);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		for (VertexPair bi: clusterResolutions) {
-			try {
 
-				//if (bi == AbstractComputeMinCostTaskProducer.POISON_PILL) break;
+			for (VertexPair bi: clusterResolutions) {
+
 				Vertex smallV = bi.cluster1;
 				Vertex bigv = bi.cluster2;
 				
@@ -155,27 +153,55 @@ public abstract class AbstractComputeMinCostTaskProducer<T> extends  AbstractCom
 				v._min_lc = smallV;
 				v._min_rc = bigv;
 				v._c = 0D ;
-
-			} catch (Exception c) {
-				c.printStackTrace();
-				throw new RuntimeException("cannot resolve");
 			}
+		} catch (Exception c) {
+				throw new RuntimeException(c);
 		}
 	
 		
-		if (v._done == getOtherDoneState())			
+		if (v._done == getOtherDoneState)			
 			v._done = 4;
 		else
-			v._done = getDoneState();
+			v._done = getDoneState;
 	
 		return v._max_score;
 	}
 
 	@Override
-	public Long getWeight(T t) {
+	public Long getWeight(Tripartition t) {
 		throw new RuntimeException("should not call");
 	}
 
+	
+	protected double adjustWeight(long clusterLevelCost, Vertex smallV,
+			Vertex bigv, Long Wdom) {	
+		return Wdom;
+	}
+	
+	@Override
+	protected long scoreBaseCase(boolean rooted, List trees) {	
+		return 0l;
+	}
+
+	@Override
+	protected ComputeMinCostTaskProducer newMinCostTask(Vertex v) {
+		return new ComputeMinCostTaskProducer((AbstractInferenceProducer<Tripartition>) inference, v);
+	}
+	
+	@Override
+	protected long calculateClusterLevelCost() {
+		return 0l;
+	}
+
+	@Override
+	protected Tripartition STB2T(VertexPair vp) {
+		return new Tripartition(vp.cluster1.getCluster(), vp.cluster2.getCluster(), vp.both.getCluster().complementaryCluster());
+	}
+
+	@Override
+	Long defaultWeightForFullClusters() {
+		return 0l;
+	}
 	
 
 }
