@@ -1,12 +1,9 @@
 package phylonet.coalescent;
 
 import java.util.HashMap;
-import java.util.Set;
 
 import phylonet.tree.model.sti.STITreeCluster;
-import phylonet.tree.model.sti.STITreeCluster.Vertex;
-
-import java.util.concurrent.*; 
+import phylonet.tree.model.sti.STITreeCluster.Vertex; 
 
 public class HashClusterCollection extends AbstractClusterCollection {
 
@@ -48,45 +45,6 @@ public class HashClusterCollection extends AbstractClusterCollection {
 			}
 		}
 		System.err.println("Computing hash values took "+((System.currentTimeMillis()-t)/1000)+" seconds");
-	}
-
-
-	@Override
-	public getClusterResolutionsLoop getClusterResolutionLoop(int i, Vertex vert, int clusterSize, BlockingQueue<VertexPair> ret)  {
-		return new hashClusterResolutionsLoop( i, vert, clusterSize, ret);
-	}
-	public class hashClusterResolutionsLoop extends getClusterResolutionsLoop{
-
-		public hashClusterResolutionsLoop(int i, Vertex v, int clusterSize, BlockingQueue<VertexPair> ret) {
-			super( i, v, clusterSize, ret);
-		}
-		public Integer call() {
-
-			if (clusters.get(i) == null || clusters.get(i).size() == 0 ||
-				clusters.get(clusterSize - i) == null || clusters.get(clusterSize - i).size() == 0) {
-				return 0;
-			}
-			Set<Vertex> small = (clusters.get(i).size() < clusters.get(clusterSize - i).size()) ? clusters.get(i) : clusters.get(clusterSize - i);
-
-			for (Vertex v1 : small) {
-				Vertex v2 = h1ToVertexMap.get(v.getCluster().hash1 - v1.getCluster().hash1);
-				if (v2 != null) {
-					if (v.getCluster().hash2 == (v1.getCluster().hash2 + v2.getCluster().hash2)
-						//&& v.clusterSize == v1.clusterSize + v2.clusterSize // redundant check 
-						) {
-						if (v1.clusterSize != v2.clusterSize || v1.getCluster().hash1 < v2.getCluster().hash1) { // To avoid a pair of the same size twice
-							VertexPair bi = new VertexPair(v1, v2, v);
-							try {
-								ret.put(bi);
-							} catch (InterruptedException e) {
-								throw new RuntimeException(e);
-							}
-						}
-						}
-				}
-			}
-			return 0; 
-		}
 	}
 	
 
