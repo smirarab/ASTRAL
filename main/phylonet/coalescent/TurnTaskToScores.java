@@ -453,7 +453,7 @@ public class TurnTaskToScores implements Runnable {
 
 				do {
 					// threadCount.incrementAndGet();
-					Logging.logTimeMessage(" TurnTaskToScores:542: started " + deviceIndex );
+					Logging.logTimeMessage(" TurnTaskToScores:456: started " + deviceIndex );
 					int labelIndex = currentLabel[deviceIndex];
 					clEnqueueWriteBuffer(commandQueues[deviceIndex], d_tripartitions1[deviceIndex], CL_TRUE, 0L,
 							Sizeof.cl_long * tripartitions1[deviceIndex].length,
@@ -502,7 +502,7 @@ public class TurnTaskToScores implements Runnable {
 					}
 					logWeights();
 					synchronized (gpuLock) {
-						Logging.logTimeMessage(" TurnTaskToScores:488:  finished " +deviceIndex + " "+ storageAvailable[deviceIndex].get() );
+						Logging.logTimeMessage(" TurnTaskToScores:505:  finished " +deviceIndex + " "+ storageAvailable[deviceIndex].get() );
 						if (storageAvailable[deviceIndex].get()) {
 							available[deviceIndex].set(true);
 							break;
