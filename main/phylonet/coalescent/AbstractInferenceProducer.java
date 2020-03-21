@@ -3,6 +3,7 @@ package phylonet.coalescent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import phylonet.coalescent.IClusterCollection.VertexPair;
@@ -11,7 +12,7 @@ import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
 public abstract class AbstractInferenceProducer<T> extends AbstractInference<T> {
 	
-	private LinkedBlockingQueue<T> queueReadyTripartitions;
+	private BlockingQueue<T> queueReadyTripartitions;
 	public int weightCount = 0;
 	
 	public AbstractInferenceProducer(Options options, List<Tree> trees,
@@ -37,53 +38,7 @@ public abstract class AbstractInferenceProducer<T> extends AbstractInference<T> 
 
 	@Override
 	public Iterable<VertexPair> getClusterResolutions(Vertex v) {
-		IClusterCollection containedVertecies = this.dataCollection.clusters.getContainedClusters(v);
-		int clusterSize = v.getCluster().getClusterSize();
-		
-		Iterable<VertexPair> clusterResolutions;
-		
-		if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) {
-			clusterResolutions = new ArrayList<VertexPair>();
-			Vertex v1 = null;
-			int smallestSize = -1;
-			while (v1 == null) {
-				smallestSize++;
-				Set<Vertex> cs = containedVertecies.getSubClusters(smallestSize);
-				for(Vertex csi : cs) {
-					if(csi.getCluster().getBitSet().nextSetBit(0) == 0) {
-						v1 = csi;
-						break;
-					}
-				}
-			}
-			for (Vertex v2: containedVertecies.getSubClusters(GlobalMaps.taxonIdentifier.taxonCount()-smallestSize))
-			{
-				if (v1.getCluster().isDisjoint(v2.getCluster())) {
-					VertexPair vp = new VertexPair(v1, v2, v);
-					((ArrayList<VertexPair>) clusterResolutions).add(vp);
-					break;
-				}
-				//System.out.println(v2.toString());
-			}
-			
-			try {
-				this.getQueueClusterResolutions().put(clusterResolutions);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		} else {
-			
-			clusterResolutions = containedVertecies.getClusterResolutions();
-			try {
-				this.getQueueClusterResolutions().put(clusterResolutions);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-	
-		}
-		return clusterResolutions;
+		throw new RuntimeException("Shouldn't be called");
 	}
 
 	@Override
@@ -99,7 +54,7 @@ public abstract class AbstractInferenceProducer<T> extends AbstractInference<T> 
 		this.setupMisc();
 	}
 
-	public LinkedBlockingQueue<T> getQueueReadyTripartitions() {
+	public BlockingQueue<T> getQueueReadyTripartitions() {
 		return queueReadyTripartitions;
 	}
 
