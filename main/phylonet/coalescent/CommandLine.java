@@ -8,6 +8,7 @@ import static org.jocl.CL.clCreateContext;
 import static org.jocl.CL.clGetDeviceIDs;
 import static org.jocl.CL.clGetDeviceInfo;
 import static org.jocl.CL.clGetPlatformIDs;
+import org.jocl.cl_device_id;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -53,7 +54,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 
 public class CommandLine {
-	protected static String _version = "5.14.5";
+	protected static String _version = "5.14.6";
 	protected static SimpleJSAP jsap;
 
 	private static void exitWithErr(String extraMessage) {
@@ -294,14 +295,18 @@ public class CommandLine {
 				Threading.usedDevices = usedDevicesAL.toArray(Threading.usedDevices);
 				Threading.deviceVendors = new String[deviceVendorsAL.size()];
 				Threading.deviceVendors = deviceVendorsAL.toArray(Threading.deviceVendors);
-				Threading.context = clCreateContext(Threading.contextProperties, Threading.usedDevices.length,
-						Threading.usedDevices, null, null, null);
+				for (int c = 0; c <  Threading.usedDevices.length; c++) {
+					Threading.context[c] = clCreateContext(Threading.contextProperties, 1,
+						new cl_device_id[] {Threading.usedDevices[c]}, null, null, null);
+				}
 				// johng23 end
 			} catch (Exception e) {
 				System.err.println("Warning:\n\n Problem using GPU. Proceeding without GPU\n"+e);
+				System.err.println(e);
 				Threading.usedDevices = null;
 			} catch (Error e) {
 				System.err.println("Warning:\n\n Problem using GPU. Proceeding without GPU\n"+e);
+				System.err.println(e);
 				Threading.usedDevices = null;
 			}
 		}

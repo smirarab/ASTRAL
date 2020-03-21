@@ -6,6 +6,8 @@ import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
+import java.util.concurrent.*; 
+import java.util.*;
 
 public abstract class AbstractComputeMinCostTask<T> {
 
@@ -40,7 +42,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 	 * @return
 	 * @throws CannotResolveException
 	 */
-	private double computeMinCost() throws CannotResolveException {
+	double computeMinCost() throws CannotResolveException {
 	
 		// -2 is used to indicate it cannot be resolved
 		if (v._done == 2) {
@@ -71,69 +73,64 @@ public abstract class AbstractComputeMinCostTask<T> {
 		Iterable<VertexPair> clusterResolutions = this.inference.getClusterResolutions(this.v);
 	
 		long clusterLevelCost = 0;
-		if (clusterResolutions.iterator().hasNext()) { // Not relevant to ASTRAL
-			clusterLevelCost = calculateClusterLevelCost();
-		}
 		/*
 		 * System.out.println("xL: "+this.v.getCluster() + " "+xl + " "+
 		 * DeepCoalescencesCounter
 		 * .getClusterCoalNum(this.inference.trees, this.v.getCluster(),
 		 * taxonNameMap, true));
 		 */
+		//VertexPair bi = null;
+		//BlockingQueue<VertexPair> clusterResolutions2  = new LinkedBlockingQueue<VertexPair>();
+		BlockingQueue<Long> weights  = new LinkedBlockingQueue<Long>();
+		//while ( true ) {
 		for (VertexPair bi : clusterResolutions) {
 			try {
-				//					if(isWriteToQueue)
-				//						System.out.println(bi.cluster1.toString() + " " + bi.cluster2.toString());
-				//					else
-				//						System.err.println(bi.cluster1.toString() + " " + bi.cluster2.toString());
+				//bi = ((BlockingQueue<VertexPair>)clusterResolutions).take(); 
+				//clusterResolutions2.put(bi);
+				//if (bi == AbstractComputeMinCostTaskProducer.POISON_PILL) break;
+				Long weight = null;
+				if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) {
+					weight = defaultWeightForFullClusters();
+				} else {
+					T t = STB2T(bi);					
+					weight =  inference.weightCalculator.getWeight(t);
+				}					
+				weights.put(weight);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
+			}
+		}
+		//while ( true ) {
+		for (VertexPair bi : clusterResolutions) {
+			try {
+				//bi = ((BlockingQueue<VertexPair>)clusterResolutions2).take(); 
+				//clusterResolutions2.put(bi);
+				//if (bi == AbstractComputeMinCostTaskProducer.POISON_PILL) break;
 	
 				Vertex smallV = bi.cluster1;
 				Vertex bigv = bi.cluster2;
 	
-				AbstractComputeMinCostTask<T> smallWork = newMinCostTask(
-						smallV);
-				AbstractComputeMinCostTask<T> bigWork = newMinCostTask(
-						bigv);
+				AbstractComputeMinCostTask<T> smallWork = newMinCostTask(smallV);
+				AbstractComputeMinCostTask<T> bigWork = newMinCostTask(bigv);
 	
-				//System.out.println(bigWork.v.toString());
-				// MP_VERSION: smallWork.fork();
 				Double rscore = bigWork.compute();
 	
 				if (rscore == null) {
-					// MP_VERSION: weigthWork.cancel(false);
-					// MP_VERSION: smallWork.cancel(false);
 					throw new CannotResolveException(bigv.getCluster()
 							.toString());
 				}
 	
 				Double lscore;
-				// MP_VERSION: lscore = smallWork.join();
 				lscore = smallWork.compute();
 	
 				if (lscore == null) {
-					// MP_VERSION: weigthWork.cancel(false);
 					throw new CannotResolveException(smallV
 							.getCluster().toString());
 				}
-				// MP_VERSION: w = weigthWork.join();
 	
-	
-				Long weight = null;
-				if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) {
-					weight = defaultWeightForFullClusters();
-				}
-	
-				if (weight == null) {
-					T t = STB2T(bi);					
-					weight = getWeight(t);
-					//System.out.print(weight/Integer.MAX_VALUE);
-				}					
+				Long weight = weights.take();
 	
 				double c = adjustWeight(clusterLevelCost, smallV, bigv, weight);	// Not relevant to ASTRAL				
-				//					double l = 2.4;
-				//					if (clusterSize > 5 && v._max_score > l*(lscore + rscore))
-				//						if ((lscore + rscore + c)> v._max_score)
-				//System.err.println(clusterSize+"\tmissing " +(lscore + rscore + c)+"\t"+v._max_score+"\t"+(lscore + rscore + c)/v._max_score);
 	
 				if ((v._max_score != -1)
 						&& (lscore + rscore + c < v._max_score)) {
@@ -152,6 +149,9 @@ public abstract class AbstractComputeMinCostTask<T> {
 				throw new RuntimeException("cannot resolve");
 				// System.err.println("Warn: cannot resolve: " +
 				// c.getMessage());
+			}
+			catch (Exception e) {
+				throw new RuntimeException(e);
 			}
 		}
 	
