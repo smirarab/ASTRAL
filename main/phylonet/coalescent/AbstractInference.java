@@ -463,3 +463,4 @@ public abstract class AbstractInference<T> implements Cloneable{
 		this.queueWeightResults = queueWeightResults;
 	}
 }
+
