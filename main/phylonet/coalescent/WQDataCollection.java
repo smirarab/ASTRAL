@@ -606,7 +606,7 @@ implements Cloneable {
 	public void formSetX(AbstractInference<Tripartition> inf) {
 
 
-		WQInference inference = (WQInference) inf;
+		WQInferenceConsumer inference = (WQInferenceConsumer) inf;
 		int haveMissing = preProcess(inference);
 		SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
 
