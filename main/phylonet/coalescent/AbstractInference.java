@@ -92,14 +92,6 @@ public abstract class AbstractInference<T> implements Cloneable{
 		}
 	}
 
-	private int getResolutionsNumber(int nodeNumber) {
-		int total = 1;
-		for (int i = 3; i <= nodeNumber; i++) {
-			total *= (2 * i - 3);
-		}
-		return total;
-	}
-
 
 	//TODO: Check whether this is in the right class
 	public void mapNames() {
