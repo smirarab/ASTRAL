@@ -31,7 +31,7 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 	public WQWeightCalculator(AbstractInference<Tripartition> inference, LinkedBlockingQueue<Long> queue2) {
 		super(false, queue2);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
-		this.inference = (WQInference) inference;
+		this.inference = (WQInferenceConsumer) inference;
 
 		//this.algorithm = new TraversalWeightCalculator();
 		this.algorithm = new CondensedTraversalWeightCalculator();
@@ -54,7 +54,7 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 		}
 
 		abstract Long calculateWeight(Tripartition t);
-		abstract void setupGeneTrees(WQInference inference);
+		abstract void setupGeneTrees(WQInferenceConsumer inference);
 		
 		Long[] calculateWeight(Tripartition [] trips) {
 			int r = 0;
@@ -92,7 +92,7 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 		 * Minus infinity is used for separating different genes. 
 		 */
 		@Override
-		void setupGeneTrees(WQInference inference) {
+		void setupGeneTrees(WQInferenceConsumer inference) {
 			//System.err.println("Using polytree-based weight calculation.");
 			polytree = new Polytree(inference.trees, dataCollection);
 		}
@@ -228,7 +228,7 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 		 * Minus infinity is used for separating different genes. 
 		 */
 		@Override
-		void setupGeneTrees(WQInference inference) {
+		void setupGeneTrees(WQInferenceConsumer inference) {
 			//System.err.println("Using tree-based weight calculation.");
 			List<Integer> temp = new ArrayList<Integer>(); 
 
@@ -312,7 +312,7 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 							geneTreeTripartitonCount.get(trip) + 1 : 1);
 		}
 
-		void setupGeneTrees(WQInference inference) {
+		void setupGeneTrees(WQInferenceConsumer inference) {
 
 			List<STITreeCluster> treeCompteleClusters = 
 					((WQDataCollection)inference.dataCollection).treeAllClusters;
@@ -428,7 +428,7 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 	 * Each algorithm will have its own data structure for gene trees
 	 * @param wqInference
 	 */
-	public void setupGeneTrees(WQInference wqInference) {
+	public void setupGeneTrees(WQInferenceConsumer wqInference) {
 		tmpalgorithm.setupGeneTrees(wqInference);
 		this.algorithm.setupGeneTrees(wqInference);
 	}
