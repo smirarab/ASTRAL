@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -38,7 +37,7 @@ import org.jocl.cl_program;
 
 public class TurnTaskToScores implements Runnable {
 	private static final int LOG_FREQ = 100000;
-	private static final long workGroupSize = 1L << 14;
+	private static final long workGroupSize = 1L << 13;
 	private static final String clFileNVidia = "calculateWeightNVidia.cl";
 	private static final String clFileAMD = "calculateWeightAMD.cl";
 	
@@ -548,8 +547,11 @@ public class TurnTaskToScores implements Runnable {
 		}
 
 		public void run(){
+			
+			//Logging.logTimeMessage(" TurnTaskToScores:551.");
 
 			threadCount.incrementAndGet();
+			
 			Long[] weights = TurnTaskToScores.this.wqWeightCalculator.calculateWeight(trips);
 				
 			for(int i = 0; i < numRuns; i++) {
