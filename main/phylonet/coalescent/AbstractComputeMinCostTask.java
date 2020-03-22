@@ -1,19 +1,21 @@
 package phylonet.coalescent;
 
 import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
-import java.util.concurrent.*; 
-import java.util.*;
 
 public abstract class AbstractComputeMinCostTask<T> {
 
 	protected AbstractInference<T> inference;
 	protected Vertex v;
 	protected SpeciesMapper spm;
+
+	final byte getDoneState = 1;
+	final byte getOtherDoneState = 3;
 
 	public AbstractComputeMinCostTask(AbstractInference<T> inference, Vertex v) {
 		this.inference = inference;
@@ -29,14 +31,6 @@ public abstract class AbstractComputeMinCostTask<T> {
 		}
 	}
 	
-	byte getDoneState() {
-		return 1;
-	}
-	
-	byte getOtherDoneState() {
-		return 3;
-	}
-	
 	/**
 	 * This is the dynamic programming
 	 * @return
@@ -49,7 +43,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 			throw new CannotResolveException(v.getCluster().toString());
 		}
 		// Already calculated. Don't re-calculate.
-		if ( v._done == this.getDoneState() || v._done == 4) {
+		if ( v._done == this.getDoneState || v._done == 4) {
 			return v._max_score;
 		}
 		//
@@ -62,38 +56,28 @@ public abstract class AbstractComputeMinCostTask<T> {
 			v._max_score = scoreBaseCase(inference.isRooted(), inference.trees);
 	
 			v._min_lc = (v._min_rc = null);
-			if(v._done == getOtherDoneState())
+			if(v._done == getOtherDoneState)
 				v._done = 4;
 			else
-				v._done = getDoneState();
+				v._done = getDoneState;
 	
 			return v._max_score;
 		}
 	
-		Iterable<VertexPair> clusterResolutions;
+		LinkedBlockingQueue<VertexPair> clusterResolutions;
 		try {
-			clusterResolutions = this.inference.getQueueClusterResolutions().take();
+			clusterResolutions = (LinkedBlockingQueue<VertexPair>) this.inference.getQueueClusterResolutions().take();
 		} catch (InterruptedException e1) {
 			throw new RuntimeException(e1);
 		}
-		
 	
 		long clusterLevelCost = 0;
-		/*
-		 * System.out.println("xL: "+this.v.getCluster() + " "+xl + " "+
-		 * DeepCoalescencesCounter
-		 * .getClusterCoalNum(this.inference.trees, this.v.getCluster(),
-		 * taxonNameMap, true));
-		 */
-		//VertexPair bi = null;
-		//BlockingQueue<VertexPair> clusterResolutions2  = new LinkedBlockingQueue<VertexPair>();
-		BlockingQueue<Long> weights  = new LinkedBlockingQueue<Long>();
-		//while ( true ) {
+
+		Long [] weights  = new Long[clusterResolutions.size()];
+
+		int j=0;
 		for (VertexPair bi : clusterResolutions) {
 			try {
-				//bi = ((BlockingQueue<VertexPair>)clusterResolutions).take(); 
-				//clusterResolutions2.put(bi);
-				//if (bi == AbstractComputeMinCostTaskProducer.POISON_PILL) break;
 				Long weight = null;
 				if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) {
 					weight = defaultWeightForFullClusters();
@@ -101,23 +85,22 @@ public abstract class AbstractComputeMinCostTask<T> {
 					T t = STB2T(bi);					
 					weight =  inference.weightCalculator.getWeight(t);
 				}					
-				weights.put(weight);
+				weights[j] = (weight);
+				j++;
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
 		}
-		//while ( true ) {
+		
+		j = 0;
 		for (VertexPair bi : clusterResolutions) {
 			try {
-				//bi = ((BlockingQueue<VertexPair>)clusterResolutions2).take(); 
-				//clusterResolutions2.put(bi);
-				//if (bi == AbstractComputeMinCostTaskProducer.POISON_PILL) break;
 	
 				Vertex smallV = bi.cluster1;
 				Vertex bigv = bi.cluster2;
 	
-				AbstractComputeMinCostTask<T> smallWork = newMinCostTask(smallV);
 				AbstractComputeMinCostTask<T> bigWork = newMinCostTask(bigv);
+				AbstractComputeMinCostTask<T> smallWork = newMinCostTask(smallV);
 	
 				Double rscore = bigWork.compute();
 	
@@ -125,7 +108,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 					throw new CannotResolveException(bigv.getCluster()
 							.toString());
 				}
-	
+					
 				Double lscore;
 				lscore = smallWork.compute();
 	
@@ -134,7 +117,9 @@ public abstract class AbstractComputeMinCostTask<T> {
 							.getCluster().toString());
 				}
 	
-				Long weight = weights.take();
+
+				Long weight = weights[j];
+				j++;
 	
 				double c = adjustWeight(clusterLevelCost, smallV, bigv, weight);	// Not relevant to ASTRAL				
 	
@@ -181,18 +166,16 @@ public abstract class AbstractComputeMinCostTask<T> {
 		//johng23
 		//if it's the consumer thread
 		
-		if(v._done == getOtherDoneState())			
+		if(v._done == getOtherDoneState)			
 			v._done = 4;
 		else
-			v._done = getDoneState();
+			v._done = getDoneState;
 	
 		return v._max_score;
 	}
 
 	public Long getWeight(T t) {
-		Long weight;
-		weight =  inference.weightCalculator.getWeight(t);
-		return weight;
+		return inference.weightCalculator.getWeight(t);
 	}
 
 
@@ -227,6 +210,8 @@ public abstract class AbstractComputeMinCostTask<T> {
 			addAllPossibleSubClusters(c, containedVertecies);
 		}
 	}
+	
+
 
 
 }
