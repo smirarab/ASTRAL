@@ -17,11 +17,11 @@ import phylonet.coalescent.IClusterCollection.VertexPair;
 public class ComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Tripartition>{
 
 
-	AbstractInferenceProducer<Tripartition> inference;
+	WQInferenceProducer inference;
 	WQDataCollection wqDataCollection;
 	//public static final VertexPair  POISON_PILL = new VertexPair(null,null,null);
 	
-	public ComputeMinCostTaskProducer(AbstractInferenceProducer<Tripartition> inference, Vertex v) {
+	public ComputeMinCostTaskProducer(WQInferenceProducer inference, Vertex v) {
 		super(inference, v);
 		this.inference = inference;
 		this.wqDataCollection = (WQDataCollection)inference.dataCollection;
@@ -34,7 +34,7 @@ public class ComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Trip
 	@Override
 	double computeMinCost() throws CannotResolveException {
 	
-		if ( v._done == this.getDoneState() || v._done == 4) {
+		if ( v._done == this.getDoneState || v._done == 4) {
 			return v._max_score;
 		}
 		//
@@ -47,10 +47,10 @@ public class ComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Trip
 			v._max_score = scoreBaseCase(inference.isRooted(), inference.trees);
 	
 			v._min_lc = (v._min_rc = null);
-			if(v._done == getOtherDoneState())
+			if(v._done == getOtherDoneState)
 				v._done = 4;
 			else
-				v._done = getDoneState();
+				v._done = getDoneState;
 	
 			return v._max_score;
 		}
@@ -124,7 +124,7 @@ public class ComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Trip
 								   }
 							}
 						}
-						return 0; 
+						return 1; 
 					}
 				});
 			}
@@ -139,9 +139,13 @@ public class ComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Trip
 		}
 
 		try {
+			//System.err.println("CS "+clusterResolutions.size());
+			//System.err.println("CS "+ v.clusterSize+" "+ clusterResolutions.size()+" "+(v.clusterSize<4? v:""));
+			
 			this.inference.getQueueClusterResolutions().put(clusterResolutions);
 
 			for (VertexPair bi: clusterResolutions) {
+				WQInferenceProducer.weightCount += 1;
 
 				Vertex smallV = bi.cluster1;
 				Vertex bigv = bi.cluster2;
@@ -185,7 +189,7 @@ public class ComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Trip
 
 	@Override
 	protected ComputeMinCostTaskProducer newMinCostTask(Vertex v) {
-		return new ComputeMinCostTaskProducer((AbstractInferenceProducer<Tripartition>) inference, v);
+		return new ComputeMinCostTaskProducer((WQInferenceProducer) inference, v);
 	}
 	
 	@Override
