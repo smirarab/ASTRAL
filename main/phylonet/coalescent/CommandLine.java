@@ -33,6 +33,7 @@ import java.util.Stack;
 import java.util.TreeSet;
 import org.jocl.CL;
 import org.jocl.Pointer;
+import org.jocl.cl_context;
 import org.jocl.cl_context_properties;
 import org.jocl.cl_device_id;
 import org.jocl.cl_platform_id;
@@ -295,6 +296,7 @@ public class CommandLine {
 				Threading.usedDevices = usedDevicesAL.toArray(Threading.usedDevices);
 				Threading.deviceVendors = new String[deviceVendorsAL.size()];
 				Threading.deviceVendors = deviceVendorsAL.toArray(Threading.deviceVendors);
+				Threading.context = new  cl_context [Threading.usedDevices.length];
 				for (int c = 0; c <  Threading.usedDevices.length; c++) {
 					Threading.context[c] = clCreateContext(Threading.contextProperties, 1,
 						new cl_device_id[] {Threading.usedDevices[c]}, null, null, null);
@@ -699,7 +701,7 @@ public class CommandLine {
 		if (criterion == 1 || criterion == 0) {
 			inference = new DLInference(options, trees, extraTrees, toRemoveExtraTrees);
 		} else if (criterion == 2) {
-			inference = new WQInference(options, trees, extraTrees, toRemoveExtraTrees);
+			inference = new WQInferenceConsumer(options, trees, extraTrees, toRemoveExtraTrees);
 		} else {
 			throw new RuntimeException("criterion not set?");
 		}
