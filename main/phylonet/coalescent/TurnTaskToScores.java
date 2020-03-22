@@ -267,8 +267,8 @@ public class TurnTaskToScores implements Runnable {
 
 		private cl_context[] context;
 		private cl_context_properties contextProperties;
-		private cl_kernel[] kernelNVidia = new cl_kernel[2];
-		private cl_kernel[] kernelAMD = new cl_kernel[2];
+		private cl_kernel[] kernels;
+
 		
 		private cl_mem[] d_geneTreesAsInts;
 		private cl_mem[] d_tripartitions1;
@@ -320,25 +320,21 @@ public class TurnTaskToScores implements Runnable {
 			int treeheight = ((WQWeightCalculator) inference.weightCalculator).maxHeight();
 			System.err.println("TREE HEIGHT IS: " + treeheight);
 			
-			boolean NVidia = false;
-			boolean AMD = false;
+			//boolean NVidia = false;
+			//boolean AMD = false;
 			
+			kernels = new cl_kernel[devices.length];
 			for(int i = 0; i < devices.length; i++) {
 				if(Threading.deviceVendors[i].toLowerCase().contains("nvidia")) {
-					NVidia = true;
+					buildKernel(treeheight, true, i);
 				}
 				else {
-					AMD = true;
+					buildKernel(treeheight, false, i);
 				}
 			}
 			
 			// Program Setup. We want to avoid compiling twice. The true is for compiling nvidia code. The false if for compiling amd code.
-			if(NVidia) {
-				buildKernel(treeheight, true);
-			}
-			if(AMD) {
-				buildKernel(treeheight, false);
-			}
+
 
 			d_tripartitions1 = new cl_mem[devices.length];
 			d_tripartitions2 = new cl_mem[devices.length];
@@ -364,21 +360,15 @@ public class TurnTaskToScores implements Runnable {
 						null, null);
 				commandQueues[i] = clCreateCommandQueue(context[i], devices[i], 0, null);
 				
-				if(Threading.deviceVendors[i].toLowerCase().contains("nvidia")) {
-					clSetKernelArg(kernelNVidia[i], 0, Sizeof.cl_mem, Pointer.to(d_geneTreesAsInts[i]));
-					clSetKernelArg(kernelNVidia[i], 1, Sizeof.cl_int, Pointer.to(new int[] { geneTreesAsInts.length }));
-					clSetKernelArg(kernelNVidia[i], 2, Sizeof.cl_mem, Pointer.to(d_allArray[i]));
-				}
-				else {
-					clSetKernelArg(kernelAMD[i], 0, Sizeof.cl_mem, Pointer.to(d_geneTreesAsInts[i]));
-					clSetKernelArg(kernelAMD[i], 1, Sizeof.cl_int, Pointer.to(new int[] { geneTreesAsInts.length }));
-					clSetKernelArg(kernelAMD[i], 2, Sizeof.cl_mem, Pointer.to(d_allArray));
-				}
+				clSetKernelArg(kernels[i], 0, Sizeof.cl_mem, Pointer.to(d_geneTreesAsInts[i]));
+				clSetKernelArg(kernels[i], 1, Sizeof.cl_int, Pointer.to(new int[] { geneTreesAsInts.length }));
+				clSetKernelArg(kernels[i], 2, Sizeof.cl_mem, Pointer.to(d_allArray[i]));
+
 				
 			}
 		}
 
-		public void buildKernel(int treeheight, boolean NVidia) {
+		public void buildKernel(int treeheight, boolean NVidia, int deviceIndex) {
 			String source = "";
 			if(NVidia) {
 				source = readFile(getClass().getResourceAsStream(clFileNVidia));
@@ -389,22 +379,20 @@ public class TurnTaskToScores implements Runnable {
 						
 			source = setupGPUSourceFile(treeheight, source);
 
-			cl_program [] cpProgram = new cl_program[2];
-		        for (int c=0; c<2; c++) {
-			cpProgram[c]= clCreateProgramWithSource(context[c], 1, new String[] { source }, null, null);
+			cl_program cpProgram = clCreateProgramWithSource(context[deviceIndex], 1, new String[] { source }, null, null);
 
 			// Build the program
 			if (p)
-				clBuildProgram(cpProgram[c], 0, null, "-cl-opt-disable", null, null);
+				clBuildProgram(cpProgram, 0, null, "-cl-opt-disable", null, null);
 			else
-				clBuildProgram(cpProgram[c], 0, null, "-cl-mad-enable -cl-strict-aliasing", null, null);
+				clBuildProgram(cpProgram, 0, null, "-cl-mad-enable -cl-strict-aliasing", null, null);
 
 			// Create the kernel
 			if(NVidia)
-				kernelNVidia[c] = clCreateKernel(cpProgram[c], "calcWeight", null);
+				kernels[deviceIndex] = clCreateKernel(cpProgram, "calcWeight", null);
 			else
-				kernelAMD[c] = clCreateKernel(cpProgram[c], "calcWeight", null);
-			}
+				kernels[deviceIndex] = clCreateKernel(cpProgram, "calcWeight", null);
+			
 		}
 
 		public String setupGPUSourceFile(int treeheight, String source) {
@@ -468,19 +456,14 @@ public class TurnTaskToScores implements Runnable {
 					synchronized (gpuLock) {
 						storageAvailable[deviceIndex].set(true);
 					}
-					cl_kernel [] kernel;
-					if(Threading.deviceVendors[deviceIndex].toLowerCase().contains("nvidia")) {
-						kernel = kernelNVidia;
-					} else {
-						kernel = kernelAMD;
-					}
+					cl_kernel  kernel = kernels[deviceIndex];
 					synchronized (kernel) {
-						clSetKernelArg(kernel[deviceIndex], 3, Sizeof.cl_mem, Pointer.to(d_tripartitions1[deviceIndex]));
-						clSetKernelArg(kernel[deviceIndex], 4, Sizeof.cl_mem, Pointer.to(d_tripartitions2[deviceIndex]));
-						clSetKernelArg(kernel[deviceIndex], 5, Sizeof.cl_mem, Pointer.to(d_tripartitions3[deviceIndex]));
-						clSetKernelArg(kernel[deviceIndex], 6, Sizeof.cl_mem, Pointer.to(d_weightArray[deviceIndex]));
+						clSetKernelArg(kernel, 3, Sizeof.cl_mem, Pointer.to(d_tripartitions1[deviceIndex]));
+						clSetKernelArg(kernel, 4, Sizeof.cl_mem, Pointer.to(d_tripartitions2[deviceIndex]));
+						clSetKernelArg(kernel, 5, Sizeof.cl_mem, Pointer.to(d_tripartitions3[deviceIndex]));
+						clSetKernelArg(kernel, 6, Sizeof.cl_mem, Pointer.to(d_weightArray[deviceIndex]));
 			
-						clEnqueueNDRangeKernel(commandQueues[deviceIndex], kernel[deviceIndex], 1, null, new long[] { workSize },
+						clEnqueueNDRangeKernel(commandQueues[deviceIndex], kernel, 1, null, new long[] { workSize },
 								null, 0, null, null);
 					}
 					clEnqueueReadBuffer(commandQueues[deviceIndex], d_weightArray[deviceIndex], CL_TRUE, 0L,
