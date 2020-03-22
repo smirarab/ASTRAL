@@ -905,7 +905,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 		((WQClusterCollection)this.dataCollection.clusters).preComputeHashValues();
 		
 		
-		AbstractInferenceProducer inferenceProducer = 
+		WQInferenceProducer inferenceProducer = 
 				new WQInferenceProducer((AbstractInference) this.semiDeepCopy());
 		inferenceProducer.setup();
 
