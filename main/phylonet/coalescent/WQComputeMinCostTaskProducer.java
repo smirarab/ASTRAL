@@ -88,11 +88,11 @@ public class WQComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Tr
 			
 		} else {
 
-			Future<Integer> []  futures = new Future[clusterSize / 2];
+			Future []  futures = new Future[clusterSize / 2];
 			final Object lock = new Object();
 			for (int j = 1; j <= (clusterSize / 2); j++) {
 				final int i = j;
-				futures[j-1] = Threading.submit(new Callable() {	
+				futures[j-1] = Threading.submit(new Callable<Integer>() {	
 					public Integer call() {
 
 						ArrayList<Set<Vertex>> clusters = ((HashClusterCollection)containedVertecies).clusters; 
