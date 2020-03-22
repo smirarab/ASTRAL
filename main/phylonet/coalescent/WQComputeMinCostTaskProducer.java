@@ -14,14 +14,14 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import phylonet.coalescent.IClusterCollection.VertexPair;
 
-public class ComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Tripartition>{
+public class WQComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Tripartition>{
 
 
 	WQInferenceProducer inference;
 	WQDataCollection wqDataCollection;
 	//public static final VertexPair  POISON_PILL = new VertexPair(null,null,null);
 	
-	public ComputeMinCostTaskProducer(WQInferenceProducer inference, Vertex v) {
+	public WQComputeMinCostTaskProducer(WQInferenceProducer inference, Vertex v) {
 		super(inference, v);
 		this.inference = inference;
 		this.wqDataCollection = (WQDataCollection)inference.dataCollection;
@@ -188,8 +188,8 @@ public class ComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Trip
 	}
 
 	@Override
-	protected ComputeMinCostTaskProducer newMinCostTask(Vertex v) {
-		return new ComputeMinCostTaskProducer((WQInferenceProducer) inference, v);
+	protected WQComputeMinCostTaskProducer newMinCostTask(Vertex v) {
+		return new WQComputeMinCostTaskProducer((WQInferenceProducer) inference, v);
 	}
 	
 	@Override

@@ -63,7 +63,7 @@ public class WQInferenceProducer extends AbstractInference<Tripartition> {
 	@Override
 	AbstractComputeMinCostTask newComputeMinCostTask(
 			AbstractInference<Tripartition> inference, Vertex all) {
-		return new ComputeMinCostTaskProducer((WQInferenceProducer) inference, all);
+		return new WQComputeMinCostTaskProducer((WQInferenceProducer) inference, all);
 	}
 
 	IClusterCollection newClusterCollection() {
