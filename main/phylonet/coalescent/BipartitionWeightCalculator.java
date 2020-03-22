@@ -12,7 +12,7 @@ import phylonet.tree.model.sti.STITreeCluster;
 // TODO: why extend the abstract? It doesn't seem to follow the same pattern exactly
 class BipartitionWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> {
 
-	WQInference inference;
+	WQInferenceConsumer inference;
 	private WQDataCollection dataCollection;
 	private int[] geneTreesAsInts;
 
@@ -20,7 +20,7 @@ class BipartitionWeightCalculator extends AbstractWeightCalculatorConsumer<Tripa
 			int[] geneAsInts) {
 		super(false, null);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
-		this.inference = (WQInference) inference;
+		this.inference = (WQInferenceConsumer) inference;
 		this.geneTreesAsInts = geneAsInts;
 	}
 

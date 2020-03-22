@@ -29,12 +29,12 @@ import phylonet.util.BitSet;
 
 
 
-public class WQInference extends AbstractInference<Tripartition> {
+public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 
 	int forceAlg = -1;
 	long maxpossible;
 
-	public WQInference(Options inOptions, List<Tree> trees, List<Tree> extraTrees, List<Tree> toRemoveExtraTrees) {
+	public WQInferenceConsumer(Options inOptions, List<Tree> trees, List<Tree> extraTrees, List<Tree> toRemoveExtraTrees) {
 		super(inOptions, trees, extraTrees, toRemoveExtraTrees);
 		this.setQueueWeightResults(new LinkedBlockingQueue<Long>());
 		this.setQueueClusterResolutions(new LinkedBlockingQueue<Iterable<VertexPair>>());
@@ -874,7 +874,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 	@Override
 	AbstractComputeMinCostTask newComputeMinCostTask(AbstractInference<Tripartition> dlInference,
 			Vertex all) {
-		return new WQComputeMinCostTaskConsumer( (WQInference) dlInference, all);
+		return new WQComputeMinCostTaskConsumer( (WQInferenceConsumer) dlInference, all);
 	}
 
 	IClusterCollection newClusterCollection() {
