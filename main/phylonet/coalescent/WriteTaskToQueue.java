@@ -1,9 +1,9 @@
 package phylonet.coalescent;
 
 public class WriteTaskToQueue implements Runnable {
-	AbstractInferenceProducer inf;
+	WQInferenceProducer inf;
 	TurnTaskToScores threadgpu;
-	public WriteTaskToQueue(AbstractInferenceProducer inf, TurnTaskToScores threadgpu) {
+	public WriteTaskToQueue(WQInferenceProducer inf, TurnTaskToScores threadgpu) {
 		this.inf = inf;
 		this.threadgpu = threadgpu;
 	}
