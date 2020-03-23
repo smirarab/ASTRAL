@@ -67,11 +67,11 @@ public class WQInferenceProducer extends AbstractInference<Tripartition> {
 	}
 
 	IClusterCollection newClusterCollection() {
-		return new WQClusterCollection(GlobalMaps.taxonIdentifier.taxonCount());
+		return new HashClusterCollection(GlobalMaps.taxonIdentifier.taxonCount());
 	}
 
 	AbstractDataCollection newCounter(IClusterCollection clusters) {
-		return new WQDataCollection((WQClusterCollection)clusters, this);
+		return new WQDataCollection((HashClusterCollection)clusters, this);
 	}
 
 

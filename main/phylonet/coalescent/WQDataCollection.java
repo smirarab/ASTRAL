@@ -90,7 +90,7 @@ implements Cloneable {
 	// Used for cpu parallelization in a loop in FormSetX. This is used in addExtraBipartitionByHeuristics
 	//private ArrayList<Object> stringOutput = new ArrayList<Object>();
 
-	public WQDataCollection(WQClusterCollection clusters,
+	public WQDataCollection(HashClusterCollection clusters,
 			AbstractInference<Tripartition> inference) {
 		this.clusters = clusters;
 		this.SLOW = inference.getAddExtra() >= 2;
@@ -1616,7 +1616,7 @@ implements Cloneable {
 
 	public Object clone() throws CloneNotSupportedException {
 		WQDataCollection clone = (WQDataCollection) super.clone();
-		clone.clusters = (WQClusterCollection) ((AbstractClusterCollection) this.clusters)
+		clone.clusters = (HashClusterCollection) ((AbstractClusterCollection) this.clusters)
 				.clone();
 		return clone;
 	}
