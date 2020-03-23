@@ -48,8 +48,8 @@ public abstract class AbstractDataCollection <T> {
 	// TODO: Figure out what to do with this in case of a mapper
 	// Should only add species-consistent bipartitions?
 	void addAllPossibleSubClusters(STITreeCluster cluster) {
-	    int size = GlobalMaps.taxonIdentifier.taxonCount();
-		STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
+	    int size = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier().taxonCount();
+		STITreeCluster c = new STITreeCluster(GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
 		BitSet bs = c.getBitSet();
 		while (true) {
 			int tsb = bs.nextClearBit(0);
@@ -58,8 +58,11 @@ public abstract class AbstractDataCollection <T> {
 			}
 			bs.set(tsb);
 			bs.clear(0, tsb);
-			c = new STITreeCluster(GlobalMaps.taxonIdentifier);
-			c.setCluster((BitSet) bs.clone());
+			
+			
+			c = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getGeneClusterForSTCluster(bs);;
+			//c.setCluster((BitSet) bs.clone());
+			
 			addToClusters(c, c.getClusterSize());
 		}
 		System.err
@@ -69,7 +72,7 @@ public abstract class AbstractDataCollection <T> {
 
 	/***
 	 * Used in the exact version
-	 * @param cluster
+	 * @param cluster 
 	 */
 	void addAllPossibleSubClusters2(STITreeCluster cluster) {
 		int size = cluster.getClusterSize();
