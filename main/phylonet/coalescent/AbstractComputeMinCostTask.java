@@ -14,9 +14,6 @@ public abstract class AbstractComputeMinCostTask<T> {
 	protected Vertex v;
 	protected SpeciesMapper spm;
 
-	final byte getDoneState = 1;
-	final byte getOtherDoneState = 3;
-
 	public AbstractComputeMinCostTask(AbstractInference<T> inference, Vertex v) {
 		this.inference = inference;
 		this.v = v;
@@ -56,25 +53,6 @@ public abstract class AbstractComputeMinCostTask<T> {
 
 	protected abstract T STB2T(VertexPair stb);
 
-	/***
-	 * Used in the exact version
-	 * @param cluster
-	 * @param containedVertecies
-	 */
-	void addAllPossibleSubClusters(STITreeCluster cluster, IClusterCollection containedVertecies) {
-		int size = cluster.getClusterSize();
-		for (int i = cluster.getBitSet().nextSetBit(0); i >= 0; i = cluster
-				.getBitSet().nextSetBit(i + 1)) {
-			STITreeCluster c = new STITreeCluster(cluster);
-			c.getBitSet().clear(i);
-	
-			Vertex nv = c.new Vertex();
-			containedVertecies.addCluster(nv, size - 1);
-	
-			addAllPossibleSubClusters(c, containedVertecies);
-		}
-	}
-	
 
 
 

@@ -878,13 +878,13 @@ public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 	}
 
 	IClusterCollection newClusterCollection() {
-		WQClusterCollection ret = new WQClusterCollection(GlobalMaps.taxonIdentifier.taxonCount());
+		HashClusterCollection ret = new HashClusterCollection(GlobalMaps.taxonIdentifier.taxonCount());
 		//ret.preComputeHashValues();
 		return ret;
 	}
 
 	WQDataCollection newCounter(IClusterCollection clusters) {
-		return new WQDataCollection((WQClusterCollection)clusters, this);
+		return new WQDataCollection((HashClusterCollection)clusters, this);
 	}
 
 
@@ -902,7 +902,7 @@ public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 		this.maxpossible = this.calculateMaxPossible();
 		System.err.println("Number of quartet trees in the gene trees: " +
 				this.maxpossible);
-		((WQClusterCollection)this.dataCollection.clusters).preComputeHashValues();
+		((HashClusterCollection)this.dataCollection.clusters).preComputeHashValues();
 		
 		
 		WQInferenceProducer inferenceProducer = 

@@ -10,6 +10,8 @@ import phylonet.tree.model.sti.STITreeCluster.Vertex;
 public class WQComputeMinCostTaskConsumer extends AbstractComputeMinCostTask<Tripartition>{
 
 	WQDataCollection wqDataCollection;
+	final byte getDoneState = 1;
+	final byte getOtherDoneState = 3;
 	
 	public WQComputeMinCostTaskConsumer(AbstractInference<Tripartition> inference, Vertex v) {
 		super(inference, v);
