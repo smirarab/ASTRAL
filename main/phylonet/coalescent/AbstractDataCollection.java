@@ -49,8 +49,8 @@ public abstract class AbstractDataCollection <T> {
 	// Should only add species-consistent bipartitions?
 	void addAllPossibleSubClusters(STITreeCluster cluster) {
 	    int size = GlobalMaps.taxonIdentifier.taxonCount();
-		BitSet bs = (BitSet) cluster.getBitSet().clone();
-		bs.clear(0, size);
+		STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
+		BitSet bs = c.getBitSet();
 		while (true) {
 			int tsb = bs.nextClearBit(0);
 			if (tsb >= size) {
@@ -58,7 +58,7 @@ public abstract class AbstractDataCollection <T> {
 			}
 			bs.set(tsb);
 			bs.clear(0, tsb);
-			STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
+			c = new STITreeCluster(GlobalMaps.taxonIdentifier);
 			c.setCluster((BitSet) bs.clone());
 			addToClusters(c, c.getClusterSize());
 		}
