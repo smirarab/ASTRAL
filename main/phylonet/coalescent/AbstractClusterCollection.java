@@ -37,11 +37,11 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 	@Override
 	public Vertex getTopVertex() {
 		if (topV == null) {
-		Iterator<Vertex> it = clusters.get(topClusterLength).iterator();
-		if (! it.hasNext()) {
-			throw new NoSuchElementException();
-		}
-			topV = it.next();
+			Iterator<Vertex> it = clusters.get(topClusterLength).iterator();
+			if (! it.hasNext()) {
+				throw new NoSuchElementException();
+			}
+				topV = it.next();
 		}
 		return topV;
 	}

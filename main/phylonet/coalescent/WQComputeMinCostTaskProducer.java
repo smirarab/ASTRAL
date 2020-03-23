@@ -93,41 +93,39 @@ public class WQComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Tr
 			for (int j = 1; j <= (clusterSize / 2); j++) {
 				final int i = j;
 				futures[j-1] = Threading.submit(new Callable<Integer>() {	
+					
 					public Integer call() {
-
-						ArrayList<Set<Vertex>> clusters = ((HashClusterCollection)containedVertecies).clusters; 
-						HashMap<Long, Vertex> h1ToVertexMap = ((HashClusterCollection)containedVertecies).h1ToVertexMap;
-
-						if (clusters.get(i) == null || clusters.get(i).size() == 0 ||
-								clusters.get(clusterSize - i) == null || clusters.get(clusterSize - i).size() == 0) {
+						Set<Vertex> small = ((HashClusterCollection)containedVertecies).getSmalls(i, clusterSize);
+						if (small == null)
 							return 0;
-								}
-						Set<Vertex> small = (clusters.get(i).size() < clusters.get(clusterSize - i).size()) ? clusters.get(i) : clusters.get(clusterSize - i);
 
 						for (Vertex v1 : small) {
-							Vertex v2 = h1ToVertexMap.get(v.getCluster().hash1 - v1.getCluster().hash1);
-							if (v2 != null) {
-								if (v.getCluster().hash2 == (v1.getCluster().hash2 + v2.getCluster().hash2)
-										//&& v.clusterSize == v1.clusterSize + v2.clusterSize // redundant check 
-								   ) {
-									if (v1.clusterSize != v2.clusterSize || v1.getCluster().hash1 < v2.getCluster().hash1) { // To avoid a pair of the same size twice
-										VertexPair bi = new VertexPair(v1, v2, v);
-										try {
-											synchronized (lock) {
-												clusterResolutions.put(bi);
-												inference.getQueueReadyTripartitions().put(STB2T(bi));
-											}
-										} catch (InterruptedException e) {
-											throw new RuntimeException(e);
+							Vertex v2 = ((HashClusterCollection)containedVertecies).getCompVertex(v,v1);
+							if (v2 == null) {
+								continue;
+							}
+							if (v.getCluster().hash2 == (v1.getCluster().hash2 + v2.getCluster().hash2) ) {
+									//&& v.clusterSize == v1.clusterSize + v2.clusterSize // redundant check 
+								if (v1.clusterSize != v2.clusterSize || v1.getCluster().hash1 < v2.getCluster().hash1) { // To avoid a pair of the same size twice
+									VertexPair bi = new VertexPair(v1, v2, v);
+									try {
+										// Locking needed to make sure weights and clusters are added in the same order 
+										synchronized (lock) {
+											clusterResolutions.put(bi);
+											inference.getQueueReadyTripartitions().put(STB2T(bi));
 										}
+									} catch (InterruptedException e) {
+										throw new RuntimeException(e);
 									}
-								   }
+								}
 							}
 						}
 						return 1; 
 					}
+					
 				});
 			}
+			// Cluster resolution order matters. Wait for all of them before recursing. 
 			for(int i = 0; i < futures.length; i++) {
 				try {
 					futures[i].get();
@@ -139,8 +137,6 @@ public class WQComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Tr
 		}
 
 		try {
-			//System.err.println("CS "+clusterResolutions.size());
-			//System.err.println("CS "+ v.clusterSize+" "+ clusterResolutions.size()+" "+(v.clusterSize<4? v:""));
 			
 			this.inference.getQueueClusterResolutions().put(clusterResolutions);
 
