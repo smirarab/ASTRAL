@@ -1,6 +1,8 @@
 package phylonet.coalescent;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex; 
@@ -21,6 +23,18 @@ public class HashClusterCollection extends AbstractClusterCollection {
 		}
 		return newInst;
 		
+	}
+	
+	public Set<Vertex> getSmalls(int i, int clusterSize) {
+		if (clusters.get(i) == null || clusters.get(i).size() == 0 ||
+				clusters.get(clusterSize - i) == null || clusters.get(clusterSize - i).size() == 0) {
+			return null;
+				}
+		return (clusters.get(i).size() < clusters.get(clusterSize - i).size()) ? clusters.get(i) : clusters.get(clusterSize - i);
+	}
+	
+	public Vertex getCompVertex(Vertex c, Vertex sub) {
+		 return h1ToVertexMap.get(c.getCluster().hash1 - sub.getCluster().hash1);
 	}
 	
 	public void preComputeHashValues() {
@@ -59,4 +73,11 @@ public class HashClusterCollection extends AbstractClusterCollection {
 	}
 	
 
+	public void printDiff(HashClusterCollection other) {
+		for (int i = 0; i< this.clusters.size(); i++) {
+			HashSet<Vertex> temp = new HashSet<Vertex>(this.clusters.get(i));
+			temp.retainAll(other.clusters.get(i));
+			System.err.println(temp);
+		}
+	}
 }
