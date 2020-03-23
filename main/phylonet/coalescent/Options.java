@@ -4,7 +4,6 @@ public class Options {
 	private boolean rooted;
 	private boolean extrarooted;
 	private boolean exactSolution;
-	private boolean duploss;
 	private int alg;
 	private int addExtra;
 	private boolean outputCompletedGenes;
@@ -28,7 +27,7 @@ public class Options {
 	private boolean ustarDist;
 
 	public Options(boolean rooted, boolean extrarooted, 
-			boolean exactSolution, boolean duploss, int alg, int addExtra,
+			boolean exactSolution, int alg, int addExtra,
 			boolean outputCompletedGenes, boolean outSearch, boolean run,
 			int branchannotation, double lambda, String outputFile, int samplingrounds, int polylimit,
 			double trim, String freqOutputPath, Integer minimumLeaves, Integer geneRepeat, boolean removeExtraTree, boolean useInnerNodeDist) {
@@ -36,7 +35,6 @@ public class Options {
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
 		this.exactSolution = exactSolution;
-		this.duploss = duploss;
 		this.alg = alg;
 		this.addExtra = addExtra;
 		this.outputCompletedGenes = outputCompletedGenes;
@@ -66,10 +64,6 @@ public class Options {
 
 	public boolean isExactSolution() {
 		return exactSolution;
-	}
-
-	public boolean isDuploss() {
-		return duploss;
 	}
 
 	public int getAlg() {
