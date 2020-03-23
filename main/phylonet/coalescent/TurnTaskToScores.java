@@ -37,7 +37,7 @@ import org.jocl.cl_program;
 
 public class TurnTaskToScores implements Runnable {
 	private static final int LOG_FREQ = 100000;
-	private static final long workGroupSize = 1L << 13;
+	private static final long workGroupSize = 1L << 14;
 	private static final String clFileNVidia = "calculateWeightNVidia.cl";
 	private static final String clFileAMD = "calculateWeightAMD.cl";
 	
@@ -65,7 +65,6 @@ public class TurnTaskToScores implements Runnable {
 	
 	final GPUCall gpuRunner;
 	
-	public final boolean pjohng23 = false; //TODO: Figure what this is?
 	public final int speciesWordLength;
 	
 
@@ -85,7 +84,7 @@ public class TurnTaskToScores implements Runnable {
 		} else {
 			this.gpuRunner = new GPUCall(((WQWeightCalculator)this.wqWeightCalculator).geneTreesAsInts(), 
 					((WQDataCollection)inf.dataCollection).getAllArray(),
-					inference, pjohng23, Threading.usedDevices, 
+					inference, Threading.usedDevices, 
 					Threading.context, Threading.contextProperties);
 		}
 
@@ -109,17 +108,12 @@ public class TurnTaskToScores implements Runnable {
 
 		Object taken = null; 
 		while (true) {
-
-			//LinkedList tasks = new LinkedList();
 			try{
 				taken = this.tripartitionsQueue.take(); //tasks,(int)(2*workGroupSize));
-				//System.err.println(". "+tripartitionsQueue.size()+" "+ currentGPU);
 			 } catch (Exception e) {
 				 e.printStackTrace();
 			}
-			//for (Object taken: tasks) {
 			if (taken == POISON_PILL) {
-				//breakk = true;
 				break;
 			}
 			task = (Tripartition) taken;
@@ -263,10 +257,10 @@ public class TurnTaskToScores implements Runnable {
 		public long[] profile;
 		public AbstractInference<Tripartition> inference;
 
-		public boolean p;
+		public boolean DEBUG = false;
 
 		private cl_context[] context;
-		private cl_context_properties contextProperties;
+		//private cl_context_properties contextProperties;
 		private cl_kernel[] kernels;
 
 		
@@ -281,9 +275,8 @@ public class TurnTaskToScores implements Runnable {
 
 		public Object gpuLock = new Object();
 		
-		public GPUCall(int[] geneTreesAsInts, long[] all, AbstractInference<Tripartition> inference, boolean p,
+		public GPUCall(int[] geneTreesAsInts, long[] all, AbstractInference<Tripartition> inference,
 				cl_device_id[] devices, cl_context[] context, cl_context_properties contextProperties) {
-			this.p = p;
 			this.geneTreesAsInts = geneTreesAsInts;
 			geneTreesAsShorts = new short[(geneTreesAsInts.length / 4 + 1) * 4];
 			for (int i = 0; i < geneTreesAsInts.length; i++) {
@@ -310,7 +303,7 @@ public class TurnTaskToScores implements Runnable {
 			this.inference = inference;
 			this.devices = devices;
 			this.context = context;
-			this.contextProperties = contextProperties;
+			//this.contextProperties = contextProperties;
 
 			initCL();
 
@@ -382,7 +375,7 @@ public class TurnTaskToScores implements Runnable {
 			cl_program cpProgram = clCreateProgramWithSource(context[deviceIndex], 1, new String[] { source }, null, null);
 
 			// Build the program
-			if (p)
+			if (DEBUG)
 				clBuildProgram(cpProgram, 0, null, "-cl-opt-disable", null, null);
 			else
 				clBuildProgram(cpProgram, 0, null, "-cl-mad-enable -cl-strict-aliasing", null, null);
