@@ -67,6 +67,25 @@ public abstract class AbstractDataCollection <T> {
 						+ clusters.getClusterCount());
 	}
 
+	/***
+	 * Used in the exact version
+	 * @param cluster
+	 */
+	void addAllPossibleSubClusters2(STITreeCluster cluster) {
+		int size = cluster.getClusterSize();
+		for (int i = cluster.getBitSet().nextSetBit(0); i >= 0; i = cluster
+				.getBitSet().nextSetBit(i + 1)) {
+			STITreeCluster c = new STITreeCluster(cluster);
+			c.getBitSet().clear(i);
+	
+			Vertex nv = c.new Vertex();
+			this.clusters.addCluster(nv, size - 1);
+	
+			addAllPossibleSubClusters2(c);
+		}
+	}
+	
+	
 	public abstract void addExtraBipartitionsByInput(
 			List<Tree> trees, boolean extraTreeRooted);
 	
