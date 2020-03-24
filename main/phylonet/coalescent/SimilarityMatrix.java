@@ -87,7 +87,7 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 
 		final int chunksize = (int) Math.ceil(geneTrees.size()/(Threading.getNumThreads()+0.0));
 		final int memchunkcount = Threading.getDistMatrixChunkSize();
-		final int memchunksize = (int) Math.ceil((geneTrees.size()+0.0)/memchunkcount);
+		//final int memchunksize = (int) Math.ceil((geneTrees.size()+0.0)/memchunkcount);
 		System.err.println("with " + memchunkcount + " distance matrices for parallellism");
 		
 		final Long[][][] a = new Long[memchunkcount][n][n];
@@ -106,12 +106,12 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 			
 		ArrayList<Future> futures = new ArrayList<Future>();
 		for (int i = 0; i < geneTrees.size(); i+= 1) {
-			final int j = i;
+			final int consti = i;
 			futures.add(Threading.submit( new Callable<Boolean>() {
 				public Boolean call() {
-					int start = j * chunksize;
+					int start = consti * chunksize;
 					int end = Math.min(start + chunksize, geneTrees.size());
-					int m = j % memchunkcount;	
+					int m = consti % memchunkcount;	
 					Long[][] array = a[m];
 					Long[][] dn = d[m];
 					Object[][] lock = locks[m];
