@@ -85,33 +85,36 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 			}
 		}*/
 
-		int chunksize = (int) Math.ceil(geneTrees.size()/(Threading.getNumThreads()+0.0));
-		
-		int memchunkcount = Threading.getDistMatrixChunkSize();
-		System.err.println("with " + memchunkcount + " distance matrices for parallellism");
+		final int chunksize = (int) Math.ceil(geneTrees.size()/(Threading.getNumThreads()+0.0));
+		final int memchunkcount = Threading.getDistMatrixChunkSize();
 		final int memchunksize = (int) Math.ceil((geneTrees.size()+0.0)/memchunkcount);
+		System.err.println("with " + memchunkcount + " distance matrices for parallellism");
 		
-		final Float[][][] a = new Float[memchunkcount][n][n];
-		final Float[][][] d = new Float[memchunkcount][n][n];
+		final Long[][][] a = new Long[memchunkcount][n][n];
+		final Long[][][] d = new Long[memchunkcount][n][n];
+		final Object[][][] locks = new Object[memchunkcount][n][n];
 		for (int c = 0 ; c < memchunkcount; c++) {
 			for(int i = 0; i < n; i++) {
 				for(int j = 0; j < n; j++) {
-					a[c][i][j]  = 0f;
-					d[c][i][j] = 0f;
+					a[c][i][j]  = 0l;
+					d[c][i][j] = 0l;
+					locks[c][i][j] = new Object();
 				}
 			}
 		}
 		
 			
 		ArrayList<Future> futures = new ArrayList<Future>();
-		for (int i = 0; i < geneTrees.size(); i+= chunksize) {
-			final int start = i;
-			final int end = Math.min(start + chunksize, geneTrees.size());
+		for (int i = 0; i < geneTrees.size(); i+= 1) {
+			final int j = i;
 			futures.add(Threading.submit( new Callable<Boolean>() {
 				public Boolean call() {
-					
-					Float[][] array = a[start / memchunksize];
-					Float[][] dn = d[start / memchunksize];
+					int start = j * chunkSize;
+					int end = Math.min(start + chunksize, geneTrees.size());
+					int m = j % memchunkcount;	
+					Long[][] array = a[m];
+					Long[][] dn = d[m];
+					Object[][] lock = locks[m];
 					
 					for(int w = start; w < end; w++) {
 						STITreeCluster treeallCL = treeAllClusters.get(w);
@@ -155,7 +158,7 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 									long rc = right.cardinality();
 									long rcu = rc * (treeall - lc - rc);
 									long rcp = rc*(rc-1)/2;
-									float sim = (totalPairs - lcp - rcp) // the number of fully resolved quartets
+									long sim = (totalPairs - lcp - rcp) // the number of fully resolved quartets
 											//+ (totalUnresolvedPairs - lcu - rcu) / 3.0 // we count partially resolved quartets
 											; 
 									if (sim != 0)
@@ -164,7 +167,7 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 											for (int r = right.nextSetBit(0); r >= 0; r=right.nextSetBit(r+1)) {
 												int ll = l <=r ? l : r;
 												int rr = l <=r ? r : l;
-												synchronized (array[ll][rr]) {
+												synchronized (lock[ll][rr]) {
 													array[l][r] += sim;
 													array[r][l] = array[l][r];
 												}
@@ -181,7 +184,7 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 							for (int r = all.nextSetBit(0); r >= 0; r=all.nextSetBit(r+1)) {
 								int ll = l <=r ? l : r;
 								int rr = l <=r ? r : l;
-								synchronized (dn[ll][rr]) {
+								synchronized (lock[ll][rr]) {
 									dn[l][r] += c*(c-1)/2;
 									dn[r][l] = dn[l][r];
 								}
@@ -201,13 +204,18 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 				throw new RuntimeException(e);
 			}
 		}
-		for (int c = 0 ; c < memchunkcount; c++)
+		for (int c = 0 ; c < memchunkcount; c++) {
 			for(int i = 0; i < n; i++) {
 				for(int j = 0; j < n; j++) {
 					matrix[i][j] += a[c][i][j];
+					//System.err.print(a[c][i][j]);
+					//System.err.print(",");
 					denom[i][j] += d[c][i][j];
 				}
+				//System.err.println();
 			}
+			//System.err.println();
+		}
 		Logging.logTimeMessage("SimilarityMatrix 161-164: ");
 			
 		for (int i = 0; i < n; i++) {
@@ -225,7 +233,7 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 		/*System.err.println();
 		for (int i = 0; i < n; i++) {
 			for (int j = 0; j < n; j++) {
-				System.err.print(matrix[i][j]);
+				System.err.print(String.format("%.8f",matrix[i][j]));
 				System.err.print(",");
 			}
 			System.err.println();
