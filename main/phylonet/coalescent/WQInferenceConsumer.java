@@ -29,12 +29,12 @@ import phylonet.util.BitSet;
 
 
 
-public class WQInference extends AbstractInference<Tripartition> {
+public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 
 	int forceAlg = -1;
 	long maxpossible;
 
-	public WQInference(Options inOptions, List<Tree> trees, List<Tree> extraTrees, List<Tree> toRemoveExtraTrees) {
+	public WQInferenceConsumer(Options inOptions, List<Tree> trees, List<Tree> extraTrees, List<Tree> toRemoveExtraTrees) {
 		super(inOptions, trees, extraTrees, toRemoveExtraTrees);
 		this.setQueueWeightResults(new LinkedBlockingQueue<Long>());
 		this.setQueueClusterResolutions(new LinkedBlockingQueue<Iterable<VertexPair>>());
@@ -874,17 +874,17 @@ public class WQInference extends AbstractInference<Tripartition> {
 	@Override
 	AbstractComputeMinCostTask newComputeMinCostTask(AbstractInference<Tripartition> dlInference,
 			Vertex all) {
-		return new WQComputeMinCostTask( (WQInference) dlInference, all);
+		return new WQComputeMinCostTaskConsumer( (WQInferenceConsumer) dlInference, all);
 	}
 
 	IClusterCollection newClusterCollection() {
-		WQClusterCollection ret = new WQClusterCollection(GlobalMaps.taxonIdentifier.taxonCount());
+		HashClusterCollection ret = new HashClusterCollection(GlobalMaps.taxonIdentifier.taxonCount());
 		//ret.preComputeHashValues();
 		return ret;
 	}
 
 	WQDataCollection newCounter(IClusterCollection clusters) {
-		return new WQDataCollection((WQClusterCollection)clusters, this);
+		return new WQDataCollection((HashClusterCollection)clusters, this);
 	}
 
 
@@ -902,10 +902,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 		this.maxpossible = this.calculateMaxPossible();
 		System.err.println("Number of quartet trees in the gene trees: " +
 				this.maxpossible);
-		((WQClusterCollection)this.dataCollection.clusters).preComputeHashValues();
+		((HashClusterCollection)this.dataCollection.clusters).preComputeHashValues();
 		
 		
-		AbstractInferenceProducer inferenceProducer = 
+		WQInferenceProducer inferenceProducer = 
 				new WQInferenceProducer((AbstractInference) this.semiDeepCopy());
 		inferenceProducer.setup();
 

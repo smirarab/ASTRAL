@@ -33,12 +33,12 @@ public interface IClusterCollection {
 	 */
 	IClusterCollection getContainedClusters(Vertex v);
 
-	/**
-	 * Returns all ways of dividing the top cluster into two subsets
-	 * such that the two subsets are both part of this IClusterColleciton
-	 * @return
-	 */
-	Iterable<VertexPair> getClusterResolutions();
+//	/**
+//	 * Returns all ways of dividing the top cluster into two subsets
+//	 * such that the two subsets are both part of this IClusterColleciton
+//	 * @return
+//	 */
+//	Iterable<VertexPair> getClusterResolutions();
 
 	/**
 	 * Returns a collection of sets of clusters contained in 
