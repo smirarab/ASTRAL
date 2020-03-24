@@ -45,8 +45,6 @@ public abstract class AbstractDataCollection <T> {
 		return clusters.removeCluster(nv, size);
 	}
 
-	// TODO: Figure out what to do with this in case of a mapper
-	// Should only add species-consistent bipartitions?
 	void addAllPossibleSubClusters(STITreeCluster cluster) {
 	    int size = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier().taxonCount();
 		STITreeCluster c = new STITreeCluster(GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
@@ -70,10 +68,7 @@ public abstract class AbstractDataCollection <T> {
 						+ clusters.getClusterCount());
 	}
 
-	/***
-	 * Used in the exact version
-	 * @param cluster 
-	 */
+	/*	
 	void addAllPossibleSubClusters2(STITreeCluster cluster) {
 		int size = cluster.getClusterSize();
 		for (int i = cluster.getBitSet().nextSetBit(0); i >= 0; i = cluster
@@ -86,7 +81,7 @@ public abstract class AbstractDataCollection <T> {
 	
 			addAllPossibleSubClusters2(c);
 		}
-	}
+	}*/
 	
 	
 	public abstract void addExtraBipartitionsByInput(
@@ -95,16 +90,12 @@ public abstract class AbstractDataCollection <T> {
 	public abstract void removeExtraBipartitionsByInput(List<Tree> extraTrees,
 			boolean extraTreeRooted);
 	
-	//public abstract void computeTreePartitions(AbstractInference<T> inference);
-
-    //public abstract void addExtraBipartitionByExtension(AbstractInference<T> inference);
 	
 	public abstract void formSetX(AbstractInference<T> inference);
 	
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
-		AbstractDataCollection clone = (AbstractDataCollection) super.clone();
-		return clone;
+		return (AbstractDataCollection) super.clone();
 	}
 
 }
