@@ -6,7 +6,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class WQInferenceProducer extends AbstractInference<Tripartition> {
 	
@@ -77,12 +76,12 @@ public class WQInferenceProducer extends AbstractInference<Tripartition> {
 
 	@Override
 	public double scoreSpeciesTreeWithGTLabels(Tree scorest, boolean initialize) {
-		throw new NotImplementedException();
+		throw new RuntimeException("Not Implemented");
 	}
 
 	@Override
 	void initializeWeightCalculator() {
-		throw new NotImplementedException();
+		throw new RuntimeException("Not Implemented");
 
 	}
 	
@@ -92,7 +91,7 @@ public class WQInferenceProducer extends AbstractInference<Tripartition> {
 
 
 	AbstractWeightCalculator<Tripartition> newWeightCalculator() {
-		throw new NotImplementedException();
+		throw new RuntimeException("Not Implemented");
 	}
 
 }
