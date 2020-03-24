@@ -1,15 +1,15 @@
 package phylonet.coalescent;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Set;
 
 import phylonet.tree.model.sti.STITreeCluster;
-import phylonet.tree.model.sti.STITreeCluster.Vertex;
+import phylonet.tree.model.sti.STITreeCluster.Vertex; 
 
 public class HashClusterCollection extends AbstractClusterCollection {
 
-	private HashMap<Long, Vertex> h1ToVertexMap = null;
+	protected HashMap<Long, Vertex> h1ToVertexMap = null;
 
 	public HashClusterCollection(int n) {
 		this.initialize(n);
@@ -23,6 +23,18 @@ public class HashClusterCollection extends AbstractClusterCollection {
 		}
 		return newInst;
 		
+	}
+	
+	public Set<Vertex> getSmalls(int i, int clusterSize) {
+		if (clusters.get(i) == null || clusters.get(i).size() == 0 ||
+				clusters.get(clusterSize - i) == null || clusters.get(clusterSize - i).size() == 0) {
+			return null;
+				}
+		return (clusters.get(i).size() < clusters.get(clusterSize - i).size()) ? clusters.get(i) : clusters.get(clusterSize - i);
+	}
+	
+	public Vertex getCompVertex(Vertex c, Vertex sub) {
+		 return h1ToVertexMap.get(c.getCluster().hash1 - sub.getCluster().hash1);
 	}
 	
 	public void preComputeHashValues() {
@@ -48,42 +60,6 @@ public class HashClusterCollection extends AbstractClusterCollection {
 		}
 		System.err.println("Computing hash values took "+((System.currentTimeMillis()-t)/1000)+" seconds");
 	}
-
-
-	@Override
-	public getClusterResolutionsLoop getClusterResolutionLoop(int i, Vertex vert, int clusterSize) {
-		return new hashClusterResolutionsLoop( i, vert, clusterSize);
-	}
-	public class hashClusterResolutionsLoop extends getClusterResolutionsLoop{
-
-		public hashClusterResolutionsLoop(int i, Vertex v, int clusterSize) {
-			super( i, v, clusterSize);
-		}
-		public ArrayList<VertexPair> call() {
-			ArrayList<VertexPair> ret = new ArrayList<VertexPair>();
-
-			if (clusters.get(i) == null || clusters.get(i).size() == 0 ||
-				clusters.get(clusterSize - i) == null || clusters.get(clusterSize - i).size() == 0) {
-				return null;
-			}
-			Set<Vertex> small = (clusters.get(i).size() < clusters.get(clusterSize - i).size()) ? clusters.get(i) : clusters.get(clusterSize - i);
-
-			for (Vertex v1 : small) {
-				Vertex v2 = h1ToVertexMap.get(v.getCluster().hash1 - v1.getCluster().hash1);
-				if (v2 != null) {
-					if (v.getCluster().hash2 == (v1.getCluster().hash2 + v2.getCluster().hash2)
-						//&& v.clusterSize == v1.clusterSize + v2.clusterSize // redundant check 
-						) {
-						if (v1.clusterSize != v2.clusterSize || v1.getCluster().hash1 < v2.getCluster().hash1) { // To avoid a pair of the same size twice
-							VertexPair bi = new VertexPair(v1, v2, v);
-							ret.add(bi);
-						}
-					}
-				}
-			}
-			return ret;
-		}
-	}
 	
 
 	
@@ -97,4 +73,11 @@ public class HashClusterCollection extends AbstractClusterCollection {
 	}
 	
 
+	public void printDiff(HashClusterCollection other) {
+		for (int i = 0; i< this.clusters.size(); i++) {
+			HashSet<Vertex> temp = new HashSet<Vertex>(this.clusters.get(i));
+			temp.retainAll(other.clusters.get(i));
+			System.err.println(temp);
+		}
+	}
 }

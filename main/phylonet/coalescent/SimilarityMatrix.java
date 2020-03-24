@@ -58,21 +58,9 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
     }
 
 
-	private void updateQuartetDistanceTri(BitSet left,
-			BitSet right, Float[][] matrix, Float d) {
-		if (d == 0)
-			return;
-		for (int l = left.nextSetBit(0); l >= 0; l=left.nextSetBit(l+1)) {
-			for (int r = right.nextSetBit(0); r >= 0; r=right.nextSetBit(r+1)) {
-				synchronized (matrix[l][r]) {
-					matrix[l][r] += d;
-					matrix[r][l] = matrix[l][r];
-				}
-			}
-		}
-	}
 
-	void populateByQuartetDistance(List<STITreeCluster> treeAllClusters, List<Tree> geneTrees) {
+
+	void populateByQuartetDistance(final List<STITreeCluster> treeAllClusters,final List<Tree> geneTrees) {
 		this.matrix = new float[n][n];
 		long [][] denom = new long [n][n];
 		Logging.logTimeMessage("SimilarityMatrix 145-148: ");
@@ -97,46 +85,137 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 			}
 		}*/
 
-		int chunksize = (int) Math.ceil(geneTrees.size()/(Threading.getNumThreads()+0.0));
+		final int chunksize = (int) Math.ceil(geneTrees.size()/(Threading.getNumThreads()+0.0));
+		final int memchunkcount = Threading.getDistMatrixChunkSize();
+		//final int memchunksize = (int) Math.ceil((geneTrees.size()+0.0)/memchunkcount);
+		System.err.println("with " + memchunkcount + " distance matrices for parallellism");
 		
-		int memchunkcount = Threading.getDistMatrixChunkSize();
-		System.err.println("with " + memchunkcount + " distance matrices in parallel");
-		Float[][][] a = new Float[memchunkcount][n][n];
-		Float[][][] d = new Float[memchunkcount][n][n];
-		for (int c = 0 ; c < memchunkcount; c++)
+		final Long[][][] a = new Long[memchunkcount][n][n];
+		final Long[][][] d = new Long[memchunkcount][n][n];
+		final Object[][][] locks = new Object[memchunkcount][n][n];
+		for (int c = 0 ; c < memchunkcount; c++) {
 			for(int i = 0; i < n; i++) {
 				for(int j = 0; j < n; j++) {
-					a[c][i][j]  = 0f;
-					d[c][i][j] = 0f;
+					a[c][i][j]  = 0l;
+					d[c][i][j] = 0l;
+					locks[c][i][j] = new Object();
 				}
 			}
+		}
 		
-		int memchunksize = (int) Math.ceil((geneTrees.size()+0.0)/memchunkcount);
 			
-		ArrayList<Future<float[][][]>> futures = new ArrayList<Future<float[][][]>>();
-		for (int i = 0; i < geneTrees.size(); i+= chunksize) {
-			int start = i;
-			int end = Math.min(start + chunksize, geneTrees.size());
-			futures.add(Threading.submit(new populateByQuartetDistanceLoop(start, end, treeAllClusters, geneTrees, a[i / memchunksize], d[i / memchunksize])));
+		ArrayList<Future> futures = new ArrayList<Future>();
+		for (int i = 0; i < geneTrees.size(); i+= 1) {
+			final int consti = i;
+			futures.add(Threading.submit( new Callable<Boolean>() {
+				public Boolean call() {
+					int start = consti * chunksize;
+					int end = Math.min(start + chunksize, geneTrees.size());
+					int m = consti % memchunkcount;	
+					Long[][] array = a[m];
+					Long[][] dn = d[m];
+					Object[][] lock = locks[m];
+					
+					for(int w = start; w < end; w++) {
+						STITreeCluster treeallCL = treeAllClusters.get(w);
+						Tree tree = geneTrees.get(w);
+						Integer treeall = treeallCL.getClusterSize();
+
+						for (TNode node : tree.postTraverse()) {
+							if (node.isLeaf()) { 
+								continue;
+							}
+							BitSet cluster = (BitSet) ((STITreeCluster) ((STINode)node).getData()).getBitSet();
+							BitSet others = (BitSet) treeallCL.getBitSet().clone();
+							others.andNot(cluster);
+							ArrayList<BitSet> children = new ArrayList<BitSet>();
+							long totalPairs = 0;
+							long totalUnresolvedPairs = 0;
+							for (TNode cn: node.getChildren()) {
+								BitSet c = ((STITreeCluster) ((STINode)cn).getData()).getBitSet();
+								children.add(c);
+								long cc = c.cardinality();
+								totalPairs += cc*(cc-1);
+								totalUnresolvedPairs += cc * (treeall - cc); 
+							}
+							if (others.cardinality() != 0) {
+								children.add(others);
+								long cc = others.cardinality();
+								totalPairs += cc*(cc-1);
+								totalUnresolvedPairs += cc * (treeall - cc);
+							}
+							totalPairs /= 2;
+							totalUnresolvedPairs /= 2;
+
+
+							for (int j = 0; j < children.size(); j++ ) {
+								BitSet left = children.get(j);
+								long lc = left.cardinality();
+								long lcu = lc * (treeall - lc);
+								long lcp = lc*(lc-1)/2;
+								for (int i = j+1; i < children.size(); i++ ) {
+									BitSet right = children.get(i);
+									long rc = right.cardinality();
+									long rcu = rc * (treeall - lc - rc);
+									long rcp = rc*(rc-1)/2;
+									long sim = (totalPairs - lcp - rcp) // the number of fully resolved quartets
+											//+ (totalUnresolvedPairs - lcu - rcu) / 3.0 // we count partially resolved quartets
+											; 
+									if (sim != 0)
+									{
+										for (int l = left.nextSetBit(0); l >= 0; l=left.nextSetBit(l+1)) {
+											for (int r = right.nextSetBit(0); r >= 0; r=right.nextSetBit(r+1)) {
+												int ll = l <=r ? l : r;
+												int rr = l <=r ? r : l;
+												synchronized (lock[ll][rr]) {
+													array[l][r] += sim;
+													array[r][l] = array[l][r];
+												}
+											}
+										}
+									}									
+								}
+							}
+						}
+
+						BitSet all = treeallCL.getBitSet();
+						int c = all.cardinality() - 2;
+						for (int l = all.nextSetBit(0); l >= 0; l=all.nextSetBit(l+1)) {
+							for (int r = all.nextSetBit(0); r >= 0; r=all.nextSetBit(r+1)) {
+								int ll = l <=r ? l : r;
+								int rr = l <=r ? r : l;
+								synchronized (lock[ll][rr]) {
+									dn[l][r] += c*(c-1)/2;
+									dn[r][l] = dn[l][r];
+								}
+							}
+						}
+					}
+					return Boolean.TRUE;
+				}
+			}
+					
+					));
 		}
 		for (Future future: futures) {
 			try {
 				future.get();
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ExecutionException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (Exception e) {
+				throw new RuntimeException(e);
 			}
 		}
-		for (int c = 0 ; c < memchunkcount; c++)
+		for (int c = 0 ; c < memchunkcount; c++) {
 			for(int i = 0; i < n; i++) {
 				for(int j = 0; j < n; j++) {
 					matrix[i][j] += a[c][i][j];
+					//System.err.print(a[c][i][j]);
+					//System.err.print(",");
 					denom[i][j] += d[c][i][j];
 				}
+				//System.err.println();
 			}
+			//System.err.println();
+		}
 		Logging.logTimeMessage("SimilarityMatrix 161-164: ");
 			
 		for (int i = 0; i < n; i++) {
@@ -154,93 +233,13 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 		/*System.err.println();
 		for (int i = 0; i < n; i++) {
 			for (int j = 0; j < n; j++) {
-				System.err.print(matrix[i][j]);
+				System.err.print(String.format("%.5f",matrix[i][j]));
 				System.err.print(",");
 			}
 			System.err.println();
 		}*/
 	}
-	public class populateByQuartetDistanceLoop implements Callable<Boolean>{
-		List<STITreeCluster> treeAllClusters;
-		List<Tree> geneTrees;
-		int start;
-		int end;
-		Float[][] array;
-		Float[][] denom;
-		
-		public populateByQuartetDistanceLoop(int start, int end, List<STITreeCluster> treeAllClusters, List<Tree> geneTrees, Float[][] a, Float[][] d) {
-			this.geneTrees = geneTrees;
-			this.start = start;
-			this.end = end;
-			this.treeAllClusters = treeAllClusters;
-			this.array = a;
-			this.denom = d;
-		}
-		public Boolean call() {
-			for(int w = start; w < end; w++) {
-				STITreeCluster treeallCL = treeAllClusters.get(w);
-				Tree tree = geneTrees.get(w);
-				Integer treeall = treeallCL.getClusterSize();
-
-				for (TNode node : tree.postTraverse()) {
-					if (node.isLeaf()) { 
-						continue;
-					}
-					BitSet cluster = (BitSet) ((STITreeCluster) ((STINode)node).getData()).getBitSet();
-					BitSet others = (BitSet) treeallCL.getBitSet().clone();
-					others.andNot(cluster);
-					ArrayList<BitSet> children = new ArrayList<BitSet>();
-					long totalPairs = 0;
-					long totalUnresolvedPairs = 0;
-					for (TNode cn: node.getChildren()) {
-						BitSet c = ((STITreeCluster) ((STINode)cn).getData()).getBitSet();
-						children.add(c);
-						long cc = c.cardinality();
-						totalPairs += cc*(cc-1);
-						totalUnresolvedPairs += cc * (treeall - cc); 
-					}
-					if (others.cardinality() != 0) {
-						children.add(others);
-						long cc = others.cardinality();
-						totalPairs += cc*(cc-1);
-						totalUnresolvedPairs += cc * (treeall - cc);
-					}
-					totalPairs /= 2;
-					totalUnresolvedPairs /= 2;
-
-
-					for (int j = 0; j < children.size(); j++ ) {
-						BitSet left = children.get(j);
-						long lc = left.cardinality();
-						long lcu = lc * (treeall - lc);
-						long lcp = lc*(lc-1)/2;
-						for (int i = j+1; i < children.size(); i++ ) {
-							BitSet right = children.get(i);
-							long rc = right.cardinality();
-							long rcu = rc * (treeall - lc - rc);
-							long rcp = rc*(rc-1)/2;
-							float sim = (totalPairs - lcp - rcp) // the number of fully resolved quartets
-									//+ (totalUnresolvedPairs - lcu - rcu) / 3.0 // we count partially resolved quartets
-									; 
-							updateQuartetDistanceTri( left, right, array, sim);
-						}
-					}
-				}
-
-				BitSet all = treeallCL.getBitSet();
-				int c = all.cardinality() - 2;
-				for (int l = all.nextSetBit(0); l >= 0; l=all.nextSetBit(l+1)) {
-					for (int r = all.nextSetBit(0); r >= 0; r=all.nextSetBit(r+1)) {
-						synchronized (denom[l][r]) {
-							denom[l][r] += c*(c-1)/2;
-							denom[r][l] = denom[l][r];
-						}
-					}
-				}
-			}
-			return Boolean.TRUE;
-		}
-	}
+	
 
     @Override
     public boolean isDistance() {
