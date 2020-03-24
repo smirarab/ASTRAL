@@ -8,6 +8,7 @@ import static org.jocl.CL.clCreateContext;
 import static org.jocl.CL.clGetDeviceIDs;
 import static org.jocl.CL.clGetDeviceInfo;
 import static org.jocl.CL.clGetPlatformIDs;
+import org.jocl.cl_device_id;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -32,6 +33,7 @@ import java.util.Stack;
 import java.util.TreeSet;
 import org.jocl.CL;
 import org.jocl.Pointer;
+import org.jocl.cl_context;
 import org.jocl.cl_context_properties;
 import org.jocl.cl_device_id;
 import org.jocl.cl_platform_id;
@@ -53,7 +55,7 @@ import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 
 public class CommandLine {
-	protected static String _version = "5.14.5";
+	protected static String _version = "5.14.6";
 	protected static SimpleJSAP jsap;
 
 	private static void exitWithErr(String extraMessage) {
@@ -146,10 +148,6 @@ public class CommandLine {
 								"Sets a limit for size of polytomies in greedy consensus trees where O(n) number"
 										+ " of new  resolutions are added. ASTRAL-III sets automatic limits to guarantee polynomial"
 										+ " time running time."),
-						new Switch("duplication", JSAP.NO_SHORTFLAG, "dup",
-								"Solves MGD problem. Minimizes the number duplications required to explain "
-										+ "gene trees using DynaDup algorithm (Bayzid, 2011). Note that with this option, "
-										+ "DynaDyp would be used *instead of* ASTRAL."),
 						new Switch("exact", 'x', "exact",
 								"find the exact solution by looking at all clusters - recommended only for small (<18) number of taxa."),
 						new FlaggedOption("extraLevel", JSAP.INTEGER_PARSER, "1", JSAP.NOT_REQUIRED, 'p', "extraLevel",
@@ -173,16 +171,10 @@ public class CommandLine {
 						new FlaggedOption("trimming threshold", JSAP.DOUBLE_PARSER, "0", JSAP.NOT_REQUIRED, 'd',
 								"trimming",
 								"trimming threshold is user's estimate on normalized score; the closer user's estimate is, the faster astral runs."),
-						new FlaggedOption("duploss weight", JSAP.STRING_PARSER, null, JSAP.NOT_REQUIRED, 'l', "duploss",
-								"Solves MGDL problem. Minimizes the number duplication and losses required"
-										+ " to explain gene trees using DynaDup algorithm. Note that with this option, "
-										+ "DynaDyp would be used *instead of* ASTRAL. "
-										+ "Use -l 0 for standard (homomorphic) definition, and -l 1 for our new bd definition. "
-										+ "Any value in between weights the impact of missing taxa somewhere between these two extremes. "
-										+ "-l auto will automatically pick this weight. "), });
+						 });
 	}
 
-	static Options readOptions(int criterion, boolean rooted, boolean extrarooted, double wh, JSAPResult config,
+	static Options readOptions( boolean rooted, boolean extrarooted, double wh, JSAPResult config,
 			List<Tree> mainTrees, List<List<String>> bootstrapInputSets) throws JSAPException, IOException {
 		Map<String, String> taxonMap = null;
 		String replace = null;
@@ -211,9 +203,7 @@ public class CommandLine {
 			outfileName = config.getFile("output file") == null ? null
 					: config.getFile("output file").getCanonicalPath();
 		}
-		if (config.getBoolean("duplication") && config.contains("duploss weight")) {
-			exitWithErr("dup and duploss options cannot be used together. Choose only one. ");
-		}
+
 		// johng23
 		if (!config.getBoolean("cpu only")) {
 			try {
@@ -294,14 +284,19 @@ public class CommandLine {
 				Threading.usedDevices = usedDevicesAL.toArray(Threading.usedDevices);
 				Threading.deviceVendors = new String[deviceVendorsAL.size()];
 				Threading.deviceVendors = deviceVendorsAL.toArray(Threading.deviceVendors);
-				Threading.context = clCreateContext(Threading.contextProperties, Threading.usedDevices.length,
-						Threading.usedDevices, null, null, null);
+				Threading.context = new  cl_context [Threading.usedDevices.length];
+				for (int c = 0; c <  Threading.usedDevices.length; c++) {
+					Threading.context[c] = clCreateContext(Threading.contextProperties, 1,
+						new cl_device_id[] {Threading.usedDevices[c]}, null, null, null);
+				}
 				// johng23 end
 			} catch (Exception e) {
 				System.err.println("Warning:\n\n Problem using GPU. Proceeding without GPU\n"+e);
+				System.err.println(e);
 				Threading.usedDevices = null;
 			} catch (Error e) {
 				System.err.println("Warning:\n\n Problem using GPU. Proceeding without GPU\n"+e);
+				System.err.println(e);
 				Threading.usedDevices = null;
 			}
 		}
@@ -470,7 +465,7 @@ public class CommandLine {
 		else
 			Threading.setDistMatrixChunkSize( Math.min(Threading.getNumThreads(), (10^9/GlobalMaps.taxonIdentifier.taxonCount()^2)/2 ) );
 		
-		Options options = new Options(rooted, extrarooted, config.getBoolean("exact"), criterion > 0, 1,
+		Options options = new Options(rooted, extrarooted, config.getBoolean("exact"), 1,
 				config.getInt("extraLevel"), keepOptions.contains("completed"),
 				keepOptions.contains("searchspace_norun") || keepOptions.contains("searchspace"),
 				!keepOptions.contains("searchspace_norun"), config.getInt("branch annotation level"),
@@ -488,7 +483,6 @@ public class CommandLine {
 	public static void main(String[] args) throws Exception {
 		long startTime = System.currentTimeMillis();
 		JSAPResult config;
-		int criterion = 2; // 2 for ASTRAL, 0 for dup, 1 for duploss
 		boolean rooted = false;
 		boolean extrarooted = false;
 		double wh = 1.0D;
@@ -513,31 +507,10 @@ public class CommandLine {
 		if (jsap.messagePrinted()) {
 			exitWithErr("");
 		}
-		if (config.getBoolean("duplication")) {
-			criterion = 0;
-			rooted = true;
-			extrarooted = true;
-			System.err.println("Using DynaDup application, minimizing MGD (not ASTRAL).");
-		}
-		if (config.contains("duploss weight")) {
-			criterion = 1;
-			rooted = true;
-			extrarooted = true;
-			String v = config.getString("duploss weight");
-			if (v.equals("auto")) {
-				wh = -1;
-			} else {
-				wh = Double.parseDouble(v);
-				if (wh < 0.0D || wh > 1.0D) {
-					exitWithErr("duploss weight has to be between 0 and 1");
-				}
-				;
-			}
-			System.err.println("Using DynaDup application, minimizing MGDL (not ASTRAL).");
-		}
+		
 		System.err.println("Gene trees are treated as " + (rooted ? "rooted" : "unrooted"));
 		GlobalMaps.random = new Random(config.getLong("seed"));
-		Options options = readOptions(criterion, rooted, extrarooted, wh, config, mainTrees, bootstrapInputSets);
+		Options options = readOptions( rooted, extrarooted, wh, config, mainTrees, bootstrapInputSets);
 		File outfile = config.getFile("output file");
 		if (outfile == null) {
 			outbuffer = new BufferedWriter(new OutputStreamWriter(System.out));
@@ -549,19 +522,19 @@ public class CommandLine {
 		if (config.getFile("score species trees") != null) {
 			System.err.println("Scoring " + config.getFile("score species trees"));
 			toScore = readTreeFileAsString(config.getFile("score species trees"));
-			runScore(criterion, rooted, mainTrees, outbuffer, options, outgroup, toScore);
+			runScore(rooted, mainTrees, outbuffer, options, outgroup, toScore);
 		} else {
-			runInference(config, criterion, rooted, extrarooted, mainTrees, outbuffer, bootstrapInputSets, options,
-					outgroup);
+			runInference(config, rooted, extrarooted, mainTrees, outbuffer, bootstrapInputSets, options, outgroup);
 		}
 		Threading.shutdown();
 		System.err.println("ASTRAL finished in " + (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 	}
 
-	private static void runScore(int criterion, boolean rooted, List<Tree> mainTrees, BufferedWriter outbuffer,
+	private static void runScore( boolean rooted, List<Tree> mainTrees, BufferedWriter outbuffer,
 			Options options, String outgroup, List<String> toScore) throws FileNotFoundException, IOException {
 		System.err.println("Scoring: " + toScore.size() + " trees");
-		AbstractInference inference = initializeInference(criterion, mainTrees, new ArrayList<Tree>(), new ArrayList<Tree>(), options);
+		AbstractInference inference = new WQInferenceConsumer(options, mainTrees, new ArrayList<Tree>(), new ArrayList<Tree>());
+		//initializeInference( mainTrees, new ArrayList<Tree>(), new ArrayList<Tree>(), options);
 		double score = Double.NEGATIVE_INFINITY;
 		List<Tree> bestTree = new ArrayList<Tree>();
 		for (String trs : toScore) {
@@ -592,7 +565,7 @@ public class CommandLine {
 		outbuffer.close();
 	}
 
-	private static void runInference(JSAPResult config, int criterion, boolean rooted, boolean extrarooted,
+	private static void runInference(JSAPResult config, boolean rooted, boolean extrarooted,
 			List<Tree> mainTrees, BufferedWriter outbuffer, List<List<String>> bootstrapInputSets, Options options,
 			String outgroup) throws JSAPException, IOException, FileNotFoundException {
 		System.err.println("All output trees will be *arbitrarily* rooted at " + outgroup);
@@ -629,7 +602,7 @@ public class CommandLine {
 			List<Tree> trees = new ArrayList<Tree>();
 			readInputTrees(trees, input, rooted, false, false, options.getMinLeaves(),
 					config.getInt("branch annotation level"), null);
-			bootstraps.add(runOnOneInput(criterion, extraTrees, toRemoveExtraTrees, outbuffer, trees, null, outgroup, options));
+			bootstraps.add(runOnOneInput( extraTrees, toRemoveExtraTrees, outbuffer, trees, null, outgroup, options));
 		}
 		if (bootstraps != null && bootstraps.size() != 0) {
 			STITree<Double> cons = (STITree<Double>) Utils.greedyConsensus(bootstraps, false,
@@ -641,15 +614,15 @@ public class CommandLine {
 		}
 		Logging.logTimeMessage(" ");
 		System.err.println("\n======== Running the main analysis");
-		runOnOneInput(criterion, extraTrees, toRemoveExtraTrees, outbuffer, mainTrees, bootstraps, outgroup, options);
+		runOnOneInput( extraTrees, toRemoveExtraTrees, outbuffer, mainTrees, bootstraps, outgroup, options);
 		outbuffer.close();
 	}
 
-	private static Tree runOnOneInput(int criterion, List<Tree> extraTrees, List<Tree> toRemoveExtraTrees,
+	private static Tree runOnOneInput(List<Tree> extraTrees, List<Tree> toRemoveExtraTrees,
 			BufferedWriter outbuffer, List<Tree> input, Iterable<Tree> bootstraps, String outgroup, Options options) {
 		long startTime;
 		startTime = System.currentTimeMillis();
-		AbstractInference inferenceConsumer = initializeInference(criterion, input, extraTrees, toRemoveExtraTrees, options);
+		AbstractInference inferenceConsumer = new WQInferenceConsumer(options, input, extraTrees, toRemoveExtraTrees);//(input, extraTrees, toRemoveExtraTrees, options);
 		inferenceConsumer.setup();
 		List<Solution> solutions = inferenceConsumer.inferSpeciesTree();
 		Logging.logTimeMessage(" CommandLine 667: ");
@@ -686,19 +659,6 @@ public class CommandLine {
 		}
 		writeTreeToFile(outbuffer, solutions.get(0)._st);
 		return st;
-	}
-
-	private static AbstractInference initializeInference(int criterion, List<Tree> trees, List<Tree> extraTrees,
-			List<Tree> toRemoveExtraTrees, Options options) {
-		AbstractInference inference;
-		if (criterion == 1 || criterion == 0) {
-			inference = new DLInference(options, trees, extraTrees, toRemoveExtraTrees);
-		} else if (criterion == 2) {
-			inference = new WQInference(options, trees, extraTrees, toRemoveExtraTrees);
-		} else {
-			throw new RuntimeException("criterion not set?");
-		}
-		return inference;
 	}
 
 	private static List<String> readTreeFileAsString(File file) throws FileNotFoundException, IOException {
