@@ -109,7 +109,7 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 			final int j = i;
 			futures.add(Threading.submit( new Callable<Boolean>() {
 				public Boolean call() {
-					int start = j * chunkSize;
+					int start = j * chunksize;
 					int end = Math.min(start + chunksize, geneTrees.size());
 					int m = j % memchunkcount;	
 					Long[][] array = a[m];
@@ -233,7 +233,7 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 		/*System.err.println();
 		for (int i = 0; i < n; i++) {
 			for (int j = 0; j < n; j++) {
-				System.err.print(String.format("%.8f",matrix[i][j]));
+				System.err.print(String.format("%.5f",matrix[i][j]));
 				System.err.print(",");
 			}
 			System.err.println();
