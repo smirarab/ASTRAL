@@ -1,3 +1,9 @@
+- version 5.14.6:
+	- Improve multiple GPU performance
+	- Bug fix for -x
+	- Major refactoring
+	- Small synchronization bug fix for distance calculation and shift load balance
+	
 - version 5.14.5:
 	- Import 5.7.3 changs from master\
 - version 5.14.4:
