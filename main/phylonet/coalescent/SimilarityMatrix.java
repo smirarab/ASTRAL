@@ -166,7 +166,7 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 												int rr = l <=r ? r : l;
 												synchronized (array[ll][rr]) {
 													array[l][r] += sim;
-													array[r][l] = matrix[l][r];
+													array[r][l] = array[l][r];
 												}
 											}
 										}
