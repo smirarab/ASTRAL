@@ -1,18 +1,58 @@
 package phylonet.coalescent;
+
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
-public class WQInferenceProducer extends AbstractInferenceProducer<Tripartition> {
+public class WQInferenceProducer extends AbstractInference<Tripartition> {
 	
-	public WQInferenceProducer(Options inOptions, List<Tree> trees, List<Tree> extraTrees,List<Tree> toRemoveExtraTrees) {
-		super(inOptions, trees, extraTrees, toRemoveExtraTrees);
+	private BlockingQueue<Tripartition> queueReadyTripartitions;
+	public static int weightCount = 0;
+	
+	public WQInferenceProducer(Options options, List<Tree> trees,
+			List<Tree> extraTrees, List<Tree> toRemoveExtraTrees) {
+		super(options, trees, extraTrees, toRemoveExtraTrees);
+	}
+	
+	public WQInferenceProducer(AbstractInference in) {
+		super(in.options, in.trees, in.extraTrees, in.toRemoveExtraTrees);
+		this.dataCollection = in.dataCollection;
+		this.setQueueClusterResolutions(in.getQueueClusterResolutions());
+		this.queueReadyTripartitions = (new LinkedBlockingQueue<Tripartition>());
 	}
 
-	public WQInferenceProducer(AbstractInference semiDeepCopy) {
-		super(semiDeepCopy);
+
+
+	public List<Solution> inferSpeciesTree() {
+
+		if (! this.options.isRunSearch() ) {
+			System.exit(0);
+		}
+		return super.inferSpeciesTree();
 	}
+
+
+	@Override
+	public int countWeights() {
+		return weightCount;
+	}
+
+	/**
+	 * Sets up data structures before starting DP
+	 */
+	void setup() {
+		this.weightCalculator = null;
+		this.setupMisc();
+	}
+
+	public BlockingQueue getQueueReadyTripartitions() {
+		return queueReadyTripartitions;
+	}
+
+
 
 	@Override
 	Long getTotalCost(Vertex all) {
@@ -20,34 +60,28 @@ public class WQInferenceProducer extends AbstractInferenceProducer<Tripartition>
 	}
 
 	@Override
-	AbstractComputeMinCostTask<Tripartition> newComputeMinCostTask(
+	AbstractComputeMinCostTask newComputeMinCostTask(
 			AbstractInference<Tripartition> inference, Vertex all) {
-		return new WQComputeMinCostTaskProducer((AbstractInferenceProducer<Tripartition>) inference, all);
+		return new WQComputeMinCostTaskProducer((WQInferenceProducer) inference, all);
 	}
 
 	IClusterCollection newClusterCollection() {
-		return new WQClusterCollection(GlobalMaps.taxonIdentifier.taxonCount());
+		return new HashClusterCollection(GlobalMaps.taxonIdentifier.taxonCount());
 	}
 
-	WQDataCollection newCounter(IClusterCollection clusters) {
-		return new WQDataCollection((WQClusterCollection)clusters, this);
+	AbstractDataCollection newCounter(IClusterCollection clusters) {
+		return new WQDataCollection((HashClusterCollection)clusters, this);
 	}
 
-	
-
-	@Override
-	public double scoreGeneTree(Tree scorest, boolean initialize) {
-		return 0;
-	}
 
 	@Override
 	public double scoreSpeciesTreeWithGTLabels(Tree scorest, boolean initialize) {
-		return 0;
+		throw new RuntimeException("Not Implemented");
 	}
 
 	@Override
 	void initializeWeightCalculator() {
-		this.weightCalculator.initializeWeightContainer(0);
+		throw new RuntimeException("Not Implemented");
 
 	}
 	
@@ -55,9 +89,9 @@ public class WQInferenceProducer extends AbstractInferenceProducer<Tripartition>
 	void setupMisc() {
 	}
 
-	@Override
+
 	AbstractWeightCalculator<Tripartition> newWeightCalculator() {
-		return null;
+		throw new RuntimeException("Not Implemented");
 	}
 
 }
