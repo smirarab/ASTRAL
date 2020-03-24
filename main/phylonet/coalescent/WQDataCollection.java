@@ -779,6 +779,9 @@ implements Cloneable {
 		//prev = 0;
 
 		//gradiant = 0;
+		
+		System.err.println("Number of Clusters after addition from gene trees: "+clusters.getClusterCount());
+		
 		if (inference.getAddExtra() == 0) {
 			return;
 		}
