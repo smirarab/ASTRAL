@@ -75,20 +75,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 	public boolean isRooted() {
 		return options.isRooted();
 	}
-	
-	public Iterable<VertexPair> getClusterResolutions(Vertex v) {
-			Iterable<VertexPair> ret = null;
-			try{
-				ret = getQueueClusterResolutions().take();
-			}
-			catch (Exception e) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
-			return ret;
 
-	}
-	
 	
 	protected Collapse.CollapseDescriptor doCollapse(List<Tree> trees) {
 		Collapse.CollapseDescriptor cd = Collapse.collapse(trees);
@@ -103,14 +90,6 @@ public abstract class AbstractInference<T> implements Cloneable{
 				if (((STINode) node).getData() == null)
 					((STINode) node).setData(Integer.valueOf(0));
 		}
-	}
-
-	private int getResolutionsNumber(int nodeNumber) {
-		int total = 1;
-		for (int i = 3; i <= nodeNumber; i++) {
-			total *= (2 * i - 3);
-		}
-		return total;
 	}
 
 
@@ -463,3 +442,4 @@ public abstract class AbstractInference<T> implements Cloneable{
 		this.queueWeightResults = queueWeightResults;
 	}
 }
+

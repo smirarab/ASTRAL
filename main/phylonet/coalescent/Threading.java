@@ -13,7 +13,7 @@ public class Threading {
 
 	private static ExecutorService eService;
 	static cl_context_properties contextProperties;
-	static cl_context context;
+	static cl_context [] context;
 	static cl_device_id[] usedDevices;
 	static String[] deviceVendors;
 	private static int numThreads = Runtime.getRuntime().availableProcessors();
