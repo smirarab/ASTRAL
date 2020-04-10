@@ -88,7 +88,7 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 		final int chunksize = (int) Math.ceil(geneTrees.size()/(Threading.getNumThreads()+0.0));
 		final int memchunkcount = Threading.getDistMatrixChunkSize();
 		//final int memchunksize = (int) Math.ceil((geneTrees.size()+0.0)/memchunkcount);
-		System.err.println("with " + memchunkcount + " distance matrices for parallellism");
+		Logging.log("with " + memchunkcount + " distance matrices for parallellism");
 		
 		final Long[][][] a = new Long[memchunkcount][n][n];
 		final Long[][][] d = new Long[memchunkcount][n][n];
@@ -212,9 +212,9 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 					//System.err.print(",");
 					denom[i][j] += d[c][i][j];
 				}
-				//System.err.println();
+				//Logging.log();
 			}
-			//System.err.println();
+			//Logging.log();
 		}
 		Logging.logTimeMessage("SimilarityMatrix 161-164: ");
 			
@@ -230,13 +230,13 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 				matrix[j][i] = matrix[i][j];
 			}
 		}
-		/*System.err.println();
+		/*Logging.log();
 		for (int i = 0; i < n; i++) {
 			for (int j = 0; j < n; j++) {
 				System.err.print(String.format("%.5f",matrix[i][j]));
 				System.err.print(",");
 			}
-			System.err.println();
+			Logging.log();
 		}*/
 	}
 	

@@ -36,6 +36,7 @@ import org.jocl.cl_mem;
 import org.jocl.cl_program;
 
 public class TurnTaskToScores implements Runnable {
+	static final long THEEND = -23L;
 	private static final int LOG_FREQ = 100000;
 	private static final long workGroupSize = 1L << 14;
 	private static final String clFileNVidia = "calculateWeightNVidia.cl";
@@ -78,7 +79,7 @@ public class TurnTaskToScores implements Runnable {
 		this.queue2Helper = new PriorityBlockingQueue<ComparablePair<Long, Integer>>();
 		this.speciesWordLength = (GlobalMaps.taxonIdentifier.taxonCount() / 64 + 1);
 		
-		//System.err.println("global work group size is : " + workGroupSize);
+		//Logging.log("global work group size is : " + workGroupSize);
 		if (Threading.usedDevices == null || Threading.usedDevices.length == 0) {
 			this.gpuRunner = null;
 		} else {
@@ -206,9 +207,9 @@ public class TurnTaskToScores implements Runnable {
 		}
 
 		try {
-			queue2Helper.offer(new ComparablePair<Long, Integer>(-23L, positionIn++));
+			queue2Helper.offer(new ComparablePair<Long, Integer>(-THEEND, positionIn++));
 			// random  specific number used as a "poison pill" for AbstractWeightCalculator
-			System.err.println(positionIn + " " + positionOut + " " + queue2Helper.peek().value.intValue());
+			Logging.log("Finishing up:" + positionIn + " " + positionOut + " " + queue2Helper.peek().value.intValue());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -233,7 +234,7 @@ public class TurnTaskToScores implements Runnable {
 		}
 		else if(positionOut > nextLog) {
 			nextLog += LOG_FREQ;
-			System.err.println(positionOut + " weights calculated " + 
+			Logging.log(positionOut + " weights calculated " + 
 					((double)System.currentTimeMillis() - timer3)/1000);
 			timer3 = System.currentTimeMillis();
 		}
@@ -292,7 +293,7 @@ public class TurnTaskToScores implements Runnable {
 			tripartitions3 = new long[devices.length][(int) (speciesWordLength * workGroupSize)];
 			label = new int[2][devices.length][(int) workGroupSize];
 			currentLabel = new int[devices.length];
-			System.err.println("device length is: " + devices.length);
+			Logging.log("device length is: " + devices.length);
 			available = new AtomicBoolean[devices.length];
 			storageAvailable = new AtomicBoolean[devices.length];
 
@@ -311,7 +312,7 @@ public class TurnTaskToScores implements Runnable {
 
 		public void initCL() {
 			int treeheight = ((WQWeightCalculator) inference.weightCalculator).maxHeight();
-			System.err.println("TREE HEIGHT IS: " + treeheight);
+			Logging.log("TREE HEIGHT IS: " + treeheight);
 			
 			//boolean NVidia = false;
 			//boolean AMD = false;
