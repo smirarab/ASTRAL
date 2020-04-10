@@ -153,11 +153,11 @@ implements Cloneable {
 					}
 				} catch (Exception e) {
 					// bug = true;
-					// System.err.println("node : "+node.toString());
-					// System.err.println("cluster : "+cluster);
-					// System.err.println(childbslist.size());
-					// System.err.println(childbslist);
-					// System.err.println("bs : "+bs);
+					// Logging.log("node : "+node.toString());
+					// Logging.log("cluster : "+cluster);
+					// Logging.log(childbslist.size());
+					// Logging.log(childbslist);
+					// Logging.log("bs : "+bs);
 					e.printStackTrace();
 				}
 
@@ -175,7 +175,7 @@ implements Cloneable {
 							.getSpeciesIdMapper().getSTTaxonIdentifier()
 							.taxonCount());
 					// if (bug) {
-					// System.err.println(remaining);
+					// Logging.log(remaining);
 					// }
 					//
 					boolean isRoot = remaining.isEmpty();
@@ -448,7 +448,7 @@ implements Cloneable {
 			STITreeCluster cluster = stClusters.get(i);
 			size =  cluster.getClusterSize();
 			removeCluster(cluster, size);
-//			System.err.println(size+ cluster.toString());
+//			Logging.log(size+ cluster.toString());
 			STITreeCluster comp = cluster.complementaryCluster();			
 			if(comp.getClusterSize() < GlobalMaps.taxonIdentifier.taxonCount() - 1){
 				removeCluster(comp, size);
@@ -462,7 +462,7 @@ implements Cloneable {
 			boolean extraTreeRooted) {
 		
 		for (Tree tr : extraTrees) {
-			System.err.println(tr.toNewick());	
+			Logging.log(tr.toNewick());	
 			STITree stTrc = new STITree(tr);
 			GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) stTrc);
 			removeTreeBipartitionsFromSetX(stTrc);
@@ -499,7 +499,7 @@ implements Cloneable {
 		if (size == GlobalMaps.taxonIdentifier.taxonCount() || size == 0) {
 			return false;
 		}
-		// System.err.println("size:" + size);
+		// Logging.log("size:" + size);
 		added |= addToClusters(c1, size);
 		size = c2.getClusterSize();
 		added |= addToClusters(c2, size);
@@ -533,7 +533,7 @@ implements Cloneable {
 	// all.getBitSet().set(0, GlobalMaps.taxonIdentifier.taxonCount());
 	// addToClusters(all, GlobalMaps.taxonIdentifier.taxonCount());
 	//
-	// System.err.println("Building set of clusters (X) from gene trees ");
+	// Logging.log("Building set of clusters (X) from gene trees ");
 	//
 	//
 	// /**
@@ -544,44 +544,44 @@ implements Cloneable {
 	// getSamplingRepeationFactor(inference.options.getSamplingrounds());
 	//
 	// if (maxRepeat > 1)
-	// System.err.println("Average  sampling is "+ spm.meanSampling() +
+	// Logging.log("Average  sampling is "+ spm.meanSampling() +
 	// ".\nWill do "+maxRepeat+" rounds of sampling ");
 	//
-	// //System.err.println(this.completedGeeneTrees.get(0));
+	// //Logging.log(this.completedGeeneTrees.get(0));
 	// int prev = 0, firstgradiant = -1, gradiant = 0;
 	// for (int r = 0; r < maxRepeat; r++) {
 	//
-	// System.err.println("------------\n"
+	// Logging.log("------------\n"
 	// + "Round " +r +" of individual  sampling ...");
 	// SingleIndividualSample taxonSample = new
 	// SingleIndividualSample(spm,this.geneMatrix);
 	//
-	// System.err.println("taxon sample " +
+	// Logging.log("taxon sample " +
 	// Arrays.toString(taxonSample.getTaxonIdentifier().getAllTaxonNames()));
 	//
 	// List<Tree> contractedTrees =
 	// taxonSample.contractTrees(this.completedGeeneTrees);
 	//
-	// //System.err.println(trees.get(0));
+	// //Logging.log(trees.get(0));
 	//
 	// addBipartitionsFromSignleIndTreesToX(contractedTrees, taxonSample);
 	//
-	// System.err.println("Number of clusters after simple addition from gene trees: "
+	// Logging.log("Number of clusters after simple addition from gene trees: "
 	// + clusters.getClusterCount());
 	//
 	// if (inference.getAddExtra() != 0) {
-	// System.err.println("calculating extra bipartitions to be added at level "
+	// Logging.log("calculating extra bipartitions to be added at level "
 	// + inference.getAddExtra() +" ...");
 	// this.addExtraBipartitionByHeuristics(contractedTrees, taxonSample);
 	//
-	// System.err.println("Number of Clusters after addition by greedy: " +
+	// Logging.log("Number of Clusters after addition by greedy: " +
 	// clusters.getClusterCount());
 	// gradiant = clusters.getClusterCount() - prev;
 	// prev = clusters.getClusterCount();
 	// if (firstgradiant == -1)
 	// firstgradiant = gradiant;
 	// else {
-	// //System.err.println("First gradiant: " + firstgradiant+
+	// //Logging.log("First gradiant: " + firstgradiant+
 	// " current gradiant: " + gradiant);
 	// if (gradiant < firstgradiant / 10) {
 	// //break;
@@ -590,9 +590,9 @@ implements Cloneable {
 	//
 	// }
 	// }
-	// System.err.println();
+	// Logging.log();
 	//
-	// System.err.println("Number of Default Clusters: " +
+	// Logging.log("Number of Default Clusters: " +
 	// clusters.getClusterCount());
 	//
 	// }
@@ -622,7 +622,7 @@ implements Cloneable {
 			}
 		}
 
-		System.err.println("Building set of clusters (X) from gene trees ");
+		Logging.log("Building set of clusters (X) from gene trees ");
 
 		Logging.logTimeMessage(" WQDataCollection 558-561: ");
 
@@ -666,7 +666,7 @@ implements Cloneable {
 
 			for (int r = 0; r < secondRoundSampling * K; r++) {
 
-				//System.err.println("------------\n" + "sample " + (r+1)
+				//Logging.log("------------\n" + "sample " + (r+1)
 				//	+ " of individual  sampling ...");
 				SingleIndividualSample taxonSample = new SingleIndividualSample(
 						spm, this.geneMatrix);
@@ -674,17 +674,16 @@ implements Cloneable {
 
 			}
 
-			System.err.println("In second round sampling "
+			Logging.log("In second round sampling "
 					+ secondRoundSampling + " rounds will be done");
 			if (Logging.timerOn) {
-				System.err
-				.println("TIME TOOK FROM LAST NOTICE WQDataCollection 621-624: "
+				Logging.log("TIME TOOK FROM LAST NOTICE WQDataCollection 621-624: "
 						+ (double) (System.currentTimeMillis() - Logging.timer) / 1000);
 				Logging.timer = System.currentTimeMillis();
 			}
 			int gtindex = 0;
 			for (Tree gt : this.completedGeeneTrees) {
-				// System.err.println("gene tree number " + i +
+				// Logging.log("gene tree number " + i +
 				// " is processing..");
 				ArrayList<Tree> firstRoundSampleTrees = new ArrayList<Tree>();
 
@@ -712,7 +711,7 @@ implements Cloneable {
 				}
 
 				allGreedies[gtindex++] = greedies;
-				// System.err.println("Number of clusters after simple addition from gene trees: "
+				// Logging.log("Number of clusters after simple addition from gene trees: "
 				// + clusters.getClusterCount());
 
 			}
@@ -733,8 +732,8 @@ implements Cloneable {
 		}
 		Tree ST = Utils.buildTreeFromClusters(STls, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), false);
         //		Tree PhyDstar = Utils.buildTreeFromClusters(phyDstar, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), false);
-        //		System.err.println(UPGMA.toNewick());
-        //        System.err.println();
+        //		Logging.log(UPGMA.toNewick());
+        //        Logging.log();
         //        java.lang.System.exit(0);
 
 
@@ -762,9 +761,9 @@ implements Cloneable {
 				Threading.execute(new FormSetXLoop(allGreedies[j].get(ii), baseTrees, latch));
 
 			}			
-			System.err.println("------------------------------");
+			Logging.log("------------------------------");
 			//gradiant = clusters.getClusterCount() - prev;
-			//System.err.println("gradient" + ii + ": " + gradiant);
+			//Logging.log("gradient" + ii + ": " + gradiant);
 			//prev = clusters.getClusterCount();
 
 		}
@@ -780,7 +779,7 @@ implements Cloneable {
 
 		//gradiant = 0;
 		
-		System.err.println("Number of Clusters after addition from gene trees: "+clusters.getClusterCount());
+		Logging.log("Number of Clusters after addition from gene trees: "+clusters.getClusterCount());
 		
 		if (inference.getAddExtra() == 0) {
 			return;
@@ -788,7 +787,7 @@ implements Cloneable {
 		
 		this.addExtraBipartitionByDistance();
 
-		System.err.println("Adding to X using resolutions of greedy consensus ...\n");
+		Logging.log("Adding to X using resolutions of greedy consensus ...\n");
 
 		for (int l = 0; l < secondRoundSampling; l++) {
 			ArrayList<Tree> genes = new ArrayList<Tree>();
@@ -805,7 +804,7 @@ implements Cloneable {
 
 		}
 		
-		System.err.println("Number of Clusters after addition by greedy: "+clusters.getClusterCount());
+		Logging.log("Number of Clusters after addition by greedy: "+clusters.getClusterCount());
 		Logging.logTimeMessage(" WQDataCollection 760-763: ");
 
 	}
@@ -854,7 +853,7 @@ implements Cloneable {
         this.speciesMatrix = this.geneMatrix.populate( treeAllClusters, 
                 this.originalInompleteGeneTrees,
                 GlobalMaps.taxonNameMap.getSpeciesIdMapper());	
-        System.err.println();
+        Logging.log("");
         
     }
 
@@ -865,7 +864,7 @@ implements Cloneable {
 	 * @return
 	 */
 	int preProcess(AbstractInference<Tripartition> inference) {
-		System.err.println("Number of gene trees: "
+		Logging.log("Number of gene trees: "
 				+ this.originalInompleteGeneTrees.size());
 		// n = GlobalMaps.taxonIdentifier.taxonCount();
 
@@ -912,7 +911,7 @@ implements Cloneable {
 			}
 			treeAllClusters.add(gtAll);
 		}
-		System.err.println(haveMissing + " trees have missing taxa");
+		Logging.log(haveMissing + " trees have missing taxa");
 
 		
 		return haveMissing;
@@ -969,13 +968,12 @@ implements Cloneable {
 	 * Siavash's dissertation. Uses the distance matrix for completion.
 	 */
 	private void completeGeneTrees() {
-		System.err
-		.println("Will attempt to complete bipartitions from X before adding using a distance matrix.");
+		Logging.log("Will attempt to complete bipartitions from X before adding using a distance matrix.");
 		int t = 0;
 		BufferedWriter completedFile = null;
 		if (this.options.isOutputCompletedGenes()) {
 			String fn = this.options.getOutputFile() + ".completed_gene_trees";
-			System.err.println("Outputting completed gene trees to " + fn);
+			Logging.log("Outputting completed gene trees to " + fn);
 			try {
 				completedFile = new BufferedWriter(new FileWriter(fn));
 			} catch (IOException e) {
@@ -1014,12 +1012,12 @@ implements Cloneable {
 		for (String s : spm.getSTTaxonIdentifier().getAllTaxonNames()) {
 			System.err.print(String.format("%1$8s", s));
 		}
-		System.err.println();
+		Logging.log("");
 		for (int i = 0; i < spm.getSpeciesCount(); i++) {
 			for (int j = 0; j < spm.getSpeciesCount(); j++) {
 				System.err.print(String.format("%1$8.3f", distSTMatrix[i][j]));
 			}
-			System.err.println();
+			Logging.log("");
 		}
 	}
 
@@ -1046,7 +1044,7 @@ implements Cloneable {
 			}
 		}
 
-		System.err.println("Number of Clusters after addition by distance: "
+		Logging.log("Number of Clusters after addition by distance: "
 				+ clusters.getClusterCount());
 	}
 
@@ -1074,7 +1072,7 @@ implements Cloneable {
 
 		/*
 		 * if (completeTrees.size() < 2) {
-		 * System.err.println("Only "+completeTrees.size() +
+		 * Logging.log("Only "+completeTrees.size() +
 		 * " complete trees found. Greedy-based completion not applicable.");
 		 * return; }
 		 */
@@ -1082,7 +1080,7 @@ implements Cloneable {
 				this.GREEDY_ADDITION_THRESHOLDS, true, 1, tid, true);
 		int sumDegrees = 0;
 
-		System.err.println("took "+ ((System.currentTimeMillis()-t)/1000+" seconds"));
+		Logging.log("took "+ ((System.currentTimeMillis()-t)/1000+" seconds"));
 
 		ArrayList<Integer> deg = new ArrayList<Integer>();
 		for (Tree cons : allGreedies) {
@@ -1095,11 +1093,11 @@ implements Cloneable {
 		Collections.sort(deg);
 
 		if(polylimit == -1){
-			// System.err.println(deg);
+			// Logging.log(deg);
 			int N = this.GREEDY_ADDITION_MAX_POLYTOMY_MIN
 					+ GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount()
 					* this.GREEDY_ADDITION_MAX_POLYTOMY_MULT;
-			System.err.println("Limit for sigma of degrees:" + N + "\n");
+			Logging.log("Limit for sigma of degrees:" + N + "\n");
 			int i = 0;
 			while (sumDegrees < N && i < deg.size()) {
 				sumDegrees += Math.pow(deg.get(i), 2);
@@ -1120,23 +1118,23 @@ implements Cloneable {
 		// else
 		// allDegNotVisitedMaxDegrees.add(deg.get(i-1));
 		//
-		// // System.err.println("max degree: "+ maxDegrees[j]+" i: "+i+
+		// // Logging.log("max degree: "+ maxDegrees[j]+" i: "+i+
 		// "  deg size: "+ deg.size());
 		// // if((maxDegree < polytomySizeLimit && i != deg.size()) ||
 		// polytomySizeLimit == POLYTOMY_SIZE_LIMIT_MAX)
 		// // polytomySizeLimit = maxDegree;
 		//
-		// System.err.println(allDegNotVisitedMaxDegrees);
-		// System.err.println(allDegVisitedMaxDegrees);
+		// Logging.log(allDegNotVisitedMaxDegrees);
+		// Logging.log(allDegVisitedMaxDegrees);
 		// polytomySizeLimit = Math.max(arrayListMax(allDegVisitedMaxDegrees),
 		// arrayListMin(allDegNotVisitedMaxDegrees));
 
-		System.err.println("polytomy size limit : > " + polytomySizeLimit);
-		System.err.println(" " + deg );
-		System.err.println("discarded polytomies: ");
+		Logging.log("polytomy size limit : > " + polytomySizeLimit);
+		Logging.log(" " + deg );
+		Logging.log("discarded polytomies: ");
 		for (int d : deg) {
 			if (d > polytomySizeLimit)
-				System.err.println(d);
+				Logging.log(d+"");
 		}
 
 		Object lock = new Object();
@@ -1158,7 +1156,7 @@ implements Cloneable {
 					continue;
 				}
 
-				//System.err.println("Queued: " + "polytomy of size " + greedyNode.getChildCount());
+				//Logging.log("Queued: " + "polytomy of size " + greedyNode.getChildCount());
 
 				stringOutput.add(Threading.submit(new addExtraBipartitionByHeuristicsLoop(
 								greedyNode, tid, th, contractedTrees,
