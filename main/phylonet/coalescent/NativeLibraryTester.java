@@ -14,28 +14,28 @@ public class NativeLibraryTester {
 		boolean useNativeMethod = true;
 		try {
 			System.loadLibrary("Astral");
-			System.err.println("Native AVX library found.");
+			Logging.log("Native AVX library found.");
 			useNativeMethod = true;
 		}
 		catch (Throwable e) {
 			useNativeMethod = false;
-			System.err.println("Fail to load native library "+System.mapLibraryName("Astral")+"! Is library path set correctly using -Djava.library.path=lib/?");
-			System.err.println("\n\n" + e);
+			Logging.log("Fail to load native library "+System.mapLibraryName("Astral")+"! Is library path set correctly using -Djava.library.path=lib/?");
+			Logging.log("\n\n" + e);
 		}
 		
 		if (useNativeMethod) {
 			try {
 				PTNative.cppInit(14, 51, queue, bit);
 				PTNative.cppBatchCompute(result, a, b, c);
-				System.err.println("Native AVX library functions correctly as expected.");
+				Logging.log("Native AVX library functions correctly as expected.");
 			}
 			catch (Throwable e) {
-				System.err.println("Native AVX library does not function correctly!");
-				System.err.println("Please run compile_native_c_code.sh to compile the library for your machine.");
-				System.err.println("Or you can compile the library using following command:");
-				System.err.println("g++ -std=c++11 -I\"PATH_TO_FOLDER_CONTAINING_JNI_DOT_H\" -I\"PATH_TO_FOLDER_CONTAINING_JNI_DOT_H/OS\" -march=native -Ofast -fPIC -o lib/libAstral.so -shared main/phylonet_coalescent_Polytree_PTNative.cpp");
-				System.err.println("You can also set -D\"java.library.path=lib/no_avx2\" to check whether such version of library functions correctly.");
-				System.err.println("\n\n" + e);
+				Logging.log("Native AVX library does not function correctly!");
+				Logging.log("Please run compile_native_c_code.sh to compile the library for your machine.");
+				Logging.log("Or you can compile the library using following command:");
+				Logging.log("g++ -std=c++11 -I\"PATH_TO_FOLDER_CONTAINING_JNI_DOT_H\" -I\"PATH_TO_FOLDER_CONTAINING_JNI_DOT_H/OS\" -march=native -Ofast -fPIC -o lib/libAstral.so -shared main/phylonet_coalescent_Polytree_PTNative.cpp");
+				Logging.log("You can also set -D\"java.library.path=lib/no_avx2\" to check whether such version of library functions correctly.");
+				Logging.log("\n\n" + e);
 			}
 		}
 	}
