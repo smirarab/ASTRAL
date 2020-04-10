@@ -194,9 +194,9 @@ public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 	        }
 	        
 		}
-		//System.err.println("four: "+four/24l);
+		//Logging.log("four: "+four/24l);
 		ret -= (three/6 + four/24l);
-		System.err.println(ret);
+		Logging.log(ret+"");
 		return ret;
 	}
 
@@ -234,9 +234,9 @@ public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 			//ASTRAL IV SPECIFIC
 
 			this.maxpossible = this.calculateMaxPossible();
-			System.err.println("Number of quartet trees in the gene trees: "+this.maxpossible);
+			Logging.log("Number of quartet trees in the gene trees: "+this.maxpossible);
 
-			//System.err.println(this.maxpossible);
+			//Logging.log(this.maxpossible);
 		}
 
 		((WQWeightCalculator)weightCalculator).setThreadingOff(true);
@@ -278,7 +278,7 @@ public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 					/*for (STITreeCluster chid :childbslist) {
 						System.err.print(chid.getClusterSize()+" ");
 					}
-					System.err.println(" (polytomy)");*/
+					Logging.log(" (polytomy)");*/
 					if (this.getBranchAnnotation() % 2 == 0) {
 						poly = true;
 						continue;
@@ -318,14 +318,14 @@ public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 		Logging.logTimeMessage("WQInference 180: ");
 		
 		if (poly) {
-			System.err.println("Final quartet score is: won't report because of the existense of polytomies and to save time. "
+			Logging.log("Final quartet score is: won't report because of the existense of polytomies and to save time. "
 					+ "To get the score run with -t 1 and you can score the tree below using -q. ");
-			System.err.println("Final normalized quartet score is: won't report because of the existense of polytomies and to save time. "
+			Logging.log("Final normalized quartet score is: won't report because of the existense of polytomies and to save time. "
 					+ "To get the score run with -t 1 and you can score the tree below using -q. ");
 		} else {
 			
-			System.err.println("Final quartet score is: " + sum/4l);
-			System.err.println("Final normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
+			Logging.log("Final quartet score is: " + sum/4l);
+			Logging.log("Final normalized quartet score is: "+ (sum/4l+0.)/this.maxpossible);
 			//System.out.println(st.toNewickWD());
 		}
 
@@ -337,7 +337,7 @@ public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 			double logscore = this.scoreBranches(st);
 
 			if (this.getBranchAnnotation() % 12 == 0) {
-				System.err.println("log local posterior: "+logscore);
+				Logging.log("log local posterior: "+logscore);
 				return logscore;
 			}
 		}
@@ -514,12 +514,12 @@ public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 
 
 			if ( Math.abs((f1+f2+f3) - effni) > 0.00000000001 ) {
-				//System.err.println("Adjusting effective N from\t" + effni + "\tto\t" + (f1 + f2 + f3) + ". This should only happen as a result of polytomies in gene trees.");
+				//Logging.log("Adjusting effective N from\t" + effni + "\tto\t" + (f1 + f2 + f3) + ". This should only happen as a result of polytomies in gene trees.");
 				effni = f1 + f2 + f3;
 			}
 			
 			if (effni == 0) {
-				System.err.println("Warning: node has effective N ==0 and so no quartet resolutions: \n" + n);
+				Logging.log("Warning: node has effective N ==0 and so no quartet resolutions: \n" + n);
 			}
 
 			if (this.options.getGeneRepeat() != 1) {
@@ -546,7 +546,7 @@ public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 				df.setMaximumFractionDigits(5);
 				double pval = post.getPvalue();
 				if (pval < 0) {
-					System.err.println(""
+					Logging.log(""
 							+ "Cannot perform polytomy test with effective N (after polytomies) "+ effni +
 							":\n\t" +
 							node);
@@ -580,13 +580,13 @@ public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 						node.setData(df.format(postQ1));
 						Quadrapartition[] threequads = nd.quads;
 						STBipartition[] biparts = nd.bipartitions;
-						System.err.println(threequads[0] +
+						Logging.log(threequads[0] +
 								" [" + biparts[0].toString2() +"] : "+postQ1 +" ** f1 = "+f1+
 								" f2 = "+f2+" f3 = "+f3+" EN = "+ effni+" **");
-						System.err.println(threequads[1] +
+						Logging.log(threequads[1] +
 								" ["+biparts[1].toString2()+"] : "+postQ2+ " ** f1 = "+f2+
 								" f2 = "+f1+" f3 = "+f3+" EN = "+ effni+" **");
-						System.err.println(threequads[2] +
+						Logging.log(threequads[2] +
 								" ["+biparts[2].toString2()+"] : "+postQ3+ " ** f1 = "+f3+
 								" f2 = "+f1+" f3 = "+f2+" EN = "+ effni+" **");
 					}  else if (this.getBranchAnnotation() == 8){
@@ -668,7 +668,7 @@ public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 			}
 
 		}
-		System.err.println(st.toStringWD());
+		Logging.log(st.toStringWD());
 		return ret;
 	}
 
@@ -808,7 +808,7 @@ public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 			}
 
 			if (nd != null && nd.effn < 20) {
-				System.err.println("You may want to ignore posterior probabilities and other statistics related to the following "
+				Logging.log("You may want to ignore posterior probabilities and other statistics related to the following "
 						+ "branch branch because the effective number of genes impacting it is only "+ nd.effn +
 						":\n\t" +
 						GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTClusterForGeneCluster(cluster));
@@ -851,7 +851,7 @@ public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 				sisterRemaining[0] = (STITreeCluster) nieceIt.next().getData();
 				sisterRemaining[1] = (STITreeCluster) nieceIt.next().getData();
 			} else {
-				System.err.println("WARN: we should never be here; something wrong with branch annotations (but topology will be fine). ");
+				Logging.log("WARN: we should never be here; something wrong with branch annotations (but topology will be fine). ");
 			}
 		} 
 		else {
@@ -865,7 +865,7 @@ public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 	Long getTotalCost(Vertex all) {
 		Logging.logTimeMessage("WQInference 475: ");
 			
-		System.err.println("Normalized score (portion of input quartet trees satisfied before correcting for multiple individuals): " + 
+		Logging.log("Normalized score (portion of input quartet trees satisfied before correcting for multiple individuals): " + 
 				all._max_score/4./this.maxpossible);
 		return (long) (all._max_score/4l);
 	}
@@ -900,7 +900,7 @@ public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 	void setupMisc() {
 		
 		this.maxpossible = this.calculateMaxPossible();
-		System.err.println("Number of quartet trees in the gene trees: " +
+		Logging.log("Number of quartet trees in the gene trees: " +
 				this.maxpossible);
 		((HashClusterCollection)this.dataCollection.clusters).preComputeHashValues();
 		

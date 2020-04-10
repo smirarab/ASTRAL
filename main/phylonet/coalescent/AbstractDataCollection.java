@@ -63,8 +63,7 @@ public abstract class AbstractDataCollection <T> {
 			
 			addToClusters(c, c.getClusterSize());
 		}
-		System.err
-				.println("Number of Clusters After Adding All possible clusters: "
+		Logging.log("Number of Clusters After Adding All possible clusters: "
 						+ clusters.getClusterCount());
 	}
 
