@@ -109,11 +109,11 @@ public abstract class AbstractInference<T> implements Cloneable{
         
         GlobalMaps.taxonNameMap.checkMapping(trees);
 
-		System.err.println("Number of taxa: " + GlobalMaps.taxonIdentifier.taxonCount()+
+		Logging.log("Number of taxa: " + GlobalMaps.taxonIdentifier.taxonCount()+
 		        " (" + GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount() +" species)"
 		);
-		System.err.println("Taxa: " + GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesNames());
-		System.err.println("Taxon occupancy: " + taxonOccupancy.toString());
+		Logging.log("Taxa: " + GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesNames());
+		Logging.log("Taxon occupancy: " + taxonOccupancy.toString());
 	}
 
 	/***
@@ -151,7 +151,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 */
 		Vertex all = (Vertex) clusters.getTopVertex();
 
-		System.err.println("Size of largest cluster: " +all.getCluster().getClusterSize());
+		Logging.log("Size of largest cluster: " +all.getCluster().getClusterSize());
 		
 		try {
 			//vertexStack.push(all);
@@ -163,7 +163,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 				throw new CannotResolveException(all.getCluster().toString());
 			}
 		} catch (CannotResolveException e) {
-			System.err.println("Was not able to build a fully resolved tree. Not" +
+			Logging.log("Was not able to build a fully resolved tree. Not" +
 					"enough clusters present in input gene trees ");
 			e.printStackTrace();
 			System.exit(1);
@@ -171,7 +171,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 		
 		Logging.logTimeMessage("AbstractInference 193: " );
 		
-		System.err.println("Total Number of elements: " + countWeights());
+		Logging.log("Total Number of elements: " + countWeights());
 
 		List<STITreeCluster> minClusters = new LinkedList<STITreeCluster>();
 		List<Double> coals = new LinkedList<Double>();
@@ -199,7 +199,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 			// int k = sigmaNs/(stTaxa.length-1);
 
 			if ( !GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleSP(pe.getCluster().getBitSet()) && (pe._min_lc == null || pe._min_rc == null))
-				System.err.println("hmm; this shouldn't have happened: "+ pe);
+				Logging.log("hmm; this shouldn't have happened: "+ pe);
 			
 			if (pe._min_rc != null) {
 				minVertices.push(pe._min_rc);
@@ -220,7 +220,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 		}
 		Solution sol = new Solution();
 		if ((minClusters == null) || (minClusters.isEmpty())) {
-			System.err.println("WARN: empty minClusters set.");
+			Logging.log("WARN: empty minClusters set.");
 			STITree<Double> tr = new STITree<Double>();
 			for (String s : GlobalMaps.taxonIdentifier.getAllTaxonNames()) {
 				((MutableTree) tr).getRoot().createChild(s);
@@ -243,12 +243,12 @@ public abstract class AbstractInference<T> implements Cloneable{
 				}
 				map.put(node, bs);
 			}
-//            System.err.println("Node: "+node);
+//            Logging.log("Node: "+node);
 			STITreeCluster c = new STITreeCluster();
 			c.setCluster(bs);
-//            System.err.println("m[0]: "+((STITreeCluster)minClusters.get(0)).toString2());
-//            System.err.println("C: "+c.toString2());
-//            System.err.println("Equals: "+((STITreeCluster)minClusters.get(0)).equals(c));
+//            Logging.log("m[0]: "+((STITreeCluster)minClusters.get(0)).toString2());
+//            Logging.log("C: "+c.toString2());
+//            Logging.log("Equals: "+((STITreeCluster)minClusters.get(0)).equals(c));
 			if (c.getClusterSize() == GlobalMaps.taxonIdentifier.taxonCount()) {
 				((STINode<Double>) node).setData(Double.valueOf(0));
 			} else {
@@ -262,7 +262,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 		solutions.add(sol);
 		Logging.logTimeMessage("AbstractInference 283: ");
 			
-        System.err.println("Final optimization score: " + cost);
+		Logging.log("Final optimization score: " + cost);
         
 		return (List<Solution>) (List<Solution>) solutions;
 	}
@@ -301,31 +301,31 @@ public abstract class AbstractInference<T> implements Cloneable{
 
 		
 		if (options.isExactSolution()) {
-	          System.err.println("calculating all possible bipartitions ...");
+			Logging.log("calculating all possible bipartitions ...");
 		    dataCollection.addAllPossibleSubClusters(this.dataCollection.clusters.getTopVertex().getCluster());
 		}
 
 	      
 		if (extraTrees != null && extraTrees.size() > 0) {		
-	        System.err.println("calculating extra bipartitions from extra input trees ...");
+			Logging.log("calculating extra bipartitions from extra input trees ...");
 			dataCollection.addExtraBipartitionsByInput(extraTrees,options.isExtrarooted());
 			int s = this.dataCollection.clusters.getClusterCount();
 			/*
 			 * for (Integer c: clusters2.keySet()){ s += clusters2.get(c).size(); }
 			 */
-			System.err.println("Number of Clusters after additions from extra trees: "
+			Logging.log("Number of Clusters after additions from extra trees: "
 					+ s);
 		}
 		
 		
 		if (toRemoveExtraTrees != null && toRemoveExtraTrees.size() > 0 && this.removeExtraTree) {		
-	        System.err.println("Removing extra bipartitions from extra input trees ...");
+			Logging.log("Removing extra bipartitions from extra input trees ...");
 			dataCollection.removeExtraBipartitionsByInput(toRemoveExtraTrees,true);
 			int s = this.dataCollection.clusters.getClusterCount();
 			/*
 			 * for (Integer c: clusters2.keySet()){ s += clusters2.get(c).size(); }
 			 */
-			System.err.println("Number of Clusters after deletion of extra tree bipartitions: "
+			Logging.log("Number of Clusters after deletion of extra tree bipartitions: "
 					+ s);
 		}
 		
@@ -340,7 +340,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 		
 		Logging.logTimeMessage("" );
 		
-		System.err.println("partitions formed in "
+		Logging.log("partitions formed in "
 			+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 
 		if (! this.options.isRunSearch() ) {
@@ -350,7 +350,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 		// Obsolete 
 		weightCalculator.preCalculateWeights(trees, extraTrees);
 
-		System.err.println("Dynamic Programming starting after "
+		Logging.log("Dynamic Programming starting after "
 				+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 		
 	}

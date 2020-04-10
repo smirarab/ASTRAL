@@ -36,7 +36,7 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 		//this.algorithm = new TraversalWeightCalculator();
 		this.algorithm = new CondensedTraversalWeightCalculator();
 		tmpalgorithm = new TraversalWeightCalculator();
-		System.err.println("Using polytree-based weight calculation.");
+		Logging.log("Using polytree-based weight calculation.");
 		//tmpalgorithm.setupGeneTrees((WQInference) inference);
 
 
@@ -93,7 +93,7 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 		 */
 		@Override
 		void setupGeneTrees(WQInferenceConsumer inference) {
-			//System.err.println("Using polytree-based weight calculation.");
+			//Logging.log("Using polytree-based weight calculation.");
 			polytree = new Polytree(inference.trees, dataCollection);
 		}
 
@@ -229,7 +229,7 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 		 */
 		@Override
 		void setupGeneTrees(WQInferenceConsumer inference) {
-			//System.err.println("Using tree-based weight calculation.");
+			//Logging.log("Using tree-based weight calculation.");
 			List<Integer> temp = new ArrayList<Integer>(); 
 
 			Stack<Integer> stackHeight = new Stack<Integer>();
@@ -263,7 +263,7 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 					}
 				}
 
-				//System.err.println(tr);
+				//Logging.log(tr);
 			}
 			geneTreesAsInts = new int[temp.size()];
 			int i = 0;
@@ -318,7 +318,7 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 					((WQDataCollection)inference.dataCollection).treeAllClusters;
 			List<Tree> geneTrees = inference.trees;
 
-			System.err.println("Calculating tripartitions from gene trees ");
+			Logging.log("Calculating tripartitions from gene trees ");
 
 			Map<Tripartition, Integer> geneTreeTripartitonCount = new 
 					HashMap<Tripartition, Integer>(inference.trees.size() 
@@ -358,7 +358,7 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 							childbslist.add(remaining);
 						}
 
-						//System.err.println(childbslist.size());
+						//Logging.log(childbslist.size());
 						for (int i = 0; i < childbslist.size(); i++) {
 							for (int j = i+1; j < childbslist.size(); j++) {
 								for (int k = j+1; k < childbslist.size(); k++) {
@@ -374,7 +374,7 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 
 			}
 
-			//System.err.println("Using tripartition-based weight calculation.");
+			//Logging.log("Using tripartition-based weight calculation.");
 
 			finalTripartitions = new Tripartition[geneTreeTripartitonCount.size()];
 			finalCounts = new int[geneTreeTripartitonCount.size()];
@@ -390,9 +390,9 @@ class WQWeightCalculator extends AbstractWeightCalculatorConsumer<Tripartition> 
 				for (Integer c : geneTreeTripartitonCount.values()) {
 					s += c;
 				}
-				System.err.println("Tripartitions in gene trees (count): "
+				Logging.log("Tripartitions in gene trees (count): "
 						+ geneTreeTripartitonCount.size());
-				System.err.println("Tripartitions in gene trees (sum): " + s);
+				Logging.log("Tripartitions in gene trees (sum): " + s);
 			}
 		}
 
