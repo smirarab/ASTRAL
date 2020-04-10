@@ -35,7 +35,7 @@ public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeight
 				catch(Exception e) {
 					e.printStackTrace();
 				}
-				if(weight == -23) {//random number from CommandLine used as a "poison pill"
+				if(weight == TurnTaskToScores.THEEND) {//random number from CommandLine used as a "poison pill"
 					setThreadingOff(true);
 					weight =  calculateWeight(convertToSingletonArray(t))[0];
 					int count;
@@ -46,7 +46,7 @@ public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeight
 						count = this.callcounter;
 					}
 					if (count % 100000 == 0) {
-						System.err.println("Calculated "+ count +" weights; time (seconds): " + (System.currentTimeMillis() - lastTime)/1000);
+						Logging.log("Consumed "+ count +" weights; time (seconds): " + (System.currentTimeMillis() - lastTime)/1000);
 						lastTime = System.currentTimeMillis();
 					}
 					return weight;
@@ -61,12 +61,12 @@ public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeight
 				count = this.callcounter;
 			}
 			if (count % 100000 == 0) {
-				System.err.println("Calculated "+ count +" weights; time (seconds): " + (System.currentTimeMillis() - lastTime)/1000);
+				Logging.log("Calculated "+ count +" weights; time (seconds): " + (System.currentTimeMillis() - lastTime)/1000);
 				lastTime = System.currentTimeMillis();
 			}
 
 		} else {
-			//System.err.println("Found " + t );
+			//Logging.log("Found " + t );
 		}
 		//System.out.println(t.toString());
 		return weight;
