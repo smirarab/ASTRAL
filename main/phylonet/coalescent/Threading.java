@@ -35,7 +35,7 @@ public class Threading {
 	public static void startThreading(int t) {
 		Threading.numThreads = t;
 		Threading.eService = Executors.newFixedThreadPool(Threading.numThreads);
-		System.err.println("There are " + Threading.getNumThreads() + " threads used to run.");
+		Logging.log("There are " + Threading.getNumThreads() + " threads used to run.");
 		
 	}
 
