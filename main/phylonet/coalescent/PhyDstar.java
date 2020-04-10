@@ -208,7 +208,7 @@ public class PhyDstar
             vinfile = args[++b];
             inv = new BufferedReader(new FileReader(new File(vinfile)));
             } catch( FileNotFoundException e ) {
-            System.err.println("Incorrect input file name (option -v)");
+            Logging.log("Incorrect input file name (option -v)");
             System.exit(0);
             }
             option[8] = "Yes";
@@ -273,26 +273,26 @@ public class PhyDstar
         }
         }
         if ( dinfile.equals("") ) {
-        System.err.println("  No distance matrix file name");
+        Logging.log("  No distance matrix file name");
         System.exit(0);
         }    
     }
     else {        // menu
-        System.err.println("\nPhyD* version 1.1");
+        Logging.log("\nPhyD* version 1.1");
         cin = new BufferedReader((new InputStreamReader(System.in)));
         while ( option[0].equals("No") ) {
-        System.err.println("\n\n\n\nSettings for this run:");
-        System.err.println("   D             Method (BioNJ*, MVR*, NJ*, UNJ*)?  " + option[7]);
+        Logging.log("\n\n\n\nSettings for this run:");
+        Logging.log("   D             Method (BioNJ*, MVR*, NJ*, UNJ*)?  " + option[7]);
         if ( option[7].equals("MVR*") )
-            System.err.println("   V                     Use variance matrix file?  " + option[8]);
-        System.err.println("   P    Taxon pairs selected by NJ-like filtering?  " + option[9]);
-        System.err.println("   N              Negative branch lengths allowed?  " + option[5]);
-        System.err.println("   B                                  Binary tree?  " + option[6]);
-        System.err.println("   O                                Outgroup root?  " + option[4]);
-        System.err.println("   C                Confidence values at branches?  " + option[10]);
-        System.err.println("   L                 Lower-triangular data matrix?  " + option[1]);
-        System.err.println("   S                                Subreplicates?  " + option[2]);
-        System.err.println("   M                   Analyse multiple data sets?  " + option[3]);
+            Logging.log("   V                     Use variance matrix file?  " + option[8]);
+        Logging.log("   P    Taxon pairs selected by NJ-like filtering?  " + option[9]);
+        Logging.log("   N              Negative branch lengths allowed?  " + option[5]);
+        Logging.log("   B                                  Binary tree?  " + option[6]);
+        Logging.log("   O                                Outgroup root?  " + option[4]);
+        Logging.log("   C                Confidence values at branches?  " + option[10]);
+        Logging.log("   L                 Lower-triangular data matrix?  " + option[1]);
+        Logging.log("   S                                Subreplicates?  " + option[2]);
+        Logging.log("   M                   Analyse multiple data sets?  " + option[3]);
         System.err.print("\n   Y to accept these or type the letter for one to change   ");
         
         choix = cin.readLine();
@@ -380,7 +380,7 @@ public class PhyDstar
             ok = false;
         }
         catch(FileNotFoundException e) {
-            System.err.println("\nCan't find input file \"" + dinfile + "\"");
+            Logging.log("\nCan't find input file \"" + dinfile + "\"");
             System.err.print("Please enter a new file name> ");
             choix = cin.readLine();
         }
@@ -399,7 +399,7 @@ public class PhyDstar
             ok = false;
             }
             catch(FileNotFoundException e) {
-            System.err.println("\nCan't find input file \"i" + vinfile + "\"");
+            Logging.log("\nCan't find input file \"i" + vinfile + "\"");
             System.err.print("Please enter a new file name> ");
             choix = cin.readLine();
             }
@@ -850,9 +850,9 @@ public class PhyDstar
             } // z
         }
 
-        //System.err.println(x + " " + y);
+        //Logging.log(x + " " + y);
         if ( x == y ) { // no possible agglomeration => exiting the agglomerative scheme
-            System.err.println( x+ " "+y+ (char) 7);
+            Logging.log( x+ " "+y+ (char) 7);
             break;
         }
         if ( x == rankmin ) rankmin++;
@@ -1391,7 +1391,7 @@ public class PhyDstar
             else // mvr
                 txu += 0.5 * dM.getValue(tree2dist[tT[center][x]] , tree2dist[tT[center][y]]);
             }
-            //System.err.println(txu);
+            //Logging.log(txu);
             
             tD[center][x] = txu; //dM[tree2dist[tT[2*n][x]]][tree2dist[u]] - tD[u][2];
             if (tT[center][x] < n)
@@ -1562,7 +1562,7 @@ public class PhyDstar
         }
 
         if ( option[10].equals("Yes") ) newick = setConfidenceValues( dMinit , newick );
-        //System.err.println(newick);
+        //Logging.log(newick);
         out.write(newick + "\n");
 
 
@@ -1571,7 +1571,7 @@ public class PhyDstar
 
     String outS = out.toString();
     out.close();
-//    System.err.println("");
+//    Logging.log("");
     return outS;
 
     }
@@ -1641,7 +1641,7 @@ public class PhyDstar
         _b1 = _sb.indexOf("," , _b1 );
     }
     _sb = _sb.insert( _b1 , "):-99" ).insert( 1 , "(" );
-    //System.err.println( "\n" + _sb.toString() );
+    //Logging.log( "\n" + _sb.toString() );
     
     _b1 = 0;
     while ( true ) {                           // exploration of all quartet taxon sets
@@ -1729,15 +1729,15 @@ public class PhyDstar
             }
             }
         }
-        //System.err.println(_q_ok + " " + _q_total);
+        //Logging.log(_q_ok + " " + _q_total);
         _sb = _sb.insert( _b2+1 , ((int) (100 * _q_ok / _q_total)) );
         }
         else {
-        //System.err.println("\n" + _l1.toString());
-        //System.err.println(_l2.toString());
-        //System.err.println(_l3.toString());
-        //System.err.println(_l4.toString());
-        //System.err.println(_b1 + " " + _b3);
+        //Logging.log("\n" + _l1.toString());
+        //Logging.log(_l2.toString());
+        //Logging.log(_l3.toString());
+        //Logging.log(_l4.toString());
+        //Logging.log(_b1 + " " + _b3);
         }   
     }
 
