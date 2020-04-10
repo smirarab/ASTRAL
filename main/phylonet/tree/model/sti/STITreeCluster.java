@@ -6,6 +6,7 @@ import java.util.List;
 import phylonet.coalescent.GlobalMaps;
 import phylonet.coalescent.TaxonIdentifier;
 import phylonet.coalescent.IClusterCollection.VertexPair;
+import phylonet.coalescent.Logging;
 import phylonet.util.BitSet;
 import phylonet.util.BitSet.ImmutableBitSet;
 
@@ -293,7 +294,7 @@ public class STITreeCluster implements Iterable<Integer>
   public boolean isDisjoint(STITreeCluster tc)
   {
     if ((tc == null) || (tc._cluster == null)) {
-      System.err.println("Cluster is null. The function returns false.");
+      Logging.log("Cluster is null. The function returns false.");
       return false;
     }
 
@@ -332,7 +333,7 @@ public Iterator<Integer> iterator() {
       this.hash2 = 0;
     }
     else
-      System.err.println("Null bit set.");
+    	Logging.log("Null bit set.");
   }
   
   @Override
