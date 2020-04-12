@@ -34,8 +34,11 @@ public class Threading {
 
 	public static void startThreading(int t) {
 		Threading.numThreads = t;
+		if (Threading.numThreads<2) {
+			throw new RuntimeException("Sorry, at least two threads are needed. Switch to normal ASTRAL if you have only 1 thread"); 
+		}
 		Threading.eService = Executors.newFixedThreadPool(Threading.numThreads);
-		System.err.println("There are " + Threading.getNumThreads() + " threads used to run.");
+		Logging.log("There are " + Threading.getNumThreads() + " threads used to run.");
 		
 	}
 
