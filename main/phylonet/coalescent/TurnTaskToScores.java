@@ -59,7 +59,7 @@ public class TurnTaskToScores implements Runnable {
 	Object positionOutLock = new Object();
 	
 	private int positionOut = 0;
-	private int positionIn = 0;
+
 	
 	int tripCounter = 0;
 	boolean done = false;
@@ -96,6 +96,7 @@ public class TurnTaskToScores implements Runnable {
 	}
 	
 	public void run() {
+		int positionIn = 0;
 		//long timer2 = System.nanoTime();
 		//long timeWait = 0;
 		Tripartition task = null;
@@ -122,7 +123,7 @@ public class TurnTaskToScores implements Runnable {
 				tripsForCPULabel[tripsForCPUCounter] = positionIn++;
 				tripsForCPU[tripsForCPUCounter++] = task;
 				if (tripsForCPUCounter == cpuChunkSize) {
-					Threading.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel,this.inference.weightCalculator));
+					Threading.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel));
 					tripsForCPU = new Tripartition[cpuChunkSize];
 					tripsForCPULabel = new int[cpuChunkSize];
 					tripsForCPUCounter = 0;
@@ -203,11 +204,11 @@ public class TurnTaskToScores implements Runnable {
 			gpuRunner.compute(tripCounter, currentGPU);
 		}
 		if (tripsForCPUCounter != 0) {
-			Threading.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel, tripsForCPUCounter, this.inference.weightCalculator));
+			Threading.execute(new CPUCalculationThread(tripsForCPU, tripsForCPULabel, tripsForCPUCounter));
 		}
 
 		try {
-			queue2Helper.offer(new ComparablePair<Long, Integer>(-THEEND, positionIn++));
+			queue2Helper.offer(new ComparablePair<Long, Integer>(THEEND, positionIn++));
 			// random  specific number used as a "poison pill" for AbstractWeightCalculator
 			Logging.log("Finishing up:" + positionIn + " " + positionOut + " " + queue2Helper.peek().value.intValue());
 		} catch (Exception e) {
@@ -509,13 +510,13 @@ public class TurnTaskToScores implements Runnable {
 		Collection<Tripartition> nulls = Arrays.asList(new Tripartition[]{null});
 		//AbstractWeightCalculatorTask<Tripartition> wqWeightCalculator;
 
-		CPUCalculationThread(Tripartition [] trips, int[] positions, AbstractWeightCalculator<Tripartition> weightCalculator) {
+		CPUCalculationThread(Tripartition [] trips, int[] positions) {
 			this.trips = trips;
 			this.positions = positions;
 			//this.wqWeightCalculator = weightCalculator;
 		}
 
-		CPUCalculationThread(Tripartition [] trips, int[] positions, int numRuns, AbstractWeightCalculator<Tripartition> weightCalculator) {
+		CPUCalculationThread(Tripartition [] trips, int[] positions, int numRuns) {
 
 			this.positions = positions;
 			this.numRuns = numRuns;
@@ -546,6 +547,23 @@ public class TurnTaskToScores implements Runnable {
 
 		}
 
-
+	}
+	
+	static class a{
+		int[] x;
+		Object[] y;
+		a(int[]x,Object[]y){this.x=x; this.y=y;}
+	}
+	
+	public static void main(String[] args) throws Exception {
+		int[] x = new int[] {1,3};
+		Object[] y = new Object[] {new Object(),"c"};
+		a aaa = new a(x,y);
+		System.err.println(aaa.x[0]);
+		System.err.println(aaa.y[0]);
+		x=new int[] {5,13};
+		y=new Object[] {5,13};
+		System.err.println(aaa.x[0]);
+		System.err.println(aaa.y[0]);
 	}
 }
