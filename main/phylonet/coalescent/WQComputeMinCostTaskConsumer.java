@@ -156,7 +156,7 @@ public class WQComputeMinCostTaskConsumer extends AbstractComputeMinCostTask<Tri
 		 * Should never happen
 		 */
 		if (v._min_lc == null || v._min_rc == null) {
-			System.err.println("WARN: No Resolution found for ( "
+			Logging.log("WARN: No Resolution found for ( "
 					+ v.getCluster().getClusterSize() + " taxa ):\n"
 					+ v.getCluster());
 			v._done = 2;
