@@ -81,10 +81,8 @@ public class DeepCoalescencesCounter {
 							String[] alleles = s.split(",");
 							for (String allele : alleles) {
 								if (taxonMap.containsKey(allele)) {
-									System.err
-											.println("The input file is not in correct format");
-									System.err
-											.println("An allele can only map to one species");
+									Logging.log("The input file is not in correct format");
+									Logging.log("An allele can only map to one species");
 									System.exit(-1);
 								} else {
 									taxonMap.put(allele, species);
@@ -106,7 +104,7 @@ public class DeepCoalescencesCounter {
 							continue;
 						printUsage();
 					} catch (NumberFormatException e) {
-						System.err.println("Error in reading parameter");
+						Logging.log("Error in reading parameter");
 						printUsage();
 						return;
 					}
@@ -141,20 +139,20 @@ public class DeepCoalescencesCounter {
 			}
 
 		} catch (IOException e) {
-			System.err.println("Error when reading trees. The function exits.");
-			System.err.println(e.getMessage());
+			Logging.log("Error when reading trees. The function exits.");
+			Logging.log(e.getMessage());
 			e.printStackTrace();
 			return;
 		} catch (ParseException e) {
 			System.err
 					.println("Error when parsing the Newick representation from input file.");
-			System.err.println(e.getMessage());
+			Logging.log(e.getMessage());
 			e.printStackTrace();
 			return;
 		} catch (ExNewickException e) {
 			System.err
 					.println("Error when parsing the Newick representation from input file.");
-			System.err.println(e.getMessage());
+			Logging.log(e.getMessage());
 			e.printStackTrace();
 			return;
 		}
