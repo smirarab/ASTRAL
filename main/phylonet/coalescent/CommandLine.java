@@ -8,7 +8,7 @@ import static org.jocl.CL.clCreateContext;
 import static org.jocl.CL.clGetDeviceIDs;
 import static org.jocl.CL.clGetDeviceInfo;
 import static org.jocl.CL.clGetPlatformIDs;
-import org.jocl.cl_device_id;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -31,19 +31,14 @@ import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
+
 import org.jocl.CL;
 import org.jocl.Pointer;
 import org.jocl.cl_context;
 import org.jocl.cl_context_properties;
 import org.jocl.cl_device_id;
 import org.jocl.cl_platform_id;
-import phylonet.tree.io.NewickReader;
-import phylonet.tree.io.ParseException;
-import phylonet.tree.model.MutableTree;
-import phylonet.tree.model.TNode;
-import phylonet.tree.model.Tree;
-import phylonet.tree.model.sti.STITree;
-import phylonet.tree.util.Trees;
+
 import com.martiansoftware.jsap.FlaggedOption;
 import com.martiansoftware.jsap.JSAP;
 import com.martiansoftware.jsap.JSAPException;
@@ -52,6 +47,14 @@ import com.martiansoftware.jsap.Parameter;
 import com.martiansoftware.jsap.SimpleJSAP;
 import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
+
+import phylonet.tree.io.NewickReader;
+import phylonet.tree.io.ParseException;
+import phylonet.tree.model.MutableTree;
+import phylonet.tree.model.TNode;
+import phylonet.tree.model.Tree;
+import phylonet.tree.model.sti.STITree;
+import phylonet.tree.util.Trees;
 
 
 public class CommandLine {
