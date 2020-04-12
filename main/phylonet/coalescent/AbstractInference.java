@@ -110,8 +110,7 @@ public abstract class AbstractInference<T> implements Cloneable{
         GlobalMaps.taxonNameMap.checkMapping(trees);
 
 		Logging.log("Number of taxa: " + GlobalMaps.taxonIdentifier.taxonCount()+
-		        " (" + GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount() +" species)"
-		);
+		        " (" + GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount() +" species)");
 		Logging.log("Taxa: " + GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesNames());
 		Logging.log("Taxon occupancy: " + taxonOccupancy.toString());
 	}
@@ -130,32 +129,12 @@ public abstract class AbstractInference<T> implements Cloneable{
 	 * @return
 	 */
 	List<Solution> findTreesByDP(IClusterCollection clusters) {
-		/*
-		 * clusterToVertex = new HashMap<STITreeCluster, Vertex>(); for
-		 * (Set<Vertex> vs: clusters.values()) { for (Vertex vertex : vs) {
-		 * clusterToVertex.put(vertex._cluster,vertex); } } Vertex all =
-		 * (Vertex) clusters.get(Integer .valueOf(stTaxa.length)).toArray()[0];
-		 * computeMinCost(clusters, all, sigmaN, counter,trees, taxonMap);
-		 * 
-		 * System.out.println("first round finished, adding new STBs");
-		 * counter.addExtraBipartitions(clusters, stTaxa);
-		 */
-/*		clusterToVertex = new HashMap<STITreeCluster, Vertex>(sigmaNs);
-		for (Set<Vertex> vs : clusters.values()) {
-			for (Vertex vertex : vs) {
-				vertex._max_score = -1;
-				clusterToVertex.put(vertex._cluster, vertex);
-			}
-		}
-*/
+
 		Vertex all = (Vertex) clusters.getTopVertex();
 
 		Logging.log("Size of largest cluster: " +all.getCluster().getClusterSize());
-		
 
-		//vertexStack.push(all);
 		AbstractComputeMinCostTask<T> allTask = newComputeMinCostTask(this,all);
-		//ForkJoinPool pool = new ForkJoinPool(1);
 		allTask.compute();
 		
 		List<Solution> solutions = processSolutions(all);
@@ -167,7 +146,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 	List<Solution> processSolutions( Vertex all) {
 		List<Solution> solutions = new ArrayList<Solution>();
 		try {
-			if ( all._max_score == Integer.MIN_VALUE) {
+			if ( all._max_score == Integer.MIN_VALUE) { //Assuming we are in the consumer thread. Producer overwrites
 				throw new CannotResolveException(all.getCluster().toString());
 			}
 		} catch (Exception e) {
@@ -198,13 +177,9 @@ public abstract class AbstractInference<T> implements Cloneable{
 		SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
 		while (!minVertices.isEmpty()) {
 			Vertex pe = (Vertex) minVertices.pop();
-			STITreeCluster stCluster = spm.
-					getSTClusterForGeneCluster(pe.getCluster());
-			//System.out.println(pe._min_rc);
-			//System.out.println(pe._min_lc);
+			STITreeCluster stCluster = spm.getSTClusterForGeneCluster(pe.getCluster());
+
 			minClusters.add(stCluster);
-			//System.out.println(pe.getCluster().getClusterSize()+"\t"+pe._max_score);
-			// int k = sigmaNs/(stTaxa.length-1);
 
 			if ( !GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleSP(pe.getCluster().getBitSet()) && (pe._min_lc == null || pe._min_rc == null))
 				Logging.log("hmm; this shouldn't have happened: "+ pe);
@@ -237,33 +212,6 @@ public abstract class AbstractInference<T> implements Cloneable{
 		} else {
 			sol._st = Utils.buildTreeFromClusters(minClusters, spm.getSTTaxonIdentifier(), false);
 		}
-
-		/* HashMap<TNode,BitSet> map = new HashMap<TNode,BitSet>();
-		for (TNode node : sol._st.postTraverse()) {
-			BitSet bs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
-			if (node.isLeaf()) {
-				bs.set(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
-				map.put(node, bs);
-			} else {
-				for (TNode child : node.getChildren()) {
-					BitSet childCluster = map.get(child);
-					bs.or(childCluster);
-				}
-				map.put(node, bs);
-			}
-//            Logging.log("Node: "+node);
-			STITreeCluster c = new STITreeCluster();
-			c.setCluster(bs);
-//            Logging.log("m[0]: "+((STITreeCluster)minClusters.get(0)).toString2());
-//            Logging.log("C: "+c.toString2());
-//            Logging.log("Equals: "+((STITreeCluster)minClusters.get(0)).equals(c));
-			if (c.getClusterSize() == GlobalMaps.taxonIdentifier.taxonCount()) {
-				((STINode<Double>) node).setData(Double.valueOf(0));
-			} else {
-				int pos = minClusters.indexOf(c);                                
-				((STINode<Double>) node).setData((Double) coals.get(pos));
-			}
-		}*/
 
 		Long cost = getTotalCost(all);
 		sol._totalCoals = cost;
@@ -364,13 +312,8 @@ public abstract class AbstractInference<T> implements Cloneable{
 	
 	public List<Solution> inferSpeciesTree() {
 		
-		List<Solution> solutions;		
-		
+		List<Solution> solutions;				
 		solutions = findTreesByDP(this.dataCollection.clusters);
-
-/*		if (GlobalMaps.taxonNameMap == null && rooted && extraTrees == null && false) {
-			restoreCollapse(solutions, cd);
-			}*/
 
 		return (List<Solution>) solutions;
 	}
