@@ -8,7 +8,7 @@ import static org.jocl.CL.clCreateContext;
 import static org.jocl.CL.clGetDeviceIDs;
 import static org.jocl.CL.clGetDeviceInfo;
 import static org.jocl.CL.clGetPlatformIDs;
-import org.jocl.cl_device_id;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -31,19 +31,14 @@ import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
+
 import org.jocl.CL;
 import org.jocl.Pointer;
 import org.jocl.cl_context;
 import org.jocl.cl_context_properties;
 import org.jocl.cl_device_id;
 import org.jocl.cl_platform_id;
-import phylonet.tree.io.NewickReader;
-import phylonet.tree.io.ParseException;
-import phylonet.tree.model.MutableTree;
-import phylonet.tree.model.TNode;
-import phylonet.tree.model.Tree;
-import phylonet.tree.model.sti.STITree;
-import phylonet.tree.util.Trees;
+
 import com.martiansoftware.jsap.FlaggedOption;
 import com.martiansoftware.jsap.JSAP;
 import com.martiansoftware.jsap.JSAPException;
@@ -53,18 +48,26 @@ import com.martiansoftware.jsap.SimpleJSAP;
 import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
+import phylonet.tree.io.NewickReader;
+import phylonet.tree.io.ParseException;
+import phylonet.tree.model.MutableTree;
+import phylonet.tree.model.TNode;
+import phylonet.tree.model.Tree;
+import phylonet.tree.model.sti.STITree;
+import phylonet.tree.util.Trees;
+
 
 public class CommandLine {
-	protected static String _version = "5.14.6";
+	protected static String _version = "5.14.7";
 	protected static SimpleJSAP jsap;
 
 	private static void exitWithErr(String extraMessage) {
-		System.err.println();
-		System.err.println(extraMessage);
-		System.err.println();
-		System.err.println("Usage: java -jar astral." + _version + ".jar " + jsap.getUsage());
-		System.err.println();
-		System.err.println(jsap.getHelp());
+		Logging.log("");
+		Logging.log(extraMessage);
+		Logging.log("");
+		Logging.log("Usage: java -jar astral." + _version + ".jar " + jsap.getUsage());
+		Logging.log("");
+		Logging.log(jsap.getHelp());
 		System.exit(1);
 	}
 
@@ -241,11 +244,11 @@ public class CommandLine {
 					}
 				});
 				
-				System.err.println("Detected GPU devices: ");
+				Logging.log("Detected GPU devices: ");
 				for (int i = 0; i < numDevices; i++) {
 					String deviceName = getString(devices[i], CL_DEVICE_NAME);
 					String deviceVendor = getString(devices[i], CL_DEVICE_VENDOR);
-					System.err.println("Device " + (i + 1) + " of " + numDevices + ": " + deviceName + " " + devices[i]
+					Logging.log("Device " + (i + 1) + " of " + numDevices + ": " + deviceName + " " + devices[i]
 							+ " Vendor: " + deviceVendor);
 				}
 
@@ -272,7 +275,7 @@ public class CommandLine {
 				for (cl_device_id d : usedGPUs) {
 					deviceVendorsAL.add(getString(d, CL_DEVICE_VENDOR));	
 					usedDevicesAL.add(d);
-					System.err.println("Will use Device : " + getString(d, CL_DEVICE_NAME));
+					Logging.log("Will use Device : " + getString(d, CL_DEVICE_NAME));
 				}
 				// testing only
 				// deviceVendorsAL.add(getString(devices[0], CL_DEVICE_VENDOR));
@@ -291,12 +294,12 @@ public class CommandLine {
 				}
 				// johng23 end
 			} catch (Exception e) {
-				System.err.println("Warning:\n\n Problem using GPU. Proceeding without GPU\n"+e);
-				System.err.println(e);
+				Logging.log("Warning:\n\n Problem using GPU. Proceeding without GPU\n"+e);
+				Logging.log(e.toString());
 				Threading.usedDevices = null;
 			} catch (Error e) {
-				System.err.println("Warning:\n\n Problem using GPU. Proceeding without GPU\n"+e);
-				System.err.println(e);
+				Logging.log("Warning:\n\n Problem using GPU. Proceeding without GPU\n"+e);
+				Logging.log(e.toString());
 				Threading.usedDevices = null;
 			}
 		}
@@ -306,8 +309,9 @@ public class CommandLine {
 		}
 		Threading.startThreading(numThreads);
 		
+		Logging.startLogger();
 		if (Logging.timerOn) {
-			System.err.println("Timer starts here");
+			Logging.log("Timer starts here");
 			Logging.timer = System.currentTimeMillis();
 		}
 		if (config.getFile("mapping file") != null) {
@@ -336,13 +340,13 @@ public class CommandLine {
 					for (String allele : alleles) {
 						allele = allele.trim();
 						if (taxonMap.containsKey(allele)) {
-							System.err.println("The name mapping file is not in the correct format");
-							System.err.println("A gene name can map to one only species name; check: " + allele
+							Logging.log("The name mapping file is not in the correct format");
+							Logging.log("A gene name can map to one only species name; check: " + allele
 									+ " which seems to appear at least twice: " + taxonMap.get(allele) + " & "
 									+ species);
 							System.exit(-1);
 						} else if (alleles.length > 1 && allele.equals(species)) {
-							System.err.println("Error: The species name cannot be identical to gene names when"
+							Logging.log("Error: The species name cannot be identical to gene names when"
 									+ "multiple alleles exist for the same gene: " + allele);
 							System.exit(-1);
 						}
@@ -361,20 +365,20 @@ public class CommandLine {
 		polylimit = config.contains("polylimit") ? config.getInt("polylimit") : null;
 		try {
 			// GlobalMaps.taxonIdentifier.taxonId("0");
-			// System.err.println("Main input file: "+config.getFile("input file"));
+			// Logging.log("Main input file: "+config.getFile("input file"));
 			readInputTrees(mainTrees, readTreeFileAsString(config.getFile("input file")), rooted, true, false,
 					minleaves, config.getInt("branch annotation level"), null);
-			System.err.println(mainTrees.size() + " trees read from " + config.getFile("input file"));
+			Logging.log(mainTrees.size() + " trees read from " + config.getFile("input file"));
 			GlobalMaps.taxonIdentifier.lock();
 			Logging.logTimeMessage("");
 		} catch (IOException e) {
-			System.err.println("Error when reading trees.");
-			System.err.println(e.getMessage());
+			Logging.log("Error when reading trees.");
+			Logging.log(e.getMessage());
 			e.printStackTrace();
 			System.exit(1);
 		}
 		if (mainTrees == null || mainTrees.size() == 0) {
-			System.err.println("Empty list of trees. The function exits.");
+			Logging.log("Empty list of trees. The function exits.");
 			System.exit(1);
 		} else {
 			k = mainTrees.size();
@@ -411,13 +415,13 @@ public class CommandLine {
 				rebuff.close();
 			}
 		} catch (IOException e) {
-			System.err.println("Error when reading bootstrap trees.");
-			System.err.println(e.getMessage());
+			Logging.log("Error when reading bootstrap trees.");
+			Logging.log(e.getMessage());
 			e.printStackTrace();
 			System.exit(1);
 		}
 		if (config.getFile("bootstraps") != null || config.getBoolean("gene-only")) {
-			System.err.println("Bootstrapping with seed " + config.getLong("seed"));
+			Logging.log("Bootstrapping with seed " + config.getLong("seed"));
 			for (int i = 0; i < config.getInt("replicates"); i++) {
 				List<String> input = new ArrayList<String>();
 				bootstrapInputSets.add(input);
@@ -451,11 +455,11 @@ public class CommandLine {
 				}
 			}
 			if (keepOptions.contains("bootstraps_norun") || keepOptions.contains("bootstraps")) {
-				System.err.println("bootstrap files written to files " + outfile + ("." + 0 + ".bs") + " to " + outfile
+				Logging.log("bootstrap files written to files " + outfile + ("." + 0 + ".bs") + " to " + outfile
 						+ ("." + config.getInt("replicates") + ".bs"));
 			}
 			if (keepOptions.contains("bootstraps_norun")) {
-				System.err.println("Exiting after outputting the bootstrap files");
+				Logging.log("Exiting after outputting the bootstrap files");
 				System.exit(0);
 			}
 		}
@@ -489,14 +493,14 @@ public class CommandLine {
 		List<Tree> mainTrees = new ArrayList<Tree>();
 		List<List<String>> bootstrapInputSets = new ArrayList<List<String>>();
 		BufferedWriter outbuffer;
-		System.err.println("\n================== ASTRAL ===================== \n");
-		System.err.println("This is ASTRAL version " + _version);
+		Logging.log("\n================== ASTRAL ===================== \n");
+		Logging.log("This is ASTRAL version " + _version);
 		try {
 			System.loadLibrary("Astral");
-			System.err.println("Using native AVX batch computing.");
+			Logging.log("Using native AVX batch computing.");
 		} catch (Throwable e) {
 			// e.printStackTrace();
-			System.err.println("Warning: \n Fail to load native library " + System.mapLibraryName("Astral")
+			Logging.log("Warning: \n Fail to load native library " + System.mapLibraryName("Astral")
 					+ "; use Java default computing method without AVX2, which is 4X slower. \n"
 					+ " Make sure you are using the correct Djava.library.path (to the `lib` directory under ASTRAL where "
 					+ System.mapLibraryName("Astral") + " can be found). \n"
@@ -508,7 +512,7 @@ public class CommandLine {
 			exitWithErr("");
 		}
 		
-		System.err.println("Gene trees are treated as " + (rooted ? "rooted" : "unrooted"));
+		Logging.log("Gene trees are treated as " + (rooted ? "rooted" : "unrooted"));
 		GlobalMaps.random = new Random(config.getLong("seed"));
 		Options options = readOptions( rooted, extrarooted, wh, config, mainTrees, bootstrapInputSets);
 		File outfile = config.getFile("output file");
@@ -520,19 +524,20 @@ public class CommandLine {
 		String outgroup = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesName(0);
 		List<String> toScore = null;
 		if (config.getFile("score species trees") != null) {
-			System.err.println("Scoring " + config.getFile("score species trees"));
+			Logging.log("Scoring " + config.getFile("score species trees"));
 			toScore = readTreeFileAsString(config.getFile("score species trees"));
 			runScore(rooted, mainTrees, outbuffer, options, outgroup, toScore);
 		} else {
 			runInference(config, rooted, extrarooted, mainTrees, outbuffer, bootstrapInputSets, options, outgroup);
 		}
+		Logging.log("ASTRAL finished in " + (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
+		Logging.log(Logging.ENDMESSAGE);
 		Threading.shutdown();
-		System.err.println("ASTRAL finished in " + (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 	}
 
 	private static void runScore( boolean rooted, List<Tree> mainTrees, BufferedWriter outbuffer,
 			Options options, String outgroup, List<String> toScore) throws FileNotFoundException, IOException {
-		System.err.println("Scoring: " + toScore.size() + " trees");
+		Logging.log("Scoring: " + toScore.size() + " trees");
 		AbstractInference inference = new WQInferenceConsumer(options, mainTrees, new ArrayList<Tree>(), new ArrayList<Tree>());
 		//initializeInference( mainTrees, new ArrayList<Tree>(), new ArrayList<Tree>(), options);
 		double score = Double.NEGATIVE_INFINITY;
@@ -551,7 +556,7 @@ public class CommandLine {
 				bestTree.add(tr);
 			}
 			if (!GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleIndividual()) {
-				System.err.println("Scored tree with gene names:\n" + tr.toNewickWD());
+				Logging.log("Scored tree with gene names:\n" + tr.toNewickWD());
 			}
 			GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) tr);
 			if (options.getBranchannotation() != 12) {
@@ -568,37 +573,37 @@ public class CommandLine {
 	private static void runInference(JSAPResult config, boolean rooted, boolean extrarooted,
 			List<Tree> mainTrees, BufferedWriter outbuffer, List<List<String>> bootstrapInputSets, Options options,
 			String outgroup) throws JSAPException, IOException, FileNotFoundException {
-		System.err.println("All output trees will be *arbitrarily* rooted at " + outgroup);
+		Logging.log("All output trees will be *arbitrarily* rooted at " + outgroup);
 		List<Tree> extraTrees = new ArrayList<Tree>();
 		List<Tree> toRemoveExtraTrees = new ArrayList<Tree>();
 		try {
 			if (config.getFile("extra trees") != null) {
 				readInputTrees(extraTrees, readTreeFileAsString(config.getFile("extra trees")), extrarooted, true,
 						false, null, 1, null);
-				System.err.println(extraTrees.size() + " extra trees read from " + config.getFile("extra trees"));
+				Logging.log(extraTrees.size() + " extra trees read from " + config.getFile("extra trees"));
 			}
 			if (config.getFile("extra species trees") != null) {
 				readInputTrees(extraTrees, readTreeFileAsString(config.getFile("extra species trees")), extrarooted,
 						true, true, null, 1, null);
-				System.err.println(extraTrees.size() + " extra trees read from " + config.getFile("extra trees"));
+				Logging.log(extraTrees.size() + " extra trees read from " + config.getFile("extra trees"));
 			}
 			if (config.getFile("remove extra tree bipartitions") != null) {
 				readInputTrees(toRemoveExtraTrees,
 						readTreeFileAsString(config.getFile("remove extra tree bipartitions")), true, true, true, null,
 						1, null);
-				System.err.println(toRemoveExtraTrees.size() + " extra trees to remove from search space read from "
+				Logging.log(toRemoveExtraTrees.size() + " extra trees to remove from search space read from "
 						+ config.getFile("remove extra tree bipartitions"));
 			}
 		} catch (IOException e) {
-			System.err.println("Error when reading extra trees.");
-			System.err.println(e.getMessage());
+			Logging.log("Error when reading extra trees.");
+			Logging.log(e.getMessage());
 			e.printStackTrace();
 			System.exit(1);
 		}
 		int j = 0;
 		List<Tree> bootstraps = new ArrayList<Tree>();
 		for (List<String> input : bootstrapInputSets) {
-			System.err.println("\n======== Running bootstrap replicate " + j++);
+			Logging.log("\n======== Running bootstrap replicate " + j++);
 			List<Tree> trees = new ArrayList<Tree>();
 			readInputTrees(trees, input, rooted, false, false, options.getMinLeaves(),
 					config.getInt("branch annotation level"), null);
@@ -613,7 +618,7 @@ public class CommandLine {
 			writeTreeToFile(outbuffer, cons);
 		}
 		Logging.logTimeMessage(" ");
-		System.err.println("\n======== Running the main analysis");
+		Logging.log("\n======== Running the main analysis");
 		runOnOneInput( extraTrees, toRemoveExtraTrees, outbuffer, mainTrees, bootstraps, outgroup, options);
 		outbuffer.close();
 	}
@@ -626,8 +631,8 @@ public class CommandLine {
 		inferenceConsumer.setup();
 		List<Solution> solutions = inferenceConsumer.inferSpeciesTree();
 		Logging.logTimeMessage(" CommandLine 667: ");
-		System.err.println("Optimal tree inferred in " + (System.currentTimeMillis() - startTime) / 1000.0D + " secs.");
-		System.err.println("Weight calculation cumulatively took " + Polytree.time / 1000000000.0D + " secs");
+		Logging.log("Optimal tree inferred in " + (System.currentTimeMillis() - startTime) / 1000.0D + " secs.");
+		Logging.log("Weight calculation using polytrees cumulatively took " + Polytree.time / 1000000000.0D + " secs");
 		Tree st = processSolution(outbuffer, bootstraps, outgroup, inferenceConsumer, solutions);
 		return st;
 	}
@@ -641,7 +646,7 @@ public class CommandLine {
 		Logging.logTimeMessage(" CommandLine 684: ");
 		Tree st = solutions.get(0)._st;
 		Logging.logTimeMessage(" CommandLine 690: ");
-		System.err.println(st.toNewick());
+		Logging.log(st.toNewick());
 		st.rerootTreeAtNode(st.getNode(outgroup));
 		Trees.removeBinaryNodes((MutableTree) st);
 		GlobalMaps.taxonNameMap.getSpeciesIdMapper().stToGt((MutableTree) st);
@@ -708,7 +713,7 @@ public class CommandLine {
 						skipped.add(l);
 					}
 				} else {
-					// System.err.println(".");
+					// Logging.log(".");
 					MutableTree tr = nr.readTree();
 					if (minleaves == null || tr.getLeafCount() >= minleaves) {
 						trees.add(tr);
@@ -745,7 +750,7 @@ public class CommandLine {
 			throw new RuntimeException("Failed to Parse Tree number: " + l, e);
 		}
 		if (skipped.size() > 0) {
-			System.err.println(
+			Logging.log(
 					"Skipping the following tree(s) because they had less than " + minleaves + " leaves: \n" + skipped);
 		}
 	}
@@ -755,8 +760,8 @@ public class CommandLine {
 			outbuffer.write(t.toStringWD() + " \n");
 			outbuffer.flush();
 		} catch (IOException e) {
-			System.err.println("Error when writing the species tree");
-			System.err.println(e.getMessage());
+			Logging.log("Error when writing the species tree");
+			Logging.log(e.getMessage());
 			e.printStackTrace();
 		}
 	}
