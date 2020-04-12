@@ -160,9 +160,10 @@ public abstract class AbstractInference<T> implements Cloneable{
 			allTask.compute();
 			double v = all._max_score;
 			if (v == Integer.MIN_VALUE) {
-				throw new CannotResolveException(all.getCluster().toString());
+				return null;
+				//throw new CannotResolveException(all.getCluster().toString());
 			}
-		} catch (CannotResolveException e) {
+		} catch (Exception e) {
 			Logging.log("Was not able to build a fully resolved tree. Not" +
 					"enough clusters present in input gene trees ");
 			e.printStackTrace();
