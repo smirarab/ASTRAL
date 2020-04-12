@@ -1,3 +1,8 @@
+- version 5.14.7:
+	- Important bug fix; previously solutions could be optimal due to threading conflicts
+	- Code refactoring
+	- Slightly better logging
+
 - version 5.14.6:
 	- Improve multiple GPU performance
 	- Bug fix for -x
