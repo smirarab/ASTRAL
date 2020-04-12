@@ -21,7 +21,7 @@ public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeight
 			return weight;
 		}
 
-		if(isThreadingOff()) {				
+		if(isThreadingOff()) { // After the main DP, for computing final score. 		
 			weight =  calculateWeight(convertToSingletonArray(t))[0];
 			saveWeight(t, weight);
 			return weight;
@@ -33,18 +33,12 @@ public abstract class AbstractWeightCalculatorConsumer<T> extends AbstractWeight
 		catch(Exception e) {
 			throw new RuntimeException(e);
 		}
-		if(weight == TurnTaskToScores.THEEND) {//random number from CommandLine used as a "poison pill"
+		if(weight == TurnTaskToScores.THEEND) {// After the main DP, for computing final score, we switch to local calculator
 			setThreadingOff(true);
 			weight =  calculateWeight(convertToSingletonArray(t))[0];
-			saveWeight(t, weight);
-			return weight;
 		}
-
-
 		saveWeight(t, weight);
 
-
-		//System.out.println(t.toString());
 		return weight;
 
 	}
