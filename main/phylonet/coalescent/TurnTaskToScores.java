@@ -207,7 +207,7 @@ public class TurnTaskToScores implements Runnable {
 		}
 
 		try {
-			queue2Helper.offer(new ComparablePair<Long, Integer>(-THEEND, positionIn++));
+			queue2Helper.offer(new ComparablePair<Long, Integer>(THEEND, positionIn++));
 			// random  specific number used as a "poison pill" for AbstractWeightCalculator
 			Logging.log("Finishing up:" + positionIn + " " + positionOut + " " + queue2Helper.peek().value.intValue());
 		} catch (Exception e) {
