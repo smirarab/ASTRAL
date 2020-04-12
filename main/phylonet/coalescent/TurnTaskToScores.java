@@ -548,22 +548,5 @@ public class TurnTaskToScores implements Runnable {
 		}
 
 	}
-	
-	static class a{
-		int[] x;
-		Object[] y;
-		a(int[]x,Object[]y){this.x=x; this.y=y;}
-	}
-	
-	public static void main(String[] args) throws Exception {
-		int[] x = new int[] {1,3};
-		Object[] y = new Object[] {new Object(),"c"};
-		a aaa = new a(x,y);
-		System.err.println(aaa.x[0]);
-		System.err.println(aaa.y[0]);
-		x=new int[] {5,13};
-		y=new Object[] {5,13};
-		System.err.println(aaa.x[0]);
-		System.err.println(aaa.y[0]);
-	}
+
 }
