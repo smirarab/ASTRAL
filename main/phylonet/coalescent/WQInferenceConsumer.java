@@ -905,14 +905,24 @@ public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 		((HashClusterCollection)this.dataCollection.clusters).preComputeHashValues();
 		
 		
-		WQInferenceProducer inferenceProducer = 
+		final WQInferenceProducer inferenceProducer = 
 				new WQInferenceProducer((AbstractInference) this.semiDeepCopy());
 		inferenceProducer.setup();
 
-		TurnTaskToScores consumer = new TurnTaskToScores(this, inferenceProducer.getQueueReadyTripartitions());
-		WriteTaskToQueue thread1 = new WriteTaskToQueue(inferenceProducer, consumer);
+		final TurnTaskToScores consumer = new TurnTaskToScores(this, inferenceProducer.getQueueReadyTripartitions());
 
-		Thread producer = new Thread(thread1);
+		Thread producer = new Thread(new Runnable() {
+
+			public void run() {
+				inferenceProducer.inferSpeciesTree();
+				try {
+					inferenceProducer.getQueueReadyTripartitions().put(TurnTaskToScores.POISON_PILL);
+				}
+				catch (Exception e) {
+				}
+				consumer.done = true;
+			}
+		});
 		producer.setPriority(Thread.MAX_PRIORITY);
 		producer.start();
 		try {
