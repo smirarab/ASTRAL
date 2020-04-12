@@ -130,7 +130,6 @@ public abstract class AbstractInference<T> implements Cloneable{
 	 * @return
 	 */
 	List<Solution> findTreesByDP(IClusterCollection clusters) {
-		List<Solution> solutions = new ArrayList<Solution>();
 		/*
 		 * clusterToVertex = new HashMap<STITreeCluster, Vertex>(); for
 		 * (Set<Vertex> vs: clusters.values()) { for (Vertex vertex : vs) {
@@ -153,15 +152,23 @@ public abstract class AbstractInference<T> implements Cloneable{
 
 		Logging.log("Size of largest cluster: " +all.getCluster().getClusterSize());
 		
+
+		//vertexStack.push(all);
+		AbstractComputeMinCostTask<T> allTask = newComputeMinCostTask(this,all);
+		//ForkJoinPool pool = new ForkJoinPool(1);
+		allTask.compute();
+		
+		List<Solution> solutions = processSolutions(all);
+        
+		return (List<Solution>) (List<Solution>) solutions;
+	}
+
+
+	List<Solution> processSolutions( Vertex all) {
+		List<Solution> solutions = new ArrayList<Solution>();
 		try {
-			//vertexStack.push(all);
-			AbstractComputeMinCostTask<T> allTask = newComputeMinCostTask(this,all);
-			//ForkJoinPool pool = new ForkJoinPool(1);
-			allTask.compute();
-			double v = all._max_score;
-			if (v == Integer.MIN_VALUE) {
-				return null;
-				//throw new CannotResolveException(all.getCluster().toString());
+			if ( all._max_score == Integer.MIN_VALUE) {
+				throw new CannotResolveException(all.getCluster().toString());
 			}
 		} catch (Exception e) {
 			Logging.log("Was not able to build a fully resolved tree. Not" +
@@ -264,8 +271,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 		Logging.logTimeMessage("AbstractInference 283: ");
 			
 		Logging.log("Final optimization score: " + cost);
-        
-		return (List<Solution>) (List<Solution>) solutions;
+		return solutions;
 	}
 
 	public int countWeights() {

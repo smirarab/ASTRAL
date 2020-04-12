@@ -767,6 +767,7 @@ implements Cloneable {
 			//prev = clusters.getClusterCount();
 
 		}
+		
 		try {
 			latch.await();
 		} catch (InterruptedException e) {
@@ -1063,7 +1064,7 @@ implements Cloneable {
 		// Greedy trees. These will be based on sis taxon identifier
 		Collection<Tree> allGreedies;
 		
-		System.err.print("Computing greedy consensus  ");
+		Logging.log("Computing greedy consensus  ");
 		long t = System.currentTimeMillis();
 		for (Tree tree : contractedTrees) {
 			tree.rerootTreeAtEdge(tid.getTaxonName(0));
