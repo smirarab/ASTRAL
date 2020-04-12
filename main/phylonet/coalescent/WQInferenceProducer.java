@@ -36,6 +36,13 @@ public class WQInferenceProducer extends AbstractInference<Tripartition> {
 
 
 	@Override
+	List<Solution> processSolutions(Vertex all) {
+		// No need to process any solution on the producer side
+		// This is an important overwrite.
+		return null;
+	}
+
+	@Override
 	public int countWeights() {
 		return weightCount;
 	}
