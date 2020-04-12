@@ -58,7 +58,7 @@ public class HashClusterCollection extends AbstractClusterCollection {
 				if (!succeed) throw new RuntimeException("Bad Random Bits, bad luck. Please rerun the program.");
 			}
 		}
-		System.err.println("Computing hash values took "+((System.currentTimeMillis()-t)/1000)+" seconds");
+		Logging.log("Computing hash values took "+((System.currentTimeMillis()-t)/1000)+" seconds");
 	}
 	
 
@@ -77,7 +77,7 @@ public class HashClusterCollection extends AbstractClusterCollection {
 		for (int i = 0; i< this.clusters.size(); i++) {
 			HashSet<Vertex> temp = new HashSet<Vertex>(this.clusters.get(i));
 			temp.retainAll(other.clusters.get(i));
-			System.err.println(temp);
+			Logging.log(temp+"");
 		}
 	}
 }

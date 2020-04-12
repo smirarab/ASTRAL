@@ -332,7 +332,7 @@ public class Utils {
             if (node.isLeaf()) {
                 // Find the index of this leaf.
 //            	if(ii<2)
-//            	System.err.println("name"+node.getName());
+//            	Logging.log("name"+node.getName());
 //            	ii++;
                 int i = taxonIdentifier.taxonId(node.getName());                
                 bs.set(i);              
@@ -406,7 +406,7 @@ public class Utils {
                 throw new RuntimeException("Failed to Parse Tree number: " + l ,e);
             }
             int k = trees.size();
-            System.err.println(k+" trees read from " + args[1]);
+            Logging.log(k+" trees read from " + args[1]);
             STITree<Double> best = (STITree<Double>) trees.remove(k-1);
             STITree<Double> consensus = (STITree<Double>) trees.remove(k-2);
             
@@ -433,14 +433,14 @@ public class Utils {
                 outbuffer.write(tree.toStringWD()+ " \n");
             }
             outbuffer.flush();
-            System.err.println("File "+args[1]+" fixed and saved as " + outfile);
+            Logging.log("File "+args[1]+" fixed and saved as " + outfile);
         } else if ("--alltrees".equals(args[0])) {
         	System.out.println(Utils.generateAllBinaryTrees(new String[]{"1","2","3","4","5"}));
         	System.out.println(Utils.generateAllBinaryTreeStrings(new String[]{"1","2","3","4","5"}));
         	System.out.println(Utils.generateAllBinaryTreeStrings(new String[]{"11","12","13","14"}));
         } 
         else {
-            System.err.println("Command " + args[0]+ " not found.");
+            Logging.log("Command " + args[0]+ " not found.");
         }
     }
     
@@ -707,7 +707,7 @@ public class Utils {
 			System.err.print(".");
 			System.err.flush();
 		}
-		System.err.println();
+		Logging.log("");
 
 		/*List<Tree> temp = new ArrayList<Tree>();
 		temp.addAll(alltrees);
