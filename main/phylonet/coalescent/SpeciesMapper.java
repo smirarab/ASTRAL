@@ -57,7 +57,7 @@ public class SpeciesMapper {
         		this.speciesIdtoLowestTaxonId.get(speciesId) > taxonId) {
         	this.speciesIdtoLowestTaxonId.set(speciesId,taxonId);
         }
-        //System.err.println("Mapped taxon "+taxonId +" to species "+speciesId);
+        //Logging.log("Mapped taxon "+taxonId +" to species "+speciesId);
     }
 
     protected void setSpeciesIdForTaxon(int taxonId, String speciesName) {
@@ -250,7 +250,7 @@ public class SpeciesMapper {
 			}
 //			System.out.println();
 //			STsimMatrix[i][i] = 1;
-			//System.err.println(Arrays.toString(this.distSTMatrix[i]));
+			//Logging.log(Arrays.toString(this.distSTMatrix[i]));
 		}
 //		System.out.println(this.getSpeciesCount());
 		for (int i = 0; i < this.getSpeciesCount(); i++) {
@@ -260,9 +260,9 @@ public class SpeciesMapper {
 					STsimMatrix[i][j] / denum[i][j];
 			}
 			STsimMatrix[i][i] = new Float(1.0);
-			//System.err.println(Arrays.toString(this.distSTMatrix[i]));
+			//Logging.log(Arrays.toString(this.distSTMatrix[i]));
 		}
-		System.err.println("Species tree distances calculated ...");
+		Logging.log("Species tree distances calculated ...");
 		
 		SimilarityMatrix ret = new SimilarityMatrix(STsimMatrix);
 		
@@ -296,7 +296,7 @@ public class SpeciesMapper {
 	    				((TMutableNode) node).setName(this.getSpeciesName(spnode));
 	    				((STINode) node).setData(null);
 	    				spNodes.add(childnodes);
-	    				System.err.println("2");
+	    				Logging.log("2");
     				}
     				stack.push(spnode);
     			} else {
