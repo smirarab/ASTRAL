@@ -149,10 +149,10 @@ public class WQComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Tr
 				newMinCostTask(bigv).compute();
 				newMinCostTask(smallV).compute();
 
-				v._max_score = 0L;
-				v._min_lc = smallV;
-				v._min_rc = bigv;
-				v._c = 0D ;
+				//v._max_score = 0L;
+				//v._min_lc = smallV;
+				//v._min_rc = bigv;
+				//v._c = 0D ;
 			}
 		} catch (Exception c) {
 				throw new RuntimeException(c);

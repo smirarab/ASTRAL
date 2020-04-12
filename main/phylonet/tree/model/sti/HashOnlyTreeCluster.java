@@ -2,6 +2,7 @@ package phylonet.tree.model.sti;
 
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.coalescent.GlobalMaps;
+import phylonet.coalescent.Logging;
 import phylonet.coalescent.TaxonIdentifier;
 import phylonet.util.BitSet;
 
@@ -42,26 +43,26 @@ public class HashOnlyTreeCluster extends STITreeCluster {
 		  this.hash2 = c.hash2;
 	    }
 	    else
-	      System.err.println("Null bit set.");
+	      Logging.log("Null bit set.");
 	  }
 
 	  @Override
 	  public final BitSet getBitSet()
 	  {
-		System.err.println("Not applicable.");
+		Logging.log("Not applicable.");
 	    return null;
 	  }
 
 	  @Override
 	  public int getClusterSize() {
-		System.err.println("Not applicable.");
+		Logging.log("Not applicable.");
 	    return 0;
 	  }
 
 	  @Override
 	  public String[] getClusterLeaves()
 	  {
-		System.err.println("Not applicable.");
+		Logging.log("Not applicable.");
 		return null;
 	  }
 	  
@@ -110,61 +111,61 @@ public class HashOnlyTreeCluster extends STITreeCluster {
 	  @Override
 	  public boolean isCompatible(STITreeCluster tc)
 	  {
-		System.err.println("Not applicable.");
+		Logging.log("Not applicable.");
 		return false;
 	  }
 	  
 	  @Override
 	  public boolean isDisjoint(STITreeCluster tc)
 	  {
-		System.err.println("Not applicable.");
+		Logging.log("Not applicable.");
 		return false;
 	  }
 
 	  @Override
 	  public boolean isDisjoint(BitSet tc) { 
-		System.err.println("Not applicable.");
+		Logging.log("Not applicable.");
 		return false;
 	  }
 	  
 	  @Override
 	  public boolean isComplementary(STITreeCluster tc)
 	  {
-		System.err.println("Not applicable.");
+		Logging.log("Not applicable.");
 		return false;
 	  }
 	  
 	  @Override
 	  public boolean containsLeaf(String l)
 	  {
-		System.err.println("Not applicable.");
+		Logging.log("Not applicable.");
 		return false;
 	  }
 	  
 	  @Override
 	  public boolean containsCluster(STITreeCluster tc)
 	  {   
-		System.err.println("Not applicable.");
+		Logging.log("Not applicable.");
 		return false;
 	  }
 	  
 	  @Override
 	  public boolean containsCluster(BitSet bs)
 	  {
-		System.err.println("Not applicable.");
+		Logging.log("Not applicable.");
 		return false;
 	  }
 
 	  @Override
 	  public STITreeCluster merge(STITreeCluster tc)
 	  {
-		System.err.println("Not applicable.");
+		Logging.log("Not applicable.");
 		return null;
 	  }
 
 	  @Override
 	  public STITreeCluster complementaryCluster() {
-		System.err.println("Not applicable.");
+		Logging.log("Not applicable.");
 		return null;
 	  }
 	  
