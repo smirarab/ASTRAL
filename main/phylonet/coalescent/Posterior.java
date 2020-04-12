@@ -108,9 +108,9 @@ public class Posterior extends cern.jet.math.Constants{
 		x=Math.pow((f1-fThird),2)/fThird+Math.pow((f2-fThird),2)/fThird+Math.pow((f3-fThird),2)/fThird;
 		p = Probability.chiSquareComplemented(2,x);
 		
-		System.err.println( f1 + " " + f2 + " " + f3 + " " + n + " " + p );
+		Logging.log( f1 + " " + f2 + " " + f3 + " " + n + " " + p );
 		if (n<=15) {				
-				System.err.println("Not enough genes");
+				Logging.log("Not enough genes");
 				return -2;
 		} else {
 		}
