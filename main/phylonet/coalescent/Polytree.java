@@ -275,18 +275,18 @@ public class Polytree {
 
 		STITreeCluster c = (new STITreeCluster(GlobalMaps.taxonIdentifier)).complementaryCluster();
 		maxScore = computeUpperbound(c.getBitSet());
-		System.err.println("Polytree max score: " + maxScore / 4);
-		System.err.println("Polytree building time: " + (System.currentTimeMillis() - t) / 1000.0D + " seconds.");
+		Logging.log("Polytree max score: " + maxScore / 4);
+		Logging.log("Polytree building time: " + (System.currentTimeMillis() - t) / 1000.0D + " seconds.");
 		
 		try {
 			System.loadLibrary("Astral");
-			System.err.println("Using native AVX batch computing method.");
+			Logging.log("Using native AVX batch computing method.");
 			useNativeMethod = true;
 		}
 		catch (Throwable e) {
 			useNativeMethod = false;
 			//e.printStackTrace(); 
-			System.err.println("Fail to load native library "+System.mapLibraryName("Astral")+"; use Java default computing method.");
+			Logging.log("Fail to load native library "+System.mapLibraryName("Astral")+"; use Java default computing method.");
 		}
 		
 		if (useNativeMethod) {
@@ -346,7 +346,7 @@ public class Polytree {
 			}
 		}
 		Polytree.time += System.nanoTime() - t;
-		//System.err.println((System.nanoTime() - t));
+		//Logging.log((System.nanoTime() - t));
 		return ret;
 		
 	}
@@ -354,7 +354,7 @@ public class Polytree {
 
 		if (trip == null)
 		{
-			System.err.println("why here?");
+			Logging.log("why here?");
 		}
 		if (trip.cluster1 == trip.cluster2) return this.computeUpperbound(trip.cluster1.getBitSet());
 		//long t = System.nanoTime();
@@ -450,7 +450,7 @@ public class Polytree {
 				q[2] = p[2];
 			}
 		}
-		//System.err.println(weight);
+		//Logging.log(weight);
 		return weight;
 	}
 	
