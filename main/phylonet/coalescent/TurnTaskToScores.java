@@ -508,12 +508,10 @@ public class TurnTaskToScores implements Runnable {
 		int numRuns = cpuChunkSize;
 		
 		Collection<Tripartition> nulls = Arrays.asList(new Tripartition[]{null});
-		//AbstractWeightCalculatorTask<Tripartition> wqWeightCalculator;
 
 		CPUCalculationThread(Tripartition [] trips, int[] positions) {
 			this.trips = trips;
 			this.positions = positions;
-			//this.wqWeightCalculator = weightCalculator;
 		}
 
 		CPUCalculationThread(Tripartition [] trips, int[] positions, int numRuns) {
@@ -521,13 +519,11 @@ public class TurnTaskToScores implements Runnable {
 			this.positions = positions;
 			this.numRuns = numRuns;
 			this.trips = Arrays.copyOf(trips,numRuns);
-			//this.wqWeightCalculator = weightCalculator;
+
 		}
 
 		public void run(){
 			
-			//Logging.logTimeMessage(" TurnTaskToScores:551.");
-
 			threadCount.incrementAndGet();
 			
 			Long[] weights = TurnTaskToScores.this.wqWeightCalculator.calculateWeight(trips);
