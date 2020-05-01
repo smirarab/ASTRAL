@@ -10,8 +10,8 @@ import phylonet.tree.model.sti.STITreeCluster.Vertex;
 public class WQComputeMinCostTaskConsumer extends AbstractComputeMinCostTask<Tripartition>{
 
 	WQDataCollection wqDataCollection;
-	final byte getDoneState = 1;
-	final byte getOtherDoneState = 3;
+	//final byte getDoneState = 3;
+	//final byte getOtherDoneState = 3;
 	
 	public WQComputeMinCostTaskConsumer(AbstractInference<Tripartition> inference, Vertex v) {
 		super(inference, v);
@@ -50,12 +50,9 @@ public class WQComputeMinCostTaskConsumer extends AbstractComputeMinCostTask<Tri
 	
 	double computeMinCost() throws CannotResolveException {
 		
-		// -2 is used to indicate it cannot be resolved
-		if (v._done == 2) {
-			throw new CannotResolveException(v.getCluster().toString());
-		}
+		
 		// Already calculated. Don't re-calculate.
-		if ( v._done == this.getDoneState || v._done == 4) {
+		if ( v._consDone ) {
 			return v._max_score;
 		}
 		//
@@ -64,16 +61,8 @@ public class WQComputeMinCostTaskConsumer extends AbstractComputeMinCostTask<Tri
 	
 		// SIA: base case for singelton clusters.
 		if (clusterSize <= 1 || spm.isSingleSP(v.getCluster().getBitSet())) {
-	
-			v._max_score = scoreBaseCase(inference.isRooted(), inference.trees);
-	
-			v._min_lc = (v._min_rc = null);
-			if(v._done == getOtherDoneState)
-				v._done = 4;
-			else
-				v._done = getDoneState;
-	
-			return v._max_score;
+			
+			throw new RuntimeException("Consumer should not do singeltons.");
 		}
 	
 		LinkedBlockingQueue<VertexPair> clusterResolutions;
@@ -141,7 +130,7 @@ public class WQComputeMinCostTaskConsumer extends AbstractComputeMinCostTask<Tri
 				v._max_score = (lscore + rscore + c);
 				v._min_lc = smallV;
 				v._min_rc = bigv;
-				v._c = c;
+				//v._c = c;
 	
 			} catch (CannotResolveException c) {
 				c.printStackTrace();
@@ -159,7 +148,6 @@ public class WQComputeMinCostTaskConsumer extends AbstractComputeMinCostTask<Tri
 			Logging.log("WARN: No Resolution found for ( "
 					+ v.getCluster().getClusterSize() + " taxa ):\n"
 					+ v.getCluster());
-			v._done = 2;
 			throw new CannotResolveException(v.getCluster().toString());
 		}
 		/*
@@ -172,10 +160,8 @@ public class WQComputeMinCostTaskConsumer extends AbstractComputeMinCostTask<Tri
 		//johng23
 		//if it's the consumer thread
 		
-		if(v._done == getOtherDoneState)			
-			v._done = 4;
-		else
-			v._done = getDoneState;
+		
+		v._consDone = (true);
 	
 		return v._max_score;
 	}
