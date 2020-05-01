@@ -27,15 +27,15 @@ public class WQComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Tr
 		this.wqDataCollection = (WQDataCollection)inference.dataCollection;
 	}
 
-	final byte getDoneState = 3;	
-	final byte getOtherDoneState = 1;
+	//final byte getDoneState = 4;	
+	//final byte getProducerDoneState = 3;
 	
 	
 	@Override
 	double computeMinCost() throws CannotResolveException {
 	
-		if ( v._done == this.getDoneState || v._done == 4) {
-			return v._max_score;
+		if ( v._prodDone ) {
+			return 0;
 		}
 		//
 	
@@ -47,10 +47,9 @@ public class WQComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Tr
 			v._max_score = scoreBaseCase(inference.isRooted(), inference.trees);
 	
 			v._min_lc = (v._min_rc = null);
-			if(v._done == getOtherDoneState)
-				v._done = 4;
-			else
-				v._done = getDoneState;
+
+			v._prodDone = true;
+			v._consDone = true;
 	
 			return v._max_score;
 		}
@@ -149,20 +148,13 @@ public class WQComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Tr
 				newMinCostTask(bigv).compute();
 				newMinCostTask(smallV).compute();
 
-				//v._max_score = 0L;
-				//v._min_lc = smallV;
-				//v._min_rc = bigv;
-				//v._c = 0D ;
 			}
 		} catch (Exception c) {
 				throw new RuntimeException(c);
 		}
 	
 		
-		if (v._done == getOtherDoneState)			
-			v._done = 4;
-		else
-			v._done = getDoneState;
+		v._prodDone = true;
 	
 		return v._max_score;
 	}
