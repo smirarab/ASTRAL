@@ -161,7 +161,7 @@ public abstract class AbstractInference<T> implements Cloneable{
 		Logging.log("Total Number of elements: " + countWeights());
 
 		List<STITreeCluster> minClusters = new LinkedList<STITreeCluster>();
-		List<Double> coals = new LinkedList<Double>();
+		//List<Double> coals = new LinkedList<Double>();
 		Stack<Vertex> minVertices = new Stack<Vertex>();
 		if (all._min_rc != null) {
 			minVertices.push(all._min_rc);
@@ -169,11 +169,11 @@ public abstract class AbstractInference<T> implements Cloneable{
 		if (all._min_lc != null) {
 			minVertices.push(all._min_lc);
 		}
-		if (all._subcl != null) {
-			for (Vertex v : all._subcl) {
-				minVertices.push(v);
-			}
-		}		
+//		if (all._subcl != null) {
+//			for (Vertex v : all._subcl) {
+//				minVertices.push(v);
+//			}
+//		}		
 		SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
 		while (!minVertices.isEmpty()) {
 			Vertex pe = (Vertex) minVertices.pop();
@@ -190,16 +190,16 @@ public abstract class AbstractInference<T> implements Cloneable{
 			if (pe._min_lc != null) {
 				minVertices.push(pe._min_lc);
 			}
-			if (pe._min_lc != null && pe._min_rc != null) {
-				coals.add(pe._c);
-			} else {
-				coals.add(0D);
-			}
-			if (pe._subcl != null) {
-				for (Vertex v : pe._subcl) {
-					minVertices.push(v);
-				}
-			}
+//			if (pe._min_lc != null && pe._min_rc != null) {
+//				coals.add(pe._c);
+//			} else {
+//				coals.add(0D);
+//			}
+//			if (pe._subcl != null) {
+//				for (Vertex v : pe._subcl) {
+//					minVertices.push(v);
+//				}
+//			}
 		}
 		Solution sol = new Solution();
 		if ((minClusters == null) || (minClusters.isEmpty())) {
