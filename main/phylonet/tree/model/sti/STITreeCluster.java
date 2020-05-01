@@ -1,18 +1,12 @@
 package phylonet.tree.model.sti;
 
 import java.util.Iterator;
-import java.util.List;
 
 import phylonet.coalescent.GlobalMaps;
-import phylonet.coalescent.TaxonIdentifier;
-import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.coalescent.Logging;
+import phylonet.coalescent.TaxonIdentifier;
 import phylonet.util.BitSet;
 import phylonet.util.BitSet.ImmutableBitSet;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * A subset of a set of taxa
@@ -58,13 +52,14 @@ public class STITreeCluster implements Iterable<Integer>
 		//public int _min_cost = -1;
 	  	public int clusterSize = 0;
 		public double _max_score = Integer.MIN_VALUE;
-		public double _estimated = Integer.MIN_VALUE;
-		public double _upper_bound = Integer.MAX_VALUE;
-		public double _c = 0;
+		//public double _estimated = Integer.MIN_VALUE;
+		//public double _upper_bound = Integer.MAX_VALUE;
+		//public double _c = 0;
 		public Vertex _min_lc = this._min_rc = null;
 		public Vertex _min_rc;
-		public List<Vertex> _subcl = null;	 // Don't matter	
-		public byte _done = 0; // 0 for not, 1 for upper bound, 2 for estimated, 3 for yes
+		//public List<Vertex> _subcl = null;	 // Don't matter	
+		public boolean _consDone = false;  
+		public boolean _prodDone = false; // 0 for not, 1 for upper bound, 2 for estimated, 3 for yes
 		//public ArrayList<VertexPair> clusterResolutions = null;
 		
 		public Vertex() {
