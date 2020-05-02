@@ -48,9 +48,8 @@ public class WQComputeMinCostTaskConsumer extends AbstractComputeMinCostTask<Tri
 		return 0l;
 	}
 	
-	double computeMinCost() throws CannotResolveException {
-		
-		
+	long computeMinCost() throws CannotResolveException {
+				
 		// Already calculated. Don't re-calculate.
 		if ( v._consDone ) {
 			return v._max_score;
@@ -62,7 +61,11 @@ public class WQComputeMinCostTaskConsumer extends AbstractComputeMinCostTask<Tri
 		// SIA: base case for singelton clusters.
 		if (clusterSize <= 1 || spm.isSingleSP(v.getCluster().getBitSet())) {
 			
-			throw new RuntimeException("Consumer should not do singeltons.");
+			v._max_score = scoreBaseCase(inference.isRooted(), inference.trees);
+
+			v._consDone = true;
+			
+			return v._max_score;
 		}
 	
 		LinkedBlockingQueue<VertexPair> clusterResolutions;
@@ -103,38 +106,24 @@ public class WQComputeMinCostTaskConsumer extends AbstractComputeMinCostTask<Tri
 				AbstractComputeMinCostTask<Tripartition> bigWork = newMinCostTask(bigv);
 				AbstractComputeMinCostTask<Tripartition> smallWork = newMinCostTask(smallV);
 	
-				Double rscore = bigWork.compute();
-	
-				if (rscore == null) {
-					throw new CannotResolveException(bigv.getCluster().toString());
-				}
-					
-				Double lscore = smallWork.compute();
-	
-				if (lscore == null) {
-					throw new CannotResolveException(smallV.getCluster().toString());
-				}
+				Long rscore = bigWork.compute();
+				Long lscore = smallWork.compute();
 	
 				Long weight = weights[j];
 				j++;
 	
-				double c = adjustWeight(clusterLevelCost, smallV, bigv, weight);	// Not relevant to ASTRAL				
-	
 				if ((v._max_score != -1)
-						&& (lscore + rscore + c < v._max_score)) {
+						&& (lscore + rscore + weight < v._max_score)) {
 					continue;
 				}
-				if (lscore + rscore + c == v._max_score && GlobalMaps.random.nextBoolean()) {
+				if (lscore + rscore + weight == v._max_score && GlobalMaps.random.nextBoolean()) {
 					continue;
 				}
-				v._max_score = (lscore + rscore + c);
+				v._max_score = (lscore + rscore + weight);
 				v._min_lc = smallV;
 				v._min_rc = bigv;
 				//v._c = c;
 	
-			} catch (CannotResolveException c) {
-				c.printStackTrace();
-				throw new RuntimeException("cannot resolve");
 			}
 			catch (Exception e) {
 				throw new RuntimeException(e);
@@ -150,16 +139,6 @@ public class WQComputeMinCostTaskConsumer extends AbstractComputeMinCostTask<Tri
 					+ v.getCluster());
 			throw new CannotResolveException(v.getCluster().toString());
 		}
-		/*
-		 * if (clusterSize > 450){
-		 * System.out.println(v+" \nis scored "+(v._max_score ) +
-		 * " by \n"+v._min_lc + " \n"+v._min_rc); }
-		 *//*
-		 * if (clusterSize > 5){ counter.addGoodSTB(bestSTB, clusterSize); }
-		 */
-		//johng23
-		//if it's the consumer thread
-		
 		
 		v._consDone = (true);
 	

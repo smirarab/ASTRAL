@@ -62,7 +62,7 @@ public class TurnTaskToScores implements Runnable {
 
 	
 	int tripCounter = 0;
-	boolean done = false;
+	//boolean done = false;
 	
 	final GPUCall gpuRunner;
 	
