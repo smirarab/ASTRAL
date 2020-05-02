@@ -1616,12 +1616,12 @@ implements Cloneable {
 		}
 	}*/
 
-	public Object clone() throws CloneNotSupportedException {
+	/*public Object clone() throws CloneNotSupportedException {
 		WQDataCollection clone = (WQDataCollection) super.clone();
 		clone.clusters = (HashClusterCollection) ((AbstractClusterCollection) this.clusters)
 				.clone();
 		return clone;
-	}
+	}*/
 
 	public long[] getAllArray() {
 		int counter = 0;
