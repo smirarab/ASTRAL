@@ -210,7 +210,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 		};
 	}
 
-	public AbstractClusterCollection clone() throws CloneNotSupportedException {
+	/*public AbstractClusterCollection clone() throws CloneNotSupportedException {
 		AbstractClusterCollection clone = (AbstractClusterCollection) super.clone();
 		clone.clusters = new ArrayList<Set<Vertex>>();
 
@@ -223,7 +223,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 		}
 
 		return clone;
-	}
+	}*/
 
 
 }
