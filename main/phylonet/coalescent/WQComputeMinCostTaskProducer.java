@@ -1,9 +1,5 @@
 package phylonet.coalescent;
 
-import phylonet.tree.model.sti.STITreeCluster.Vertex;
-
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
@@ -11,8 +7,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 
-
 import phylonet.coalescent.IClusterCollection.VertexPair;
+import phylonet.tree.model.sti.STITreeCluster.Vertex;
 
 public class WQComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Tripartition>{
 
@@ -32,7 +28,7 @@ public class WQComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Tr
 	
 	
 	@Override
-	double computeMinCost() throws CannotResolveException {
+	long computeMinCost() throws CannotResolveException {
 	
 		if ( v._prodDone ) {
 			return 0;
@@ -43,25 +39,22 @@ public class WQComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Tr
 	
 		// SIA: base case for singelton clusters.
 		if (clusterSize <= 1 || spm.isSingleSP(v.getCluster().getBitSet())) {
-	
-			v._max_score = scoreBaseCase(inference.isRooted(), inference.trees);
-	
-			v._min_lc = (v._min_rc = null);
 
 			v._prodDone = true;
-			v._consDone = true;
 	
-			return v._max_score;
+			return 0;
 		}
 	
 		final IClusterCollection containedVertecies = this.inference.dataCollection.clusters.getContainedClusters(v);
 		
 		final BlockingQueue<VertexPair> clusterResolutions  = new LinkedBlockingQueue<VertexPair>();
 		
+		// At the top, there is only one resolution. Find it. 
 		if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) {
 			try {
 			Vertex v1 = null;
 			int smallestSize = -1;
+			// If this seem overtly complicated, remember multi-ind cases. 
 			while (v1 == null) {
 				smallestSize++;
 				Set<Vertex> cs = containedVertecies.getSubClusters(smallestSize);
@@ -87,6 +80,8 @@ public class WQComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Tr
 			
 		} else {
 
+			// Find all cluster resolutions; use the hashing technique. 
+			// Add them to the clusterResolution and weight queue at the same time  (locked)
 			Future []  futures = new Future[clusterSize / 2];
 			final Object lock = new Object();
 			for (int j = 1; j <= (clusterSize / 2); j++) {
@@ -138,25 +133,22 @@ public class WQComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Tr
 		try {
 			
 			this.inference.getQueueClusterResolutions().put(clusterResolutions);
-
-			for (VertexPair bi: clusterResolutions) {
-				WQInferenceProducer.weightCount += 1;
-
-				Vertex smallV = bi.cluster1;
-				Vertex bigv = bi.cluster2;
-				
-				newMinCostTask(bigv).compute();
-				newMinCostTask(smallV).compute();
-
-			}
+			
 		} catch (Exception c) {
 				throw new RuntimeException(c);
 		}
-	
+
+		for (VertexPair bi: clusterResolutions) {
+			WQInferenceProducer.weightCount += 1;
+			
+			newMinCostTask(bi.cluster2).compute();
+			newMinCostTask(bi.cluster1).compute();
+		}
 		
 		v._prodDone = true;
+
 	
-		return v._max_score;
+		return 0;
 	}
 
 	@Override
