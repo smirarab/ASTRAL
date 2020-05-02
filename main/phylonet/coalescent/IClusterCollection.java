@@ -54,24 +54,17 @@ public interface IClusterCollection {
 	 */
 	Set<Vertex> getSubClusters(int size);
 	
-	class VertexPair implements Comparable<VertexPair> {
+	class VertexPair {
 		public final Vertex cluster1;
 		public final Vertex cluster2;
 		public final Vertex both;
-		public double weight = 0, upperbound = 0;
 		
 		public VertexPair(Vertex c1, Vertex c2, Vertex b) {
 			cluster1 = c1;
 			cluster2 = c2;
 			both = b;
 		}
-		
-		@Override
-		public int compareTo(VertexPair o) {
-			if (upperbound > o.upperbound) return -1;
-			if (upperbound == o.upperbound) return 0;
-			return 1;
-		}
+
 	}
 
 }
