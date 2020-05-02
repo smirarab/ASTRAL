@@ -20,7 +20,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 		this.spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
 	}
 
-	protected Double compute() {
+	protected Long compute() {
 		try {
 			return computeMinCost();
 		} catch (CannotResolveException e) {
@@ -33,7 +33,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 	 * @return
 	 * @throws CannotResolveException
 	 */
-	abstract double computeMinCost() throws CannotResolveException;
+	abstract long computeMinCost() throws CannotResolveException;
 
 	public Long getWeight(T t) {
 		return inference.weightCalculator.getWeight(t);
