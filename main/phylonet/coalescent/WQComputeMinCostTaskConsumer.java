@@ -75,7 +75,6 @@ public class WQComputeMinCostTaskConsumer extends AbstractComputeMinCostTask<Tri
 			throw new RuntimeException(e1);
 		}
 	
-		long clusterLevelCost = 0;
 
 		Long [] weights  = new Long[clusterResolutions.size()];
 
@@ -96,39 +95,31 @@ public class WQComputeMinCostTaskConsumer extends AbstractComputeMinCostTask<Tri
 			}
 		}
 		
-		j = 0;
-		for (VertexPair bi : clusterResolutions) {
-			try {
-	
-				Vertex smallV = bi.cluster1;
-				Vertex bigv = bi.cluster2;
-	
-				AbstractComputeMinCostTask<Tripartition> bigWork = newMinCostTask(bigv);
-				AbstractComputeMinCostTask<Tripartition> smallWork = newMinCostTask(smallV);
-	
-				Long rscore = bigWork.compute();
-				Long lscore = smallWork.compute();
-	
-				Long weight = weights[j];
-				j++;
-	
-				if ((v._max_score != -1)
-						&& (lscore + rscore + weight < v._max_score)) {
-					continue;
-				}
-				if (lscore + rscore + weight == v._max_score && GlobalMaps.random.nextBoolean()) {
-					continue;
-				}
-				v._max_score = (lscore + rscore + weight);
-				v._min_lc = smallV;
-				v._min_rc = bigv;
-				//v._c = c;
-	
-			}
-			catch (Exception e) {
-				throw new RuntimeException(e);
-			}
-		}
+
+                j = 0;
+                for (VertexPair bi : clusterResolutions) {
+                        try {
+
+                                Long rscore = newMinCostTask(bi.cluster2).compute();
+                                Long lscore = newMinCostTask(bi.cluster1).compute();
+
+                                Long weight = weights[j];
+                                j++;
+
+                                long newScore = lscore + rscore + weight;
+                                if ( ( newScore < v._max_score) ||
+                                                ((newScore == v._max_score) && GlobalMaps.random.nextBoolean()) ) {
+                                        continue;
+                                }
+                                v._max_score = newScore;
+                                v._min_lc = bi.cluster1;
+                                v._min_rc =  bi.cluster2;
+
+                        }
+                        catch (Exception e) {
+                                throw new RuntimeException(e);
+                        }
+                }
 	
 		/**
 		 * Should never happen
