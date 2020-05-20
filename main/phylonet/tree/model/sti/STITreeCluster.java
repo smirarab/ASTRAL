@@ -88,7 +88,7 @@ public class STITreeCluster implements Iterable<Integer>
 		}
 
 		public String toString() {
-			return STITreeCluster.this.toString() + "/" + this._max_score;
+			return STITreeCluster.this.toString() + "/" + this._max_score + " "+ (this._prodDone?"1":"0")+ (this._consDone?"1":"0");
 		}
 	}
   
