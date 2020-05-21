@@ -1,3 +1,9 @@
+- version 5.15.0:
+	- Bug fix: Change how we generate random numbers. Java's nextLong was not very random, creating collisions in rare cases. We changed how we select random numbers.
+
+- version 5.14.8:
+	- refactoring and improvement of parallelization
+
 - version 5.14.7:
 	- Important bug fix; previously solutions could be optimal due to threading conflicts
 	- Code refactoring
