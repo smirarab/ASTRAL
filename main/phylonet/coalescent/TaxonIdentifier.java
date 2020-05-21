@@ -35,13 +35,14 @@ public class TaxonIdentifier {
     
     public void lock() {
         this.locked = true;
-		hash1 = new long[taxonCount]; 
-		hash2 = new long[taxonCount];
-		Random rnd = GlobalMaps.random;
-		for (int i = 0; i < taxonCount; i++) {
-			hash1[i] = rnd.nextLong();
-			hash2[i] = rnd.nextLong();
-		}
+	hash1 = new long[taxonCount]; 
+	hash2 = new long[taxonCount];
+	Random rnd = GlobalMaps.random;
+	for (int i = 0; i < taxonCount; i++) {
+		hash1[i] = rnd.nextLong() ^ rnd.nextLong() ^ rnd.nextLong(); 
+		hash2[i] = ( rnd.nextLong() ^ rnd.nextLong() ) +  ( rnd.nextLong() ^ rnd.nextLong() );
+		//System.err.println(idToName.get(i) +" "+hash1[i] +" "+ hash2[i]);
+	}
     }
     
     /**
