@@ -32,7 +32,7 @@ public abstract class AbstractDataCollection <T> {
 		}*/
 	
 		if (size == 0) return false;
-		Vertex nv = c.new Vertex();
+		Vertex nv = c.new Vertex(size);
 		return clusters.addCluster(nv, size);
 	}
 	
@@ -41,7 +41,7 @@ public abstract class AbstractDataCollection <T> {
 		|| size == 0) {
 			return false;
 		}	
-		Vertex nv = c.new Vertex();
+		Vertex nv = c.new Vertex(size);
 		return clusters.removeCluster(nv, size);
 	}
 
