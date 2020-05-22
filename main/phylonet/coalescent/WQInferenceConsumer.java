@@ -909,7 +909,7 @@ public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 				new WQInferenceProducer((AbstractInference) this.semiDeepCopy());
 		inferenceProducer.setup();
 
-		final TurnTaskToScores consumer = new TurnTaskToScores(this, inferenceProducer.getQueueReadyTripartitions());
+		final TurnTaskToScores weightDistributor = new TurnTaskToScores(this, inferenceProducer.getQueueReadyTripartitions());
 
 		Thread producer = new Thread(new Runnable() {
 
@@ -920,7 +920,7 @@ public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 				}
 				catch (Exception e) {
 				}
-				consumer.done = true;
+				//weightDistributor.done = true;
 			}
 		});
 		producer.setPriority(Thread.MAX_PRIORITY);
@@ -931,7 +931,7 @@ public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 			e.printStackTrace();
 		}
 		
-		(new Thread(consumer)).start();
+		(new Thread(weightDistributor)).start();
 
 	}
 
