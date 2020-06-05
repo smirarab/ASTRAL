@@ -10,6 +10,9 @@ public class NativeLibraryTester {
 	static long[][] c = {{3267}, {3267}, {768}, {268}, {13116}, {13628}, {13620}, {1032}, {520}, {1032}, {1544}, {12848}, {2051}, {64}, {576}, {13116}, {128}, {64}, {128}, {15679}, {13628}, {576}, {64}, {14775}, {14775}, {1032}, {128}, {1224}, {1216}, {1032}, {576}, {1544}};
 	static long[] result = new long[32];
 	public static void main(String[] args) {
+		
+		Threading.startThreading(2);
+		Logging.startLogger();
 		// TODO Auto-generated method stub
 		boolean useNativeMethod = true;
 		try {
@@ -38,6 +41,9 @@ public class NativeLibraryTester {
 				Logging.log("\n\n" + e);
 			}
 		}
+		
+		Logging.log(Logging.ENDMESSAGE);
+		Threading.shutdown();
 	}
 
 }
