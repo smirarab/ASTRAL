@@ -1,6 +1,5 @@
 package phylonet.coalescent;
 
-import java.util.concurrent.Callable;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class Logging {
