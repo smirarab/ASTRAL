@@ -1,3 +1,6 @@
+- version 5.15.1:
+	- Small bugfix. native_library_tester.jar was broken
+
 - version 5.15.0:
 	- Bug fix: Change how we generate random numbers. Java's nextLong was not very random, creating collisions in rare cases. We changed how we select random numbers.
 
