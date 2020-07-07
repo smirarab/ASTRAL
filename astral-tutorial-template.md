@@ -6,6 +6,7 @@ Read the [README](README.md) file in addition to this tutorial.
 Email: `astral-users@googlegroups.com` for questions. Please subscribe to the mailing list for infrequent updates. 
 
 
+
 * [Installation](#installation)
 * [Running ASTRAL](#running-astral)
   * [ASTRAL Help](#astral-help)
@@ -18,7 +19,9 @@ Email: `astral-users@googlegroups.com` for questions. Please subscribe to the ma
   * [Branch length and support](#branch-length-and-support)
   * [The ASTRAL Log information](#the-astral-log-information)
 * [Scoring existing trees](#scoring-existing-trees)
-  * [Extensive branch annotations](#extensive-branch-annotations)
+* [Extensive branch annotations](#extensive-branch-annotations)
+  * [Newick annotations](#newick-annotations)
+  * [File export of branch annotations](#file-export-of-branch-annotations)
   * [Prior hyper\-parameter](#prior-hyper-parameter)
 * [Multi-locus Bootstrapping:](#multi-locus-bootstrapping)
 * [The Search space of ASTRAL](#the-search-space-of-astral)
@@ -210,32 +213,43 @@ introduce ways to output even more information per branch.
 
 * Just like the use of ASTRAL for inferring species trees, you can combine `-a` and `-q` to compute branch support values for multi-individual dataset.  
 
-### Extensive branch annotations
-Where you are inferring a species tree or scoring one using the `-q` option,
-you will always get estimates of the branch length and local posterior support
-for each branch. In addition to these default annotations for each branch, 
-you can ask ASTRAL to output other per branch information. 
+Extensive branch annotations
+--
 
+Whether you are inferring a species tree or scoring one using the `-q` option, you will always get estimates of the branch length and local posterior support for each branch. 
+In addition to these default annotations for each branch, you can ask ASTRAL to output other per branch information. 
+
+**Three Possible Rearrangements:**
 Around each branch in an unrooted tree, there are four groups. If you think about a rooted tree, the four groups defined by a branch are the first child (`L`), the second child (`R`), the sister group (`S`), and everything else (`O`). With these four groups, if we keep all the groups intact, we can have three unrooted topologies: `RL|SO`, `RS|LO`, and `RO|LS`. The first topology is what the
 current tree has, and we refer it to as the main topology. The two others
-are alternative topologies, and we refer to `RS|LO` and `RO|LS` as the first and the second alternatives, respectively. ASTRAL can output not just the local posterior probability for the main tree, but also the two alternatives. 
+are alternative topologies, and we refer to `RS|LO` and `RO|LS` as the first and the second alternatives, respectively. ASTRAL can output branch annotations for the main tree as well as the two alternatives.
 
-To enable extra per branch information, you need to use the `-t` option. 
-Here is a description of various information that can be turned on by using `-t`.
+* When the output includes annotations for alternative topologies, we always first show the main topology, followed by `RS|LO` and `RO|LS`, in that order.
+ 
+* Note: a common question I get is how do I know which child is `L` and which child is `R`. Unfortunately, the answer depends on your tree viewing software. There is no general rule. 
+	* You can always look at the newick file directly, and the first child is `L` and the second is `R`; thus, in the output newick format, we always have
+`(LEFT,RIGHT)`. 
+	* But most people would find this cumbersome. Instead, you can look at options `-t 16` and `-t 32` [below](#file-export-of-branch-annotations) that output a `.csv` file.
+
+**`-t` option**: 
+To enable extra per branch information, you need to use the `-t` option, and various types of information that can be turned on. Most `-t` options just annotate the newick file. Some of the will also turn on the output of the `.csv` file mentioned earlier.
 
 
-* *no annotations* (`-t 0`): If you hate our posteriors and cannot stand seeing them, you can use this option to turn them off. If our calculations are causing numerical errors, you can use this to at least get the topology.  
-* *Quartet support* (`-t 1`): The local posterior probabilities are computed based on a transformation of the percentage of quartets in gene trees that agree or disagree with a branch. See Figure 2 of our MBE paper referenced above for the relationship. If you want to know what percentage of quartets in your gene trees agree with a branch, use this option. We refer to this measure as the quartet support.  Quartet score is a good way of measuring the amount of gene tree conflict around a branch.  
-* *Alternative posteriors* (`-t 4`): When this option is used, ASTRAL outputs three local posterior probabilities: one for the main topology, and one for each of the two alternatives (`RS|LO` and `RO|LS`, in that order). The posterior of the three topologies adds up to one. This is because of our locality assumption, which basically asserts that we assume the four groups around the branch (`L`, `R`, `S`, and  `O`) are each correct and therefore, there are only three possible alternatives. 
+### Newick annotations
+
+
+* *no annotations* (`-t 0`): This turns off calculation and reporting of posterior probabilities and branch lengths.  
+* *Quartet support* (`-t 1`): The percentage of quartets in your gene trees that agree with a branch (normalized quartet support) give use a nice way of measuring the amount of gene tree conflict around a branch. Note that the local posterior probabilities are computed based on a transformation of normalized quartet scores (see [Figure 2 of this paper](https://doi.org/10.1093/molbev/msw079)).
+* *Alternative quartet topologies* (`-t 8`): Outputs `q1`, `q2`, `q3`; these three values show quartet support (as defined above) for the main topology (`LR|SO`), first alternative (`RS|LO`) and second alternative (`RO|LS`), respectively.
+* *Local posterior* (`-t 3`): is the default where we show [local posterior probability](https://doi.org/10.1093/molbev/msw079) for the main topology.
+* *Alternative posteriors* (`-t 4`): The output includes three local posterior probabilities: one for the main topology, and one for each of the two alternatives (`RS|LO` and `RO|LS`, in that order). The posterior of the three topologies adds up to 1. This is because of our locality assumption, which basically asserts that we assume the four groups around the branch (`L`, `R`, `S`, and  `O`) are each correct and therefore, there are only three possible alternatives. 
 * *Full annotation* (`-t 2`): When you use this option, for each branch you get a lot of different measurements:
    * `q1`,`q2`,`q3`: these three values show quartet support (as defined in the description of `-t 1`) for the main topology, the first alternative, and the second alternative, respectively. 
    * `f1`, `f2`, `f3`: these three values show the total number of quartet trees in all the gene trees that support the main topology, the first alternative, and the second alternative, respectively.
    * `pp1`, `pp2`, `pp3`: these three show the local posterior probabilities (as defined in the description of `-t 4`) for the main topology, the first alternative, and the second alternative, respectively.
    * `QC`: this shows the total number of quartets defined around each branch (this is what our paper calls `m`).
    * `EN`: this is the effective number of genes for the branch. If you don't have any missing data, this would be the number of branches in your tree. When there are missing data, some gene trees might have nothing to say about a branch. Thus, the effective number of genes might be smaller than the total number of genes. 
-* *Alternative quartet topologies* (`-t 8`): Outputs `q1`, `q2`, `q3`; these three values show quartet support (as defined in the description of `-t 1`) for the main topology, the first alternative, and the second alternative, respectively.
 * *Polytomy test* (`-t 10`): runs an experimental test to see if a null hypothesis that the branch is a polytomy could be rejected. See [this paper: doi:10.3390/genes9030132](http://www.mdpi.com/2073-4425/9/3/132). 
-* *.csv* (`-t 16`): produces a .csv file called `freqQuad.csv` with quartet frequencies.
 
 Run:
 
@@ -252,6 +266,52 @@ java -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 
 java -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 10 -o test_data/1kp-scored-t10.tre
 ```
 read all the values given for a couple of branches and try to make sense of them. 
+
+
+###  File export of branch annotations
+
+Since it is often hard to know which branch is `L` and which branch is `R`, understanding branch annotations is a bit hard for most users. To help, we have added a feature for outputting some of the branch annotations into a `.csv` file. 
+
+* Note that we strongly suggest using [DiscoVista]() to visualize the quartet frequencies. If you find DiscoVista hard to install and use, you can instead use these .csv files. 
+
+To get the `.csv` outputs, you can use `-t 16` and `-t 32`.
+
+* *.csv*  output has the following format. 
+	* The output file is always called `freqQuad.csv` and is written to the same directory as the input file (sorry for the ugliness!)
+	* The file is tab-delimited. 
+	* 1st column: a dummy name for the node. Note that each three lines in a row have the same node number. Around each node, we have three possible unrooted toplogies (NNI rearrangements). We show stats for these three rearrangements. 
+	* 2nd column: the topology name for which we are giving the scores. Here, `t1` is always the main topology (observed in your species tree) and `t2` and `t3` are the two alternatives. 
+	* 3rd column: Gives the actual topology with the format: `{A}|{B}#{C}|{D}`. This means that the quartet topology being scored is putting groups A and B together on one side, and groups C and D on the other side. Please remember that quartets are unrooted trees. Each of the groups is a comma-separate list of species. 
+	* 5th column: number of gene trees that match the the topology in this line. 
+		* You will note that this number is not always an integer number. The reason is that in each gene tree, groups A, B, C, and D may not be together. Those gene trees still count as 1 unit, but they can contribute a fraction of that total of 1 to each of the tree topologies. So a gene tree may count as 0.7 for one topology, 0.2 for another, and 0.1 for the third.
+	* 6th column: This is the total number of gene trees that had any useful information about this branch.
+		* If you have no missing data, this should equal the total number of gene trees. 
+		* If you have missing data, some genes may be missing one of groups A, B, C, or D entirely. Those genes will be agnostic about this branch. This column gives the number of genes that have at least one species from each of A, B, C, and D.  
+	* 4th column is likely you are interested in and it depends on whether you used `-t 16` or `-t 32`. 
+		* `-t 16`: This column is the local posterior for the topology given in this line. Note that the local posterior probability is different from normalized quartet score. See [Figure 2 of this paper](https://doi.org/10.1093/molbev/msw079).
+		* `-t 32`: This column is simply 5th column divided by 6 column. Thus, it gives the **normalized quartet score** for that topology. Note that the three lines with the same node name (1st column) will add up to one in their 4th column. 
+
+Hints: 
+
+* since `freqQuad.csv` is tab-delimited, if you open it with Excel, you may have better luck if you rename it to `freqQuad.txt`
+
+####Example:
+
+Run:
+```
+java -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 16 -o test_data/1kp-scored-t16.tre
+```
+
+and examine the `freqQuad.csv` output file. 
+
+Then run:
+```
+java -jar __astral.jar__ -q test_data/1kp.tre -i test_data/1KP-genetrees.tre -t 32 -o test_data/1kp-scored-t32.tre
+```
+
+and examine `freqQuad.csv`.
+
+Note how all columns are the same except for the 4th column. 
 
 
 ### Prior hyper-parameter
