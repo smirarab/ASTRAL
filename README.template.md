@@ -8,7 +8,9 @@ ASTRAL finds the species tree that has the maximum number of shared induced quar
 The algorithm was designed by Tandy Warnow and Siavash Mirarab originally. ASTRAL-III incorporates many ideas by Chao Zhang and Maryam Rabiee.
 [Code developers](https://github.com/smirarab/ASTRAL/graphs/contributors) are mainly Siavash Mirarab, Chao Zhang, Maryam Rabiee, and Erfan Sayyari.
 
-Email: `astral-users@googlegroups.com` for questions.
+### Bug Reports:
+
+Contact ``astral-users@googlegroups.com`` or post on [ASTRAL issues page](https://github.com/smirarab/ASTRAL/issues).
 
 
 ### Other branches
@@ -17,11 +19,11 @@ Email: `astral-users@googlegroups.com` for questions.
 Several new  features of ASTRAL are not merged in this branch and are available in other branches. 
 Please use those branches if you find these features useful. 
 
-* **Multi-threaded ASTRAL**: A multi-threaded version of ASTRAL is now available on [this branch](https://github.com/smirarab/ASTRAL/tree/MP)
+* **ASTRAL-MP (Multi-threaded ASTRAL)**: A multi-threaded version of ASTRAL is available on [this branch](https://github.com/smirarab/ASTRAL/tree/MP)
 * **Astral with user constraints**: A version of ASTRAL that can satisfy user constraints is available [here](https://github.com/maryamrabiee/Constrained-search)
 * **Tree updates**:  An ASTRAL-based algorithm called INSTRAL enables inserting  new species onto and existing ASTRAL tree is available [here](https://github.com/maryamrabiee/INSTRAL)
 
-## Publications:
+## Publications
 
 #### Papers on the current version:
 - Since version 5.1.1, the code corresponds to **ASTRAL-III**, described in:
@@ -69,8 +71,10 @@ Documentations
 - The rest of this README file
 - **Our [tutorial](astral-tutorial.md)**.
 - For practical tips on using ASTRAL, including on how to prepare input and interpret output, see [this paper](https://arxiv.org/pdf/1904.03826.pdf).
-- The chapter of Siavash Mirarab's dissertation that describes ASTRAL in detail is provided [here](thesis-astral.pdf).
-- Publications shown above have scientific details
+- Forums:
+	- [User group discussions](https://groups.google.com/forum/#!forum/astral-users) 
+	- [ASTRAL issues page](https://github.com/smirarab/ASTRAL/issues)
+- Publications shown above have scientific details. The chapter of Siavash Mirarab's dissertation that describes ASTRAL in detail is provided [here](thesis-astral.pdf).
 - A [developer guide](developer-guide.md).
 
 INSTALLATION:
@@ -78,9 +82,11 @@ INSTALLATION:
 * There is no installation required to run ASTRAL.
 * Download using one of two approaches:
     * You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/__astral.zip__) and extract the contents to a folder of your choice. 
-    * Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/). You then run `make.sh` to build the project or simply uncompress the zip file that is included with the repository.
+    * Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/). Then, either:
+    	* simply uncompress the zip file that is included with the repository, or 
+    	* run `make.sh` to build the project.
 * ASTRAL is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. 
-  Java 1.5 or later is required. We have tested ASTRAL only on Linux and MAC.
+  Java 1.6 or later is required. We have tested ASTRAL only on Linux and MAC but others have used it on Windows with no reported issues.
 * To test your installation, go to the place where you put the uncompressed ASTRAL, and run:
 
   ``` bash
@@ -127,7 +133,7 @@ java -jar __astral.jar__ -i in.tree -o out.tre 2>out.log
 
 ###### Input: 
 * The input gene trees are in the Newick format
-* The input trees can have missing taxa, polytomies (unresolved branches), and also multiple individuals per species.
+* The input trees can have missing taxa, polytomies (unresolved branches), and multiple individuals per species.
 *  Taxon names cannot have quotation marks in their names (sorry!). This means you also cannot have weird characters like ? in the name (underscore is fine).
 * When multiple individuals from the same species are available, you can ask ASTRAL to force them to be together in the species tree. To do this, a mapping file needs to be provided using the `-a` option. This mapping file should have one line per species, and each line needs to be in one of two formats:
 
@@ -146,23 +152,18 @@ The output in is Newick format and gives:
 * branch supports measured as [local posterior probabilities](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1). 
 * It can also annotate branches with other quantities, such as quartet support, as described in the [tutorial](astral-tutorial.md).
 
-The ASTRAL tree leaves the branch length of terminal branches empty. Some tools for visualization and tree editing do not like this (e.g., ape). In FigTree, if you open the tree several times, it eventually opens up (at least on our machines). In ape, if you ask it to ignore branch lengths all together, it works. In general, if you tool does not like the lack of terminal branches, you can add a dummy branch length, [as in this script](https://github.com/smirarab/global/blob/master/src/mirphyl/utils/add-bl.py). 
+The ASTRAL tree leaves the branch length of terminal branches empty. Some tools for visualization and tree editing do not like this (e.g., ape). In FigTree, if you open the tree several times, it eventually opens up (at least on our machines). In ape, if you ask it to ignore branch lengths all together, it works. In general, if your tool does not like the lack of terminal branches, you can add a dummy branch length, [as in this script](https://github.com/smirarab/global/blob/master/src/mirphyl/utils/add-bl.py). 
 
 ### Other features (local posterior, bootstrapping):
 Please refer to the [tutorial](astral-tutorial.md) for all other features, including bootstrapping, branch annotation, and local posterior probability.
 
 ### Memory:
-For big datasets (say more than 5000 taxa), increasing the memory available to Java can result in speedups. Note that you should give Java only as much free memory as you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke ASTRAL using the following command to make all the 3GB available to Java:
+For big datasets (say more than 1000 taxa), increasing the memory available to Java can result in speedups. Note that you should give Java only as much free memory as you have available on your machine. So, for example, if you have 8GB of free memory, you can invoke ASTRAL using the following command to make all the 8GB available to Java:
 
 ```
-java -Xmx3000M -jar __astral.jar__ -i in.tree
+java -Xmx8000M -jar __astral.jar__ -i in.tree
 ```
 
 Acknowledgment
 -----------
-ASTRAL code uses bytecode and some reverse engineered code from PhyloNet package (with permission from the authors).
-
-
-Bug Reports:
------------
-contact ``astral-users@googlegroups.com``
+ASTRAL code uses bytecode and some reverse engineered code from PhyloNet package (with permission from the authors). Code is contributed by Siavash Mirarab, Maryam Rabiee, Chao Zhange, Erfan Sayyari, and John Yin.
