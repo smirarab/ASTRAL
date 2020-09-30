@@ -16,9 +16,10 @@ Contact ``astral-users@googlegroups.com`` or post on [ASTRAL issues page](https:
 ### Other branches
 
 **NOTE**: 
-Several new  features of ASTRAL are not merged in this branch and are available in other branches. 
+Several new  features of ASTRAL are not merged in this branch and are available in other branches or git pages. 
 Please use those branches if you find these features useful. 
 
+* **ASTRAL-Pro (Astral for paralogs)**: This new tool, which builds on ASTRAL, can handle multiple copy genes. You can find it here: https://github.com/chaoszhang/A-pro
 * **ASTRAL-MP (Multi-threaded ASTRAL)**: A multi-threaded version of ASTRAL is available on [this branch](https://github.com/smirarab/ASTRAL/tree/MP)
 * **Astral with user constraints**: A version of ASTRAL that can satisfy user constraints is available [here](https://github.com/maryamrabiee/Constrained-search)
 * **Tree updates**:  An ASTRAL-based algorithm called INSTRAL enables inserting  new species onto and existing ASTRAL tree is available [here](https://github.com/maryamrabiee/INSTRAL)
@@ -49,7 +50,11 @@ Please use those branches if you find these features useful.
     
 These papers do not describe features in ASTRAL, but are also relveant and we encourage you to read them:
 
-1. **DiscoVista**: This paper shows how quartet scores (more broadly, genome discordance) can be visualized in interpretable ways. The visualization of quartet scores, in particular, is closely tied to the ASTRAL method. 
+1. **ASTRAL-Pro**: This paper extends the ASTRAL methodology to multiple copy genes.
+	- Zhang, Chao, Celine Scornavacca, Erin K Molloy, and Siavash Mirarab. “ASTRAL-Pro: Quartet-Based Species-Tree Inference despite Paralogy.” Edited by Jeffrey Thorne. Molecular Biology and Evolution, September 4, 2020, msaa139. https://doi.org/10.1093/molbev/msaa139.
+- **ASTRAL-constrained**: This paper shows how to impose user-defined constraints on ASTRAL
+	- Rabiee, Maryam, and Siavash Mirarab. “Forcing External Constraints on Tree Inference Using ASTRAL.” BMC Genomics 21, no. S2 (April 16, 2020): 218. https://doi.org/10.1186/s12864-020-6607-z.	 
+- **DiscoVista**: This paper shows how quartet scores (more broadly, genome discordance) can be visualized in interpretable ways. The visualization of quartet scores, in particular, is closely tied to the ASTRAL method. 
     - Sayyari, Erfan, J.B. James B. Whitfield, and Siavash Mirarab. 2018. “DiscoVista: Interpretable Visualizations of Gene Tree Discordance.” Molecular Phylogenetics and Evolution 122 (May): 110–15. [doi:10.1016/j.ympev.2018.01.019](https://doi.org/10.1016/j.ympev.2018.01.019).
 - **Fragmentary data**: The following paper made the case that before inferring gene trees, removing fragmentary data (e.g., those that have uncharacteristically large numbers of gaps) should be removed. It also showed RAxML gene trees are preferable to FastTree trees. 
     - Sayyari, Erfan, James B Whitfield, and Siavash Mirarab. 2017. “Fragmentary Gene Sequences Negatively Impact Gene Tree and Species Tree Reconstruction.” Molecular Biology and Evolution 34 (12): 3279–91. [doi:10.1093/molbev/msx261](https://doi.org/10.1093/molbev/msx261).

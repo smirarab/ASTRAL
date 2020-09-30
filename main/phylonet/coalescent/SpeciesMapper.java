@@ -41,6 +41,15 @@ public class SpeciesMapper {
     public int getSpeciesIdForTaxon(int id) {
         return this.taxonIdToSpeciesId[id];
     }
+    
+    public String getSpeciesNameForTaxon(int id) {
+        return this.speciesNameIdMap.getTaxonName(this.taxonIdToSpeciesId[id]);
+    }
+    
+    public String getSpeciesNameForTaxonName(String taxonName) {
+        return this.speciesNameIdMap.getTaxonName(this.taxonIdToSpeciesId[GlobalMaps.taxonIdentifier.taxonId(taxonName)]);
+    }
+
 
     public int getLowestIndexIndividual(int stID){
     	return this.speciesIdtoLowestTaxonId.get(stID);
