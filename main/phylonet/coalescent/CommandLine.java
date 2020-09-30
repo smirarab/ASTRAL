@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
@@ -25,6 +26,7 @@ import java.util.TreeSet;
 import phylonet.tree.io.NewickReader;
 import phylonet.tree.io.ParseException;
 import phylonet.tree.model.MutableTree;
+import phylonet.tree.model.TMutableNode;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITree;
@@ -40,7 +42,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine{
-    protected static String _versinon = "5.7.3";
+    protected static String _versinon = "5.7.4";
 
     protected static SimpleJSAP jsap;
     
@@ -170,17 +172,14 @@ public class CommandLine{
                             "Sets a limit for size of polytomies in greedy consensus trees where O(n) number"
                             + " of new  resolutions are added. ASTRAL-III sets automatic limits to guarantee polynomial"
                             + " time running time."),
-	                                
-	                new Switch( "duplication",
-	                        JSAP.NO_SHORTFLAG, "dup",
-	                        "Solves MGD problem. Minimizes the number duplications required to explain "
-	                        + "gene trees using DynaDup algorithm (Bayzid, 2011). Note that with this option, "
-	                        + "DynaDyp would be used *instead of* ASTRAL."),
 	                                            
                     new Switch("exact",
                             'x', "exact",
                             "find the exact solution by looking at all clusters - recommended only for small (<18) number of taxa."),
 
+                    new Switch("rename",
+                            'R', "rename",
+                            "Simply rename gene trees according to species names given with -a; using the output can save memory as opposed to using the original file."),
 /*                    new Switch("scoreall",
                             'y', "scoreall",
                             "score all possible species trees."),*/
@@ -212,16 +211,7 @@ public class CommandLine{
 	                        JSAP.DOUBLE_PARSER, "0", JSAP.NOT_REQUIRED,
 	                        'd', "trimming",
 	                        "trimming threshold is user's estimate on normalized score; the closer user's estimate is, the faster astral runs."),
-                    
-                    new FlaggedOption( "duploss weight",
-                            JSAP.STRING_PARSER, null, JSAP.NOT_REQUIRED,
-                            'l', "duploss",
-                            "Solves MGDL problem. Minimizes the number duplication and losses required"
-                            + " to explain gene trees using DynaDup algorithm. Note that with this option, "
-                            + "DynaDyp would be used *instead of* ASTRAL. "
-                            + "Use -l 0 for standard (homomorphic) definition, and -l 1 for our new bd definition. "
-                            + "Any value in between weights the impact of missing taxa somewhere between these two extremes. "
-                            + "-l auto will automatically pick this weight. "), 
+
                 });
     }
 
@@ -262,11 +252,6 @@ public class CommandLine{
 					null: config.getFile("output file").getCanonicalPath();
         }
 
-        
-        if (config.getBoolean("duplication") && config.contains("duploss weight")) {
-            exitWithErr("dup and duploss options cannot be used together. Choose only one. ");
-        }
-
         if (config.getFile("mapping file") != null) {
             BufferedReader br = new BufferedReader(new FileReader(
                     config.getFile("mapping file")));
@@ -302,7 +287,7 @@ public class CommandLine{
                         System.exit(-1);
                     } else if (alleles.length > 1 && allele.equals(species)) {
                         System.err
-                        .println("Error: The species name cannot be identical to gene names when"
+                        .println("Error: The species name cannot be identical to gene names when "
                         		+ "multiple alleles exist for the same gene: "+ allele);
                         System.exit(-1);
                 	}
@@ -372,7 +357,7 @@ public class CommandLine{
 				}
 			}
 		}
-    	
+
     	try {           
 		    if (config.getFile("bootstraps") != null) {
 		        String line;
@@ -483,28 +468,6 @@ public class CommandLine{
             exitWithErr("");
         }
 
-        if (config.getBoolean("duplication")) {
-            criterion = 0;
-            rooted = true;
-            extrarooted = true;
-            System.err.println("Using DynaDup application, minimizing MGD (not ASTRAL).");
-        }
-        if (config.contains("duploss weight")) {
-            criterion = 1;
-            rooted = true;
-            extrarooted = true;
-            String v = config.getString("duploss weight");
-            if (v.equals("auto")) {
-                wh = -1;
-            } else {
-                wh = Double.parseDouble(v);
-                if (wh < 0.0D || wh > 1.0D) {
-                    exitWithErr("duploss weight has to be between 0 and 1");
-                };
-            }
-            System.err.println("Using DynaDup application, minimizing MGDL (not ASTRAL).");
-        }
-
         System.err.println("Gene trees are treated as " + (rooted ? "rooted" : "unrooted"));
         
         GlobalMaps.random = new Random(config.getLong("seed"));
@@ -526,7 +489,10 @@ public class CommandLine{
         String outgroup = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesName(0);
             
         List<String> toScore = null;
-        if (config.getFile("score species trees") != null) {
+    	
+    	if (config.getBoolean("rename")) {
+    		renmaeFromGTtoST(mainTrees, outbuffer);
+    	} else if (config.getFile("score species trees") != null) {
         	System.err.println("Scoring "+config.getFile("score species trees"));
         	toScore = readTreeFileAsString(config.getFile("score species trees"));
             runScore(criterion, rooted, mainTrees, outbuffer,
@@ -850,6 +816,45 @@ public class CommandLine{
 		    System.err.println(e.getMessage());
 		    e.printStackTrace();
 		}
+    }
+    
+    private static void renmaeFromGTtoST(List<Tree> mainTrees, BufferedWriter outbuffer) {
+    	
+        Map<String, Set<String>> newNameMap = new HashMap<String, Set<String>>();
+    	SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
+    	if (spm.isSingleIndividual()) {
+    		throw new RuntimeException("You seem to already have a single-individual input; make sure you provided the mapping file using the -a option.");
+    	}
+    	for (Tree t: mainTrees) {
+    		MutableTree gt = (MutableTree) t;
+    		Set <String> used = new HashSet<String>();
+    		for (String leave : gt.getLeaves()) {
+    	            TMutableNode node = gt.getNode(leave);
+    	            String speciesName = spm.getSpeciesNameForTaxonName(leave);
+    	            String newName = speciesName + "_0";
+    	            int i = 1;
+    	            while (used.contains(newName)) {
+    	            	newName = speciesName + "_" + i;
+    	            	i++;
+    	            } 
+    	            if (!newNameMap.containsKey(speciesName)) {
+    	            	newNameMap.put(speciesName,  new TreeSet<String>());
+    	            }
+    	            used.add(newName);
+    	            newNameMap.get(speciesName).add(newName);
+	            	node.setName(newName);
+    	    }
+			writeTreeToFile(outbuffer, gt);
+    	}
+
+		for (Entry<String, Set<String>> e : newNameMap.entrySet()) {
+			System.out.print(e.getKey()+" "+e.getValue().size()+" ");
+			for (String g : e.getValue()) {
+				System.out.print(g+" ");
+			}
+			System.out.println();
+		}
+
     }
 
 }
