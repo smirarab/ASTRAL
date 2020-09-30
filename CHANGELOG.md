@@ -1,5 +1,8 @@
+- version 5.7.4:
+	- Added `-R`
+
 - version 5.7.3:
-	- Added -t32
+	- Added `-t 32`
 
 - version 5.7.2:
 	- Make the hidden `-t16` work for multi-ind
