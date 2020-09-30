@@ -481,6 +481,26 @@ For big datasets (say more than 500 taxa) increasing the memory available to jav
 java -Xmx3000M -jar __astral.jar__ -i in.tree
 ```
 
+### Memory issues due to taxon names
+
+Some times, you have different names for the same species in your input gene trees. ASTRAL has no way of knowing they are the same species, and will think they are different species. It will hence use a lot of memory and will fail. 
+
+The obvious solution is to use the `-a` option described earlier to map several names in the gene trees to the same name in the species tree output. This way, ASTRAL at least knows about the mapping between gene tree names and species names. This works to some extent, but has a drawback. If you have thousands of names in the gene trees, ASTRAL still will take up a lot of memory. But we have made a workaround, which is given using `-R` option. 
+
+Assume you have an input file `gt.tre` and you have created a mapping file called `mapping.txt` (same format as multi-individual mapping file) that maps the gene tree names to species tree names. Then, you can run:
+
+~~~bash
+java -jar __astral.jar__ -i gt.tre  -a mapping.txt   -o gt-renamed.tre -R > newmapping.txt
+~~~
+
+This will generate the new gene tree file called `gt-renamed.tre` and a new mapping file called `newmapping.txt ` (in case you do have multiple individuals *also*). You can now use these new files as input to ASTRAL. 
+
+~~~bash 
+java -jar __astral.jar__ -i gt-renamed.tre  -a newmapping.txt   -o astral.tre 
+~~~
+
+If you do not have multiple individuals, check `newmapping.txt`. It should show only one gene name per species name (second column should be always 1). In that case, you can ommit `-a`.
+
 ### Other options
 
 * `-m [a number]`: removes genes with less that the specified number of leaves in them. Thus, this is useful for requiring a certain level of taxon occupancy. 
