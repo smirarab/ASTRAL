@@ -827,20 +827,17 @@ public class CommandLine{
     	}
     	for (Tree t: mainTrees) {
     		MutableTree gt = (MutableTree) t;
-    		Set <String> used = new HashSet<String>();
+    		Map <String,Integer> used = new HashMap<String,Integer>();
     		for (String leave : gt.getLeaves()) {
     	            TMutableNode node = gt.getNode(leave);
     	            String speciesName = spm.getSpeciesNameForTaxonName(leave);
-    	            String newName = speciesName + "_0";
-    	            int i = 1;
-    	            while (used.contains(newName)) {
-    	            	newName = speciesName + "_" + i;
-    	            	i++;
-    	            } 
+    	            Integer i = used.getOrDefault(speciesName, 0);
+    	            String newName = speciesName + "_" + i;
+    	            i++;
+    	            used.put(speciesName, i);
     	            if (!newNameMap.containsKey(speciesName)) {
     	            	newNameMap.put(speciesName,  new TreeSet<String>());
     	            }
-    	            used.add(newName);
     	            newNameMap.get(speciesName).add(newName);
 	            	node.setName(newName);
     	    }
