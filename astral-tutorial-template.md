@@ -293,7 +293,9 @@ To get the `.csv` outputs, you can use `-t 16` and `-t 32`.
 
 Hints: 
 
-* since `freqQuad.csv` is tab-delimited, if you open it with Excel, you may have better luck if you rename it to `freqQuad.txt`
+* since `freqQuad.csv` is tab-delimited, if you open it with Excel, you may have better luck if you rename it to `freqQuad.txt` or `freqQuad.tsv`
+
+* Please ignore the R script `freqQuadVisualization.R`. That script is not to be used stand-alone. It can only be used within DiscoVista. 
 
 #### Example:
 
