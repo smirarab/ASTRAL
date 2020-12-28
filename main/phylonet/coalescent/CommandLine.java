@@ -42,7 +42,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine{
-    protected static String _versinon = "5.7.4";
+    protected static String _versinon = "5.7.5";
 
     protected static SimpleJSAP jsap;
     
@@ -131,6 +131,11 @@ public class CommandLine{
 	                        + " -k searchspace_norun: outputs the search space and exits; use -k searchspace to continue the run after outputting the search space."
 	                        + "When -k option is used, -o option needs to be given. "
 	                        + "The file name specified using -o is used as the prefix for the name of the extra output files.").setAllowMultipleDeclarations(true),
+	                
+	                new FlaggedOption("outgroup", 
+	                        JSAP.STRING_PARSER, null, JSAP.NOT_REQUIRED, 
+	                        JSAP.NO_SHORTFLAG, "outgroup",
+	                          " choose a single species to be used as outgroup FOR DISPLAY PUROPSES ONLY (has no effect on the actual unrooted tree inferred) "),
 
 	                new FlaggedOption("lambda", 
 	                        JSAP.DOUBLE_PARSER, "0.5", JSAP.NOT_REQUIRED,
@@ -317,7 +322,8 @@ public class CommandLine{
         					config.getInt("branch annotation level"), null);			
             System.err.println( mainTrees.size() +" trees read from " + config.getFile("input file"));
             
-            GlobalMaps.taxonIdentifier.lock();        
+            GlobalMaps.taxonIdentifier.lock();  
+            //System.err.println("index"+ GlobalMaps.taxonNameMap.getSpeciesIdMapper().speciesId(outgroup));
 
         } catch (IOException e) {
             System.err.println("Error when reading trees.");
@@ -486,8 +492,10 @@ public class CommandLine{
             outbuffer = new BufferedWriter(new FileWriter(outfile));
         }
         
-        String outgroup = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesName(0);
-            
+        GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier().lock();
+        String outgroup = config.getString("outgroup") == null ? GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesName(0): config.getString("outgroup");
+        System.err.println("index"+ GlobalMaps.taxonNameMap.getSpeciesIdMapper().speciesId(outgroup));
+        
         List<String> toScore = null;
     	
     	if (config.getBoolean("rename")) {
