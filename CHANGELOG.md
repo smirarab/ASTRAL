@@ -1,3 +1,7 @@
+- version 5.7.5:
+	- Make clear in the log file what is the extended species tree (for multi-individual cases).
+	- Added `--outgroup` to allow a chocie of outgroup
+	
 - version 5.7.4:
 	- Added `-R`
 
