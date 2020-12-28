@@ -58,7 +58,7 @@ import phylonet.tree.util.Trees;
 
 
 public class CommandLine {
-	protected static String _version = "5.15.1";
+	protected static String _version = "5.15.2";
 	protected static SimpleJSAP jsap;
 
 	private static void exitWithErr(String extraMessage) {
@@ -307,6 +307,7 @@ public class CommandLine {
 		if (numThreads == -1) {
 			numThreads = Runtime.getRuntime().availableProcessors();
 		}
+		Logging.log("Starting " + numThreads + " threads ...");
 		Threading.startThreading(numThreads);
 		
 		Logging.startLogger();
@@ -485,6 +486,7 @@ public class CommandLine {
 	}
 
 	public static void main(String[] args) throws Exception {
+		try {
 		long startTime = System.currentTimeMillis();
 		JSAPResult config;
 		boolean rooted = false;
@@ -531,8 +533,11 @@ public class CommandLine {
 			runInference(config, rooted, extrarooted, mainTrees, outbuffer, bootstrapInputSets, options, outgroup);
 		}
 		Logging.log("ASTRAL finished in " + (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
-		Logging.log(Logging.ENDMESSAGE);
 		Threading.shutdown();
+		} catch (Exception e) {
+			Threading.shutdown();
+			throw (e);
+		}
 	}
 
 	private static void runScore( boolean rooted, List<Tree> mainTrees, BufferedWriter outbuffer,
