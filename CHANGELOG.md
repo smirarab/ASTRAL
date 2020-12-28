@@ -1,3 +1,6 @@
+- version 5.15.2:
+	- Concurrency error fixed (issue #69) where ASTRAL would not shut down properly on errors. 
+
 - version 5.15.1:
 	- Small bugfix. native_library_tester.jar was broken
 
