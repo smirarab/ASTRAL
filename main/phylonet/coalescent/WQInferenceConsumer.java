@@ -5,6 +5,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -242,8 +243,10 @@ public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 		((WQWeightCalculator)weightCalculator).setThreadingOff(true);
 		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
 
-		List<Future<Long>> weights = new ArrayList<Future<Long>>();
+		List<Future<Long[]>> weights = new ArrayList<Future<Long[]>>();
 		boolean poly = false;
+		final Tripartition [] tripartitionBatch = new Tripartition[Polytree.PTNative.batchSize];
+		int batchPosition = 0;
 		for (TNode node: st.postTraverse()) {
 			if (node.isLeaf()) {
 				String nodeName = node.getName(); //GlobalMaps.TaxonNameMap.getSpeciesName(node.getName());
@@ -289,26 +292,47 @@ public class WQInferenceConsumer extends AbstractInference<Tripartition> {
 					for (int j = i+1; j < childbslist.size(); j++) {
 						for (int k = j+1; k < childbslist.size(); k++) {
 							final Tripartition trip = new Tripartition(childbslist.get(i),  childbslist.get(j), childbslist.get(k));
-							Future<Long> s = Threading.submit(new Callable<Long>() {
-
-								@Override
-								public Long call() throws Exception {
-									return weightCalculator.getWeight(trip);
-									//return a;
-								}
-
-							});
-							weights.add(s);
+							tripartitionBatch[batchPosition++] = trip;
+							
+							if (batchPosition == tripartitionBatch.length) {
+								Future<Long[]> s = Threading.submit(new Callable<Long[]>() {
+	
+									@Override
+									public Long[] call() throws Exception {
+										return weightCalculator.calculateWeight(tripartitionBatch);
+										//return a;
+									}
+	
+								});
+								weights.add(s);
+								batchPosition = 0;
+							}
 						}
 					}					       
 				}
 			}
 			
 		}
+		if (batchPosition != 0) {
+			
+			final Tripartition[] tripartitionlastBatch = Arrays.copyOfRange(tripartitionBatch, 0, batchPosition);
+			Future<Long[]> s = Threading.submit(new Callable<Long[]>() {
+
+				@Override
+				public Long[] call() throws Exception {
+					return weightCalculator.calculateWeight(tripartitionlastBatch);
+					//return a;
+				}
+
+			});
+			weights.add(s);
+		}
+		
 		long sum = 0l;
-		for (Future<Long> w: weights) {
+		for (Future<Long[]> ws: weights) {
 			try {
-				sum += w.get();
+				for (Long w : ws.get())
+					sum += w;
 			} catch (InterruptedException | ExecutionException e) {
 				e.printStackTrace();
 				throw new RuntimeException(e);
