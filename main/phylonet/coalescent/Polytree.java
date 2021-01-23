@@ -216,7 +216,7 @@ public class Polytree {
 	}
 	
 	public static final class PTNative{
-		private static final int batchSize = 32;
+		static final int batchSize = 32;
 		
 
 		static native void cppInit(int n, int listSize, int[] q, long[][] c);
@@ -321,6 +321,7 @@ public class Polytree {
 
 	public Long[] WQWeightByTraversal(Tripartition[] trips){
 		long t = System.nanoTime();
+		//System.err.println(trips.length);
 		Long[] ret = new Long[trips.length];
 		if (!useNativeMethod) {
 			int i = 0;

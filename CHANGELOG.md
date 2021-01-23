@@ -1,3 +1,6 @@
+- version 5.15.3:
+	- Speed up the final round of scoring using native library. 
+	
 - version 5.15.2:
 	- Concurrency error fixed (issue #69) where ASTRAL would not shut down properly on errors. 
 
