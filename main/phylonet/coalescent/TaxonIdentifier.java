@@ -29,6 +29,9 @@ public class TaxonIdentifier {
      * @return
      */
     public Integer taxonId(String name) {
+    	if ("".equals(name)) {
+    		throw new RuntimeException("Empty name observed; likely, an input tree has an error");
+    	}
         Integer a = nameToId.get(name);
         if (a ==  null){ 
             if (locked) {
