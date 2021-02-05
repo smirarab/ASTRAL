@@ -42,7 +42,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine{
-    protected static String _versinon = "5.7.5";
+    protected static String _versinon = "5.7.6";
 
     protected static SimpleJSAP jsap;
     
@@ -782,8 +782,8 @@ public class CommandLine{
     				}
                 	if (outgroup != null) {
                 		tr.rerootTreeAtNode(tr.getNode(outgroup));
-    	        		Trees.removeBinaryNodes(tr);
                 	}
+	        		Trees.removeBinaryNodes(tr);
     				if (stLablel) {
     					GlobalMaps.taxonNameMap.getSpeciesIdMapper().stToGt(tr);
     				}
