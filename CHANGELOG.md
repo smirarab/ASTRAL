@@ -1,6 +1,9 @@
+- version 5.7.6:
+	- Allow degree-2 nodes in input (just remove them up front)
+	 
 - version 5.7.5:
 	- Make clear in the log file what is the extended species tree (for multi-individual cases).
-	- Added `--outgroup` to allow a chocie of outgroup
+	- Added `--outgroup` to allow a choice of outgroup
 	
 - version 5.7.4:
 	- Added `-R`
@@ -22,7 +25,7 @@
 	- Add bl for the root clade.
 
 - version 5.6.2:
-	- add a zero length branch to the root branch that is not the outgroup. Needed for FigTree visualizaiton of multiind
+	- add a zero length branch to the root branch that is not the outgroup. Needed for FigTree visualization of multiind
 	
 - version 5.6.2:
 	- added new option to remove bipartitions of a provided extra tree from search space
