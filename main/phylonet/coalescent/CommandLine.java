@@ -42,7 +42,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine{
-    protected static String _versinon = "5.7.6";
+    protected static String _versinon = "5.7.7";
 
     protected static SimpleJSAP jsap;
     
@@ -126,6 +126,7 @@ public class CommandLine{
 	                        JSAP.STRING_PARSER, null, JSAP.NOT_REQUIRED, 
 	                        'k', "keep",
 	                          " -k completed: outputs completed gene trees (i.e. after adding missing taxa) to a file called [output file name].completed_gene_trees.\n"
+	                        + " -k completed_norun: outputs completed gene trees (i.e. after adding missing taxa) to a file called [output file name].completed_gene_trees.\n"
 	                        + " -k bootstraps: outputs individual bootstrap replicates to a file called [output file name].[i].bs\n"
 	                        + " -k bootstraps_norun: just like -k bootstraps, but exits after outputting bootstraps.\n"
 	                        + " -k searchspace_norun: outputs the search space and exits; use -k searchspace to continue the run after outputting the search space."
@@ -356,6 +357,7 @@ public class CommandLine{
 					"bootstraps".equals(koption) ||
 					"bootstraps_norun".equals(koption)||
 					"searchspace_norun".equals(koption)||
+					"completed_norun".equals(koption) ||
 					"searchspace".equals(koption)) {
 					keepOptions.add(koption);
 				} else {
@@ -436,9 +438,9 @@ public class CommandLine{
     			config.getBoolean("exact"), 
     			criterion > 0, 1, 
     			config.getInt("extraLevel"),
-    			keepOptions.contains("completed"), 
+    			keepOptions.contains("completed") || keepOptions.contains("completed_norun"), 
     			keepOptions.contains("searchspace_norun") || keepOptions.contains("searchspace"), 
-    			!keepOptions.contains("searchspace_norun"),
+    			!keepOptions.contains("searchspace_norun") && !keepOptions.contains("completed_norun"),
     			config.getInt("branch annotation level"), 
     			config.getDouble("lambda"),
     			outfileName, samplingrounds == null ? -1 : samplingrounds, polylimit == null ? -1 : polylimit,
