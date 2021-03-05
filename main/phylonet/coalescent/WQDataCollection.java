@@ -882,6 +882,10 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
+			if (!options.isRunSearch()) {
+				System.err.println("Stopping after outputting completed gene tree");
+				System.exit(0);
+			}
 		}
 	}
 
