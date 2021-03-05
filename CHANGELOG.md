@@ -1,3 +1,6 @@
+- version 5.7.7:
+	- Added `completed_norun` option
+	
 - version 5.7.6:
 	- Allow degree-2 nodes in input (just remove them up front)
 	 
