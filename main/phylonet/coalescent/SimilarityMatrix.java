@@ -105,7 +105,7 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 		
 			
 		ArrayList<Future> futures = new ArrayList<Future>();
-		for (int i = 0; i < geneTrees.size(); i+= 1) {
+		for (int i = 0; i < geneTrees.size()/chunksize + 1; i+= 1) {
 			final int consti = i;
 			futures.add(Threading.submit( new Callable<Boolean>() {
 				public Boolean call() {
@@ -115,7 +115,6 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 					Long[][] array = a[m];
 					Long[][] dn = d[m];
 					Object[][] lock = locks[m];
-					
 					for(int w = start; w < end; w++) {
 						STITreeCluster treeallCL = treeAllClusters.get(w);
 						Tree tree = geneTrees.get(w);
