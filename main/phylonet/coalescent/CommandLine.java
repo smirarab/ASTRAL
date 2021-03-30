@@ -58,7 +58,7 @@ import phylonet.tree.util.Trees;
 
 
 public class CommandLine {
-	protected static String _version = "5.15.3";
+	protected static String _version = "5.15.4";
 	protected static SimpleJSAP jsap;
 
 	private static void exitWithErr(String extraMessage) {
