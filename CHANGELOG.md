@@ -1,3 +1,6 @@
+- version 5.15.4:
+	- Small bug fix for very large k (used to fail); 
+
 - version 5.15.3:
 	- Speed up the final round of scoring using native library. 
 	
