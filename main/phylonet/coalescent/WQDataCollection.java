@@ -90,7 +90,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	public WQDataCollection(WQClusterCollection clusters,
 			AbstractInference<Tripartition> inference) {
 		this.clusters = clusters;
-		this.SLOW = inference.getAddExtra() >= 2;
+		this.SLOW = inference.options.getAddExtra() == 2;
 		this.originalInompleteGeneTrees = inference.trees;
 		this.completedGeeneTrees = new ArrayList<Tree>();
 		this.options = inference.options;
@@ -583,12 +583,33 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
 		
 		calculateDistances();
-		if (haveMissing > 0) {
-			completeGeneTrees();
+		
+		if (this.options.getAddExtra() != 3) {
+			if (haveMissing > 0) {
+				completeGeneTrees(); 
+			} else {
+				this.completedGeeneTrees = new ArrayList<Tree>(this.originalInompleteGeneTrees.size()); 
+				for (Tree t: this.originalInompleteGeneTrees) {
+					this.completedGeeneTrees.add(new STITree(t));
+				}
+			}
 		} else {
-			this.completedGeeneTrees = new ArrayList<Tree>(this.originalInompleteGeneTrees.size()); 
-			for (Tree t: this.originalInompleteGeneTrees) {
-				this.completedGeeneTrees.add(new STITree(t));
+			System.err.println("Using extranl trees as completed input gene trees");
+			if (inference.extraTrees.size() != this.originalInompleteGeneTrees.size())
+				System.err.println("WARNING: you provided fewer trees with -p3 -e than there are gene trees. "
+						+ "This is not expected");
+			for (Tree tr : inference.extraTrees) {
+				
+				STITree stTrc = (STITree) tr; //new STITree(tr);
+				//GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt((MutableTree) stTrc);
+				if(hasPolytomy(stTrc)){
+					throw new RuntimeException("Extra tree shouldn't have polytomy ");
+				}
+				if (stTrc.getLeafCount() != GlobalMaps.taxonIdentifier.taxonCount()) {
+					throw new RuntimeException("With -p 3, all extra trees should be complete. "
+							+ "The following tree has missing data:\n" + tr);
+				}
+				this.completedGeeneTrees.add(stTrc);
 			}
 		}
 
@@ -756,7 +777,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		prev = 0;
 
 		gradiant = 0;
-		if (inference.getAddExtra() != 0) {
+		if (inference.options.getAddExtra() != 0) {
 			this.addExtraBipartitionByDistance();
 			for (int l = 0; l < secondRoundSampling; l++) {
 				ArrayList<Tree> genes = new ArrayList<Tree>();
@@ -765,7 +786,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 				}
 				System.err
 						.println("calculating extra bipartitions to be added at level "
-								+ inference.getAddExtra() + " ...");
+								+ inference.options.getAddExtra() + " ...");
 				this.addExtraBipartitionByHeuristics(genes,
 						GlobalMaps.taxonNameMap.getSpeciesIdMapper()
 								.getSTTaxonIdentifier(),
@@ -869,7 +890,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 			this.completedGeeneTrees.add(trc);
 			if (completedFile != null) {
 				try {
-					completedFile.write(trc.toStringWD() + " \n");
+					completedFile.write(trc.toNewick() + " \n");
 					completedFile.flush();
 				} catch (IOException e) {
 					throw new RuntimeException(e);
