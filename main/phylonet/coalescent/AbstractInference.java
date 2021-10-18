@@ -306,7 +306,7 @@ public abstract class AbstractInference<T> {
 		}
 
 	      
-		if (extraTrees != null && extraTrees.size() > 0) {		
+		if (extraTrees != null && extraTrees.size() > 0 && options.getAddExtra() != 3) {		
 	        System.err.println("calculating extra bipartitions from extra input trees ...");
 			dataCollection.addExtraBipartitionsByInput(extraTrees,options.isExtrarooted());
 			int s = this.dataCollection.clusters.getClusterCount();
@@ -394,11 +394,6 @@ public abstract class AbstractInference<T> {
 	public double getCD() {
 		return options.getCD();
 	}
-
-	
-    public int getAddExtra() {
-        return options.getAddExtra();
-    }
 
 	public int getBranchAnnotation() {
 		return this.options.getBranchannotation();
