@@ -86,7 +86,7 @@ INSTALLATION:
 -----------
 * There is no installation required to run ASTRAL.
 * Download using one of two approaches:
-    * You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/Astral.5.7.7.zip) and extract the contents to a folder of your choice. 
+    * You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/Astral.5.7.8.zip) and extract the contents to a folder of your choice. 
     * Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/). Then, either:
     	* simply uncompress the zip file that is included with the repository, or 
     	* run `make.sh` to build the project.
@@ -95,7 +95,7 @@ INSTALLATION:
 * To test your installation, go to the place where you put the uncompressed ASTRAL, and run:
 
   ``` bash
-   java -jar astral.5.7.7.jar -i test_data/song_primates.424.gene.tre
+   java -jar astral.5.7.8.jar -i test_data/song_primates.424.gene.tre
    ```
 
   This should quickly finish. There are also other sample input files under `test_data/` that can be used.
@@ -103,10 +103,10 @@ INSTALLATION:
 * ASTRAL can be run from any directory (e.g., `/path/to/astral/`). Then, you just need to run:
 
   ``` bash
-  java -jar /path/to/astral/astral.5.7.7.jar
+  java -jar /path/to/astral/astral.5.7.8.jar
   ```
 
-* Also, you can move `astral.5.7.7.jar` to any location you like and run it from there, but note that you need to move the `lib` directory with it as well.
+* Also, you can move `astral.5.7.8.jar` to any location you like and run it from there, but note that you need to move the `lib` directory with it as well.
 
 
 EXECUTION:
@@ -114,7 +114,7 @@ EXECUTION:
 ASTRAL currently has no GUI. You need to run it through the command-line. In a terminal, go the location where you have downloaded the software, and issue the following command:
 
 ```
-  java -jar astral.5.7.7.jar
+  java -jar astral.5.7.8.jar
 ```
 
 This will give you a list of options available in ASTRAL.
@@ -122,24 +122,24 @@ This will give you a list of options available in ASTRAL.
 To find the species tree given a set of gene trees in a file called `in.tree`, use:
 
 ```
-java -jar astral.5.7.7.jar -i in.tree
+java -jar astral.5.7.8.jar -i in.tree
 ```
 
 The results will be outputted to the standard output. To save the results in a file use the `-o` option (**Strongly recommended**):
 
 ```
-java -jar astral.5.7.7.jar -i in.tree -o out.tre
+java -jar astral.5.7.8.jar -i in.tree -o out.tre
 ```
 To save the logs (**also recommended**), run:
 
 ```
-java -jar astral.5.7.7.jar -i in.tree -o out.tre 2>out.log
+java -jar astral.5.7.8.jar -i in.tree -o out.tre 2>out.log
 ```
 
 ###### Input: 
 * The input gene trees are in the Newick format
 * The input trees can have missing taxa, polytomies (unresolved branches), and multiple individuals per species.
-*  Taxon names cannot have quotation marks (`'` or `"`) in their names (sorry!). This means you also cannot have weird characters (like `|`, `=`, `?`, `/`, and `\`) in the name (underscore is fine).
+*  Taxon names cannot have quotation marks in their names (sorry!). This means you also cannot have weird characters like ? in the name (underscore is fine).
 * When multiple individuals from the same species are available, you can ask ASTRAL to force them to be together in the species tree. To do this, a mapping file needs to be provided using the `-a` option. This mapping file should have one line per species, and each line needs to be in one of two formats:
 
 ```
@@ -166,7 +166,7 @@ Please refer to the [tutorial](astral-tutorial.md) for all other features, inclu
 For big datasets (say more than 1000 taxa), increasing the memory available to Java can result in speedups. Note that you should give Java only as much free memory as you have available on your machine. So, for example, if you have 8GB of free memory, you can invoke ASTRAL using the following command to make all the 8GB available to Java:
 
 ```
-java -Xmx8000M -jar astral.5.7.7.jar -i in.tree
+java -Xmx8000M -jar astral.5.7.8.jar -i in.tree
 ```
 
 Acknowledgment
