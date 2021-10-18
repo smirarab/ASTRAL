@@ -42,7 +42,7 @@ import com.martiansoftware.jsap.Switch;
 import com.martiansoftware.jsap.stringparsers.FileStringParser;
 
 public class CommandLine{
-    protected static String _versinon = "5.7.7";
+    protected static String _versinon = "5.7.8";
 
     protected static SimpleJSAP jsap;
     
@@ -196,7 +196,8 @@ public class CommandLine{
                             "How much extra bipartitions should be added: 0, 1, or 2. "
                             + "0: adds nothing extra. "
                             + "1 (default): adds to X but not excessively (greedy resolutions). "
-                            + "2: adds a potentially large number and therefore can be slow (quadratic distance-based)."),
+                            + "2: adds a potentially large number and therefore can be slow (quadratic distance-based)."
+                            + "3: similar to default, but instead of completing input gene trees, it uses -f and -e as complted gene trees."),
    
                     new FlaggedOption("extra trees", 
                             FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 
