@@ -1,3 +1,6 @@
+- version 5.7.8:
+	- Added `-p 3` option (helpful for *external* completion of gene trees when used with `-e`)
+	
 - version 5.7.7:
 	- Added `completed_norun` option
 	
