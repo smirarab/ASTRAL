@@ -30,7 +30,8 @@ public class Threading {
 	public static void shutdown() {
 		Logging.log("Shutting down threading");
 		Logging.log(Logging.ENDMESSAGE);
-		Threading.eService.shutdown();
+		if (Threading.eService != null)
+			Threading.eService.shutdown();
 	}
 
 	public static void startThreading(int t) {
