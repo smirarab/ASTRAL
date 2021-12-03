@@ -2,10 +2,10 @@ DESCRIPTION:
 -----------
 ASTRAL is a tool for estimating an unrooted species tree given a set of unrooted gene trees.
 ASTRAL is statistically consistent under the multi-species coalescent model (and thus is useful for handling incomplete lineage sorting, i.e., ILS).
-ASTRAL finds the species tree that has the maximum number of shared induced quartet trees with the set of gene trees, subject to the constraint that the set of bipartitions in the species tree comes from a predefined set of bipartitions. This predefined set is empirically decided by ASTRAL (but see tutorial on how to expand it). The current code corresponds to **ASTRAL-III** (see below for the publication).
+ASTRAL finds the species tree that has the maximum number of shared induced quartet trees with the set of gene trees, subject to the constraint that the set of bipartitions in the species tree comes from a predefined set of bipartitions. This predefined set is empirically decided by ASTRAL (but see tutorial on how to expand it). The current code corresponds to **ASTRAL-MP** (see below for the publication).
 
 
-The algorithm was designed by Tandy Warnow and Siavash Mirarab originally. ASTRAL-III incorporates many ideas by Chao Zhang and Maryam Rabiee and ASTRAL-MP is based on ideas by John Yin and Chao Zhang.
+The algorithm was designed by Tandy Warnow and Siavash Mirarab originally. ASTRAL-III incorporates many ideas by Chao Zhang and Maryam Rabiee and ASTRAL-MP, which builds on ASTRAL-MP,  is based on ideas by John Yin and Chao Zhang.
 [Code developers](https://github.com/smirarab/ASTRAL/graphs/contributors) are mainly Siavash Mirarab, Chao Zhang, John Yin,  Maryam Rabiee, and Erfan Sayyari.
 
 Email: `astral-users@googlegroups.com` for questions.
@@ -14,17 +14,16 @@ Email: `astral-users@googlegroups.com` for questions.
 ### Other branches
 
 **NOTE**: 
-Several new  features of ASTRAL are not merged in this branch and are available in other branches. 
-Please use those branches if you find these features useful. 
+This branch is for **Multi-threaded ASTRAL (ASTRAL-MP)**. Other branches and repositories have related software:
 
-* **Multi-threaded ASTRAL**: A multi-threaded version of ASTRAL is now available on [this branch](https://github.com/smirarab/ASTRAL/tree/MP)
+* Main ASTRAL-III code (https://github.com/smirarab/ASTRAL)
 * **Astral with user constraints**: A version of ASTRAL that can satisfy user constraints is available [here](https://github.com/maryamrabiee/Constrained-search)
 * **Tree updates**:  An ASTRAL-based algorithm called INSTRAL enables inserting  new species onto and existing ASTRAL tree is available [here](https://github.com/maryamrabiee/INSTRAL)
 
 ## Publications:
 
 #### Papers on the current version:
-- Since version 5.9.0, the code includes Multi-Threading, and is called  **ASTRAL-MP**. The algorithms  of ASTRAL-MP and ASTRAL-III  are identical and outputs are similar (random choices can act differently for ASTRAL-MP):
+- Since version 5.9.0, the code includes Multi-Threading, and is called  **ASTRAL-MP**. The algorithms of ASTRAL-MP and ASTRAL-III  are identical (from user's perspective; that is, in setting up search space and optimization score) and outputs are similar (random choices can pan out differently for ASTRAL-MP):
     * Yin, John, Chao Zhang, and Siavash Mirarab. “ASTRAL-MP : Scaling ASTRAL to Very Large Datasets Using Randomization and Parallelization.” Bioinformatics, btz211 (2019). [doi:10.1093/bioinformatics/btz211](https://doi.org/10.1093/bioinformatics/btz211)
 - Since version 5.1.1, the code corresponds to **ASTRAL-III**, described in:
     * Zhang, Chao, Maryam Rabiee, Erfan Sayyari, and Siavash Mirarab. 2018. “ASTRAL-III: Polynomial Time Species Tree Reconstruction from Partially Resolved Gene Trees.” BMC Bioinformatics 19 (S6): 153. [doi:10.1186/s12859-018-2129-y](https://doi.org/10.1186/s12859-018-2129-y).
@@ -78,6 +77,8 @@ Documentations
 INSTALLATION:
 -----------
 * There is no installation required to run ASTRAL but for ASTRAL-MP to work properly with AVX2 to you may need installation (see below).
+
+* If you **do not want to install ASTRAL-MP**, you can access it on [CIPRES](https://www.phylo.org/).
 
 #### Vanilla:
 * Download:
@@ -161,6 +162,7 @@ To save the logs (**also recommended**), run:
 java -D"java.library.path=lib/" -jar __astral.jar__ -i in.tree -o out.tre 2>out.log
 ```
 
+
 ###### Input: 
 * The input gene trees are in the Newick format
 * The input trees can have missing taxa, polytomies (unresolved branches), and also multiple individuals per species.
@@ -194,6 +196,12 @@ Please refer to the [tutorial](astral-tutorial.md) for all other features, inclu
 
 - The cumbersome `-D"java.library.path=lib/"` will enable ASTRAL to use AVX2, which speeds things around 4X. These features are all added and described in our (in press) paper on ASTRAL-MP. Look for `Using native AVX batch computing.` in the log file to see if AVX was used in your run. 
   If there is a warning that AVX is not used, you can ignore it if you don't care about running time. If you want to make it work, then, try making the package by running. See the installation section for more information. 
+
+### MP specific options
+
+* Use `-T` to set the number of threads. Note that you need at least two threads to run ASTRAL-MP. 
+* Use `-C` to disable the use of GPUs
+* Use `-G` to specify which GPUs to use
 
 ### Memory:
 For big datasets (say more than 5000 taxa), increasing the memory available to Java can result in speedups. Note that you should give Java only as much free memory as you have available on your machine. So, for example, if you have 3GB of free memory, you can invoke ASTRAL using the following command to make all the 3GB available to Java:
