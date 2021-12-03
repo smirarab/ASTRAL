@@ -58,7 +58,7 @@ import phylonet.tree.util.Trees;
 
 
 public class CommandLine {
-	protected static String _version = "5.15.4";
+	protected static String _version = "5.15.5";
 	protected static SimpleJSAP jsap;
 
 	private static void exitWithErr(String extraMessage) {
@@ -85,7 +85,7 @@ public class CommandLine {
 								"a filename for storing the output species tree. Defaults to outputting to stdout."),
 						new Switch("cpu only", 'C', "cpu-only", "Do not use GPUs."),
 						new FlaggedOption("cpu threads", JSAP.INTEGER_PARSER, "-1", JSAP.NOT_REQUIRED, 'T',
-								"cpu-threads", "Number of threads to use. "),
+								"cpu-threads", "Number of threads to use. Has to be at least 2. "),
 						new FlaggedOption("GPU", JSAP.STRING_PARSER, null, JSAP.NOT_REQUIRED, 'G', "GPU",
 								" the index of GPUs to be used, provided as a comma-separated list. If missing, all GPUs are used. (default)"),
 						new Switch("internode-dist", 'A', "internode",
