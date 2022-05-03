@@ -17,6 +17,7 @@ Email: `astral-users@googlegroups.com` for questions.
 This branch is for **Multi-threaded ASTRAL (ASTRAL-MP)**. Other branches and repositories have related software:
 
 * Main ASTRAL-III code (https://github.com/smirarab/ASTRAL)
+* The link https://github.com/smirarab/ASTRAL/tree/MP-similarity should redirect to this place now.
 * **Astral with user constraints**: A version of ASTRAL that can satisfy user constraints is available [here](https://github.com/maryamrabiee/Constrained-search)
 * **Tree updates**:  An ASTRAL-based algorithm called INSTRAL enables inserting  new species onto and existing ASTRAL tree is available [here](https://github.com/maryamrabiee/INSTRAL)
 
