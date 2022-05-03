@@ -21,6 +21,7 @@ Please use those branches if you find these features useful.
 
 * **ASTRAL-Pro (Astral for paralogs)**: This new tool, which builds on ASTRAL, can handle multiple copy genes. You can find it here: https://github.com/chaoszhang/A-pro
 * **ASTRAL-MP (Multi-threaded ASTRAL)**: A multi-threaded version of ASTRAL is available on [this branch](https://github.com/smirarab/ASTRAL/tree/MP)
+    * Note: the  link https://github.com/smirarab/ASTRAL/tree/MP-similarity should be replaced with https://github.com/smirarab/ASTRAL/tree/M. 
 * **Astral with user constraints**: A version of ASTRAL that can satisfy user constraints is available [here](https://github.com/maryamrabiee/Constrained-search)
 * **Tree updates**:  An ASTRAL-based algorithm called INSTRAL enables inserting  new species onto and existing ASTRAL tree is available [here](https://github.com/maryamrabiee/INSTRAL)
 
