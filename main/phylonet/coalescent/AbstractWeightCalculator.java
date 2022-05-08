@@ -8,10 +8,10 @@ import phylonet.tree.model.Tree;
 public abstract class AbstractWeightCalculator<T> implements Cloneable {
 	
 	private static final boolean TESTRUN = false;
-	private int callcounter = 0;
+	protected int callcounter = 0;
 	protected HashMap<T, Long> weights;
 	boolean save;
-	long lastTime;
+	public long lastTime;
 
 	public AbstractWeightCalculator(boolean save) {
 		this.save = save;
@@ -34,15 +34,18 @@ public abstract class AbstractWeightCalculator<T> implements Cloneable {
 		return weights.get(t);
 	}
 	
-		
 	public Long getWeight(T t, AbstractComputeMinCostTask<T> minCostTask) {
+		return getWeight(t);
+	}
+		
+	public Long getWeight(T t) {
 		this.callcounter ++;
 		Long weight = getCalculatedWeight(t);
 		if (weight == null) {
 			//ICalculateWeightTask<T> weigthWork = getWeightCalculateTask(t);
 			//prepareWeightTask(weigthWork, minCostTask);
 			// MP_VERSION: smallWork.fork();
-			weight = TESTRUN ? 0 : calculateWeight(t, minCostTask);
+			weight = TESTRUN ? 0 : calculateWeight(t);
 			int count;
 			if (save && !TESTRUN ) {
 				weights.put(t, weight);
@@ -62,15 +65,24 @@ public abstract class AbstractWeightCalculator<T> implements Cloneable {
 		}
 		return weight;
 	}
+
+	public Long[] calculateWeight(T[] ts) {
+		Long [] ret = new Long[ts.length];
+		int i = 0;
+		for (T t: ts)
+			ret[i++] = this.calculateWeight(t);
+		return ret;
+	}
 	
-	abstract Long calculateWeight(T t, AbstractComputeMinCostTask<T> minCostTask);
+	protected abstract Long calculateWeight(T t);
 	
 	public abstract void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees);
 	
 		@Override
-	protected Object clone() throws CloneNotSupportedException {
-		// TODO Auto-generated method stub
+		public Object clone() throws CloneNotSupportedException {
 		return super.clone();
 	}
+		
+	public abstract void setupGeneTrees(WQInference wqInference);
 	
 }

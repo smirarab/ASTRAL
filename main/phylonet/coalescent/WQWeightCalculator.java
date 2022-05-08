@@ -56,8 +56,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	}
 
 	@Override
-	Long calculateWeight(Tripartition t,
-			AbstractComputeMinCostTask<Tripartition> minCostTask) {
+	public Long calculateWeight(Tripartition t) {
 		return this.algorithm.calculateWeight(t);
 	}
 
@@ -68,7 +67,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	 *
 	 */
 	class CondensedTraversalWeightCalculator extends WeightCalculatorAlgorithm {
-		Polytree polytree;
+		PolytreeA3 polytree;
 		
 		Long calculateWeight(Tripartition trip) {
 			return polytree.WQWeightByTraversal(trip, this);
@@ -83,7 +82,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		@Override
 		void setupGeneTrees(WQInference inference) {
 			System.err.println("Using polytree-based weight calculation.");
-			polytree = new Polytree(inference.trees, dataCollection);
+			polytree = new PolytreeA3(inference.trees, dataCollection);
 		}
 	}
 	
@@ -100,7 +99,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		int[][] overlap = new int[GlobalMaps.taxonIdentifier.taxonCount() + 1][3];
 		int[][] overlapind = new int[GlobalMaps.taxonIdentifier.taxonCount() + 1][3];
 
-		Integer[] geneTreesAsInts;
+		int[] geneTreesAsInts;
 
 		Long calculateWeight(Tripartition trip) {
 
@@ -263,7 +262,9 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 					}
 				}
 			}
-			geneTreesAsInts = temp.toArray(new Integer[] {});
+			geneTreesAsInts = new int[temp.size()];
+			for(int i = 0; i < geneTreesAsInts.length; i++)
+				  geneTreesAsInts[i] = temp.get(i);
 
 		}
 
@@ -334,9 +335,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 							bs.or(pop.getBitSet());
 						}
 
-						STITreeCluster cluster = GlobalMaps.taxonIdentifier
-								.newCluster();
-						;
+						STITreeCluster cluster = Factory.instance.newCluster(GlobalMaps.taxonIdentifier);
 						cluster.setCluster((BitSet) bs.clone());
 						stack.add(cluster);
 
@@ -427,7 +426,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	}
 
 	// TODO: this is algorithm-specific should not be exposed. Fix.
-	public Integer[] geneTreesAsInts() {
+	public int[] geneTreesAsInts() {
 		return ((TraversalWeightCalculator)tmpalgorithm).geneTreesAsInts;
 
 	}

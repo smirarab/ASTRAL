@@ -33,8 +33,8 @@ public class TaxonNameMap {
         this.initializeSpeciesMapper();
     }
 
-    public void initializeSpeciesMapper() {
-        speciesIdMapper = new SpeciesMapper(GlobalMaps.taxonIdentifier.taxonCount());
+    private void initializeSpeciesMapper() {
+    	this.speciesIdMapper = newSpeciesMapper();
         if (this.taxonMap != null) {
             for (Entry<String, String> entry: this.taxonMap.entrySet()) {
                 speciesIdMapper.setSpeciesIdForTaxon(entry.getKey(), entry.getValue());
@@ -45,6 +45,9 @@ public class TaxonNameMap {
             }
         }
     }
+	protected SpeciesMapper newSpeciesMapper() {
+		return Factory.instance.newSpeciesMapper(); //GlobalMaps.taxonIdentifier.taxonCount());
+	}
 
     /**
      * For a given gene name, give the species name

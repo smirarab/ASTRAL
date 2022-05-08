@@ -2,37 +2,21 @@ package phylonet.coalescent;
 
 import phylonet.tree.model.sti.STITreeCluster;
 
-public class Polytomy extends AbstractPartition {
+public class Polytomy<T extends STITreeCluster> extends AbstractPartition<T> {
 	
-	STITreeCluster[] clusters;
-	private int _hash = 0;
+	protected T[] clusters;
+	protected int _hash = 0;
 	
-	public Polytomy(STITreeCluster[] cs){
-		clusters = new STITreeCluster[cs.length];
-		int[] ns = new int[cs.length];
+	public void initalize(T[] cs){
+		clusters = (T[]) new STITreeCluster[cs.length];
+		long[] ns = new long[cs.length];
 		for (int i = 0; i < cs.length; i++){
-			clusters[i] = new STITreeCluster(cs[i]);
+			clusters[i] = (T) new STITreeCluster(cs[i]);
 			ns[i] = cs[i].getBitSet().nextSetBit(0);
 		}
-		for (int i = 0; i < cs.length; i++){
-			for (int j = i + 1; j < cs.length; j++){
-				if (ns[i] < ns[j]){
-					int tn = ns[i];
-					ns[i] = ns[j];
-					ns[j] = tn;
-					STITreeCluster tc = clusters[i];
-					clusters[i] = clusters[j];
-					clusters[j] = tc;
-				}
-			}
-		}
+		arrange(cs, ns);
 	}
 	
-	public STITreeCluster[] getClusters(){
-		return clusters;
-	}
-	
-	@Override
 	public boolean equals(Object obj) {
 		if ((obj instanceof Polytomy) == false) return false;
 		Polytomy p = (Polytomy) obj; 
@@ -43,6 +27,23 @@ public class Polytomy extends AbstractPartition {
 		}
 		return true;					
 	}
+
+	protected void arrange(T[] cs, long[] ns) {
+		for (int i = 0; i < cs.length; i++){
+			for (int j = i + 1; j < cs.length; j++){
+				if (ns[i] < ns[j]){
+					long tn = ns[i];
+					ns[i] = ns[j];
+					ns[j] = tn;
+					T tc = clusters[i];
+					clusters[i] = clusters[j];
+					clusters[j] = tc;
+				}
+			}
+		}
+	}
+
+
 	@Override
 	public int hashCode() {
 		if (_hash == 0) {
@@ -52,12 +53,5 @@ public class Polytomy extends AbstractPartition {
 		}
 		return _hash;
 	}
-	@Override
-	public String toString() {
-		String s = "Polytomy:";
-		for (int i = 0; i < clusters.length; i++){
-			s += "|" + clusters[i].toString();
-		}
-		return s;
-	}
+
 }

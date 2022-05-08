@@ -67,7 +67,7 @@ public class Utils {
     
         //TaxonIdentifier spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier();
         STITree tree = new STITree<Double>();
-        tree.getRoot().setData(identifier.newCluster().complementaryCluster());
+        tree.getRoot().setData(Factory.instance.newCluster(identifier).complementaryCluster());
     
         // Start from a star tree
         for (int i = 0; i < identifier.taxonCount(); i++) {
@@ -224,31 +224,17 @@ public class Utils {
      * @param keepclusters should we keep clusters as node objects
      * @return
      */
-    public static final Collection<Tree> greedyConsensus(Iterable<Tree> trees, 
+    public static Collection<Tree> greedyConsensus(Iterable<Tree> trees, 
     		double[] thresholds, boolean randomzie, int repeat, 
     		TaxonIdentifier taxonIdentifier, boolean keepclusters) {
+    	Logging.logTimeMessage("Utils 219-222: ");
     
     	List<Tree> outTrees = new ArrayList<Tree>();
 
         HashMap<STITreeCluster, Integer> count = new HashMap<STITreeCluster, Integer>();
-        int treecount = 0;
-        for (Tree tree : trees) {
-        	treecount++;
-            List<STITreeCluster> geneClusters = Utils.getGeneClusters(tree, taxonIdentifier); //taxoncount changes
-            for (STITreeCluster cluster: geneClusters) {
-
-                if (count.containsKey(cluster)) {
-                    count.put(cluster, count.get(cluster) + 1);
-                    continue;
-                }
-            	STITreeCluster comp = cluster.complementaryCluster();
-                if (count.containsKey(comp)) {
-                    count.put(comp, count.get(comp) + 1);
-                    continue;
-                }
-                count.put(cluster, 1);
-            }
-        }
+        int treecount = countClusteres(trees, taxonIdentifier, count);
+        
+        Logging.logTimeMessage("Utils 240-243: " );
         
         for (int gi = 0; gi < repeat; gi++) {
         	TreeSet<Entry<STITreeCluster,Integer>> countSorted = new 
@@ -279,6 +265,30 @@ public class Utils {
         return outTrees;
     }
 
+
+	protected static int countClusteres(Iterable<Tree> trees, TaxonIdentifier taxonIdentifier,
+			HashMap<STITreeCluster, Integer> count) {
+		int treecount = 0;
+        for (Tree tree : trees) {
+        	treecount++;
+            List<STITreeCluster> geneClusters = Utils.getGeneClusters(tree, taxonIdentifier); //taxoncount changes
+            for (STITreeCluster cluster: geneClusters) {
+
+                if (count.containsKey(cluster)) {
+                    count.put(cluster, count.get(cluster) + 1);
+                    continue;
+                }
+            	STITreeCluster comp = cluster.complementaryCluster();
+                if (count.containsKey(comp)) {
+                    count.put(comp, count.get(comp) + 1);
+                    continue;
+                }
+                count.put(cluster, 1);
+            }
+        }
+		return treecount;
+	}
+
     /**
      * Gives you all clusters in the tree. These are equivalent
      *  of all bipartitions (if you know the set of all leaves in the tree). 
@@ -298,7 +308,7 @@ public class Utils {
             if (node.isLeaf()) {
                 // Find the index of this leaf.
 //            	if(ii<2)
-//            	System.err.println("name"+node.getName());
+//            	Logging.log("name"+node.getName());
 //            	ii++;
                 int i = taxonIdentifier.taxonId(node.getName());                
                 bs.set(i);              
@@ -317,7 +327,7 @@ public class Utils {
             }
                           
             if(bs.cardinality() < leaves.length && bs.cardinality() > 1){
-                STITreeCluster tb = taxonIdentifier.newCluster();
+                STITreeCluster tb = Factory.instance.newCluster(taxonIdentifier);
                 tb.setCluster((BitSet)bs.clone());
                 //if(!biClusters.contains(tb)){
                 biClusters.add(tb);
@@ -372,7 +382,7 @@ public class Utils {
                 throw new RuntimeException("Failed to Parse Tree number: " + l ,e);
             }
             int k = trees.size();
-            System.err.println(k+" trees read from " + args[1]);
+            Logging.log(k+" trees read from " + args[1]);
             STITree<Double> best = (STITree<Double>) trees.remove(k-1);
             STITree<Double> consensus = (STITree<Double>) trees.remove(k-2);
             
@@ -399,14 +409,14 @@ public class Utils {
                 outbuffer.write(tree.toStringWD()+ " \n");
             }
             outbuffer.flush();
-            System.err.println("File "+args[1]+" fixed and saved as " + outfile);
+            Logging.log("File "+args[1]+" fixed and saved as " + outfile);
         } else if ("--alltrees".equals(args[0])) {
         	System.out.println(Utils.generateAllBinaryTrees(new String[]{"1","2","3","4","5"}));
         	System.out.println(Utils.generateAllBinaryTreeStrings(new String[]{"1","2","3","4","5"}));
         	System.out.println(Utils.generateAllBinaryTreeStrings(new String[]{"11","12","13","14"}));
         } 
         else {
-            System.err.println("Command " + args[0]+ " not found.");
+            Logging.log("Command " + args[0]+ " not found.");
         }
     }
     
@@ -673,7 +683,7 @@ public class Utils {
 			System.err.print(".");
 			System.err.flush();
 		}
-		System.err.println();
+		Logging.log("");
 
 		/*List<Tree> temp = new ArrayList<Tree>();
 		temp.addAll(alltrees);

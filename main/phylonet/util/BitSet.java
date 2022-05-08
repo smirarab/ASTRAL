@@ -7,7 +7,7 @@ import java.io.ObjectStreamField;
 import java.io.Serializable;
 import java.util.Arrays;
 
-public class BitSet implements Cloneable, Serializable {
+public class BitSet implements Cloneable, Serializable, Comparable {
 
     int hash = 0;
 
@@ -15,6 +15,84 @@ public class BitSet implements Cloneable, Serializable {
     private static final int BITS_PER_WORD = 64;
     private static final int BIT_INDEX_MASK = BITS_PER_WORD - 1;
     private static final long WORD_MASK = -1;
+
+	public class ImmutableBitSet extends BitSet {
+
+		
+		public ImmutableBitSet() {
+			super();
+			this.hash = BitSet.this.hash;
+			this.words = BitSet.this.words;
+			this.sizeIsSticky = BitSet.this.sizeIsSticky;
+			this.wordsInUse = BitSet.this.wordsInUse;
+		}
+
+		@Override
+		public void flip(int bitIndex) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void flip(int fromIndex, int toIndex) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void set(int bitIndex) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void set(int bitIndex, boolean value) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void set(int fromIndex, int toIndex) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void set(int fromIndex, int toIndex, boolean value) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void clear(int bitIndex) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void clear(int fromIndex, int toIndex) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void clear() {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void and(BitSet set) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void or(BitSet set) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void xor(BitSet set) {
+			throw new RuntimeException("Not supported");
+		}
+
+		@Override
+		public void andNot(BitSet set) {
+			throw new RuntimeException("Not supported");
+		}
+		
+	}
 
     // public static boolean PRINT = false;
     private static int wordIndex(int bitIndex) {
@@ -68,8 +146,8 @@ public class BitSet implements Cloneable, Serializable {
     }
 
     private BitSet(long words[]) {
-	wordsInUse = 0;
-	sizeIsSticky = false;
+	this.wordsInUse = 0;
+	this.sizeIsSticky = false;
 	this.words = words;
 	this.wordsInUse = words.length;
 	checkInvariants();
@@ -462,7 +540,24 @@ public class BitSet implements Cloneable, Serializable {
 		return false;
 	return true;
     }
-
+	public int compareTo(Object obj) {
+		BitSet bs = (BitSet) obj;
+		if (obj == this)
+			return 0;
+		int max = Math.min(words.length, bs.words.length);
+		int i;
+		for (i = 0; i < max; ++i)
+			if (words[i] != bs.words[i])
+				return words[i] > bs.words[i] ? 1 : -1;
+		// If one is larger, check to make sure all extra words are 0.
+		for (int j = i; j < words.length; ++j)
+			if (words[j] != 0)
+				return 1;
+		for (int j = i; j < bs.words.length; ++j)
+			if (bs.words[j] != 0)
+				return -1;
+		return 0;
+	}
     public Object clone() {
 	if (!sizeIsSticky)
 	    trimToSize();
@@ -482,6 +577,20 @@ public class BitSet implements Cloneable, Serializable {
 	return result;
 
     }
+
+	public BitSet copy() {
+		if (!sizeIsSticky)
+			trimToSize();
+		BitSet result;
+
+		result = new BitSet((long[]) words.clone());
+		result.hash = hash;
+		result.wordsInUse = this.wordsInUse;
+		result.sizeIsSticky = this.sizeIsSticky;
+		
+		return result;
+
+	}
 
     private void trimToSize() {
 	if (wordsInUse != words.length) {
@@ -541,11 +650,15 @@ public class BitSet implements Cloneable, Serializable {
 	return b.toString();
     }
 
+    public long[] getArray() {
+    	return words;
+    }
+    
     private static final ObjectStreamField serialPersistentFields[] = { new ObjectStreamField(
 	    "bits", Byte.class) };
-    private long words[];
-    private transient int wordsInUse;
-    private transient boolean sizeIsSticky;
+    public long words[];
+    transient int wordsInUse;
+    transient boolean sizeIsSticky;
     private static final long serialVersionUID = 7997698588986878753L;
     static final boolean $assertionsDisabled = true; // !java/util/BitSet.desiredAssertionStatus();
 

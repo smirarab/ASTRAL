@@ -1,10 +1,12 @@
-package phylonet.coalescent;
+package phylonet.dl;
 
 import java.util.ConcurrentModificationException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 
+import phylonet.coalescent.AbstractClusterCollection;
+import phylonet.coalescent.IClusterCollection;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 

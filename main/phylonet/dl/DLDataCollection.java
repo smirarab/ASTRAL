@@ -1,4 +1,4 @@
-package phylonet.coalescent;
+package phylonet.dl;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -8,6 +8,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import phylonet.coalescent.AbstractDataCollection;
+import phylonet.coalescent.AbstractInference;
+import phylonet.coalescent.GlobalMaps;
+import phylonet.coalescent.Tripartition;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STINode;

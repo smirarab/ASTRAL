@@ -9,12 +9,14 @@ import java.util.Set;
 
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
+import phylonet.tree.model.sti.STITreeCluster.VertexASTRAL3;
 
 public abstract class AbstractClusterCollection implements IClusterCollection, Cloneable {
 
-	protected ArrayList<Set<Vertex>> clusters;
+	public ArrayList<Set<Vertex>> clusters;
 	protected int topClusterLength;
-	int totalcount = 0;
+	protected int totalcount = 0;
+	public Vertex topV;
 
 	protected void initialize(int len) {
 		this.topClusterLength = len;
@@ -26,11 +28,14 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 	
 	@Override
 	public Vertex getTopVertex() {
-		Iterator<Vertex> it = clusters.get(topClusterLength).iterator();
-		if (! it.hasNext()) {
-			throw new NoSuchElementException();
+		if (topV == null) {
+			Iterator<Vertex> it = clusters.get(topClusterLength).iterator();
+			if (! it.hasNext()) {
+				throw new NoSuchElementException();
+			}
+				topV = it.next();
 		}
-		return it.next();
+		return topV;
 	}
 
 	@Override
@@ -91,32 +96,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 		//System.out.println(topClusterLength+ " "+getTopVertex());
 		//TODO: return an iterator directly instead of building a collection.
 		ArrayList<VertexPair> ret = new ArrayList<VertexPair>();
-		/*Iterable<VertexPair> r= new Iterable<IClusterCollection.VertexPair>() {
-			
-			@Override
-			public Iterator<VertexPair> iterator() {
-				
-				return new Iterator<VertexPair>() {
 
-					@Override
-					public boolean hasNext() {
-						// TODO Auto-generated method stub
-						return false;
-					}
-
-					@Override
-					public VertexPair next() {
-						// TODO Auto-generated method stub
-						return null;
-					}
-
-					@Override
-					public void remove() {
-						throw new UnsupportedOperationException();
-					}
-				};
-			}
-		};*/
 		
 		int clusterSize = topClusterLength;
 		Vertex v = this.getTopVertex();
@@ -136,7 +116,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 						continue;
 					}
 					VertexPair bi = new VertexPair(
-							smallV, bigv, v);
+							(VertexASTRAL3) smallV, (VertexASTRAL3) bigv, (VertexASTRAL3) v);
 					ret.add(bi);
 				}
 			}
@@ -197,7 +177,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 			HashSet<Vertex> nset = new HashSet<STITreeCluster.Vertex>();
 			clone.clusters.add(nset);
 			for (Vertex v: vset) {
-				nset.add(v.getCluster().new Vertex());
+				nset.add(v.getCluster().newVertex());
 			}
 		}
 		

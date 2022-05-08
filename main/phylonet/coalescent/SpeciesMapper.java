@@ -1,5 +1,7 @@
 package phylonet.coalescent;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -22,14 +24,14 @@ import phylonet.util.BitSet;
  */
 public class SpeciesMapper {
 
-    private int [] taxonIdToSpeciesId;
-    private ArrayList<List<Integer>> speciesIdtoTaxonId;
-    private ArrayList<Integer> speciesIdtoLowestTaxonId;
-    private TaxonIdentifier speciesNameIdMap;
+	protected int [] taxonIdToSpeciesId;
+    protected ArrayList<List<Integer>> speciesIdtoTaxonId;
+    protected ArrayList<Integer> speciesIdtoLowestTaxonId;
+    protected TaxonIdentifier speciesNameIdMap;
 
     public SpeciesMapper(int taxonCount) {
         this.taxonIdToSpeciesId = new int[taxonCount];
-        this.speciesNameIdMap = new TaxonIdentifier();
+        this.speciesNameIdMap = Factory.instance.newTaxonIdentifier();
         this.speciesIdtoTaxonId = new ArrayList<List<Integer>>();
         this.speciesIdtoLowestTaxonId = new ArrayList<Integer>();
     }
@@ -66,7 +68,7 @@ public class SpeciesMapper {
         		this.speciesIdtoLowestTaxonId.get(speciesId) > taxonId) {
         	this.speciesIdtoLowestTaxonId.set(speciesId,taxonId);
         }
-        //System.err.println("Mapped taxon "+taxonId +" to species "+speciesId);
+        //Logging.log("Mapped taxon "+taxonId +" to species "+speciesId);
     }
 
     protected void setSpeciesIdForTaxon(int taxonId, String speciesName) {
@@ -84,7 +86,7 @@ public class SpeciesMapper {
                 this.speciesNameIdMap.taxonId(speciesName));
     }
 
-    protected List<Integer> getTaxaForSpecies(Integer species){
+    public List<Integer> getTaxaForSpecies(Integer species){
         return this.speciesIdtoTaxonId.get(species);
     }
 
@@ -153,7 +155,7 @@ public class SpeciesMapper {
     }
 
     public STITreeCluster getGeneClusterForSTCluster(BitSet stBitset) {
-        STITreeCluster geneCluster = GlobalMaps.taxonIdentifier.newCluster();    	
+        STITreeCluster geneCluster = Factory.instance.newCluster(GlobalMaps.taxonIdentifier);    	
         geneCluster.setCluster(this.getGeneBisetForSTBitset(stBitset));
         return geneCluster;
     }
@@ -226,41 +228,6 @@ public class SpeciesMapper {
         }
     }
 
-    /**
-     * Computes a distance matrix on species labels given 
-     * a distance matrix on gene labels
-     * @param matrix A distance matrix with one row per individual
-     * @return A distance matrix with one row per species
-     */
-    SimilarityMatrix convertToSpeciesDistance(SimilarityMatrix matrix) {
-		float [][] STsimMatrix = new float[this.getSpeciesCount()][this.getSpeciesCount()];
-		float[][] denum = new float[this.getSpeciesCount()][this.getSpeciesCount()];
-		int n = matrix.getSize();
-		for (int i = 0; i < n; i++) {
-			for (int j = i; j < n; j++) {
-				int stI =  this.getSpeciesIdForTaxon(i);
-				int stJ =  this.getSpeciesIdForTaxon(j);
-				STsimMatrix[stI][stJ] += matrix.get(i,j); 
-				STsimMatrix[stJ][stI] = STsimMatrix[stI][stJ];
-				denum[stI][stJ] ++;
-				denum[stJ][stI] ++;
-			}
-		}
-		for (int i = 0; i < this.getSpeciesCount(); i++) {
-			for (int j = 0; j < this.getSpeciesCount(); j++) {
-				STsimMatrix[i][j] = denum[i][j] == 0 ? 0 : 
-					STsimMatrix[i][j] / denum[i][j];
-			}
-			STsimMatrix[i][i] = 1;
-			//System.err.println(Arrays.toString(this.distSTMatrix[i]));
-		}
-		System.err.println("Species tree distances calculated ...");
-		
-		SimilarityMatrix ret = new SimilarityMatrix(STsimMatrix);
-		
-		return ret;
-	}
-    
     public void gtToSt2(MutableTree gt) {
     	Stack<Integer> stack = new Stack<Integer>();
     	HashSet<Integer> children;
@@ -288,7 +255,7 @@ public class SpeciesMapper {
 	    				((TMutableNode) node).setName(this.getSpeciesName(spnode));
 	    				((STINode) node).setData(null);
 	    				spNodes.add(childnodes);
-	    				System.err.println("2");
+	    				Logging.log("2");
     				}
     				stack.push(spnode);
     			} else {
@@ -353,4 +320,51 @@ public class SpeciesMapper {
     public boolean isSingleIndividual() {
     	return taxonIdToSpeciesId.length == speciesIdtoTaxonId.size();
     }
+
+	
+    /**
+     * Computes a distance matrix on species labels given 
+     * a distance matrix on gene labels
+     * @param matrix A distance matrix with one row per individual
+     * @return A distance matrix with one row per species
+     */
+     public SimilarityMatrix convertToSpeciesDistance(SimilarityMatrix matrix) {
+		float [][] STsimMatrix = new float[this.getSpeciesCount()][this.getSpeciesCount()];
+		float [][] denum = new float[this.getSpeciesCount()][this.getSpeciesCount()];
+		int n = matrix.getSize();
+		for (int i = 0; i < n; i++) {
+			for (int j = i; j < n; j++) {
+				int stI =  this.getSpeciesIdForTaxon(i);
+				int stJ =  this.getSpeciesIdForTaxon(j);
+				if (stI != stJ) {
+					STsimMatrix[stI][stJ] += matrix.get(i,j); 
+					STsimMatrix[stJ][stI] = STsimMatrix[stI][stJ];
+					denum[stI][stJ] ++;
+					denum[stJ][stI] ++;
+				} else {
+					if (i==j)
+						STsimMatrix[stI][stJ] = matrix.get(i,j); 
+				}
+			}
+		}
+		//try (FileWriter f = new FileWriter("t2")) {
+			for (int i = 0; i < this.getSpeciesCount(); i++) {
+				for (int j = 0; j < this.getSpeciesCount(); j++) {
+					if (denum[i][j] > 1)
+				        STsimMatrix[i][j] = STsimMatrix[i][j] / denum[i][j];
+		//			f.write(STsimMatrix[i][j]+" ");
+				}
+		//		f.write("\n");
+			}
+		//	f.flush();
+		//	f.close();
+		//} catch (IOException e) {
+		//	e.printStackTrace();
+		//}
+		Logging.log("Species tree distances calculated ...");
+		
+		SimilarityMatrix ret = Factory.instance.newSimilarityMatrix(STsimMatrix);
+		
+		return ret;
+	}
 }

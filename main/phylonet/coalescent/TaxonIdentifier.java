@@ -7,18 +7,18 @@ import java.util.List;
 import phylonet.tree.model.sti.STITreeCluster;
 
 public class TaxonIdentifier {
-    private HashMap<String, Integer> nameToId = new HashMap<String, Integer>();
-    private List<String> idToName = new ArrayList<String>();
-    private int taxonCount = 0;
-    private boolean locked = false;
-
+    protected HashMap<String, Integer> nameToId = new HashMap<String, Integer>();
+    protected List<String> idToName = new ArrayList<String>();
+    protected int taxonCount = 0;
+    protected boolean locked = false;
+    
     public String[] getAllTaxonNames(){
         return idToName.toArray(new String[]{});
     }
 
-    public STITreeCluster newCluster() {
-    	return new STITreeCluster(this);
-    }
+    //public STITreeCluster newCluster() {
+    //	return new STITreeCluster(this);
+    //}
     
     public void lock() {
         this.locked = true;
@@ -54,7 +54,7 @@ public class TaxonIdentifier {
     }
     
 	public  STITreeCluster getClusterForNodeName(String nodeName) {
-		STITreeCluster cluster = this.newCluster();;
+		STITreeCluster cluster = Factory.instance.newCluster(this);
 		Integer taxonID = this.taxonId(nodeName);
 		cluster.addLeaf(taxonID);
 		return cluster;

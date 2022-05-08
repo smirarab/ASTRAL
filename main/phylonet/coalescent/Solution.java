@@ -11,15 +11,24 @@ public class Solution
 
     public Tree getTree()
     {
-        return _st;
+        return this._st;
     }
 
     public Long getCoalNum()
     {
-        return _totalCoals;
+		return _totalCoals;
     }
 
-    Tree _st;
-    Long _totalCoals;
+
+	public void setCoalNum(Long _totalCoals) {
+		this._totalCoals = _totalCoals;
+	}
+
+	public void setTree(Tree _st) {
+		this._st = _st;
+	}
+
+	private Tree _st;
+    private Long _totalCoals;
     int _clusterIDs[];
 }

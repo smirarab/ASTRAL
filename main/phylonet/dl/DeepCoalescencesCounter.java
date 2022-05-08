@@ -1,4 +1,4 @@
-package phylonet.coalescent;
+package phylonet.dl;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 
+import phylonet.coalescent.GlobalMaps;
 import phylonet.network.io.ExNewickException;
 import phylonet.network.io.ExNewickReader;
 import phylonet.network.model.NetNode;

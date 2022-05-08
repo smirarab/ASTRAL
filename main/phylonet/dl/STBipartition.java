@@ -1,5 +1,7 @@
-package phylonet.coalescent;
+package phylonet.dl;
 
+import phylonet.coalescent.GlobalMaps;
+import phylonet.coalescent.IClusterCollection;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.util.BitSet;

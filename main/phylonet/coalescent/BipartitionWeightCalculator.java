@@ -4,23 +4,20 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.Iterator;
-import java.util.List;
 
-import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 
 // TODO: why extend the abstract? It doesn't seem to follow the same pattern exactly
-class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition> {
+public class BipartitionWeightCalculator {
 
-	WQInference inference;
-	private WQDataCollection dataCollection;
-	private Integer[] geneTreesAsInts;
+	AbstractInference inference;
+	private AbstractDataCollection dataCollection;
+	private int[] geneTreesAsInts;
 
-	public BipartitionWeightCalculator(AbstractInference<Tripartition> inference,
-			Integer[] geneAsInts) {
-		super(false);
-		this.dataCollection = (WQDataCollection) inference.dataCollection;
-		this.inference = (WQInference) inference;
+	public BipartitionWeightCalculator(AbstractInference inference,
+			int[] geneAsInts) {
+		this.dataCollection = inference.dataCollection;
+		this.inference = inference;
 		this.geneTreesAsInts = geneAsInts;
 	}
 
@@ -114,21 +111,30 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 		}
 	}
 	
-	class Results {
-		double [] qs;
-		int effn;
+	public class Results {
+		private double [] qs;
+		private int effn;
 		
 		Results (double [] q, int n){
-			qs = q;
-			effn = n;
+			setQs(q);
+			setEffn(n);
 		}
-	}
 
-	@Override
-	Long calculateWeight(Tripartition t,
-			AbstractComputeMinCostTask<Tripartition> minCostTask) {
-		// TODO Auto-generated method stub
-		return null;
+		public double [] getQs() {
+			return qs;
+		}
+
+		public void setQs(double [] qs) {
+			this.qs = qs;
+		}
+
+		public int getEffn() {
+			return effn;
+		}
+
+		public void setEffn(int effn) {
+			this.effn = effn;
+		}
 	}
 
 	public Results getWeight(Quadrapartition [] quad ) {
@@ -257,7 +263,7 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 		return a*b*c*d;
 	}	
 
-	class Quadrapartition {
+	public class Quadrapartition {
 
 		STITreeCluster cluster1;
 		STITreeCluster cluster2;	
@@ -348,13 +354,6 @@ class BipartitionWeightCalculator extends AbstractWeightCalculator<Tripartition>
 		}
 
 
-	}
-
-
-	@Override
-	public void preCalculateWeights(List<Tree> trees, List<Tree> extraTrees) {
-		// TODO Auto-generated method stub
-	
 	}
 
 }

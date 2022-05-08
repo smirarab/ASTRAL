@@ -1,11 +1,15 @@
-package phylonet.coalescent;
+package phylonet.dl;
 
 import java.util.List;
 
+import phylonet.coalescent.AbstractComputeMinCostTask;
+import phylonet.coalescent.GlobalMaps;
+import phylonet.coalescent.IClusterCollection;
 import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
+import phylonet.tree.model.sti.STITreeCluster.VertexASTRAL3;
 
 public class DLComputeMinCostTask extends AbstractComputeMinCostTask<STBipartition>{
 
@@ -15,7 +19,7 @@ public class DLComputeMinCostTask extends AbstractComputeMinCostTask<STBipartiti
 	
 	public DLComputeMinCostTask(DLInference inference, Vertex v,
 			IClusterCollection clusters) {
-		super(inference, v, clusters);
+		super(inference, (VertexASTRAL3) v, clusters);
 		this.inference = inference;
 		dataCollection = (DLDataCollection)inference.dataCollection;
 		weightCalculator = (DLWeightCalculator) inference.weightCalculator;
@@ -112,7 +116,7 @@ public class DLComputeMinCostTask extends AbstractComputeMinCostTask<STBipartiti
 	}
 
 	@Override
-	Long defaultWeightForFullClusters() {
+	protected Long defaultWeightForFullClusters() {
 		return null;
 	}
 

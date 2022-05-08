@@ -12,7 +12,7 @@ public class GlobalMaps{
 	/***
 	 * Maps gene names to gene IDs (and vice versa)
 	 */
-	public static TaxonIdentifier taxonIdentifier = new TaxonIdentifier();
+	public static TaxonIdentifier taxonIdentifier;
 	/**
 	 * Manages naming between gene and species names
 	 */

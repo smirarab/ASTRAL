@@ -5,6 +5,7 @@ import java.util.List;
 import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
+import phylonet.tree.model.sti.STITreeCluster.VertexASTRAL3;
 
 public class WQComputeMinCostTask extends AbstractComputeMinCostTask<Tripartition>{
 
@@ -12,7 +13,7 @@ public class WQComputeMinCostTask extends AbstractComputeMinCostTask<Tripartitio
 	
 	public WQComputeMinCostTask(AbstractInference<Tripartition> inference, Vertex v,
 			IClusterCollection clusters) {
-		super(inference, v, clusters);
+		super(inference, (VertexASTRAL3) v, clusters);
 		this.wqDataCollection = (WQDataCollection)inference.dataCollection;
 	}
 	
@@ -43,7 +44,7 @@ public class WQComputeMinCostTask extends AbstractComputeMinCostTask<Tripartitio
 	}
 
 	@Override
-	Long defaultWeightForFullClusters() {
+	protected Long defaultWeightForFullClusters() {
 		return 0l;
 	}
 

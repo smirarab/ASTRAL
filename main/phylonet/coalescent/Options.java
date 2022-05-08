@@ -4,7 +4,6 @@ public class Options {
 	private boolean rooted;
 	private boolean extrarooted;
 	private boolean exactSolution;
-	private boolean duploss;
 	private int alg;
 	private int addExtra;
 	private boolean outputCompletedGenes;
@@ -21,21 +20,21 @@ public class Options {
 	private double DLbdWeigth;
 	private double CS;
 	private double CD;
-	private double trim;
 	private Integer minLeaves;
 	private Integer geneRepeat;
 	private boolean removeExtraTree;
 	
+	private boolean ustarDist;
 
 	public Options(boolean rooted, boolean extrarooted, 
-			boolean exactSolution, boolean duploss, int alg, int addExtra,
+			boolean exactSolution, int alg, int addExtra,
 			boolean outputCompletedGenes, boolean outSearch, boolean run,
 			int branchannotation, double lambda, String outputFile, int samplingrounds, int polylimit,
-			double trim, String freqOutputPath, Integer minimumLeaves, Integer geneRepeat, boolean removeExtraTree) {
+			double trim, String freqOutputPath, Integer minimumLeaves, Integer geneRepeat, boolean removeExtraTree, boolean useInnerNodeDist) {
+
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
 		this.exactSolution = exactSolution;
-		this.duploss = duploss;
 		this.alg = alg;
 		this.addExtra = addExtra;
 		this.outputCompletedGenes = outputCompletedGenes;
@@ -46,10 +45,10 @@ public class Options {
 		this.setOutputFile(outputFile);
 		this.setSamplingrounds(samplingrounds);
 		this.setPolylimit(polylimit);
-		this.trim = trim;
 		this.freqOutputPath = freqOutputPath;
 		this.setMinLeaves(minimumLeaves);
 		this.setGeneRepeat(geneRepeat);
+		this.setUstarDist(useInnerNodeDist);
 		this.setRemoveExtraTree(removeExtraTree);
 	}
 
@@ -65,19 +64,6 @@ public class Options {
 
 	public boolean isExactSolution() {
 		return exactSolution;
-	}
-
-	public boolean isDuploss() {
-		return duploss;
-	}
-
-
-	public double getTrim() {
-		return trim;
-	}
-
-	public void setTrim(double trim) {
-		this.trim = trim;
 	}
 
 	public int getAlg() {
@@ -191,6 +177,14 @@ public class Options {
 		this.samplingrounds = samplingrounds;
 	}
 
+    public boolean isUstarDist() {
+        return ustarDist;
+    }
+
+    public void setUstarDist(boolean ustarDist) {
+        this.ustarDist = ustarDist;
+    }
+    
 	public int getPolylimit() {
 		return polylimit;
 	}

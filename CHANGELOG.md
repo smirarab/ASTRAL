@@ -1,3 +1,11 @@
+- version 5.16.0:
+	- Combining MP and main branch
+	- Major changes to ASTRAL3:
+		- Double changed to Long many places (score)
+		- Some (supposedly) logic-preserving changes to distance matrix code
+	- Major changes to ASTRAL-MP:
+		- Bug fix: detected and fixed an issue with distance matrices
+
 - version 5.7.8:
 	- Added `-p 3` option (helpful for *external* completion of gene trees when used with `-e`)
 	

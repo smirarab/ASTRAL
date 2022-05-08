@@ -1,4 +1,4 @@
-package phylonet.coalescent;
+package phylonet.dl;
 
 import java.util.AbstractMap.SimpleEntry;
 import java.util.HashSet;
@@ -7,6 +7,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 
+import phylonet.coalescent.AbstractInference;
+import phylonet.coalescent.AbstractWeightCalculator;
+import phylonet.coalescent.GlobalMaps;
+import phylonet.coalescent.WQInference;
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
@@ -154,9 +158,12 @@ class DLWeightCalculator extends AbstractWeightCalculator<STBipartition>{
 	
 
 	@Override
-	Long calculateWeight(STBipartition stb,
-			AbstractComputeMinCostTask<STBipartition> task) {
-		DLClusterCollection containedClusterCollection = (DLClusterCollection) task.containedVertecies;
+	protected
+	Long calculateWeight(STBipartition stb) {
+		// TODO: this is supposed to be
+		// DLClusterCollection containedClusterCollection = (DLClusterCollection) task.containedVertecies;
+		// We removed that because task is not passed around in new interface. Makes it much slower. 
+		DLClusterCollection containedClusterCollection = null;
 		// System.err.print("Calculating weight for: " + biggerSTB);
 		Long weight = 0l;
 		for (STBipartition smallerSTB : containedClusterCollection.getContainedGeneTreeSTBs()) {
@@ -180,6 +187,12 @@ class DLWeightCalculator extends AbstractWeightCalculator<STBipartition>{
 		}
 		// System.err.println("Weight of " + biggerSTB + " is " + weight);
 		return weight;
+	}
+
+	@Override
+	public void setupGeneTrees(WQInference wqInference) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

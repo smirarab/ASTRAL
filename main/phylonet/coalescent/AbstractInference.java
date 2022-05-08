@@ -16,6 +16,7 @@ import phylonet.tree.model.sti.STINode;
 import phylonet.tree.model.sti.STITree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
+import phylonet.tree.model.sti.STITreeCluster.VertexASTRAL3;
 import phylonet.tree.util.Collapse;
 
 /***
@@ -26,29 +27,22 @@ import phylonet.tree.util.Collapse;
  */
 public abstract class AbstractInference<T> {
 
-	//protected boolean rooted = true;
-	//protected boolean extrarooted = true;
-	protected List<Tree> trees;
-	protected List<Tree> extraTrees = null;
-	protected List<Tree> toRemoveExtraTrees = null;
+
+	public List<Tree> trees;
+	public List<Tree> extraTrees = null;
+	public List<Tree> toRemoveExtraTrees = null;
 	protected boolean removeExtraTree;
-	//protected boolean exactSolution;
-	
-	//protected String[] gtTaxa;
-	//protected String[] stTaxa;
+
 
 	Collapse.CollapseDescriptor cd = null;
 	
-	AbstractDataCollection<T> dataCollection;
-	AbstractWeightCalculator<T> weightCalculator;
-//	private int addExtra;
-//	public boolean outputCompleted;
-//	boolean searchSpace;
-//	private boolean run;
-	protected Options options;
-	DecimalFormat df;
+	public AbstractDataCollection<T> dataCollection;
+	public AbstractWeightCalculator<T> weightCalculator;
+
+	public Options options;
+	protected DecimalFormat df;
 	
-	double estimationFactor = 0;
+	long estimationFactor = 0;
 	
 	public AbstractInference(Options options, List<Tree> trees,
 			List<Tree> extraTrees, List<Tree> toRemoveExtraTrees) {
@@ -59,6 +53,22 @@ public abstract class AbstractInference<T> {
 		this.removeExtraTree = options.isRemoveExtraTree();
 		this.toRemoveExtraTrees = toRemoveExtraTrees;
 		
+		this.initDF();
+
+	}
+
+
+	/**
+	 * Sets up data structures before starting DP
+	 */
+	public void setup() {
+		this.setupSearchSpace();
+		this.initializeWeightCalculator();
+		this.setupMisc();
+	}
+
+
+	private void initDF() {
 		df = new DecimalFormat();
 		df.setMaximumFractionDigits(2);
 		DecimalFormatSymbols dfs = DecimalFormatSymbols.getInstance();
@@ -78,7 +88,7 @@ public abstract class AbstractInference<T> {
 
 	protected void restoreCollapse(List<Solution> sols, Collapse.CollapseDescriptor cd) {
 		for (Solution sol : sols) {
-			Tree tr = sol._st;
+			Tree tr = sol.getTree();
 			Collapse.expand(cd, (MutableTree) tr);
 			for (TNode node : tr.postTraverse())
 				if (((STINode) node).getData() == null)
@@ -110,11 +120,10 @@ public abstract class AbstractInference<T> {
         
         GlobalMaps.taxonNameMap.checkMapping(trees);
 
-		System.err.println("Number of taxa: " + GlobalMaps.taxonIdentifier.taxonCount()+
-		        " (" + GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount() +" species)"
-		);
-		System.err.println("Taxa: " + GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesNames());
-		System.err.println("Taxon occupancy: " + taxonOccupancy.toString());
+		Logging.log("Number of taxa: " + GlobalMaps.taxonIdentifier.taxonCount()+
+		        " (" + GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesCount() +" species)");
+		Logging.log("Taxa: " + GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSpeciesNames());
+		Logging.log("Taxon occupancy: " + taxonOccupancy.toString());
 	}
 	
 	/***
@@ -130,57 +139,41 @@ public abstract class AbstractInference<T> {
 	 * @param clusters
 	 * @return
 	 */
-	List<Solution> findTreesByDP(IClusterCollection clusters) {
-		List<Solution> solutions = new ArrayList<Solution>();
+	protected List<Solution> findTreesByDP(IClusterCollection clusters) {
 
-		/*
-		 * clusterToVertex = new HashMap<STITreeCluster, Vertex>(); for
-		 * (Set<Vertex> vs: clusters.values()) { for (Vertex vertex : vs) {
-		 * clusterToVertex.put(vertex._cluster,vertex); } } Vertex all =
-		 * (Vertex) clusters.get(Integer .valueOf(stTaxa.length)).toArray()[0];
-		 * computeMinCost(clusters, all, sigmaN, counter,trees, taxonMap);
-		 * 
-		 * System.out.println("first round finished, adding new STBs");
-		 * counter.addExtraBipartitions(clusters, stTaxa);
-		 */
-/*		clusterToVertex = new HashMap<STITreeCluster, Vertex>(sigmaNs);
-		for (Set<Vertex> vs : clusters.values()) {
-			for (Vertex vertex : vs) {
-				vertex._max_score = -1;
-				clusterToVertex.put(vertex._cluster, vertex);
-			}
-		}
-*/
 		Vertex all = (Vertex) clusters.getTopVertex();
 
-		System.err.println("Size of largest cluster: " +all.getCluster().getClusterSize());
+		Logging.log("Size of largest cluster: " +all.getCluster().getClusterSize());
 
+		AbstractComputeMinCostTask<T> allTask = newComputeMinCostTask(this,all,clusters);
+		allTask.compute();
+		
+		List<Solution> solutions = processSolutions(all);
+
+		return (List<Solution>) (List<Solution>) solutions;
+	}
+
+
+	List<Solution> processSolutions( Vertex all) {
+		List<Solution> solutions = new ArrayList<Solution>();
+		
 		try {
-			//vertexStack.push(all);
-			AbstractComputeMinCostTask<T> allTask = newComputeMinCostTask(this,all,clusters);
-			//ForkJoinPool pool = new ForkJoinPool(1);
-			allTask.compute();
-			double v = all._max_score;
-			if (v == Integer.MIN_VALUE) {
+			if ( all._max_score == Integer.MIN_VALUE) {
 				throw new CannotResolveException(all.getCluster().toString());
 			}
 		} catch (CannotResolveException e) {
-			System.err.println("Was not able to build a fully resolved tree. Not" +
+			Logging.log("Was not able to build a fully resolved tree. Not" +
 					"enough clusters present in input gene trees ");
 			e.printStackTrace();
 			System.exit(1);
 		}
-
-		//if (CommandLine._print) {
-			//System.err.println("Weights are: "
-				//	+ counter.weights);
-		//}
-		//System.out.println("domination calcs:" + counter.cnt);
 		
-		System.err.println("Total Number of elements weighted: "+ weightCalculator.getCalculatedWeightCount());
+		Logging.logTimeMessage("AbstractInference 193: " );
+
+		Logging.log("Total Number of elements weighted: "+ countWeights());
 
 		List<STITreeCluster> minClusters = new LinkedList<STITreeCluster>();
-		List<Double> coals = new LinkedList<Double>();
+		//List<Double> coals = new LinkedList<Double>();
 		Stack<Vertex> minVertices = new Stack<Vertex>();
 		if (all._min_rc != null) {
 			minVertices.push(all._min_rc);
@@ -188,14 +181,9 @@ public abstract class AbstractInference<T> {
 		if (all._min_lc != null) {
 			minVertices.push(all._min_lc);
 		}
-		if (all._subcl != null) {
-			for (Vertex v : all._subcl) {
-				minVertices.push(v);
-			}
-		}		
 		SpeciesMapper spm = GlobalMaps.taxonNameMap.getSpeciesIdMapper();
 		while (!minVertices.isEmpty()) {
-			Vertex pe = (Vertex) minVertices.pop();
+			Vertex pe =  minVertices.pop();
 			STITreeCluster stCluster = spm.
 					getSTClusterForGeneCluster(pe.getCluster());
 			//System.out.println(pe._min_rc);
@@ -205,7 +193,7 @@ public abstract class AbstractInference<T> {
 			// int k = sigmaNs/(stTaxa.length-1);
 
 			if ( !GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleSP(pe.getCluster().getBitSet()) && (pe._min_lc == null || pe._min_rc == null))
-				System.err.println("hmm; this shouldn't have happened: "+ pe);
+				Logging.log("hmm; this shouldn't have happened: "+ pe);
 			
 			if (pe._min_rc != null) {
 				minVertices.push(pe._min_rc);
@@ -213,74 +201,41 @@ public abstract class AbstractInference<T> {
 			if (pe._min_lc != null) {
 				minVertices.push(pe._min_lc);
 			}
-			if (pe._min_lc != null && pe._min_rc != null) {
-				coals.add(pe._c);
-			} else {
-				coals.add(0D);
-			}
-			if (pe._subcl != null) {
-				for (Vertex v : pe._subcl) {
-					minVertices.push(v);
-				}
-			}
+//			if (pe._min_lc != null && pe._min_rc != null) {
+//				coals.add(pe.get_c());
+//			} else {
+//				coals.add(0D);
+//			}
+//			if (pe.getSubcl() != null) {
+//				for (Vertex v : pe.getSubcl()) {
+//					minVertices.push(v);
+//				}
+//			}
 		}
 		Solution sol = new Solution();
 		if ((minClusters == null) || (minClusters.isEmpty())) {
-			System.err.println("WARN: empty minClusters set.");
+			Logging.log("WARN: empty minClusters set.");
 			STITree<Double> tr = new STITree<Double>();
 			for (String s : GlobalMaps.taxonIdentifier.getAllTaxonNames()) {
 				((MutableTree) tr).getRoot().createChild(s);
 			}
-			sol._st = tr;
+			sol.setTree(tr);
 		} else {
-			sol._st = Utils.buildTreeFromClusters(minClusters, spm.getSTTaxonIdentifier(), false);
+			sol.setTree( Utils.buildTreeFromClusters(minClusters, spm.getSTTaxonIdentifier(), false) );
 		}
 
-		/* HashMap<TNode,BitSet> map = new HashMap<TNode,BitSet>();
-		for (TNode node : sol._st.postTraverse()) {
-			BitSet bs = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
-			if (node.isLeaf()) {
-				bs.set(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
-				map.put(node, bs);
-			} else {
-				for (TNode child : node.getChildren()) {
-					BitSet childCluster = map.get(child);
-					bs.or(childCluster);
-				}
-				map.put(node, bs);
-			}
-//            System.err.println("Node: "+node);
-			STITreeCluster c = new STITreeCluster();
-			c.setCluster(bs);
-//            System.err.println("m[0]: "+((STITreeCluster)minClusters.get(0)).toString2());
-//            System.err.println("C: "+c.toString2());
-//            System.err.println("Equals: "+((STITreeCluster)minClusters.get(0)).equals(c));
-			if (c.getClusterSize() == GlobalMaps.taxonIdentifier.taxonCount()) {
-				((STINode<Double>) node).setData(Double.valueOf(0));
-			} else {
-				int pos = minClusters.indexOf(c);                                
-				((STINode<Double>) node).setData((Double) coals.get(pos));
-			}
-		}*/
-
 		Long cost = getTotalCost(all);
-		sol._totalCoals = cost;
+		sol.setCoalNum(cost);
 		solutions.add(sol);
-        System.err.println("Optimization score: " + cost);
-
-		return (List<Solution>) (List<Solution>) solutions;
+        Logging.log("Optimization score: " + cost);
+		return solutions;
 	}
 	
-	/**
-	 * Sets up data structures before starting DP
-	 */
-	void setup() {
-		this.setupSearchSpace();
-		this.initializeWeightCalculator();
-		this.setupMisc();
-	}
+	protected abstract void initializeWeightCalculator();
 	
-	abstract void initializeWeightCalculator();
+	public int countWeights() {
+		return weightCalculator.getCalculatedWeightCount();
+	}
 
 	/***
 	 * Creates the set X 
@@ -290,7 +245,7 @@ public abstract class AbstractInference<T> {
 
 		mapNames();
 
-		dataCollection = newCounter(newClusterCollection());
+		dataCollection = Factory.instance.newCounter(newClusterCollection(), this);
 		weightCalculator = newWeightCalculator();
 
 		/**
@@ -301,30 +256,30 @@ public abstract class AbstractInference<T> {
 
 		
 		if (options.isExactSolution()) {
-	          System.err.println("calculating all possible bipartitions ...");
+	          Logging.log("calculating all possible bipartitions ...");
 		    dataCollection.addAllPossibleSubClusters(this.dataCollection.clusters.getTopVertex().getCluster());
 		}
 
 	      
 		if (extraTrees != null && extraTrees.size() > 0 && options.getAddExtra() != 3) {		
-	        System.err.println("calculating extra bipartitions from extra input trees ...");
+	        Logging.log("calculating extra bipartitions from extra input trees ...");
 			dataCollection.addExtraBipartitionsByInput(extraTrees,options.isExtrarooted());
 			int s = this.dataCollection.clusters.getClusterCount();
 			/*
 			 * for (Integer c: clusters2.keySet()){ s += clusters2.get(c).size(); }
 			 */
-			System.err.println("Number of Clusters after additions from extra trees: "
+			Logging.log("Number of Clusters after additions from extra trees: "
 					+ s);
 		}
 		
 		if (toRemoveExtraTrees != null && toRemoveExtraTrees.size() > 0 && this.removeExtraTree) {		
-	        System.err.println("Removing extra bipartitions from extra input trees ...");
+	        Logging.log("Removing extra bipartitions from extra input trees ...");
 			dataCollection.removeExtraBipartitionsByInput(toRemoveExtraTrees,true);
 			int s = this.dataCollection.clusters.getClusterCount();
 			/*
 			 * for (Integer c: clusters2.keySet()){ s += clusters2.get(c).size(); }
 			 */
-			System.err.println("Number of Clusters after deletion of extra tree bipartitions: "
+			Logging.log("Number of Clusters after deletion of extra tree bipartitions: "
 					+ s);
 		}
 		
@@ -336,9 +291,9 @@ public abstract class AbstractInference<T> {
 			}
 		}
 
-		//counter.addExtraBipartitionsByHeuristics(clusters);
+		Logging.logTimeMessage("" );
 
-		System.err.println("partitions formed in "
+		Logging.log("partitions formed in "
 			+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 
 		if (! this.options.isRunSearch() ) {
@@ -349,36 +304,29 @@ public abstract class AbstractInference<T> {
 		weightCalculator.preCalculateWeights(trees, extraTrees);
 		
 
-		System.err.println("Dynamic Programming starting after "
+		Logging.log("Dynamic Programming starting after "
 				+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
 		
 	}
-	abstract void setupMisc();
+	public abstract void setupMisc();
 
 	public List<Solution> inferSpeciesTree() {
 
-		
-		List<Solution> solutions;		
+		List<Solution> solutions;
 
 		solutions = findTreesByDP(this.dataCollection.clusters);
-
-/*		if (GlobalMaps.taxonNameMap == null && rooted && extraTrees == null && false) {
-			restoreCollapse(solutions, cd);
-			}*/
 
 		return (List<Solution>) solutions;
 	}
 
-	abstract IClusterCollection newClusterCollection();
+	public abstract IClusterCollection newClusterCollection();
 	
-	abstract AbstractDataCollection<T> newCounter(IClusterCollection clusters);
-	
-	abstract AbstractWeightCalculator<T> newWeightCalculator();
+	public abstract AbstractWeightCalculator<T> newWeightCalculator();
 
-	abstract AbstractComputeMinCostTask<T> newComputeMinCostTask(AbstractInference<T> dlInference,
+	public abstract AbstractComputeMinCostTask<T> newComputeMinCostTask(AbstractInference<T> iInference,
 			Vertex all, IClusterCollection clusters);
 	
-	abstract Long getTotalCost(Vertex all);
+	public abstract Long getTotalCost(Vertex all);
 	
 	public double getDLbdWeigth() {
 		return options.getDLbdWeigth();
@@ -388,8 +336,6 @@ public abstract class AbstractInference<T> {
 	public double getCS() {
 		return options.getCS();
 	}
-
-	
 
 	public double getCD() {
 		return options.getCD();
@@ -415,6 +361,4 @@ public abstract class AbstractInference<T> {
 			throw new RuntimeException("unexpected error");
 		}
 	}
-	
-
 }

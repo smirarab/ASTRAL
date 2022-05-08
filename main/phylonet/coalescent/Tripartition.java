@@ -2,26 +2,26 @@ package phylonet.coalescent;
 
 import phylonet.tree.model.sti.STITreeCluster;
 
-public class Tripartition extends AbstractPartition {
+public class Tripartition<T extends STITreeCluster> extends AbstractPartition {
 	
-	STITreeCluster cluster1;
-	STITreeCluster cluster2;	
-	STITreeCluster cluster3;
-	private int _hash = 0;
+	public T cluster1;
+	public T cluster2;	
+	public T cluster3;
+	protected int _hash = 0;
 	
-	public Tripartition(STITreeCluster c1, STITreeCluster c2) {
-		STITreeCluster c3 = new STITreeCluster(c1);
+	public Tripartition(T c1, T c2) {
+		T c3 = (T) Factory.instance.newCluster(c1);
 		c3.getBitSet().or(c2.getBitSet());
 		c3.getBitSet().flip(0,c1.getBitSet().size());
 		initialize(c1, c2, c3); 
 	}
 	
-	public Tripartition(STITreeCluster c1, STITreeCluster c2, STITreeCluster c3) {
+	public Tripartition(T c1, T c2, T c3) {
 		
 		initialize(c1, c2, c3);
 	}
 	
-	public Tripartition(STITreeCluster c1, STITreeCluster c2, STITreeCluster c3, boolean checkRepeats) {
+	public Tripartition(T c1, T c2, T c3, boolean checkRepeats) {
 		if (checkRepeats) initialize(c1, c2, c3);
 		else {
 			cluster1 = c1;
@@ -30,13 +30,21 @@ public class Tripartition extends AbstractPartition {
 		}
 	}
 
-	private void initialize(STITreeCluster c1, STITreeCluster c2,
-			STITreeCluster c3) {
+	public void initialize(T c1, T c2,
+			T c3) {
 		if (c1 == null || c2 == null || c3 == null) {
 			throw new RuntimeException("none cluster" +c1+" "+c2+" "+c3);
 		}
-		
-		int n1 = c1.getBitSet().nextSetBit(0), n2 = c2.getBitSet().nextSetBit(0), n3 = c3.getBitSet().nextSetBit(0);
+		c1.updateHash();
+		c2.updateHash();
+		c3.updateHash();
+		long n1 = c1.partionId(),
+				n2 = c2.partionId(),
+				n3 = c3.partionId();
+		reorderClusters(c1, c2, c3, n1, n2, n3);
+	}
+
+	protected void reorderClusters(T c1, T c2, T c3, long n1, long n2, long n3) {
 		if (n1 > n2 & n2 > n3) {
 			cluster1 = c1;
 			cluster2 = c2;
@@ -81,7 +89,7 @@ public class Tripartition extends AbstractPartition {
 	@Override
 	public int hashCode() {
 		if (_hash == 0) {
-			_hash = cluster1.hashCode() + cluster2.hashCode() + cluster3.hashCode();
+			_hash = cluster1.hashCode() * 1089 + cluster2.hashCode() * 33 + cluster3.hashCode();
 		}
 		return _hash;
 	}

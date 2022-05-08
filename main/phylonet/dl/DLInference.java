@@ -1,9 +1,16 @@
-package phylonet.coalescent;
+package phylonet.dl;
 
 
 import java.util.List;
+
 import java.util.Stack;
 
+import phylonet.coalescent.AbstractComputeMinCostTask;
+import phylonet.coalescent.AbstractInference;
+import phylonet.coalescent.AbstractWeightCalculator;
+import phylonet.coalescent.GlobalMaps;
+import phylonet.coalescent.IClusterCollection;
+import phylonet.coalescent.Options;
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
@@ -17,7 +24,7 @@ public class DLInference extends AbstractInference<STBipartition> {
 	public DLInference(Options options, List<Tree> trees,
 			List<Tree> extraTrees, List<Tree> extraTreesToRemove) {
 		super(options, trees, extraTrees,extraTreesToRemove);
-		this.optimizeDuploss = options.isDuploss() ? 3 : 1;
+		this.optimizeDuploss = 3; // options.isDuploss() ? 3 : 1;
 	}
 
 	public int getOptimizeDuploss() {
@@ -107,38 +114,41 @@ public class DLInference extends AbstractInference<STBipartition> {
 	}
 
 
-	Long getTotalCost(Vertex all) {
+	public Long getTotalCost(Vertex all) {
 		return (long) (((DLDataCollection)this.dataCollection).sigmaNs - all._max_score);
 	}
 
 
 	@Override
+	public
 	AbstractComputeMinCostTask<STBipartition> newComputeMinCostTask(AbstractInference<STBipartition> dlInference,
 			Vertex all, IClusterCollection clusters) {
 		return new DLComputeMinCostTask( (DLInference) dlInference, all,  clusters);
 	}
 
-	DLClusterCollection newClusterCollection() {
+	public DLClusterCollection newClusterCollection() {
 		return new DLClusterCollection(GlobalMaps.taxonIdentifier.taxonCount());
 	}
 	
-	DLDataCollection newCounter(IClusterCollection clusters) {
+	public DLDataCollection newCounter(IClusterCollection clusters) {
 		return new DLDataCollection(options.isRooted(), (DLClusterCollection)clusters);
 	}
 
 	@Override
+	public
 	AbstractWeightCalculator<STBipartition> newWeightCalculator() {
 		return new DLWeightCalculator(this);
 	}
 
 	@Override
+	public
 	void setupMisc() {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	void initializeWeightCalculator() {
+	public void initializeWeightCalculator() {
 		// TODO Auto-generated method stub
 		
 	}
