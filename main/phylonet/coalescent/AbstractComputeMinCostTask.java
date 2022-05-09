@@ -79,7 +79,6 @@ public abstract class AbstractComputeMinCostTask<T> {
 	 * @return
 	 * @throws CannotResolveException
 	 */
-	
 	private long computeMinCost() throws CannotResolveException {
 		// Already calculated. Don't re-calculate.
 		if (v.isDone() == 3) {

@@ -1,5 +1,6 @@
 package phylonet.coalescent;
 
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
@@ -7,21 +8,24 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import phylonet.coalescent.IClusterCollection.VertexPair;
+import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeClusterMP;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.tree.model.sti.STITreeClusterMP.VertexMP;
 
-public class WQComputeMinCostTaskProducer extends  AbstractComputeMinCostTaskMP<Tripartition>{
+public class WQComputeMinCostTaskProducer extends  AbstractComputeMinCostTask<Tripartition>{
 
 
 	WQInferenceProducer inference;
 	WQDataCollectionMP wqDataCollection;
+	VertexMP v;
 	//public static final VertexPair  POISON_PILL = new VertexPair(null,null,null);
 	
 	public WQComputeMinCostTaskProducer(WQInferenceProducer inference, VertexMP v) {
-		super(inference, v);
+		super(inference, inference.dataCollection.clusters);
 		this.inference = inference;
 		this.wqDataCollection = (WQDataCollectionMP)inference.dataCollection;
+		this.v = v;
 	}
 
 	//final byte getDoneState = 4;	
@@ -29,10 +33,10 @@ public class WQComputeMinCostTaskProducer extends  AbstractComputeMinCostTaskMP<
 	
 	
 	@Override
-	long computeMinCost() throws CannotResolveException {
+	protected Long compute() {
 	
 		if ( v.isProdDone() ) {
-			return 0;
+			return 0l;
 		}
 		//
 	
@@ -43,7 +47,7 @@ public class WQComputeMinCostTaskProducer extends  AbstractComputeMinCostTaskMP<
 
 			v.setProdDone(true);
 	
-			return 0;
+			return 0l;
 		}
 	
 		final IClusterCollection containedVertecies = this.inference.dataCollection.clusters.getContainedClusters(v);
@@ -143,26 +147,21 @@ public class WQComputeMinCostTaskProducer extends  AbstractComputeMinCostTaskMP<
 		for (VertexPair bi: clusterResolutions) {
 			WQInferenceProducer.weightCount += 1;
 			
-			newMinCostTask((VertexMP) bi.cluster2).compute();
-			newMinCostTask((VertexMP) bi.cluster1).compute();
+			newMinCostTask((VertexMP) bi.cluster2, this.wqDataCollection.clusters).compute();
+			newMinCostTask((VertexMP) bi.cluster1, this.wqDataCollection.clusters).compute();
 		}
 		
 		v.setProdDone(true);
 
 	
-		return 0;
+		return 0l;
 	}
-
-	@Override
-	public Long getWeight(Tripartition t) {
-		throw new RuntimeException("should not call");
-	}
-
 	
 
 	@Override
-	protected WQComputeMinCostTaskProducer newMinCostTask(VertexMP v) {
-		return new WQComputeMinCostTaskProducer((WQInferenceProducer) inference, v);
+	protected WQComputeMinCostTaskProducer newMinCostTask(Vertex v, 
+					IClusterCollection clusters) {
+		return new WQComputeMinCostTaskProducer((WQInferenceProducer) inference, (VertexMP) v);
 	}
 	
 	@Override
@@ -181,6 +180,16 @@ public class WQComputeMinCostTaskProducer extends  AbstractComputeMinCostTaskMP<
 	@Override
 	protected long calculateClusterLevelCost() {
 		return 0l;
+	}
+
+	@Override
+	protected long scoreBaseCase(boolean rooted, List<Tree> trees) {	
+		return 0l;
+	}
+	
+	protected double adjustWeight(long clusterLevelCost, Vertex smallV,
+			Vertex bigv, Long Wdom) {	
+		return Wdom;
 	}
 
 

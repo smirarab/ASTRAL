@@ -91,10 +91,10 @@ public class WQDataCollectionMP extends WQDataCollection
 		
 		for(int i = 0; i < stringOutput.size(); i++) {
 			if(stringOutput.get(i) instanceof String) {
-				System.err.print(stringOutput.get(i));
+				Logging.log(stringOutput.get(i)+"");
 			} else {
 				try {
-					System.err.print(((Future<String>)stringOutput.get(i)).get());
+					Logging.log(((Future<String>)stringOutput.get(i)).get());
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				} catch (ExecutionException e) {
@@ -107,7 +107,7 @@ public class WQDataCollectionMP extends WQDataCollection
 	
 	@Override
 	protected void myLog(Object log, ArrayList stringOutput) {
-		stringOutput.add(log+"\n");
+		stringOutput.add(log);
 	}
 	
 	@Override

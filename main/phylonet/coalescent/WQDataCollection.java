@@ -1073,8 +1073,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		return stringOutput;
 	}
 	
-	protected void myLog(Object log, ArrayList stringOutput) {
-		Logging.log(log.toString());
+	protected void myLog(Object res, ArrayList stringOutput) {
+		Logging.log(res.toString());
 	}
 	
 	protected Object invokeRunner(addExtraBipartitionByHeuristicsLoop callable) {

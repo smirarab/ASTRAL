@@ -1,25 +1,57 @@
 package phylonet.coalescent;
 
+import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import phylonet.coalescent.IClusterCollection.VertexPair;
+import phylonet.tree.model.sti.STITreeCluster.Vertex;
+import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeClusterMP;
 import phylonet.tree.model.sti.STITreeClusterMP.VertexMP;
 
-public class WQComputeMinCostTaskConsumer extends AbstractComputeMinCostTaskMP<Tripartition>{
+public class WQComputeMinCostTaskConsumer extends AbstractComputeMinCostTask<Tripartition>{
 
 	WQDataCollectionMP wqDataCollection;
 	//final byte getDoneState = 3;
 	//final byte getOtherDoneState = 3;
-	
+	VertexMP v;
 	
 	public WQComputeMinCostTaskConsumer(AbstractInference<Tripartition> inference, VertexMP v) {
-		super(inference, v);
-		//this.inference = inference;
+		super(inference, inference.dataCollection.clusters);
 		this.wqDataCollection = (WQDataCollectionMP)inference.dataCollection;
+		this.v = v;
 	}
 	
 	
+
+	protected double adjustWeight(long clusterLevelCost, Vertex smallV,
+			Vertex bigv, Long Wdom) {	
+		return Wdom;
+	}
+
+
+
+	@Override
+	protected long scoreBaseCase(boolean rooted, List<Tree> trees) {	
+		return 0l;
+	}
+
+
+
+	@Override
+	protected AbstractComputeMinCostTask<Tripartition> newMinCostTask( Vertex v,
+			IClusterCollection clusters) {
+		return new WQComputeMinCostTaskConsumer(inference, (VertexMP) v);
+	}
+
+
+
+	@Override
+	protected long calculateClusterLevelCost() {
+		return 0l;
+	}
+
+
 
 	@Override
 	protected Tripartition STB2T(VertexPair vp) {
@@ -34,7 +66,8 @@ public class WQComputeMinCostTaskConsumer extends AbstractComputeMinCostTaskMP<T
 		return 0l;
 	}
 	
-	long computeMinCost() throws CannotResolveException {
+	@Override
+	protected Long compute() {
 				
 		// Already calculated. Don't re-calculate.
 		if ( v.isConsDone() ) {
@@ -86,8 +119,8 @@ public class WQComputeMinCostTaskConsumer extends AbstractComputeMinCostTaskMP<T
                 for (VertexPair bi : clusterResolutions) {
                         try {
 
-                                Long rscore = newMinCostTask((VertexMP) bi.cluster2).compute();
-                                Long lscore = newMinCostTask((VertexMP) bi.cluster1).compute();
+                                Long rscore = newMinCostTask((VertexMP) bi.cluster2, this.wqDataCollection.clusters).compute();
+                                Long lscore = newMinCostTask((VertexMP) bi.cluster1, this.wqDataCollection.clusters).compute();
 
                                 Long weight = weights[j];
                                 j++;
@@ -114,26 +147,13 @@ public class WQComputeMinCostTaskConsumer extends AbstractComputeMinCostTaskMP<T
 			Logging.log("WARN: No Resolution found for ( "
 					+ v.getCluster().getClusterSize() + " taxa ):\n"
 					+ v.getCluster());
-			throw new CannotResolveException(v.getCluster().toString());
+			throw new RuntimeException(new CannotResolveException(v.getCluster().toString()));
 		}
 		
 		v.setConsDone((true));
 	
 		return v._max_score;
 	}
-	
-	
 
-
-	@Override
-	protected AbstractComputeMinCostTaskMP<Tripartition> newMinCostTask( VertexMP v) {
-		return new WQComputeMinCostTaskConsumer(inference, v);
-	}
-
-	
-	@Override
-	protected long calculateClusterLevelCost() {
-		return 0l;
-	}
 
 }
