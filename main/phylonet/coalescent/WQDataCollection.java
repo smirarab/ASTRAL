@@ -1057,7 +1057,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		ArrayList stringOutput = new ArrayList();
 		for (Tree cons : allGreedies) {
 			double thresh = this.GREEDY_ADDITION_THRESHOLDS[th];
-			myLog("Threshold " + thresh + ":" + "\n",stringOutput);
+			myLog("Threshold " + thresh + ":" + "",stringOutput);
 
 			for (TNode greedyNode : cons.postTraverse()) {
 
@@ -1212,7 +1212,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 				ret += "; rounds with additions with at least "
 						+ GREEDY_ADDITION_MIN_FREQ + " support: " + k
 						/ GREEDY_ADDITION_IMPROVEMENT_REWARD
-						+ "; clusters: " + clusters.getClusterCount()  + "\n";
+						+ "; clusters: " + clusters.getClusterCount() ;
 				return ret;
 				
 			}

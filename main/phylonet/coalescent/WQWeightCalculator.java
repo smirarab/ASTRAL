@@ -25,7 +25,7 @@ import phylonet.util.BitSet;
 class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 	WQInference inference;
-	private WQDataCollection dataCollection;
+	protected WQDataCollection dataCollection;
 	protected WeightCalculatorAlgorithm algorithm;
 	private WeightCalculatorAlgorithm tmpalgorithm;
 	
@@ -86,7 +86,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		*/
 		@Override
 		void setupGeneTrees(WQInference inference) {
-			System.err.println("Using polytree-based weight calculation.");
+			Logging.log("Using polytree-based weight calculation.");
 			polytree = new PolytreeA3(inference.trees, dataCollection);
 		}
 	}
@@ -222,7 +222,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		*/
 		@Override
 		void setupGeneTrees(WQInference inference) {
-			System.err.println("Using tree-based weight calculation.");
+			Logging.log("Using tree-based weight calculation.");
 			List<Integer> temp = new ArrayList<Integer>();
 
 			for (Tree tr : inference.trees) {
@@ -311,7 +311,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			List<STITreeCluster> treeCompteleClusters = ((WQDataCollection) inference.dataCollection).treeAllClusters;
 			List<Tree> geneTrees = inference.trees;
 
-			System.err.println("Calculating tripartitions from gene trees ");
+			Logging.log("Calculating tripartitions from gene trees ");
 
 			Map<Tripartition, Integer> geneTreeTripartitonCount = new HashMap<Tripartition, Integer>(
 					inference.trees.size()
@@ -350,7 +350,8 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 						if (remaining.getClusterSize() != 0) {
 							childbslist.add(remaining);
 						}
-						// System.err.println(childbslist.size());
+
+						//Logging.log(childbslist.size());
 						for (int i = 0; i < childbslist.size(); i++) {
 							for (int j = i + 1; j < childbslist.size(); j++) {
 								for (int k = j + 1; k < childbslist.size(); k++) {

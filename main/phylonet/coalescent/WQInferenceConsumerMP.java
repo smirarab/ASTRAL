@@ -203,14 +203,6 @@ public class WQInferenceConsumerMP extends WQInference {
 	}
 
 	public class scoreBranchesLoop extends phylonet.coalescent.WQInference.scoreBranchesLoop implements Runnable {
-		BipartitionWeightCalculator weightCalculator2;
-		NodeData [] nodeDataList;
-		STINode node;
-		NodeData nd;
-		STITreeCluster cluster;
-		STITreeCluster c1;
-		STITreeCluster c2;
-		long cs;
 		AtomicInteger processCount;
 		Object lock;
 		int i; 

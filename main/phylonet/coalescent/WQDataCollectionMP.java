@@ -107,7 +107,7 @@ public class WQDataCollectionMP extends WQDataCollection
 	
 	@Override
 	protected void myLog(Object log, ArrayList stringOutput) {
-		stringOutput.add(log);
+		stringOutput.add(log+"\n");
 	}
 	
 	@Override
