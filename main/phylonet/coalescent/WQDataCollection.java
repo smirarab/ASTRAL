@@ -45,45 +45,45 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	/**
 	 * Similarity matrices for individuals. Used for setting up set X
 	 */
-	SimilarityMatrix geneMatrix;
+	protected Matrix geneMatrix;
 	/**
 	 * Similarity matrices for species. Used for setting up set X
 	 */
-	SimilarityMatrix speciesMatrix;
+	protected Matrix speciesMatrix;
 
 	// Parameters of ASTRAL-II heuristics
-	private boolean SLOW = false;
-	private final double[] GREEDY_ADDITION_THRESHOLDS = new double[] { 0,
+	protected boolean SLOW = false;
+	protected final double[] GREEDY_ADDITION_THRESHOLDS = new double[] { 0,
 			1 / 100., 1 / 50., 1 / 20., 1 / 10., 1 / 5., 1 / 3. };
-	private final int GREEDY_DIST_ADDITTION_LAST_THRESHOLD_INDX = 3;
-	private final int GREEDY_ADDITION_MAX_POLYTOMY_MIN = 50;
-	private final int GREEDY_ADDITION_MAX_POLYTOMY_MULT = 25;
-	private final int GREEDY_ADDITION_DEFAULT_RUNS = 10;
-	private final int GREEDY_ADDITION_MIN_FREQ = 5;
-	private final double GREEDY_ADDITION_MIN_RATIO = 0.01;
-	private final int GREEDY_ADDITION_MAX = 100;
-	private final int GREEDY_ADDITION_IMPROVEMENT_REWARD = 2;
-	private final int POLYTOMY_RESOLUTIONS = 3;
-	private final double POLYTOMY_RESOLUTIONS_GREEDY_GENESAMPLE = 0.9;
-	private List<Tree> geneTrees;
-	private boolean outputCompleted;
-	private String outfileName; 
-	private final int POLYTOMY_RESOLUTIONS_SAMPLE_GRADIENT = 15000;
-	private final int POLYTOMY_SIZE_LIMIT_MAX = 100000;
-	private int polytomySizeLimit = POLYTOMY_SIZE_LIMIT_MAX;
+	protected final int GREEDY_DIST_ADDITTION_LAST_THRESHOLD_INDX = 3;
+	protected final int GREEDY_ADDITION_MAX_POLYTOMY_MIN = 50;
+	protected final int GREEDY_ADDITION_MAX_POLYTOMY_MULT = 25;
+	protected final int GREEDY_ADDITION_DEFAULT_RUNS = 10;
+	protected final int GREEDY_ADDITION_MIN_FREQ = 5;
+	protected final double GREEDY_ADDITION_MIN_RATIO = 0.01;
+	protected final int GREEDY_ADDITION_MAX = 100;
+	protected final int GREEDY_ADDITION_IMPROVEMENT_REWARD = 2;
+	protected final int POLYTOMY_RESOLUTIONS = 3;
+	protected final double POLYTOMY_RESOLUTIONS_GREEDY_GENESAMPLE = 0.9;
+	protected List<Tree> geneTrees;
+	protected boolean outputCompleted;
+	protected String outfileName; 
+	protected final int POLYTOMY_RESOLUTIONS_SAMPLE_GRADIENT = 15000;
+	protected final int POLYTOMY_SIZE_LIMIT_MAX = 100000;
+	protected int polytomySizeLimit = POLYTOMY_SIZE_LIMIT_MAX;
 
 	// Just a reference to gene trees from inference (for convinience).
-	private List<Tree> originalInompleteGeneTrees;
+	protected List<Tree> originalInompleteGeneTrees;
 	/**
 	 * Gene trees after completion.
 	 */
-	private List<Tree> completedGeeneTrees;
+	protected List<Tree> completedGeeneTrees;
 
 	// A reference to user-spcified global options.
-	private Options options;
+	protected Options options;
 
-	public WQDataCollection(WQClusterCollection clusters,
-			AbstractInference<Tripartition> inference) {
+	public WQDataCollection(IClusterCollection clusters,
+			AbstractInference inference) {
 		this.clusters = clusters;
 		this.SLOW = inference.options.getAddExtra() == 2;
 		this.originalInompleteGeneTrees = inference.trees;
@@ -103,7 +103,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	 * @param greedy
 	 *            is the greedy consensus of all gene trees
 	 */
-	private void addBipartitionsFromSignleIndTreesToX(Tree tr,
+	protected void addBipartitionsFromSignleIndTreesToX(Tree tr,
 			Collection<Tree> baseTrees, TaxonIdentifier id) {	
 		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
 		
@@ -223,7 +223,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	 * @param userProvidedRounds
 	 * @return
 	 */
-	private int getSamplingRepeationFactor(int userProvidedRounds) {
+	protected int getSamplingRepeationFactor(int userProvidedRounds) {
 		if (userProvidedRounds < 1) {
 			double sampling = GlobalMaps.taxonNameMap.getSpeciesIdMapper()
 					.meanSampling();
@@ -535,7 +535,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	// Logging.log("------------\n"
 	// + "Round " +r +" of individual  sampling ...");
 	// SingleIndividualSample taxonSample = new
-	// SingleIndividualSample(spm,this.similarityMatrix);
+	// SingleIndividualSample(spm,this.geneMatrix);
 	//
 	// Logging.log("taxon sample " +
 	// Arrays.toString(taxonSample.getTaxonIdentifier().getAllTaxonNames()));
@@ -626,6 +626,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 
 		Logging.log("Building set of clusters (X) from gene trees ");
 
+		Logging.logTimeMessage(" WQDataCollection 558-561: ");
+
 		/**
 		 * This is where we randomly sample one individual per species before
 		 * performing the next steps in construction of the set X.
@@ -643,11 +645,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 
 		
 		int arraySize = this.completedGeeneTrees.size();
-		List<Tree> [] allGreedies = new List [arraySize];
-		
-		int prev = 0, gradiant = 0;
-		
-		
+		List<Tree> [] allGreedies = new List [arraySize];	
 		
 		if (GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleIndividual()) {
 			int gtindex = 0;
@@ -676,6 +674,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 			
 			Logging.log("In second round sampling "
 					+secondRoundSampling+" rounds will be done");
+			Logging.logTimeMessage("TIME TOOK FROM LAST NOTICE WQDataCollection 621-624");
 		
 			int gtindex = 0;
 			for (Tree gt : this.completedGeeneTrees) {
@@ -697,7 +696,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 					List<Tree> sample;
 					
 					sample = firstRoundSampleTrees.subList(r*K, K*r+99);
-					greedies.add(Utils.greedyConsensus(sample, false,
+					greedies.add(Factory.instance.greedyCons().greedyConsensus(sample, false,
 							GlobalMaps.taxonNameMap.getSpeciesIdMapper()
 									.getSTTaxonIdentifier(), true));
 				}
@@ -707,6 +706,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 				// + clusters.getClusterCount());
 	
 			}
+			Logging.logTimeMessage("WQDataCollection 657-660: ");
 		}
 		
 		/**
@@ -714,36 +714,25 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		 */
 
 		ArrayList<Tree> baseTrees = new ArrayList<Tree>();
-		List<STITreeCluster> upgma = new ArrayList<STITreeCluster>();
+		List<STITreeCluster> STls = new ArrayList<STITreeCluster>();
 		for(BitSet b : this.speciesMatrix.inferTreeBitsets()){
-			STITreeCluster sti = new STITreeCluster(GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
+			STITreeCluster sti = Factory.instance.newCluster(GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
 			sti.setCluster(b);
-			upgma.add(sti);
+			STls.add(sti);
 		}
-		Tree UPGMA = Utils.buildTreeFromClusters(upgma, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), false);
+		Tree ST = Utils.buildTreeFromClusters(STls, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), false);
 		
 		
-		baseTrees.add(UPGMA);
-		addBipartitionsFromSignleIndTreesToX(UPGMA, baseTrees,
+		baseTrees.add(ST);
+		addBipartitionsFromSignleIndTreesToX(ST, baseTrees,
 
 		GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier()); 
 		
+		Logging.logTimeMessage(" WQDataCollection 701-704: ");
 
-		for (int ii=0; ii < secondRoundSampling; ii++) {
-			for (int j=0 ; j< allGreedies.length ; j++) {
-
-				 new FormSetXLoop(allGreedies[j].get(ii), baseTrees).run();
-
-			}
-			Logging.log("------------------------------");
-			gradiant = clusters.getClusterCount() - prev;
-			Logging.log("gradient"+ii +": "+ gradiant);
-			prev = clusters.getClusterCount();
-
-		}
-		prev = 0;
-
-		gradiant = 0;
+		secondRoundSampling(secondRoundSampling, allGreedies, baseTrees);
+		
+		int prev = 0, gradiant = 0;
 		
 		Logging.log("Number of Clusters after addition from gene trees: "+clusters.getClusterCount());
 		
@@ -753,6 +742,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		
 		if (inference.options.getAddExtra() != 0) {
 			this.addExtraBipartitionByDistance();
+
+			Logging.log("Adding to X using resolutions of greedy consensus ...\n");
+
 			for (int l = 0; l < secondRoundSampling; l++) {
 				ArrayList<Tree> genes = new ArrayList<Tree>();
 				for (int j = 0; j < allGreedies.length; j++) {
@@ -767,12 +759,31 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 
 				Logging.log("Number of Clusters after addition by greedy: "
 								+ clusters.getClusterCount());
+				Logging.logTimeMessage(" WQDataCollection 760-763: ");
 				
 				 gradiant = clusters.getClusterCount() - prev;
-				 Logging.log("gradient"+l+" in heuristiic: "+ gradiant);
+				System.err.println("gradient"+l+" in heuristiic: "+ gradiant);
 				 prev = clusters.getClusterCount();
 
 			}
+		}
+	}
+
+	protected void secondRoundSampling(int secondRoundSampling, List<Tree>[] allGreedies,
+			ArrayList<Tree> baseTrees) {
+		int gradiant = 0;
+		int prev = 0;
+		for (int ii=0; ii < secondRoundSampling; ii++) {
+			for (int j=0 ; j< allGreedies.length ; j++) {
+
+				 new FormSetXLoop(allGreedies[j].get(ii), baseTrees).run();
+
+			}
+			Logging.log("------------------------------");
+			gradiant = clusters.getClusterCount() - prev;
+			Logging.log("gradient"+ii +": "+ gradiant);
+			prev = clusters.getClusterCount();
+
 		}
 	}
 
@@ -803,6 +814,21 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	 */
 	private void calculateDistances() {
 		
+        if (options.isUstarDist()) {
+            // Note that matricesByBranchDistance both populates the similarity matrix and returns the speces level matrix. 
+            this.geneMatrix = new DistanceMatrix(taxid.taxonCount());
+
+        } else {
+            this.geneMatrix = Factory.instance.newSimilarityMatrix(taxid.taxonCount());
+        }
+
+		Logging.log("Calculating distance matrix (for completion of X) ....");
+
+        this.speciesMatrix = this.geneMatrix.populate(treeAllClusters, 
+                this.originalInompleteGeneTrees,
+                GlobalMaps.taxonNameMap.getSpeciesIdMapper());	
+        Logging.log("");
+        /*
 		Logging.log("Calculating quartet distance matrix (for completion of X)");
 
 		this.geneMatrix = Factory.instance.newSimilarityMatrix(
@@ -812,6 +838,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		this.speciesMatrix = GlobalMaps.taxonNameMap
 				.getSpeciesIdMapper().convertToSpeciesDistance(
 						this.geneMatrix);// this.similarityMatrix.convertToSpeciesDistance(spm);
+						*/
 	}
 
 	/**
@@ -924,9 +951,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	 * Completes all the gene trees using a heuristic algorithm described in
 	 * Siavash's dissertation. Uses the distance matrix for completion.
 	 */
-	private void completeGeneTrees() {
-		System.err
-				.println("Will attempt to complete bipartitions from X before adding using a distance matrix.");
+	protected void completeGeneTrees() {
+		Logging.log("Will attempt to complete bipartitions from X before adding using a distance matrix.");
 		int t = 0;
 		BufferedWriter completedFile = null;
 		if (this.options.isOutputCompletedGenes()) {
@@ -958,7 +984,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 				throw new RuntimeException(e);
 			}
 			if (!options.isRunSearch()) {
-				Logging.log("Stopping after outputting completed gene tree");
+				System.err.println("Stopping after outputting completed gene tree");
 				System.exit(0);
 			}
 		}
@@ -1016,16 +1042,53 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	 *            : the input trees contracted to the subsample
 	 * @param sis
 	 *            : the single-individual subsample information
+	 * @return 
 	 */
-	void addExtraBipartitionByHeuristics(Collection<Tree> contractedTrees,
+	ArrayList addExtraBipartitionByHeuristics(Collection<Tree> contractedTrees,
 			TaxonIdentifier tid, int polylimit) {
 
+		Collection<Tree> allGreedies = prepareConsensusTrees(contractedTrees, tid, polylimit);
+		int th = 0;
+		//int max= 0;
+		/**
+		 * For each greedy consensus tree, use it to add extra bipartitions to
+		 * the tree.
+		 */
+		ArrayList stringOutput = new ArrayList();
+		for (Tree cons : allGreedies) {
+			double thresh = this.GREEDY_ADDITION_THRESHOLDS[th];
+			myLog("Threshold " + thresh + ":" + "\n",stringOutput);
+
+			for (TNode greedyNode : cons.postTraverse()) {
+
+				if (greedyNode.isLeaf() || greedyNode.getChildCount() <= 2) {
+					continue;
+				}
+				
+				myLog(invokeRunner(new addExtraBipartitionByHeuristicsLoop(
+						greedyNode, tid, th, contractedTrees)), stringOutput);
+			}
+			th = (th + 1) % this.GREEDY_ADDITION_THRESHOLDS.length;
+		}
+		return stringOutput;
+	}
+	
+	protected void myLog(Object log, ArrayList stringOutput) {
+		Logging.log(log.toString());
+	}
+	
+	protected Object invokeRunner(addExtraBipartitionByHeuristicsLoop callable) {
+		return callable.call();
+	}
+
+	protected Collection<Tree> prepareConsensusTrees(Collection<Tree> contractedTrees, TaxonIdentifier tid,
+			int polylimit) {
 		// Greedy trees. These will be based on sis taxon identifier
 		Collection<Tree> allGreedies;
 
 		Logging.log("Computing greedy consensus  ");
-		System.err
-				.println("Adding to X using resolutions of greedy consensus ...");
+		long t = System.currentTimeMillis();
+		Logging.log("Adding to X using resolutions of greedy consensus ...");
 		for (Tree tree : contractedTrees) {
 			tree.rerootTreeAtEdge(tid.getTaxonName(0));
 			Trees.removeBinaryNodes((MutableTree) tree);
@@ -1037,10 +1100,12 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		 * " complete trees found. Greedy-based completion not applicable.");
 		 * return; }
 		 */
-		allGreedies = Utils.greedyConsensus(contractedTrees,
+		allGreedies = Factory.instance.greedyCons().greedyConsensus(contractedTrees,
 				this.GREEDY_ADDITION_THRESHOLDS, true, 1, tid, true);
 		int sumDegrees = 0;
 		
+		Logging.log("took "+ ((System.currentTimeMillis()-t)/1000+" seconds"));
+
 		ArrayList<Integer> deg = new ArrayList<Integer>();
 		for (Tree cons : allGreedies) {			
 			for (TNode greedyNode : cons.postTraverse()) {
@@ -1072,35 +1137,14 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		else
 			polytomySizeLimit = polylimit;
 
-		Logging.log("polytomy size limit : "+ polytomySizeLimit);
-		System.err.print("discarded polytomies: ");
+		Logging.log("polytomy size limit : > " + polytomySizeLimit);
+		Logging.log("discarded polytomies: ");
 		for(int d: deg){
 			if(d > polytomySizeLimit)
-				System.err.print(d+" ");
+				Logging.log(d+" ");
 		}
 		Logging.log(" "+deg);
-		int th = 0;
-		//int max= 0;
-		/**
-		 * For each greedy consensus tree, use it to add extra bipartitions to
-		 * the tree.
-		 */
-		for (Tree cons : allGreedies) {
-			double thresh = this.GREEDY_ADDITION_THRESHOLDS[th];
-			Logging.log("Threshold " + thresh + ":");
-
-			for (TNode greedyNode : cons.postTraverse()) {
-
-				if (greedyNode.isLeaf() || greedyNode.getChildCount() <= 2) {
-					continue;
-				}
-				
-				new addExtraBipartitionByHeuristicsLoop(
-						greedyNode, tid, th, contractedTrees).call();
-			}
-			th = (th + 1) % this.GREEDY_ADDITION_THRESHOLDS.length;
-			//Logging.log("max k is :"+ max);
-		}
+		return allGreedies;
 	}
 
 	public class addExtraBipartitionByHeuristicsLoop implements Callable {
@@ -1141,11 +1185,11 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 				comp.flip(0, tid.taxonCount());
 				childbs[i1] = comp;
 
-				System.err.print("polytomy of size " + greedyNode.getChildCount());
+				ret = "polytomy of size " + greedyNode.getChildCount();
 
 				// First resolve the polytomy using distances.
 				WQDataCollection.this.addSubSampledBitSetToX(
-						WQDataCollection.this.speciesMatrix.resolveByUPGMA(
+						((SimilarityMatrix) WQDataCollection.this.speciesMatrix).resolveByUPGMA(
 								Arrays.asList(childbs), true), tid);
 
 				// Resolve by subsampling the greedy.
@@ -1165,11 +1209,11 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 
 					}
 				}
-				Logging.log("; rounds with additions with at least "
+				ret += "; rounds with additions with at least "
 						+ GREEDY_ADDITION_MIN_FREQ + " support: " + k
 						/ GREEDY_ADDITION_IMPROVEMENT_REWARD
-						+ "; clusters: " + clusters.getClusterCount());
-				return "";
+						+ "; clusters: " + clusters.getClusterCount()  + "\n";
+				return ret;
 				
 			}
 	}
@@ -1245,7 +1289,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	 * @param addQuadratic
 	 * @return Whether any clusters of high frequency were added in this round
 	 */
-	private boolean sampleAndResolve(BitSet[] polytomyBSList,
+	protected boolean sampleAndResolve(BitSet[] polytomyBSList,
 			Collection<Tree> inputTrees, boolean addQuadratic,
 			TaxonIdentifier tid, boolean addByDistance, 
 			boolean forceResolution) {
@@ -1272,7 +1316,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 	 * @param randomSample
 	 * @return
 	 */
-	private boolean resolveLinearly(BitSet[] polytomyBSList, 
+	protected boolean resolveLinearly(BitSet[] polytomyBSList, 
 			Collection<Tree> inputTrees, HashMap<String, Integer> randomSample,
 			TaxonIdentifier tid, boolean forceresolution) {
 		int sampleSize = randomSample.size();
@@ -1397,7 +1441,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		return addedHighFreq;
 	}
 
-	private boolean resolveByDistance(BitSet[] polytomyBSList,
+	protected boolean resolveByDistance(BitSet[] polytomyBSList,
 			HashMap<String, Integer> randomSample, boolean quartetAddition,
 			TaxonIdentifier tid) {
 		boolean added = false;
@@ -1414,7 +1458,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		return added;
 	}
 
-	private HashMap<String, Integer> randomSampleAroundPolytomy(
+	protected HashMap<String, Integer> randomSampleAroundPolytomy(
 			BitSet[] polyTomy, TaxonIdentifier id) {
 		HashMap<String, Integer> randomSample = new HashMap<String, Integer>();
 		int ind = 0;
@@ -1436,7 +1480,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		return this.addSpeciesBitSetToX(stnewBS);
 	}
 
-	private boolean addSubSampledBitSetToX(
+	boolean addSubSampledBitSetToX(
 			Iterable<BitSet> restrictedBitSetList, TaxonIdentifier tid) {
 		boolean added = false;
 		for (BitSet restrictedBitSet : restrictedBitSetList) {
@@ -1445,7 +1489,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		return added;
 	}
 
-	private boolean addDoubleSubSampledBitSetToX(BitSet[] childbs,
+	protected boolean addDoubleSubSampledBitSetToX(BitSet[] childbs,
 			Iterable<BitSet> restrictedBitSetList, TaxonIdentifier tid) {
 		boolean addded = false;
 		for (BitSet restrictedBitSet : restrictedBitSetList) {
@@ -1503,12 +1547,11 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 		}
 	}
 
-	public Object clone() throws CloneNotSupportedException {
-		WQDataCollection clone = (WQDataCollection) super.clone();
-		clone.clusters = (WQClusterCollection) ((WQClusterCollection) this.clusters)
-				.clone();
-		return clone;
-	}
+//	public Object clone() throws CloneNotSupportedException {
+//		WQDataCollection clone = (WQDataCollection) super.clone();
+//		clone.clusters = (this.clusters).clone();
+//		return clone;
+//	}
 
 	/*
 	 * private BitSet hemogenizeBipartitionByVoting(BitSet b1copy, BitSet

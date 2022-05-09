@@ -76,4 +76,6 @@ public interface IClusterCollection {
 		}
 	}
 
+	//IClusterCollection clone() throws CloneNotSupportedException;
+
 }

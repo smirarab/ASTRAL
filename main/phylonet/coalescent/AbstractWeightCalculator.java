@@ -7,7 +7,7 @@ import phylonet.tree.model.Tree;
 
 public abstract class AbstractWeightCalculator<T> implements Cloneable {
 	
-	private static final boolean TESTRUN = false;
+	protected static final boolean TESTRUN = false;
 	protected int callcounter = 0;
 	protected HashMap<T, Long> weights;
 	boolean save;
@@ -23,7 +23,6 @@ public abstract class AbstractWeightCalculator<T> implements Cloneable {
 	}
 	
 	public int getCalculatedWeightCount() {
-		//return this.callcounter;	
 		if (!save)
 			return this.callcounter;
 		else 
@@ -41,29 +40,29 @@ public abstract class AbstractWeightCalculator<T> implements Cloneable {
 	public Long getWeight(T t) {
 		this.callcounter ++;
 		Long weight = getCalculatedWeight(t);
-		if (weight == null) {
-			//ICalculateWeightTask<T> weigthWork = getWeightCalculateTask(t);
-			//prepareWeightTask(weigthWork, minCostTask);
-			// MP_VERSION: smallWork.fork();
-			weight = TESTRUN ? 0 : calculateWeight(t);
-			int count;
-			if (save && !TESTRUN ) {
-				weights.put(t, weight);
-				count = weights.size();
-			} else {
-				count = this.callcounter;
-			}
-			if (count % 100000 == 0) {
-				System.err.println("Calculated "+ count +" weights; time (seconds): " + (System.currentTimeMillis() - lastTime)/1000);
-				lastTime = System.currentTimeMillis();
-			}
-/*			if (weights.size() == 75318) {
-				System.err.println("here");
-			}*/
-		} else {
-			//System.err.println("Found " + t );
+		if (weight != null) {
+			return weight;
 		}
+
+		weight = TESTRUN ? 0 : calculateWeight(t);
+		saveWeight(t, weight);
+
 		return weight;
+	}
+	
+	protected void saveWeight(T t, Long weight) {
+		int count;
+		if (save && !TESTRUN) {
+			weights.put(t, weight);
+			count = weights.size();
+		} else {
+			count = this.callcounter;
+		}
+		if (count % 100000 == 0) {
+			Logging.log("Calculated "+ count +" weights; time (seconds): " + (System.currentTimeMillis() - lastTime)/1000);
+			lastTime = System.currentTimeMillis();
+		}
+
 	}
 
 	public Long[] calculateWeight(T[] ts) {

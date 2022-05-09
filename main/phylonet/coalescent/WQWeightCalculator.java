@@ -26,7 +26,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 	WQInference inference;
 	private WQDataCollection dataCollection;
-	WeightCalculatorAlgorithm algorithm;
+	protected WeightCalculatorAlgorithm algorithm;
 	private WeightCalculatorAlgorithm tmpalgorithm;
 	
 	public WQWeightCalculator(AbstractInference<Tripartition> inference) {
@@ -39,11 +39,11 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		//tmpalgorithm.setupGeneTrees((WQInference) inference);
 	}
 
-	abstract class WeightCalculatorAlgorithm {
+	protected abstract class WeightCalculatorAlgorithm {
 		long F(long a, long b, long c) {
 			if (a < 0 || b < 0 || c < 0) {
-				throw new RuntimeException("negative side not expected: " + a
-						+ " " + b + " " + c);
+				throw new RuntimeException(
+						"negative side not expected: " + a + " " + b + " " + c);
 			}
 			long ret = (a + b + c - 3);
 			ret *= a * b * c;
@@ -53,11 +53,16 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		abstract Long calculateWeight(Tripartition trip);
 
 		abstract void setupGeneTrees(WQInference inference);
-	}
 
-	@Override
-	public Long calculateWeight(Tripartition t) {
-		return this.algorithm.calculateWeight(t);
+		
+		Long[] calculateWeight(Tripartition [] trips) {
+			int r = 0;
+			Long [] rets = new Long[trips.length];
+			for (Tripartition trip: trips) {
+				rets[r++] = calculateWeight(trip);
+			}
+			return rets;
+		}
 	}
 
 	/**
@@ -429,6 +434,11 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	public int[] geneTreesAsInts() {
 		return ((TraversalWeightCalculator)tmpalgorithm).geneTreesAsInts;
 
+	}
+
+	@Override
+	public Long calculateWeight(Tripartition t) {
+		return this.algorithm.calculateWeight(t);
 	}
 
 

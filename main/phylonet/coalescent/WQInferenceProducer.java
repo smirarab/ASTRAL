@@ -16,12 +16,7 @@ public class WQInferenceProducer extends AbstractInference<Tripartition> {
 	
 	public WQInferenceProducer(WQInferenceConsumerMP in) {
 		super(in.options, in.trees, in.extraTrees, in.toRemoveExtraTrees);
-		try {
-			this.dataCollection =  (AbstractDataCollection<Tripartition>) in.dataCollection.clone();
-		} catch (CloneNotSupportedException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
+		this.dataCollection =  (AbstractDataCollection<Tripartition>) in.dataCollection;
 		GlobalQueues.instance.setQueueClusterResolutions(GlobalQueues.instance.getQueueClusterResolutions());
 		this.queueReadyTripartitions = (new LinkedBlockingQueue<Tripartition>());
 	}
@@ -78,7 +73,7 @@ public class WQInferenceProducer extends AbstractInference<Tripartition> {
 		return new HashClusterCollection(GlobalMaps.taxonIdentifier.taxonCount());
 	}
 
-	public AbstractDataCollectionMP<Tripartition> newCounter(IClusterCollection clusters) {
+	public AbstractDataCollection<Tripartition> newCounter(IClusterCollection clusters) {
 		return new WQDataCollectionMP((HashClusterCollection)clusters, this);
 	}
 
@@ -99,7 +94,7 @@ public class WQInferenceProducer extends AbstractInference<Tripartition> {
 	}
 
 
-	public AbstractWeightCalculatorMP<Tripartition> newWeightCalculator() {
+	public AbstractWeightCalculator<Tripartition> newWeightCalculator() {
 		throw new RuntimeException("Not Implemented");
 	}
 

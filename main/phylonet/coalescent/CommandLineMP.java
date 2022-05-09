@@ -683,11 +683,11 @@ public class CommandLineMP {
 			bootstraps.add(runOnOneInput( extraTrees, toRemoveExtraTrees, outbuffer, trees, null, outgroup, options));
 		}
 		if (bootstraps != null && bootstraps.size() != 0) {
-			STITree<Double> cons = (STITree<Double>) UtilsMP.greedyConsensus(bootstraps, false,
+			STITree<Double> cons = (STITree<Double>) Factory.instance.greedyCons().greedyConsensus(bootstraps, false,
 					GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), false);
 			cons.rerootTreeAtNode(cons.getNode(outgroup));
 			Trees.removeBinaryNodes(cons);
-			UtilsMP.computeEdgeSupports(cons, bootstraps);
+			Utils.computeEdgeSupports(cons, bootstraps);
 			writeTreeToFile(outbuffer, cons);
 		}
 		Logging.logTimeMessage(" ");
@@ -741,7 +741,7 @@ public class CommandLineMP {
 		c.setParentDistance(0);
 		if ((bootstraps != null) && (bootstraps.iterator().hasNext())) {
 			for (Solution solution : solutions) {
-				UtilsMP.computeEdgeSupports((STITree<Double>) solution.getTree(), bootstraps);
+				Utils.computeEdgeSupports((STITree<Double>) solution.getTree(), bootstraps);
 			}
 		}
 		writeTreeToFile(outbuffer, solutions.get(0).getTree());

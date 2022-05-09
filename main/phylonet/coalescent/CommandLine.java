@@ -628,7 +628,7 @@ public class CommandLine{
 		}
 		
 		if (bootstraps != null && bootstraps.size() != 0) {
-		    STITree<Double> cons = (STITree<Double>) Utils.greedyConsensus(bootstraps, false, 
+		    STITree<Double> cons = (STITree<Double>) Factory.instance.greedyCons().greedyConsensus(bootstraps, false, 
 		    		GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), false);
 		    cons.rerootTreeAtNode(cons.getNode(outgroup));
 			Trees.removeBinaryNodes(cons);

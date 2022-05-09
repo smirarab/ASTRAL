@@ -45,5 +45,10 @@ public class FactoryAstral3 extends Factory {
 		return new WQDataCollection((WQClusterCollection)clusters, inference);
 	}
 
+	@Override
+	public GreedyConsensus greedyCons() {
+		return GreedyConsensus.instance;
+	}
+
 
 }

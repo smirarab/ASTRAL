@@ -46,4 +46,9 @@ public class FactoryAstralMP extends Factory {
 	public WQDataCollectionMP newCounter(IClusterCollection clusters, AbstractInference inference) {
 		return new WQDataCollectionMP((HashClusterCollection)clusters, inference);
 	}
+
+	@Override
+	public GreedyConsensus greedyCons() {
+		return GreedyConsensusMP.instance;
+	}
 }

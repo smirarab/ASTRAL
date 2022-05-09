@@ -350,15 +350,15 @@ public abstract class AbstractInference<T> {
 		options.setDLbdWeigth(d);
 	}
 
-	protected Object semiDeepCopy() {
-		try {
-			AbstractInference<T> clone =  (AbstractInference<T>) super.clone();
-			clone.dataCollection = (AbstractDataCollection<T>) this.dataCollection.clone();
-			clone.weightCalculator = (AbstractWeightCalculator<T>) this.weightCalculator.clone();
-			return clone;
-		} catch (CloneNotSupportedException e) {
-			e.printStackTrace();
-			throw new RuntimeException("unexpected error");
-		}
-	}
+//	protected Object semiDeepCopy() {
+//		try {
+//			AbstractInference<T> clone =  (AbstractInference<T>) super.clone();
+//			clone.dataCollection = (AbstractDataCollection<T>) this.dataCollection.clone();
+//			clone.weightCalculator = (AbstractWeightCalculator<T>) this.weightCalculator.clone();
+//			return clone;
+//		} catch (CloneNotSupportedException e) {
+//			e.printStackTrace();
+//			throw new RuntimeException("unexpected error");
+//		}
+//	}
 }

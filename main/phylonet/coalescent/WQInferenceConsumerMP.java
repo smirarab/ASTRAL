@@ -244,14 +244,14 @@ public class WQInferenceConsumerMP extends WQInference {
 	}
 
 	@Override
-	public AbstractWeightCalculatorConsumer<Tripartition> newWeightCalculator() {
+	public AbstractWeightCalculator<Tripartition> newWeightCalculator() {
 		return new WQWeightCalculatorMP(this, GlobalQueues.instance.getQueueWeightResults());
 
 	}
 	
 	@Override
-	public AbstractWeightCalculatorConsumer<Tripartition> newWeightCalculatorForWeigth() {
-		AbstractWeightCalculatorConsumer wc =  newWeightCalculator();
+	public AbstractWeightCalculator<Tripartition> newWeightCalculatorForWeigth() {
+		AbstractWeightCalculator wc =  newWeightCalculator();
 		((WQWeightCalculatorMP)wc).setThreadingOff(true);
 		return wc;
 	}

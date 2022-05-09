@@ -4,19 +4,23 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.TreeSet;
+import java.util.Map.Entry;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import phylonet.coalescent.Utils.ClusterComparator;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 
-public class UtilsMP extends Utils{
-
+public class GreedyConsensusMP extends GreedyConsensus{
 	
-    /***
+	protected GreedyConsensusMP() {};
+	
+	public static GreedyConsensus instance = new GreedyConsensusMP();
+	
+	 /***
      * Greedy consensus with a set of thresholds
      * @param trees
      * @param thresholds
@@ -26,7 +30,8 @@ public class UtilsMP extends Utils{
      * @param keepclusters should we keep clusters as node objects
      * @return
      */
-    public static Collection<Tree> greedyConsensus(Iterable<Tree> trees, 
+	@Override
+    public Collection<Tree> greedyConsensus(Iterable<Tree> trees, 
     		double[] thresholds, boolean randomzie, int repeat, 
     		TaxonIdentifier taxonIdentifier, boolean keepclusters) {
     	Logging.logTimeMessage("Utils 219-222: ");
@@ -91,9 +96,8 @@ public class UtilsMP extends Utils{
 			this.clusters = clusters;
 		}
 		public Tree call() {
-			return UtilsMP.buildTreeFromClusters(clusters, taxonIdentifier, keepclusters);
+			return Utils.buildTreeFromClusters(clusters, taxonIdentifier, keepclusters);
 		}
 	}
-    
-    
+
 }

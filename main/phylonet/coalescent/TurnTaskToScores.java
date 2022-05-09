@@ -51,7 +51,7 @@ public class TurnTaskToScores implements Runnable {
 	final PriorityBlockingQueue<ComparablePair<Long, Integer>> queue2Helper;
 	final BlockingQueue<Long> queueWeightResults;
 	final BlockingQueue<Tripartition> tripartitionsQueue;
-	final AbstractWeightCalculatorMP<Tripartition> wqWeightCalculator;
+	final AbstractWeightCalculator<Tripartition> wqWeightCalculator;
 	final WQInferenceConsumerMP inference;
 	final WQDataCollectionMP dataCollection;
 	
@@ -71,7 +71,7 @@ public class TurnTaskToScores implements Runnable {
 
 	public TurnTaskToScores(WQInferenceConsumerMP inf, BlockingQueue<Tripartition> queue1) {
 		this.inference = inf;
-		this.wqWeightCalculator = (AbstractWeightCalculatorMP<Tripartition>) inf.weightCalculator;
+		this.wqWeightCalculator = (AbstractWeightCalculator<Tripartition>) inf.weightCalculator;
 		this.dataCollection = (WQDataCollectionMP) inf.dataCollection;
 		this.tripartitionsQueue = queue1;
 		this.queueWeightResults = GlobalQueues.instance.getQueueWeightResults();

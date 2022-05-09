@@ -21,16 +21,21 @@ import phylonet.util.BitSet;
  * @author smirarab
  *
  */
-class WQWeightCalculatorMP extends AbstractWeightCalculatorConsumer<Tripartition> {
+class WQWeightCalculatorMP extends WQWeightCalculator{
 	//public static boolean HAS_NOT = true;
 	//public static boolean WRITE_OR_DEBUG = false;
 	AbstractInference<Tripartition> inference;
 	private WQDataCollectionMP dataCollection;
-	WeightCalculatorAlgorithm algorithm;
+	//WeightCalculatorAlgorithm algorithm;
 	private TraversalWeightCalculator tmpalgorithm;
+	
+	private LinkedBlockingQueue<Long> queue;
+	private boolean threadingOff = false;
 
 	public WQWeightCalculatorMP(AbstractInference<Tripartition> inference, LinkedBlockingQueue<Long> queue2) {
-		super(false, queue2);
+		super(inference);
+		this.queue = queue2;
+		this.lastTime = System.currentTimeMillis();
 		this.dataCollection = (WQDataCollectionMP) inference.dataCollection;
 		this.inference = (WQInferenceConsumerMP) inference;
 
@@ -42,30 +47,55 @@ class WQWeightCalculatorMP extends AbstractWeightCalculatorConsumer<Tripartition
 
 
 	}
-
-	abstract class WeightCalculatorAlgorithm {
-		long F(long a, long b, long c) {
-			if (a < 0 || b < 0 || c < 0) {
-				throw new RuntimeException(
-						"negative side not expected: " + a + " " + b + " " + c);
-			}
-			long ret = (a + b + c - 3);
-			ret *= a * b * c;
-			return ret;
-		}
-
-		abstract Long calculateWeight(Tripartition t);
-		abstract void setupGeneTrees(WQInference inference);
-		
-		Long[] calculateWeight(Tripartition [] trips) {
-			int r = 0;
-			Long [] rets = new Long[trips.length];
-			for (Tripartition trip: trips) {
-				rets[r++] = calculateWeight(trip);
-			}
-			return rets;
-		}
+	
+	
+	public int getCalculatedWeightCount() {
+		return this.callcounter;
+}
+	
+	public Long calculateWeight(Tripartition t) {
+		return this.calculateWeight(new Tripartition[] {(Tripartition) t})[0];
 	}
+
+	public Long getWeight(Tripartition t) {
+		this.callcounter ++;
+		Long weight = getCalculatedWeight(t);
+		if (weight != null) {
+			return weight;
+		}
+
+		if(isThreadingOff()) { // After the main DP, for computing final score. 		
+			weight =  calculateWeight(t);
+			saveWeight(t, weight);
+			return weight;
+		}
+
+		try {
+			weight = queue.take();
+		}
+		catch(Exception e) {
+			throw new RuntimeException(e);
+		}
+		if(weight == TurnTaskToScores.THEEND) {// After the main DP, for computing final score, we switch to local calculator
+			setThreadingOff(true);
+			weight =  calculateWeight(t);
+		}
+		saveWeight(t, weight);
+
+		return weight;
+
+	}
+
+
+	public boolean isThreadingOff() {
+		return threadingOff;
+	}
+
+	public void setThreadingOff(boolean done) {
+		this.threadingOff = done;
+
+	}
+	
 
 	/**
 	 * one of ASTRAL-III way of calculating weights
@@ -439,20 +469,16 @@ class WQWeightCalculatorMP extends AbstractWeightCalculatorConsumer<Tripartition
 	public int[] geneTreesAsInts() {
 		return (tmpalgorithm).geneTreesAsInts;
 	}
-	//TODO: this is algorithm-specific should not be exposed. Fix. 
-	public int maxHeight() {
-		return ((TraversalWeightCalculator)tmpalgorithm).maxHeight;
-	}
-	
 	@Override
 	public Long[] calculateWeight(Tripartition[] t) {
 		return this.algorithm.calculateWeight(t);
 	}
 
-	@Override
-	Tripartition[] convertToSingletonArray(Tripartition t) {
-		return new Tripartition[]{t};
+	//TODO: this is algorithm-specific should not be exposed. Fix. 
+	public int maxHeight() {
+		return ((TraversalWeightCalculator)tmpalgorithm).maxHeight;
 	}
+
 
 
 

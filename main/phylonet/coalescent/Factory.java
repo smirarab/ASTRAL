@@ -22,6 +22,7 @@ public abstract class Factory {
 
 	public abstract AbstractDataCollection newCounter(IClusterCollection clusters, AbstractInference inference);
 
+	public abstract GreedyConsensus greedyCons();
 
 
 }

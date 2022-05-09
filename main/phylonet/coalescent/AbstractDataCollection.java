@@ -5,9 +5,8 @@ import java.util.List;
 
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
-import phylonet.tree.model.sti.STITreeClusterMP;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
-import phylonet.tree.model.sti.STITreeClusterMP.VertexMP;
+import phylonet.tree.model.sti.STITreeClusterMP;
 import phylonet.util.BitSet;
 
 /**
@@ -85,7 +84,7 @@ public abstract class AbstractDataCollection <T> {
 	
 	@Override
 	protected Object clone() throws CloneNotSupportedException {
-		return (AbstractDataCollectionMP) super.clone();
+		return (AbstractDataCollection) super.clone();
 	}
 
 }
