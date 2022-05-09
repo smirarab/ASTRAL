@@ -3,6 +3,7 @@ package phylonet.dl;
 import java.util.List;
 
 import phylonet.coalescent.AbstractComputeMinCostTask;
+import phylonet.coalescent.CannotResolveException;
 import phylonet.coalescent.GlobalMaps;
 import phylonet.coalescent.IClusterCollection;
 import phylonet.coalescent.IClusterCollection.VertexPair;
@@ -10,19 +11,22 @@ import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.tree.model.sti.STITreeCluster.VertexASTRAL3;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class DLComputeMinCostTask extends AbstractComputeMinCostTask<STBipartition>{
 
 	DLInference inference;
 	DLDataCollection dataCollection;
 	DLWeightCalculator weightCalculator;
+	VertexASTRAL3 v;
 	
 	public DLComputeMinCostTask(DLInference inference, Vertex v,
 			IClusterCollection clusters) {
-		super(inference, (VertexASTRAL3) v, null);
+		super(inference, null);
 		this.inference = inference;
 		dataCollection = (DLDataCollection)inference.dataCollection;
 		weightCalculator = (DLWeightCalculator) inference.weightCalculator;
+		this.v = (VertexASTRAL3) v;
 	}
 	
 	protected double adjustWeight(long clusterLevelCost, Vertex smallV,
@@ -118,6 +122,11 @@ public class DLComputeMinCostTask extends AbstractComputeMinCostTask<STBipartiti
 	@Override
 	protected Long defaultWeightForFullClusters() {
 		return null;
+	}
+
+	@Override
+	protected long computeMinCost() throws CannotResolveException {
+		throw new NotImplementedException();
 	}
 
 }

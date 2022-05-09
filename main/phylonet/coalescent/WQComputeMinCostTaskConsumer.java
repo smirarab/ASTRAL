@@ -1,15 +1,12 @@
 package phylonet.coalescent;
 
-import java.util.List;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import phylonet.coalescent.IClusterCollection.VertexPair;
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
-import phylonet.tree.model.Tree;
-import phylonet.tree.model.sti.STITreeClusterMP;
 import phylonet.tree.model.sti.STITreeClusterMP.VertexMP;
 
-public class WQComputeMinCostTaskConsumer extends AbstractComputeMinCostTask<Tripartition>{
+public class WQComputeMinCostTaskConsumer extends WQComputeMinCostTask{
 
 	WQDataCollectionMP wqDataCollection;
 	//final byte getDoneState = 3;
@@ -21,49 +18,11 @@ public class WQComputeMinCostTaskConsumer extends AbstractComputeMinCostTask<Tri
 		this.wqDataCollection = (WQDataCollectionMP)inference.dataCollection;
 		this.v = v;
 	}
-	
-	
-
-	protected double adjustWeight(long clusterLevelCost, Vertex smallV,
-			Vertex bigv, Long Wdom) {	
-		return Wdom;
-	}
-
-
-
-	@Override
-	protected long scoreBaseCase(boolean rooted, List<Tree> trees) {	
-		return 0l;
-	}
-
-
 
 	@Override
 	protected AbstractComputeMinCostTask<Tripartition> newMinCostTask( Vertex v,
 			IClusterCollection clusters) {
 		return new WQComputeMinCostTaskConsumer(inference, (VertexMP) v);
-	}
-
-
-
-	@Override
-	protected long calculateClusterLevelCost() {
-		return 0l;
-	}
-
-
-
-	@Override
-	protected Tripartition STB2T(VertexPair vp) {
-		return new Tripartition(
-				(STITreeClusterMP)vp.cluster1.getCluster(), 
-				(STITreeClusterMP)vp.cluster2.getCluster(), 
-				(STITreeClusterMP)vp.both.getCluster().complementaryCluster());
-	}
-
-	@Override
-	protected Long defaultWeightForFullClusters() {
-		return 0l;
 	}
 	
 	@Override
