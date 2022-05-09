@@ -2,9 +2,6 @@ package phylonet.coalescent;
 
 import java.util.Random;
 
-import phylonet.tree.model.sti.STITreeClusterMP;
-import phylonet.util.BitSet;
-
 public class TaxonIdentifierMP extends TaxonIdentifier {
 
 	/**
@@ -23,10 +20,5 @@ public class TaxonIdentifierMP extends TaxonIdentifier {
 			hash2[i] = ( rnd.nextLong() ^ rnd.nextLong() ) +  ( rnd.nextLong() ^ rnd.nextLong() );
 			//System.err.println(idToName.get(i) +" "+hash1[i] +" "+ hash2[i]);
 		}
-	}
-
-	@Override
-	public  STITreeClusterMP getClusterForNodeName(String nodeName) {
-		return (STITreeClusterMP) (super.getClusterForNodeName(nodeName));
 	}
 }

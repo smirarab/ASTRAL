@@ -223,7 +223,6 @@ public class WQInferenceConsumerMP extends WQInference {
 
 	}
 
-
 	@Override
 	public AbstractComputeMinCostTask<Tripartition> newComputeMinCostTask(
 			AbstractInference<Tripartition> inference, Vertex all, IClusterCollection clusters) {

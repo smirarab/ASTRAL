@@ -33,7 +33,6 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		super(false);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
 		this.inference = (WQInference) inference;
-		//this.algorithm = new TraversalWeightCalculator();
 		this.algorithm = new CondensedTraversalWeightCalculator();
 		tmpalgorithm = new TraversalWeightCalculator();
 		//tmpalgorithm.setupGeneTrees((WQInference) inference);
@@ -77,13 +76,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		Long calculateWeight(Tripartition trip) {
 			return polytree.WQWeightByTraversal(trip, this);
 		}
-
-		/***
-		* Each gene tree is represented as a list of integers, using positive numbers
-		* for leaves, where the number gives the index of the leaf. 
-		* We use negative numbers for internal nodes, where the value gives the number of children. 
-		* Minus infinity is used for separating different genes. 
-		*/
+		
 		@Override
 		void setupGeneTrees(WQInference inference) {
 			Logging.log("Using polytree-based weight calculation.");
@@ -105,6 +98,8 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		int[][] overlapind = new int[GlobalMaps.taxonIdentifier.taxonCount() + 1][3];
 
 		int[] geneTreesAsInts;
+		
+		public int maxHeight;
 
 		Long calculateWeight(Tripartition trip) {
 
@@ -224,38 +219,42 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		void setupGeneTrees(WQInference inference) {
 			Logging.log("Using tree-based weight calculation.");
 			List<Integer> temp = new ArrayList<Integer>();
-
+			
+			Stack<Integer> stackHeight = new Stack<Integer>();
+			maxHeight = 0;
 			for (Tree tr : inference.trees) {
-				List<STINode> children = new ArrayList<STINode>();
-				int n = tr.getLeafCount()/2;
-				int dist = n;
-				TNode newroot = tr.getRoot();
+				List<STINode> toswap = new ArrayList<STINode>();
 				for (TNode node : tr.postTraverse()) {
-					if (!node.isLeaf()) {                        
-						for (TNode child : node.getChildren()) {
-							if (child.isLeaf()) {
-								children.add((STINode) child);
-								break;
-							}
+					if (node.isLeaf()) {                        
+						stackHeight.push(0);
+						toswap.add((STINode) node);
+					} else {
+						int mh = 0;
+						for (TNode child: node.getChildren()) {
+							int childheight = stackHeight.pop();
+							if(childheight > mh) {
+								mh = childheight;
+							} 
 						}
-						if (Math.abs(n - node.getLeafCount()) < dist) {
-							newroot = node;
-							dist = n - node.getLeafCount();
-						}
+						mh++;
+						stackHeight.push(mh);
+					}
+					if (node.isRoot()) {
+						stackHeight.clear();
+					}
+					if(stackHeight.size()>maxHeight) {
+						maxHeight = stackHeight.size();
 					}
 				}
+
 				// Make the tree left-heavy so that the stack gets small
-				for (STINode child: children) {
+				// Problem: Phylonet's adoptChild does not work. Only going for leaves. 
+				for (STINode child: toswap) {
 						STINode snode = child.getParent();
 						snode.removeChild((TMutableNode) child, false);
-						TMutableNode newChild = snode.createChild(child);
-						if (child == newroot) {
-							newroot = newChild;
-						}
+						snode.createChild(child);
 				}
-				if (newroot != tr.getRoot()){
-					((STITree)(tr)).rerootTreeAtEdge(newroot);
-				}
+
 				for (TNode node : tr.postTraverse()) {
 					if (node.isLeaf()) {
 						temp.add(GlobalMaps.taxonIdentifier.taxonId(node.getName()));
@@ -271,6 +270,10 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			for(int i = 0; i < geneTreesAsInts.length; i++)
 				  geneTreesAsInts[i] = temp.get(i);
 
+		}
+		
+		public int[] geneTreesAsInts() {
+			return this.geneTreesAsInts;
 		}
 
 	}

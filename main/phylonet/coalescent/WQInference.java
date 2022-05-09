@@ -889,8 +889,6 @@ public class WQInference extends AbstractInference<Tripartition> {
 		return (WQDataCollection) Factory.instance.newCounter(clusters, this);
 	}
 
-
-
 	@Override
 	public  AbstractWeightCalculator<Tripartition> newWeightCalculator() {
 		return new WQWeightCalculator(this);
