@@ -141,12 +141,6 @@ public class STITreeClusterMP extends STITreeCluster
 		return cc;
 	}
 
-
-	@Override
-	public STITreeClusterMP clone() {
-		return new STITreeClusterMP(this);
-	}
-
 	@Override
 	public void updateHash()
 	{

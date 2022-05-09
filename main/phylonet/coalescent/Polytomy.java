@@ -11,8 +11,9 @@ public class Polytomy<T extends STITreeCluster> extends AbstractPartition<T> {
 		clusters = (T[]) new STITreeCluster[cs.length];
 		long[] ns = new long[cs.length];
 		for (int i = 0; i < cs.length; i++){
+			cs[i].updateHash();
 			clusters[i] = (T) new STITreeCluster(cs[i]);
-			ns[i] = cs[i].getBitSet().nextSetBit(0);
+			ns[i] = cs[i].partionId();
 		}
 		arrange(cs, ns);
 	}
@@ -48,10 +49,19 @@ public class Polytomy<T extends STITreeCluster> extends AbstractPartition<T> {
 	public int hashCode() {
 		if (_hash == 0) {
 			for (int i = 0; i < clusters.length; i++){
-				_hash += clusters[i].hashCode();
+				_hash = _hash * 33 + clusters[i].hashCode();
 			}
 		}
 		return _hash;
+	}
+	
+	@Override
+	public String toString() {
+		String s = "Polytomy:";
+		for (int i = 0; i < clusters.length; i++){
+			s += "|" + clusters[i].toString();
+		}
+		return s;
 	}
 
 }

@@ -68,8 +68,8 @@ public class Polytree {
 				if (cs.size() == 3) 
 					p = new Tripartition(cs.get(0), cs.get(1), cs.get(2));
 				else {
-					p = new PolytomyMP();
-					((PolytomyMP)p).initalize(cs.toArray(new STITreeClusterMP[]{}));
+					p = new Polytomy();
+					((Polytomy)p).initalize(cs.toArray(new STITreeClusterMP[]{}));
 				}
 				partition = Polytree.this.partitions.get(p);
 				if (partition != null){
