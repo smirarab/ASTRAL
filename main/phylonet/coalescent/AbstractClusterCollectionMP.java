@@ -35,7 +35,7 @@ public abstract class AbstractClusterCollectionMP extends AbstractClusterCollect
 		STITreeCluster cluster = v.getCluster();
 		int size = cluster.getClusterSize();
 		AbstractClusterCollection ret = newInstance(size);
-		addClusterToRet((Vertex) v, size, ret);
+		addClusterToRet(v, size, ret);
 		CountDownLatch latch = new CountDownLatch(size - 1);
 		for (int i = size - 1 ; i > 0; i--) {
 			Threading.execute(newContainedClustersLoop(ret, (Vertex) v, i, latch));
@@ -85,25 +85,7 @@ public abstract class AbstractClusterCollectionMP extends AbstractClusterCollect
 	protected void addClusterToRet(Vertex vertex, int size, IClusterCollection ret) {
 		ret.addCluster(vertex, size);	
 	}
-	
-	public abstract AbstractClusterCollectionMP newInstance(int size);
 
-	
-	//TODO: Why is this commented? 
-	/*public AbstractClusterCollection clone() throws CloneNotSupportedException {
-		AbstractClusterCollection clone = (AbstractClusterCollection) super.clone();
-		clone.clusters = new ArrayList<Set<Vertex>>();
-
-		for (Set<Vertex> vset : this.clusters) {
-			HashSet<Vertex> nset = new HashSet<STITreeCluster.Vertex>();
-			clone.clusters.add(nset);
-			for (Vertex v: vset) {
-				nset.add(v.copy());
-			}
-		}
-
-		return clone;
-	}*/
 
 
 }

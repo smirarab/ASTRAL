@@ -35,44 +35,15 @@ public class GreedyConsensusMP extends GreedyConsensus{
     		double[] thresholds, boolean randomzie, int repeat, 
     		TaxonIdentifier taxonIdentifier, boolean keepclusters) {
     	Logging.logTimeMessage("Utils 219-222: ");
-			
-    	List<Tree> outTrees = new ArrayList<Tree>();
-        HashMap<STITreeCluster, Integer> count = new HashMap<STITreeCluster, Integer>();
-        int treecount = countClusteres(trees, taxonIdentifier, count);
+						
+        ArrayList futures = new ArrayList();
+        List<Tree> outTrees =  new ArrayList<Tree>();
         
-        Logging.logTimeMessage("Utils 240-243: " );
-			
-        ArrayList<Future<Tree>> futures = new ArrayList<Future<Tree>>();
-        for (int gi = 0; gi < repeat; gi++) {
-        	TreeSet<Entry<STITreeCluster,Integer>> countSorted = new 
-        			TreeSet<Entry<STITreeCluster,Integer>>(new ClusterComparator(randomzie, taxonIdentifier.taxonCount()));
+        super.greedyConsensus(trees, thresholds, randomzie, repeat, taxonIdentifier, keepclusters, futures);
         
-	        countSorted.addAll(count.entrySet());
-	        
-	        int ti = thresholds.length - 1;
-	        double threshold = thresholds[ti];
-	        List<STITreeCluster> clusters = new ArrayList<STITreeCluster>();   
-	        for (Entry<STITreeCluster, Integer> entry : countSorted) {
-	        	if (threshold > (entry.getValue()+.0d)/treecount) {	
-	        		List<STITreeCluster> clusterCopy = new ArrayList<STITreeCluster>(clusters);
-	        		futures.add(Threading.submit(new greedyConsensusLoop(taxonIdentifier, keepclusters, clusterCopy)));
-	        		ti--;
-	        		if (ti < 0) {
-	        			break;
-	        		}
-	        		threshold = thresholds[ti];
-	        	}
-	    		clusters.add(entry.getKey());
-	        }
-	        while (ti >= 0) {
-        		List<STITreeCluster> clusterCopy = new ArrayList<STITreeCluster>(clusters);
-        		futures.add(Threading.submit(new greedyConsensusLoop(taxonIdentifier, keepclusters, clusterCopy)));
-	    		ti--;
-	        }
-        }
         for(int i = 0; i < futures.size(); i++) {
         	try {
-				outTrees.add(0, futures.get(i).get());
+				outTrees.add(((Future<Tree>) futures.get(i)).get());
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 				throw new RuntimeException(e);
@@ -85,6 +56,12 @@ public class GreedyConsensusMP extends GreedyConsensus{
 			
         return outTrees;
     }
+	
+	protected Object processOneSet(TaxonIdentifier taxonIdentifier, boolean keepclusters,
+			List<STITreeCluster> clusters) {
+		List<STITreeCluster> clusterCopy = new ArrayList<STITreeCluster>(clusters);
+		return Threading.submit(new greedyConsensusLoop(taxonIdentifier, keepclusters, clusterCopy));
+	}
 	
     public static class greedyConsensusLoop implements Callable<Tree>{
 		TaxonIdentifier taxonIdentifier;

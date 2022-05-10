@@ -61,7 +61,14 @@ public class GreedyConsensus {
     
     	List<Tree> outTrees = new ArrayList<Tree>();
 
-        HashMap<STITreeCluster, Integer> count = new HashMap<STITreeCluster, Integer>();
+        greedyConsensus(trees, thresholds, randomzie, repeat, taxonIdentifier, keepclusters, outTrees);
+        
+        return outTrees;
+    }
+
+	protected void greedyConsensus(Iterable<Tree> trees, double[] thresholds, boolean randomzie, int repeat,
+			TaxonIdentifier taxonIdentifier, boolean keepclusters, List results) {
+		HashMap<STITreeCluster, Integer> count = new HashMap<STITreeCluster, Integer>();
         int treecount = countClusteres(trees, taxonIdentifier, count);
         
         Logging.logTimeMessage("Utils 240-243: " );
@@ -77,7 +84,7 @@ public class GreedyConsensus {
 	        List<STITreeCluster> clusters = new ArrayList<STITreeCluster>(); 
 	        for (Entry<STITreeCluster, Integer> entry : countSorted) {
 	        	if (threshold > (entry.getValue()+.0d)/treecount) {	
-	        		outTrees.add(0,Utils.buildTreeFromClusters(clusters, taxonIdentifier, keepclusters));
+					results.add(0,processOneSet(taxonIdentifier, keepclusters, clusters));
 	        		ti--;
 	        		if (ti < 0) {
 	        			break;
@@ -87,13 +94,17 @@ public class GreedyConsensus {
 	    		clusters.add(entry.getKey());
 	        }
 	        while (ti >= 0) {
-	        	outTrees.add(0, Utils.buildTreeFromClusters(clusters, taxonIdentifier, keepclusters));
+	        	results.add(0, processOneSet(taxonIdentifier, keepclusters, clusters));
 	    		ti--;
 	        }
         }
-        
-        return outTrees;
-    }
+	}
+
+	protected Object processOneSet(TaxonIdentifier taxonIdentifier, boolean keepclusters,
+			List<STITreeCluster> clusters) {
+		Object buildTreeFromClusters = Utils.buildTreeFromClusters(clusters, taxonIdentifier, keepclusters);
+		return buildTreeFromClusters;
+	}
 
 
 	protected int countClusteres(Iterable<Tree> trees, TaxonIdentifier taxonIdentifier,
