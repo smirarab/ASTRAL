@@ -1,5 +1,8 @@
 package phylonet.coalescent;
 
+import java.util.List;
+
+import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.util.BitSet;
 
@@ -23,5 +26,10 @@ public abstract class Factory {
 	public abstract AbstractDataCollection newCounter(IClusterCollection clusters, AbstractInference inference);
 
 	public abstract GreedyConsensus greedyCons();
+	
+	public abstract LoggerInterface newLogger();
+
+	public abstract AbstractInference newInference(Options inOptions, List<Tree> trees, List<Tree> extraTrees,
+			List<Tree> toRemoveExtraTrees);
 
 }

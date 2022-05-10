@@ -3,6 +3,7 @@
 	- Major changes to ASTRAL3:
 		- Double changed to Long many places (score)
 		- Some (supposedly) logic-preserving changes to distance matrix code
+		- Changed when gene trees are rerooted and also did a bit of left/right balancing
 	- Major changes to ASTRAL-MP:
 		- Bug fix: detected and fixed an issue with distance matrices
 

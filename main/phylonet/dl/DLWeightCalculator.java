@@ -194,5 +194,13 @@ class DLWeightCalculator extends AbstractWeightCalculator<STBipartition>{
 		// TODO Auto-generated method stub
 		
 	}
+	
+	public Long[] calculateWeight(STBipartition[] ts) {
+		Long [] ret = new Long[ts.length];
+		int i = 0;
+		for (STBipartition t: ts)
+			ret[i++] = this.calculateWeight(t);
+		return ret;
+	}
 
 }

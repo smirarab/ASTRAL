@@ -1,13 +1,7 @@
 package phylonet.coalescent;
 
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
 import java.util.concurrent.LinkedBlockingQueue;
-
-import phylonet.tree.model.TNode;
-import phylonet.tree.model.Tree;
 
 /**
  * Knows how to compute the score of a given tripartition
@@ -15,8 +9,6 @@ import phylonet.tree.model.Tree;
  *
  */
 class WQWeightCalculatorMP extends WQWeightCalculator{
-
-	private TraversalWeightCalculator tmpalgorithm;
 	
 	private LinkedBlockingQueue<Long> queue;
 	private boolean threadingOff = false;
@@ -26,7 +18,6 @@ class WQWeightCalculatorMP extends WQWeightCalculator{
 		this.queue = queue2;
 		this.lastTime = System.currentTimeMillis();
 		this.algorithm = new CondensedTraversalWeightCalculator();
-		tmpalgorithm = new TraversalWeightCalculator();
 		//tmpalgorithm.setupGeneTrees((WQInference) inference);
 	}
 	
@@ -34,11 +25,7 @@ class WQWeightCalculatorMP extends WQWeightCalculator{
 	public int getCalculatedWeightCount() {
 		return this.callcounter;
 	}
-	
-	@Override
-	public Long calculateWeight(Tripartition t) {
-		return this.calculateWeight(new Tripartition[] {(Tripartition) t})[0];
-	}
+
 
 	@Override
 	public Long getWeight(Tripartition t) {
@@ -93,30 +80,6 @@ class WQWeightCalculatorMP extends WQWeightCalculator{
 		void setupGeneTrees(WQInference inference) {
 			polytree = new Polytree(inference.trees, (WQDataCollectionMP) dataCollection);
 		}
-	}
-
-	/**
-	 * Each algorithm will have its own data structure for gene trees
-	 * @param wqInference
-	 */
-	@Override
-	public void setupGeneTrees(WQInference wqInference) {
-		tmpalgorithm.setupGeneTrees((WQInferenceConsumerMP) wqInference);
-		this.algorithm.setupGeneTrees(wqInference);
-	}
-
-	//TODO: this is algorithm-specific should not be exposed. Fix.
-	public int[] geneTreesAsInts() {
-		return (tmpalgorithm).geneTreesAsInts;
-	}
-	@Override
-	public Long[] calculateWeight(Tripartition[] t) {
-		return this.algorithm.calculateWeight(t);
-	}
-
-	//TODO: this is algorithm-specific should not be exposed. Fix. 
-	public int maxHeight() {
-		return ((TraversalWeightCalculator)tmpalgorithm).maxHeight;
 	}
 
 

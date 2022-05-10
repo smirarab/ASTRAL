@@ -65,13 +65,15 @@ public abstract class AbstractWeightCalculator<T> implements Cloneable {
 
 	}
 
-	public Long[] calculateWeight(T[] ts) {
+	/*public Long[] calculateWeight(T[] ts) {
 		Long [] ret = new Long[ts.length];
 		int i = 0;
 		for (T t: ts)
 			ret[i++] = this.calculateWeight(t);
 		return ret;
-	}
+	}*/
+	
+	public abstract Long[] calculateWeight(T[] ts);
 	
 	protected abstract Long calculateWeight(T t);
 	

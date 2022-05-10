@@ -1,5 +1,8 @@
 package phylonet.coalescent;
 
+import java.util.List;
+
+import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.tree.model.sti.STITreeClusterMP;
 import phylonet.util.BitSet;
@@ -50,5 +53,16 @@ public class FactoryAstralMP extends Factory {
 	@Override
 	public GreedyConsensus greedyCons() {
 		return GreedyConsensusMP.instance;
+	}
+
+	@Override
+	public LoggerInterface newLogger() {
+		return new ThreadedLogger();
+	}
+
+	@Override
+	public AbstractInference newInference(Options inOptions, List<Tree> trees, List<Tree> extraTrees,
+			List<Tree> toRemoveExtraTrees) {
+		return new WQInferenceConsumerMP(inOptions, trees, extraTrees, toRemoveExtraTrees);
 	}
 }

@@ -444,6 +444,16 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	public Long calculateWeight(Tripartition t) {
 		return this.algorithm.calculateWeight(t);
 	}
+	
+	@Override
+	public Long[] calculateWeight(Tripartition[] t) {
+		return this.algorithm.calculateWeight(t);
+	}
+	
+	//TODO: this is algorithm-specific should not be exposed. Fix. 
+	public int maxHeight() {
+		return ((TraversalWeightCalculator)tmpalgorithm).maxHeight;
+	}
 
 
 }
