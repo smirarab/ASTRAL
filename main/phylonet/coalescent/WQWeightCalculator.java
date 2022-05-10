@@ -74,7 +74,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		PolytreeA3 polytree;
 		
 		Long calculateWeight(Tripartition trip) {
-			return polytree.WQWeightByTraversal(trip, this);
+			return polytree.WQWeightByTraversal(trip);
 		}
 		
 		@Override

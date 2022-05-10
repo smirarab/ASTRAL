@@ -15,14 +15,14 @@ public class Polytree {
 	
 	static long time = 0;
 	
-	static long F(int[] x, int[] y, int[] z){
+	long F(int[] x, int[] y, int[] z){
 		long a = x[0], b = x[1], c = x[2], d = y[0], e = y[1], f = y[2], g = z[0], h = z[1], i = z[2];
 		return a * ( (a + e + i - 3l)  * e * i + (a + f + h - 3l)  * f * h )
 			 + b * ((b + d + i - 3l)  * d * i + (b + f + g - 3l)  * f * g )
 			 + c * ((c + d + h - 3l)  * d * h + (c + e + g - 3l)  * e * g );
 	}
 	
-	static long U(int[] x, int[] y, int[] z){
+	long U(int[] x, int[] y, int[] z){
 		long a = x[0], d = x[1], b = y[0], e = y[1], c = z[0], f = z[1], s = a + b + c - 3;
 		return ((s - c + f) * b * f + (s - b + e) * e * c) * a + ((s - a + d) * d - 2 * s * a) * b * c;
 	}
@@ -32,36 +32,40 @@ public class Polytree {
 	 * @author smirarab
 	 *
 	 */
-	final class PTNode{
-		PTNode parent;
-		ArrayList<PTNode> children;
-		PTCluster cluster;
-		PTPartition partition;
-		boolean isUsed = false;
+	class PTNode{
+		protected PTNode parent;
+		protected ArrayList<PTNode> children;
+		protected PTCluster cluster;
+		protected PTPartition partition;
+		protected boolean isUsed = false;
 		
 		/**
 		 * To be used for leaves
 		 * @param n
 		 */
 
+		PTNode() {
+			
+		}
+		
 		PTNode(TNode n){
 			HashOnlyTreeCluster c = new HashOnlyTreeCluster(GlobalMaps.taxonIdentifier.taxonId(n.getName()));
 			cluster = Polytree.this.clusters.get(c);
 			children = new ArrayList<PTNode>();
 		}
-		PTNode(ArrayList<PTNode> ch, HashOnlyTreeCluster s){
+		PTNode(ArrayList<PTNode> ch, STITreeCluster s){
 			children = ch;
 			HashOnlyTreeCluster c =  new HashOnlyTreeCluster();
 			ArrayList<STITreeClusterMP> cs = new ArrayList<STITreeClusterMP>();
 			for (PTNode child: children){
 				child.parent = this;
-				c = c.disjointClusterMerge(child.cluster.clusterRef);
-				cs.add(child.cluster.clusterRef);
+				c = c.disjointClusterMerge((HashOnlyTreeCluster) child.cluster.clusterRef);
+				cs.add((STITreeClusterMP) child.cluster.clusterRef);
 			}
 			cluster = findCluster(c, this);
 			if (c.equals(s) == false){ // If this is not the root
-				HashOnlyTreeCluster xc = s.subclusterComplement(c);
-				cs.add(findCluster(xc, null).clusterRef);
+				HashOnlyTreeCluster xc = ((HashOnlyTreeCluster)s).subclusterComplement(c);
+				cs.add((STITreeClusterMP) findCluster(xc, null).clusterRef);
 			}
 			if (cs.size() >= 3){
 				AbstractPartition<STITreeClusterMP> p = null;
@@ -191,18 +195,18 @@ public class Polytree {
 		}
 	}
 	
-	final class PTCluster{
-		HashOnlyTreeCluster clusterRef;
+	class PTCluster{
+		STITreeCluster clusterRef;
 		PTNode firstNode; // The first gene tree node that matched this cluster
 		boolean intersectionAlreadyComputed = false; 
 		int listPos = -1;
 		
-		PTCluster(HashOnlyTreeCluster c, PTNode n){
+		PTCluster(STITreeCluster c, PTNode n){
 			clusterRef = c;
 			firstNode = n;
 			Polytree.this.clusters.put(c, this);
 		}
-		PTCluster(HashOnlyTreeCluster c){
+		PTCluster(STITreeCluster c){
 			clusterRef = c;
 			firstNode = null;
 			intersectionAlreadyComputed = true;
@@ -230,22 +234,26 @@ public class Polytree {
 
 	}
 	
-	WQDataCollectionMP dataCollection;
-	HashMap<HashOnlyTreeCluster, PTCluster> clusters = new HashMap<HashOnlyTreeCluster, PTCluster>();	
-	HashMap<AbstractPartition, PTPartition> partitions = new HashMap<AbstractPartition, PTPartition>();
-	ArrayList<PTNode> nodeRoots = new ArrayList<PTNode>();
+	protected WQDataCollection dataCollection;
+	protected HashMap<STITreeCluster, PTCluster> clusters = new HashMap<STITreeCluster, PTCluster>();	
+	protected HashMap<AbstractPartition, PTPartition> partitions = new HashMap<AbstractPartition, PTPartition>();
+	protected ArrayList<PTNode> nodeRoots = new ArrayList<PTNode>();
 
-	ArrayList<Integer> queueBuilder = new ArrayList<Integer>();
-	int[] queue;
-	int listSize = 0;
-	long maxScore = 0;
-	private boolean useNativeMethod;
+	protected ArrayList<Integer> queueBuilder = new ArrayList<Integer>();
+	protected int[] queue;
+	protected int listSize = 0;
+	protected long maxScore = 0;
+	protected boolean useNativeMethod;
 	
-	public Polytree(List<Tree> trees, WQDataCollectionMP dataCollection){
+	public Polytree(List<Tree> trees, WQDataCollection dataCollection){
 		
 		this.dataCollection = dataCollection;
-		long t = System.currentTimeMillis();
 		
+		initalizePolyTree(trees, dataCollection);
+	}
+
+	protected void initalizePolyTree(List<Tree> trees, WQDataCollection dataCollection) {
+		long t = System.currentTimeMillis();
 		// Create singleton clusters and add to map
 		for (int i = 0; i < GlobalMaps.taxonIdentifier.taxonCount(); i++){
 			HashOnlyTreeCluster c = new HashOnlyTreeCluster(i);
@@ -279,7 +287,7 @@ public class Polytree {
 		partitions = null;
 		queueBuilder = null;
 
-		STITreeClusterMP c = (new STITreeClusterMP((TaxonIdentifierMP)GlobalMaps.taxonIdentifier)).complementaryCluster();
+		STITreeCluster c = (new STITreeClusterMP((TaxonIdentifierMP)GlobalMaps.taxonIdentifier)).complementaryCluster();
 		maxScore = computeUpperbound(c.getBitSet());
 		Logging.log("Polytree max score: " + maxScore / 4);
 		Logging.log("Polytree building time: " + (System.currentTimeMillis() - t) / 1000.0D + " seconds.");
@@ -306,7 +314,7 @@ public class Polytree {
 		}
 	}
 	
-	private int[] mapToInt(List<Integer> list) {
+	protected int[] mapToInt(List<Integer> list) {
 		int[] ret = new int [list.size()]; 
 		for (int i = 0; i < ret.length; i++)
 			ret[i] = list.get(i);
@@ -314,15 +322,23 @@ public class Polytree {
 	}
 	
 
-	private PTNode buildTree(TNode node, HashOnlyTreeCluster s){
-		if (node.isLeaf()) return new PTNode(node);
+	protected PTNode buildTree(TNode node, STITreeCluster s){
+		if (node.isLeaf()) return newPTNode(node);
 		else {
 			ArrayList<PTNode> cs = new ArrayList<PTNode>();
 			for (TNode ch: node.getChildren()){
 				cs.add(buildTree(ch, s));
 			}
-			return new PTNode(cs, s);
+			return newPTNode(cs, s);
 		}
+	}
+	
+	protected PTNode newPTNode(TNode node) {
+		return new PTNode(node);
+	}
+
+	protected PTNode newPTNode(ArrayList<PTNode> cs, STITreeCluster s) {
+		return new PTNode(cs,s);
 	}
 
 	public Long[] WQWeightByTraversal(Tripartition[] trips){
@@ -357,13 +373,18 @@ public class Polytree {
 		return ret;
 		
 	}
+	
+	/*
+	 * Weight a tripartition using polytrees
+	 */
+	
 	public Long WQWeightByTraversal(Tripartition trip){
 
 		if (trip == null)
 		{
-			Logging.log("why here?");
+			throw new RuntimeException("We should not be here");
 		}
-		if (trip.cluster1 == trip.cluster2) return this.computeUpperbound(trip.cluster1.getBitSet());
+		if (trip.cluster1 == trip.cluster2) return computeUpperbound(trip.cluster1.getBitSet());
 		//long t = System.nanoTime();
 		BitSet[] b = new BitSet[]{trip.cluster1.getBitSet(), trip.cluster2.getBitSet(), trip.cluster3.getBitSet()};
 		return this.WQWeightByTraversal(b);
@@ -538,4 +559,5 @@ public class Polytree {
 		}
 		return weight;
 	}
+
 }
