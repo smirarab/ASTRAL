@@ -352,7 +352,7 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 
 	@Override
 	public String toString() {
-		return Arrays.toString(matrix);
+		return Arrays.deepToString(matrix).replace("], ", "\n").replace("[", "");
 	}
 
 	@Override
