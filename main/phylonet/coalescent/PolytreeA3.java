@@ -94,45 +94,7 @@ public class PolytreeA3 extends Polytree{
 			}
 		}
 		
-		@Override
-		void buildInstructionQueue(){
-			/*
-			 * 1 - true = compute based on stack; false = get from list
-			 * stack:
-			 * value >> 5 - number of children
-			 * 2 - true = store on stack
-			 * 4 - true = store on list
-			 * 8 - true = compute partition
-			 * 16 - true = partition cnt>1 
-			 * list:
-			 * value >> 1 - the position on the list to fetch from
-			 */
-			
-			for (phylonet.coalescent.Polytree.PTNode child: children){
-				child.buildInstructionQueue();
-			}
-			if (isUsed){
-				int v = (children.size() << 5) | 1;
-				if (addToStack()) v = v | 2;
-				if (addToList()) {
-					v = v | 4;
-					cluster.listPos = PolytreeA3.this.listSize++;
-				}
-				if (isFirstResolutionOfCluster()){
-					v = v | 8;
-					if (partition.cardinality > 1){
-						v = v | 16;
-						PolytreeA3.this.queueBuilder.add(v);
-						PolytreeA3.this.queueBuilder.add(partition.cardinality);
-					}
-					else PolytreeA3.this.queueBuilder.add(v);
-				}
-				else PolytreeA3.this.queueBuilder.add(v);
-			}
-			else {
-				if (parent != null && parent.isUsed) PolytreeA3.this.queueBuilder.add(cluster.listPos << 1);
-			}
-		}
+		
 		boolean addToStack(){
 			return isUsed && parent != null && parent.isUsed;
 		}
