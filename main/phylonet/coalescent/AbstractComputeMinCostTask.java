@@ -20,10 +20,10 @@ import phylonet.tree.model.sti.STITreeCluster.VertexASTRAL3;
  * @param <T>
  */
 public abstract class AbstractComputeMinCostTask<T> {
-	
+
 	protected AbstractInference<T> inference;
-    protected SpeciesMapper spm;
-    
+	protected SpeciesMapper spm;
+
 	IClusterCollection clusters;
 	long target = 0;
 	IClusterCollection containedVertecies;
@@ -43,9 +43,9 @@ public abstract class AbstractComputeMinCostTask<T> {
 			return null;
 		}
 	}
-	
+
 	protected abstract AbstractComputeMinCostTask<T> newMinCostTask(Vertex v, 
-													IClusterCollection clusters);
+			IClusterCollection clusters);
 
 	protected AbstractComputeMinCostTask<T> newMinCostTask(Vertex v, 
 			IClusterCollection clusters, long target){
@@ -58,20 +58,20 @@ public abstract class AbstractComputeMinCostTask<T> {
 			Vertex bigv, Long Wdom);
 
 	protected abstract Long defaultWeightForFullClusters();
-	
+
 	protected abstract long calculateClusterLevelCost();
 
 	protected abstract long scoreBaseCase(boolean rooted, List<Tree> trees);
 
 	protected abstract T STB2T(VertexPair stb);
-	
+
 	/**
 	 * This is the dynamic programming
 	 * @return
 	 * @throws CannotResolveException
 	 */
 	protected abstract long computeMinCost() throws CannotResolveException;
-	
+
 
 	protected void addComplementaryClusters(int clusterSize, Vertex v) {
 		Iterator<Set<Vertex>> it = containedVertecies.getSubClusters().iterator();
@@ -88,7 +88,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 			if (i < clusterSize * inference.getCD()) {
 				return;
 			}
-	
+
 		}
 	}
 

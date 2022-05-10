@@ -16,7 +16,7 @@ public class HashClusterCollection extends AbstractClusterCollectionMP {
 	public HashClusterCollection(int n) {
 		this.initialize(n);
 	}
-	
+
 	@Override
 	public AbstractClusterCollectionMP newInstance(int size) {
 		HashClusterCollection newInst = new HashClusterCollection(size);
@@ -24,21 +24,21 @@ public class HashClusterCollection extends AbstractClusterCollectionMP {
 			newInst.h1ToVertexMap = (this.h1ToVertexMap);
 		}
 		return newInst;
-		
+
 	}
-	
+
 	public Set<Vertex> getSmalls(int i, int clusterSize) {
 		if (clusters.get(i) == null || clusters.get(i).size() == 0 ||
 				clusters.get(clusterSize - i) == null || clusters.get(clusterSize - i).size() == 0) {
 			return null;
-				}
+		}
 		return (clusters.get(i).size() < clusters.get(clusterSize - i).size()) ? clusters.get(i) : clusters.get(clusterSize - i);
 	}
-	
+
 	public VertexMP getCompVertex(VertexMP c, VertexMP sub) {
-		 return h1ToVertexMap.get(c.getCluster().hash1 - sub.getCluster().hash1);
+		return h1ToVertexMap.get(c.getCluster().hash1 - sub.getCluster().hash1);
 	}
-	
+
 	public void preComputeHashValues() {
 		long t = System.currentTimeMillis();
 		int n = GlobalMaps.taxonIdentifier.taxonCount();
@@ -63,9 +63,9 @@ public class HashClusterCollection extends AbstractClusterCollectionMP {
 		}
 		Logging.log("Computing hash values took "+((System.currentTimeMillis()-t)/1000)+" seconds");
 	}
-	
 
-	
+
+
 	public IClusterCollection getContainedClusters(VertexMP v) {
 		STITreeClusterMP cluster = v.getCluster();
 		int size = cluster.getClusterSize();
@@ -74,7 +74,7 @@ public class HashClusterCollection extends AbstractClusterCollectionMP {
 		ret.topV = v;
 		return ret;
 	}
-	
+
 
 	public void printDiff(HashClusterCollection other) {
 		for (int i = 0; i< this.clusters.size(); i++) {

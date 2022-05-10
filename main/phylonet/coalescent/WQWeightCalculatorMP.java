@@ -9,7 +9,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  *
  */
 class WQWeightCalculatorMP extends WQWeightCalculator{
-	
+
 	private LinkedBlockingQueue<Long> queue;
 	private boolean threadingOff = false;
 
@@ -20,7 +20,7 @@ class WQWeightCalculatorMP extends WQWeightCalculator{
 		this.algorithm = new CondensedTraversalWeightCalculator();
 		//tmpalgorithm.setupGeneTrees((WQInference) inference);
 	}
-	
+
 	@Override
 	public int getCalculatedWeightCount() {
 		return this.callcounter;
@@ -70,7 +70,7 @@ class WQWeightCalculatorMP extends WQWeightCalculator{
 		Long[] calculateWeight(Tripartition[] trip) {
 			return polytree.WQWeightByTraversal(trip);
 		}
-		
+
 		@Override
 		Long calculateWeight(Tripartition t) {
 			return polytree.WQWeightByTraversal(t);

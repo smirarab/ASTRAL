@@ -28,8 +28,8 @@ public abstract class AbstractClusterCollectionMP extends AbstractClusterCollect
 		}
 		return added;
 	}
-	
-	
+
+
 	@Override
 	public IClusterCollection getContainedClusters(Vertex v) {
 		STITreeCluster cluster = v.getCluster();
@@ -49,18 +49,18 @@ public abstract class AbstractClusterCollectionMP extends AbstractClusterCollect
 
 		return ret;
 	}
-	
+
 	public getContainedClustersLoop newContainedClustersLoop(AbstractClusterCollection ret, Vertex v, int i, CountDownLatch latch) {
 		return new getContainedClustersLoop(ret, v, i, latch);
 	}
-	
+
 	public class getContainedClustersLoop implements Runnable{
 		AbstractClusterCollection ret;
 		int i;
 		//STITreeCluster cluster;
 		CountDownLatch latch;
 		Vertex v;
-		
+
 		public getContainedClustersLoop(AbstractClusterCollection ret, Vertex v, int i, CountDownLatch latch) {
 			this.ret = ret;
 			this.i = i;

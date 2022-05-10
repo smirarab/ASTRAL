@@ -9,11 +9,11 @@ import phylonet.tree.model.sti.STITreeCluster.Vertex;
 import phylonet.tree.model.sti.STITreeClusterMP.VertexMP;
 
 public class WQInferenceProducer extends AbstractInference<Tripartition> {
-	
+
 	private BlockingQueue<Tripartition> queueReadyTripartitions;
 	public static int weightCount = 0;
-	
-	
+
+
 	public WQInferenceProducer(WQInferenceConsumerMP in) {
 		super(in.options, in.trees, in.extraTrees, in.toRemoveExtraTrees);
 		this.dataCollection =  (AbstractDataCollection<Tripartition>) in.dataCollection;
@@ -62,7 +62,7 @@ public class WQInferenceProducer extends AbstractInference<Tripartition> {
 	public Long getTotalCost(Vertex all) {
 		return 0l;
 	}
-	
+
 	@Override
 	public AbstractComputeMinCostTask<Tripartition> newComputeMinCostTask(
 			AbstractInference<Tripartition> inference, Vertex all, IClusterCollection clusters) {
@@ -88,7 +88,7 @@ public class WQInferenceProducer extends AbstractInference<Tripartition> {
 		throw new RuntimeException("Not Implemented");
 
 	}
-	
+
 	@Override
 	public void setupMisc() {
 	}

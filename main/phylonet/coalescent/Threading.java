@@ -18,11 +18,11 @@ class Threading {
 	static String[] deviceVendors;
 	private static int numThreads = Runtime.getRuntime().availableProcessors();
 	private static int distMatrixChunks = -1;
-	
+
 	public static Future submit(Callable c) {
 		return Threading.eService.submit(c);
 	}
-	
+
 	public static void execute(Runnable c) {
 		Threading.eService.execute(c);
 	}
@@ -41,13 +41,13 @@ class Threading {
 		}
 		Threading.eService = Executors.newFixedThreadPool(Threading.numThreads);
 		Logging.log("There are " + Threading.getNumThreads() + " threads used to run.");
-		
+
 	}
 
 	public static int getNumThreads() {
 		return numThreads;
 	}
-	
+
 	public static int getDistMatrixChunkSize() {
 		return distMatrixChunks;
 	}

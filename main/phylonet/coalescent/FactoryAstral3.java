@@ -10,7 +10,7 @@ public class FactoryAstral3 extends Factory {
 
 	@Override
 	public STITreeCluster newCluster(STITreeCluster c1) {
-			return new STITreeCluster(c1);
+		return new STITreeCluster(c1);
 	}
 
 	@Override
@@ -22,7 +22,7 @@ public class FactoryAstral3 extends Factory {
 	public STITreeCluster newCluster(TaxonIdentifier taxid, BitSet clone) {
 		return new STITreeCluster(taxid, clone);
 	}
-	
+
 	@Override
 	public SpeciesMapper newSpeciesMapper() {
 		return new SpeciesMapper(GlobalMaps.taxonIdentifier.taxonCount());
@@ -57,7 +57,7 @@ public class FactoryAstral3 extends Factory {
 	public LoggerInterface newLogger() {
 		return new StdErrLogging();
 	}
-	
+
 	@Override
 	public AbstractInference newInference(Options inOptions, List<Tree> trees, List<Tree> extraTrees, List<Tree> toRemoveExtraTrees) {
 		return  new WQInference(inOptions, trees, extraTrees, toRemoveExtraTrees);

@@ -3,10 +3,10 @@ package phylonet.coalescent;
 import phylonet.tree.model.sti.STITreeCluster;
 
 public class Polytomy<T extends STITreeCluster> extends AbstractPartition<T> {
-	
+
 	protected T[] clusters;
 	protected int _hash = 0;
-	
+
 	public void initalize(T[] cs){
 		clusters = (T[]) new STITreeCluster[cs.length];
 		long[] ns = new long[cs.length];
@@ -17,11 +17,11 @@ public class Polytomy<T extends STITreeCluster> extends AbstractPartition<T> {
 		}
 		arrange(cs, ns);
 	}
-	
+
 	public boolean equals(Object obj) {
 		if ((obj instanceof Polytomy) == false) return false;
 		Polytomy p = (Polytomy) obj; 
-		
+
 		if (this == obj) return true;
 		for (int i = 0; i < clusters.length; i++){
 			if (clusters[i].equals(p.clusters[i]) == false) return false;
@@ -54,7 +54,7 @@ public class Polytomy<T extends STITreeCluster> extends AbstractPartition<T> {
 		}
 		return _hash;
 	}
-	
+
 	@Override
 	public String toString() {
 		String s = "Polytomy:";

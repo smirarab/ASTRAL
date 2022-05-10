@@ -7,7 +7,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 
 /**
@@ -16,8 +15,7 @@ import phylonet.tree.model.Tree;
  * @author smirarab
  * 
  */
-public class WQDataCollectionMP extends WQDataCollection
-	implements Cloneable {
+public class WQDataCollectionMP extends WQDataCollection implements Cloneable {
 
 	static TaxonIdentifierMP taxid = (TaxonIdentifierMP) GlobalMaps.taxonIdentifier;
 
@@ -37,7 +35,7 @@ public class WQDataCollectionMP extends WQDataCollection
 		for (Tree tr : extraTrees) {
 			res.add(Threading.submit(new addExtraBipartitionByInputLoop(tr)));
 		}
-		
+
 		for (Future f : res)
 			try {
 				f.get();
@@ -82,13 +80,13 @@ public class WQDataCollectionMP extends WQDataCollection
 		}
 
 	}
-	
+
 	@Override
 	ArrayList addExtraBipartitionByHeuristics(Collection<Tree> contractedTrees,
 			TaxonIdentifier tid, int polylimit) {
 
 		ArrayList stringOutput = super.addExtraBipartitionByHeuristics(contractedTrees, tid, polylimit);
-		
+
 		for(int i = 0; i < stringOutput.size(); i++) {
 			if(stringOutput.get(i) instanceof String) {
 				Logging.log(stringOutput.get(i)+"");
@@ -104,12 +102,12 @@ public class WQDataCollectionMP extends WQDataCollection
 		}
 		return stringOutput;
 	}
-	
+
 	@Override
 	protected void myLog(Object log, ArrayList stringOutput) {
 		stringOutput.add(log);
 	}
-	
+
 	@Override
 	protected Object invokeRunner(addExtraBipartitionByHeuristicsLoop callable) {
 		return Threading.submit(callable);
@@ -123,7 +121,7 @@ public class WQDataCollectionMP extends WQDataCollection
 		for (int i = 0; i < this.treeAllClusters.size(); i++) {
 			for (int j = wordLength - 1; j >= 0; j--)
 				allArray[counter++] = this.treeAllClusters
-						.get(i).getBitSet().words[j];
+				.get(i).getBitSet().words[j];
 		}
 		return allArray;
 	}

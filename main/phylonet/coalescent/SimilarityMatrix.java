@@ -25,8 +25,8 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 
 	public SimilarityMatrix(float[][] from) {
 		this.n = from.length;
-        this.matrix = from;
-        /*this.matrix = new float[from.length][from[0].length];
+		this.matrix = from;
+		/*this.matrix = new float[from.length][from[0].length];
 		for (int i = 0; i < from.length; i++) {
 			float[] l = from[i];
 			for (int j = 0; j < l.length; j++) {
@@ -34,21 +34,21 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 			}
 		}*/
 	}
-	
-    public int getBetterSideByFourPoint(int x, int a, int b, int c) {
-        double xa = this.matrix[x][a];
-        double xb = this.matrix[x][b];
-        double xc = this.matrix[x][c];
-        double ab = this.matrix[a][b];
-        double ac = this.matrix[a][c];
-        double bc = this.matrix[b][c];
-        double ascore = xa + bc  - (xb + ac); // Note this is similartiy, not distance
-        double bscore = xb + ac  - (xa + bc); 
-        double cscore = xc + ab - (xb + ac); 
-        return ascore >= bscore ?
-                ascore >= cscore ? a : c :
-                    bscore >= cscore ? b : c;	
-    }
+
+	public int getBetterSideByFourPoint(int x, int a, int b, int c) {
+		double xa = this.matrix[x][a];
+		double xb = this.matrix[x][b];
+		double xc = this.matrix[x][c];
+		double ab = this.matrix[a][b];
+		double ac = this.matrix[a][c];
+		double bc = this.matrix[b][c];
+		double ascore = xa + bc  - (xb + ac); // Note this is similartiy, not distance
+		double bscore = xb + ac  - (xa + bc); 
+		double cscore = xc + ab - (xb + ac); 
+		return ascore >= bscore ?
+				ascore >= cscore ? a : c :
+					bscore >= cscore ? b : c;	
+	}
 
 
 
@@ -57,7 +57,7 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 		this.matrix = new float[n][n];
 		Long [][] array = new Long [n][n];
 		Long [][] denom = new Long [n][n];
-			
+
 		/*for (Tree tree :  geneTrees) {
 			for (TNode node : tree.postTraverse()) {
 				if (node.isLeaf()) {
@@ -77,19 +77,19 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 				}
 			}
 		}*/
-		
+
 		for(int i = 0; i < n; i++) {
 			for(int j = 0; j < n; j++) {
 				array[i][j]  = 0l;
 				denom[i][j] = 0l;
 			}
 		}
-		
+
 		int k = 0;
 		for (Tree tree :  geneTrees) {
 			processGene(0, array, denom,  treeAllClusters.get(k++), tree);
 		}
-			
+
 		normalize(array, denom);
 		/*Logging.log();
 		for (int i = 0; i < n; i++) {
@@ -103,7 +103,7 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 
 	protected void processGene(int m, Long[][] array, Long[][] dn, STITreeCluster treeallCL, Tree tree) {
 		//Integer treeall = treeallCL.getClusterSize();
-	
+
 		for (TNode node : tree.postTraverse()) {
 			if (node.isLeaf()) { 
 				continue;
@@ -129,8 +129,8 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 			}
 			totalPairs /= 2;
 			//totalUnresolvedPairs /= 2;
-	
-	
+
+
 			for (int j = 0; j < children.size(); j++ ) {
 				BitSet left = children.get(j);
 				long lc = left.cardinality();
@@ -155,7 +155,7 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 				}
 			}
 		}
-	
+
 		BitSet all = treeallCL.getBitSet();
 		int c = all.cardinality() - 2;
 		for (int l = all.nextSetBit(0); l >= 0; l=all.nextSetBit(l+1)) {
@@ -179,8 +179,8 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 			}
 		}
 	}
-	
-	
+
+
 
 	protected int getMemChunkCount() {
 		return 1;
@@ -189,17 +189,17 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 	protected int getChunkSize(final List<Tree> geneTrees) {
 		return (int) geneTrees.size();
 	}
-	
 
-    @Override
-    public List<BitSet> resolvePolytomy(List<BitSet> bsList, boolean original) {
-        return resolveByUPGMA(bsList, original);
-    }
 
-    @Override
-    Matrix factory(float[][] from) {
-        return new SimilarityMatrix(from);
-    }
+	@Override
+	public List<BitSet> resolvePolytomy(List<BitSet> bsList, boolean original) {
+		return resolveByUPGMA(bsList, original);
+	}
+
+	@Override
+	Matrix factory(float[][] from) {
+		return new SimilarityMatrix(from);
+	}
 
 	public List<BitSet> resolveByUPGMA(List<BitSet> bsList, boolean original) {
 
@@ -335,11 +335,11 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 		}
 		return ret;
 	}
-	
+
 	@Override
 	public Matrix populate(List<STITreeCluster> treeAllClusters, List<Tree> geneTrees, SpeciesMapper spm) {
-	    this.populateByQuartetDistance(treeAllClusters, geneTrees);
-	    return spm.convertToSpeciesDistance(this);
+		this.populateByQuartetDistance(treeAllClusters, geneTrees);
+		return spm.convertToSpeciesDistance(this);
 	}
 
 	public void fillZero2D(Float[][] array) {
@@ -357,18 +357,18 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 
 	@Override
 	public List<BitSet> inferTreeBitsets() {
-	
-	    return UPGMA();
+
+		return UPGMA();
 	}
 
 	@Override
 	public boolean isDistance() {
-	    return false;
+		return false;
 	}
 
 	int compareTwoValues(float f1, float f2) {
-	    int vc = Float.compare(f1,f2);
-	    return - vc;
+		int vc = Float.compare(f1,f2);
+		return - vc;
 	}
 
 	protected void updateDnArray(int m, Long[][] dn, int c, int l, int r) {
@@ -380,7 +380,7 @@ public class SimilarityMatrix extends AbstractMatrix implements Matrix {
 		array[l][r] += sim;
 		array[r][l] = array[l][r];
 	}
-	
-	
-	
+
+
+
 }

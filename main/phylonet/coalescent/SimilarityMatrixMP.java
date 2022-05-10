@@ -18,7 +18,7 @@ public class SimilarityMatrixMP extends SimilarityMatrix{
 	public SimilarityMatrixMP(int n) {
 		super(n);
 	}
-	
+
 	@Override
 	protected int getMemChunkCount() {
 		return Threading.getDistMatrixChunkSize();
@@ -28,7 +28,7 @@ public class SimilarityMatrixMP extends SimilarityMatrix{
 	protected int getChunkSize(final List<Tree> geneTrees) {
 		return (int) Math.ceil(geneTrees.size()/(Threading.getNumThreads()+0.0));
 	}
-	
+
 	Object[][][] locks = null;
 
 
@@ -51,18 +51,18 @@ public class SimilarityMatrixMP extends SimilarityMatrix{
 			array[r][l] = array[l][r];
 		}
 	}
-	
+
 	@Override
 	public void populateByQuartetDistance(final List<STITreeCluster> treeAllClusters,final List<Tree> geneTrees) {
 		Logging.log("with " + getMemChunkCount() + " distance matrices for parallellism");
-		
+
 		this.matrix = new float[n][n];
 		Logging.logTimeMessage("SimilarityMatrix 145-148: ");
 
 		final int chunksize = getChunkSize(geneTrees);
 		final int memchunkcount = getMemChunkCount();
 		//final int memchunksize = (int) Math.ceil((geneTrees.size()+0.0)/memchunkcount);
-		
+
 		final Long[][][] a = new Long[memchunkcount][n][n];
 		final Long[][][] d = new Long[memchunkcount][n][n];
 		locks = new Object[getMemChunkCount()][n][n];
@@ -75,8 +75,8 @@ public class SimilarityMatrixMP extends SimilarityMatrix{
 				}
 			}
 		}
-		
-			
+
+
 		ArrayList<Future> futures = new ArrayList<Future>();
 		for (int i = 0; i < geneTrees.size()/chunksize + 1; i+= 1) {
 			final int consti = i;
@@ -93,7 +93,7 @@ public class SimilarityMatrixMP extends SimilarityMatrix{
 					return Boolean.TRUE;
 				}
 			}
-					
+
 					));
 		}
 		for (Future future: futures) {
@@ -117,9 +117,9 @@ public class SimilarityMatrixMP extends SimilarityMatrix{
 			//Logging.log();
 		}
 		Logging.logTimeMessage("SimilarityMatrix 161-164: ");
-		
+
 		normalize(a[0],d[0]);
-			
+
 		/*Logging.log();
 		for (int i = 0; i < n; i++) {
 			for (int j = 0; j < n; j++) {
@@ -128,6 +128,6 @@ public class SimilarityMatrixMP extends SimilarityMatrix{
 			}
 			Logging.log();
 		}*/
-		
+
 	}
 }

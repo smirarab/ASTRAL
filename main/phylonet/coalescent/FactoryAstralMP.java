@@ -11,9 +11,9 @@ public class FactoryAstralMP extends Factory {
 
 	@Override
 	public STITreeCluster newCluster(STITreeCluster c1) {
-			return new STITreeClusterMP((STITreeClusterMP) c1);
+		return new STITreeClusterMP((STITreeClusterMP) c1);
 	}
-	
+
 	@Override
 	public STITreeCluster newCluster(TaxonIdentifier taxonIdentifier) {
 		return new STITreeClusterMP(taxonIdentifier);
@@ -23,7 +23,7 @@ public class FactoryAstralMP extends Factory {
 	public STITreeCluster newCluster(TaxonIdentifier taxid, BitSet clone) {
 		return new STITreeClusterMP(taxid, clone);
 	}
-	
+
 
 	@Override
 	public SpeciesMapper newSpeciesMapper() {
@@ -44,7 +44,7 @@ public class FactoryAstralMP extends Factory {
 	public SimilarityMatrix newSimilarityMatrix(float[][] from) {
 		return new SimilarityMatrixMP(from);
 	}
-	
+
 	@Override
 	public WQDataCollectionMP newCounter(IClusterCollection clusters, AbstractInference inference) {
 		return new WQDataCollectionMP((HashClusterCollection)clusters, inference);

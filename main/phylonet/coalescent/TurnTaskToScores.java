@@ -41,10 +41,10 @@ public class TurnTaskToScores implements Runnable {
 	private static final long workGroupSize = 1L << 14;
 	private static final String clFileNVidia = "calculateWeightNVidia.cl";
 	private static final String clFileAMD = "calculateWeightAMD.cl";
-	
+
 	private static final int cpuChunkSize = 64;
 	public static final Object POISON_PILL = new Object();
-	
+
 	private static int nextLog = 0;
 	private static long timer3;
 
@@ -54,20 +54,20 @@ public class TurnTaskToScores implements Runnable {
 	final AbstractWeightCalculator<Tripartition> wqWeightCalculator;
 	final WQInferenceConsumerMP inference;
 	final WQDataCollectionMP dataCollection;
-	
+
 	AtomicInteger threadCount = new AtomicInteger(0);
 	Object positionOutLock = new Object();
-	
+
 	private int positionOut = 0;
 
-	
+
 	int tripCounter = 0;
 	//boolean done = false;
-	
+
 	final GPUCall gpuRunner;
-	
+
 	public final int speciesWordLength;
-	
+
 
 	public TurnTaskToScores(WQInferenceConsumerMP inf, BlockingQueue<Tripartition> queue1) {
 		this.inference = inf;
@@ -75,10 +75,10 @@ public class TurnTaskToScores implements Runnable {
 		this.dataCollection = (WQDataCollectionMP) inf.dataCollection;
 		this.tripartitionsQueue = queue1;
 		this.queueWeightResults = GlobalQueues.instance.getQueueWeightResults();
-		
+
 		this.queue2Helper = new PriorityBlockingQueue<ComparablePair<Long, Integer>>();
 		this.speciesWordLength = (GlobalMaps.taxonIdentifier.taxonCount() / 64 + 1);
-		
+
 		//Logging.log("global work group size is : " + workGroupSize);
 		if (Threading.usedDevices == null || Threading.usedDevices.length == 0) {
 			this.gpuRunner = null;
@@ -94,7 +94,7 @@ public class TurnTaskToScores implements Runnable {
 	private boolean noGPU() {
 		return this.gpuRunner == null;
 	}
-	
+
 	public void run() {
 		int positionIn = 0;
 		//long timer2 = System.nanoTime();
@@ -112,8 +112,8 @@ public class TurnTaskToScores implements Runnable {
 		while (true) {
 			try{
 				taken = this.tripartitionsQueue.take(); //tasks,(int)(2*workGroupSize));
-			 } catch (Exception e) {
-				 e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
 			if (taken == POISON_PILL) {
 				break;
@@ -152,16 +152,16 @@ public class TurnTaskToScores implements Runnable {
 					gpuRunner.label[gpuRunner.currentLabel[currentGPU]][currentGPU][tripCounter] = positionIn++;
 
 					for (int i = speciesWordLength - 1; i >= 0; i--){
-							gpuRunner.tripartitions1[currentGPU][(speciesWordLength - i - 1) * (int) workGroupSize
-						                               + tripCounter] = task.cluster1.getBitSet().words[i];
+						gpuRunner.tripartitions1[currentGPU][(speciesWordLength - i - 1) * (int) workGroupSize
+						                                     + tripCounter] = task.cluster1.getBitSet().words[i];
 					}
 					for (int i = speciesWordLength - 1; i >= 0; i--){
-							gpuRunner.tripartitions2[currentGPU][(speciesWordLength - i - 1) * (int) workGroupSize
-						                               + tripCounter] = task.cluster2.getBitSet().words[i];
+						gpuRunner.tripartitions2[currentGPU][(speciesWordLength - i - 1) * (int) workGroupSize
+						                                     + tripCounter] = task.cluster2.getBitSet().words[i];
 					}
 					for (int i = speciesWordLength - 1; i >= 0; i--){
-							gpuRunner.tripartitions3[currentGPU][(speciesWordLength - i - 1) * (int) workGroupSize
-						                               + tripCounter] = task.cluster3.getBitSet().words[i];
+						gpuRunner.tripartitions3[currentGPU][(speciesWordLength - i - 1) * (int) workGroupSize
+						                                     + tripCounter] = task.cluster3.getBitSet().words[i];
 					}
 					tripCounter++;
 					//if (tripCounter % (workGroupSize/4) == 0) {
@@ -265,7 +265,7 @@ public class TurnTaskToScores implements Runnable {
 		//private cl_context_properties contextProperties;
 		private cl_kernel[] kernels;
 
-		
+
 		private cl_mem[] d_geneTreesAsInts;
 		private cl_mem[] d_tripartitions1;
 		private cl_mem[] d_tripartitions2;
@@ -276,7 +276,7 @@ public class TurnTaskToScores implements Runnable {
 		private cl_device_id[] devices;
 
 		public Object gpuLock = new Object();
-		
+
 		public GPUCall(int[] geneTreesAsInts, long[] all, WQInferenceConsumerMP inference,
 				cl_device_id[] devices, cl_context[] context, cl_context_properties contextProperties) {
 			this.geneTreesAsInts = geneTreesAsInts;
@@ -314,10 +314,10 @@ public class TurnTaskToScores implements Runnable {
 		public void initCL() {
 			int treeheight = ((WQWeightCalculatorMP) inference.weightCalculator).maxHeight();
 			Logging.log("TREE HEIGHT IS: " + treeheight);
-			
+
 			//boolean NVidia = false;
 			//boolean AMD = false;
-			
+
 			kernels = new cl_kernel[devices.length];
 			for(int i = 0; i < devices.length; i++) {
 				if(Threading.deviceVendors[i].toLowerCase().contains("nvidia")) {
@@ -327,7 +327,7 @@ public class TurnTaskToScores implements Runnable {
 					buildKernel(treeheight, false, i);
 				}
 			}
-			
+
 			// Program Setup. We want to avoid compiling twice. The true is for compiling nvidia code. The false if for compiling amd code.
 
 
@@ -342,9 +342,9 @@ public class TurnTaskToScores implements Runnable {
 			for (int i = 0; i < devices.length; i++) {
 
 				d_geneTreesAsInts[i] = clCreateBuffer(context[i], CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-					Sizeof.cl_short * geneTreesAsInts.length, Pointer.to(geneTreesAsShorts), null);
+						Sizeof.cl_short * geneTreesAsInts.length, Pointer.to(geneTreesAsShorts), null);
 				d_allArray[i] = clCreateBuffer(context[i], CL_MEM_COPY_HOST_PTR | CL_MEM_READ_ONLY,
-					Sizeof.cl_long * allArray.length, Pointer.to(allArray), null);
+						Sizeof.cl_long * allArray.length, Pointer.to(allArray), null);
 				d_tripartitions1[i] = clCreateBuffer(context[i], CL_MEM_READ_ONLY,
 						Sizeof.cl_long * tripartitions1[i].length, null, null);
 				d_tripartitions2[i] = clCreateBuffer(context[i], CL_MEM_READ_ONLY,
@@ -354,12 +354,12 @@ public class TurnTaskToScores implements Runnable {
 				d_weightArray[i] = clCreateBuffer(context[i], CL_MEM_WRITE_ONLY, Sizeof.cl_long * weightArray[i].length,
 						null, null);
 				commandQueues[i] = clCreateCommandQueue(context[i], devices[i], 0, null);
-				
+
 				clSetKernelArg(kernels[i], 0, Sizeof.cl_mem, Pointer.to(d_geneTreesAsInts[i]));
 				clSetKernelArg(kernels[i], 1, Sizeof.cl_int, Pointer.to(new int[] { geneTreesAsInts.length }));
 				clSetKernelArg(kernels[i], 2, Sizeof.cl_mem, Pointer.to(d_allArray[i]));
 
-				
+
 			}
 		}
 
@@ -371,7 +371,7 @@ public class TurnTaskToScores implements Runnable {
 			else {
 				source = readFile(getClass().getResourceAsStream(clFileAMD));
 			}
-						
+
 			source = setupGPUSourceFile(treeheight, source);
 
 			cl_program cpProgram = clCreateProgramWithSource(context[deviceIndex], 1, new String[] { source }, null, null);
@@ -387,7 +387,7 @@ public class TurnTaskToScores implements Runnable {
 				kernels[deviceIndex] = clCreateKernel(cpProgram, "calcWeight", null);
 			else
 				kernels[deviceIndex] = clCreateKernel(cpProgram, "calcWeight", null);
-			
+
 		}
 
 		public String setupGPUSourceFile(int treeheight, String source) {
@@ -457,7 +457,7 @@ public class TurnTaskToScores implements Runnable {
 						clSetKernelArg(kernel, 4, Sizeof.cl_mem, Pointer.to(d_tripartitions2[deviceIndex]));
 						clSetKernelArg(kernel, 5, Sizeof.cl_mem, Pointer.to(d_tripartitions3[deviceIndex]));
 						clSetKernelArg(kernel, 6, Sizeof.cl_mem, Pointer.to(d_weightArray[deviceIndex]));
-			
+
 						clEnqueueNDRangeKernel(commandQueues[deviceIndex], kernel, 1, null, new long[] { workSize },
 								null, 0, null, null);
 					}
@@ -506,7 +506,7 @@ public class TurnTaskToScores implements Runnable {
 		Tripartition[] trips;
 		int[] positions;
 		int numRuns = cpuChunkSize;
-		
+
 		Collection<Tripartition> nulls = Arrays.asList(new Tripartition[]{null});
 
 		CPUCalculationThread(Tripartition [] trips, int[] positions) {
@@ -523,11 +523,11 @@ public class TurnTaskToScores implements Runnable {
 		}
 
 		public void run(){
-			
+
 			threadCount.incrementAndGet();
-			
+
 			Long[] weights = TurnTaskToScores.this.wqWeightCalculator.calculateWeight(trips);
-				
+
 			for(int i = 0; i < numRuns; i++) {
 				queue2Helper.add(new ComparablePair<Long, Integer>(weights[i], positions[i]));
 			}
@@ -536,7 +536,7 @@ public class TurnTaskToScores implements Runnable {
 					positionOut++;
 				}
 			}
-			
+
 			logWeights();
 
 			threadCount.decrementAndGet();

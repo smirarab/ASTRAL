@@ -25,7 +25,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 			clusters.add(new HashSet<Vertex>());
 		}
 	}
-	
+
 	@Override
 	public Vertex getTopVertex() {
 		if (topV == null) {
@@ -33,7 +33,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 			if (! it.hasNext()) {
 				throw new NoSuchElementException();
 			}
-				topV = it.next();
+			topV = it.next();
 		}
 		return topV;
 	}
@@ -45,17 +45,17 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 
 	@Override
 	public boolean addCluster(Vertex vertex, int size) {
-		
+
 		boolean added = clusters.get(size).add(vertex);
 		if (added) {
 			totalcount++;
 		}
 		return added;
 	}
-	
+
 	@Override	
 	public boolean removeCluster(Vertex vertex, int size) {
-		
+
 		boolean removed = clusters.get(size).remove(vertex);
 		if(removed){
 			totalcount--;
@@ -74,7 +74,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 		int size = cluster.getClusterSize();
 		AbstractClusterCollection ret = newInstance(size);
 		addClusterToRet(v, size, ret);
-		
+
 		for (int i = size - 1 ; i > 0; i--) {
 			Set<Vertex> sizeClusters = clusters.get(i);
 			if (sizeClusters == null) continue;
@@ -86,7 +86,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 		}
 		return ret;
 	}
-	
+
 	protected void addClusterToRet(Vertex vertex, int size, IClusterCollection ret) {
 		ret.addCluster(vertex, size);	
 	}
@@ -97,7 +97,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 		//TODO: return an iterator directly instead of building a collection.
 		ArrayList<VertexPair> ret = new ArrayList<VertexPair>();
 
-		
+
 		int clusterSize = topClusterLength;
 		Vertex v = this.getTopVertex();
 		for (int i = 1; i <= (clusterSize / 2); i++) {
@@ -110,7 +110,7 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 				continue;
 			}
 			for (Vertex smallV : left) {
-				
+
 				for (Vertex bigv : right) {
 					if (!smallV.getCluster().isDisjoint(bigv.getCluster())) {
 						continue;
@@ -123,21 +123,21 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 		}
 		return ret;
 	}
-	
+
 	public abstract AbstractClusterCollection newInstance(int size);
 
 	@Override
 	public Set<Vertex> getSubClusters(int size) {
 		return this.clusters.get(size);
 	}
-	
+
 	@Override
 	public Iterable<Set<Vertex>> getSubClusters() {
 		return new Iterable<Set<Vertex>>() {
-	
+
 			@Override
 			public Iterator<Set<Vertex>> iterator() {
-	
+
 				return new Iterator<Set<Vertex>>() {
 					int i = topClusterLength - 1;
 					int next = topClusterLength ;
@@ -149,17 +149,17 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 						}
 						return next>0;
 					}
-	
+
 					@Override
 					public Set<Vertex> next() {
 						if (! hasNext()) throw new NoSuchElementException();
 						i = next;
 						Set<Vertex> ret = clusters.get(i);
 						i--;
-	
+
 						return ret;
 					}
-	
+
 					@Override
 					public void remove() {
 						throw new ConcurrentModificationException();
@@ -168,11 +168,11 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 			}
 		};
 	}
-	
+
 	public AbstractClusterCollection clone() throws CloneNotSupportedException {
 		AbstractClusterCollection clone = (AbstractClusterCollection) super.clone();
 		clone.clusters = new ArrayList<Set<Vertex>>();
-		
+
 		for (Set<Vertex> vset : this.clusters) {
 			HashSet<Vertex> nset = new HashSet<STITreeCluster.Vertex>();
 			clone.clusters.add(nset);
@@ -180,9 +180,9 @@ public abstract class AbstractClusterCollection implements IClusterCollection, C
 				nset.add(v.getCluster().newVertex());
 			}
 		}
-		
+
 		return clone;
 	}
-	
+
 
 }

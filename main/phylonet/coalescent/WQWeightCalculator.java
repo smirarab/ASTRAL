@@ -12,7 +12,6 @@ import phylonet.tree.model.TMutableNode;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STINode;
-import phylonet.tree.model.sti.STITree;
 import phylonet.tree.model.sti.STITreeCluster;
 import phylonet.util.BitSet;
 
@@ -28,7 +27,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	protected WQDataCollection dataCollection;
 	protected WeightCalculatorAlgorithm algorithm;
 	private WeightCalculatorAlgorithm tmpalgorithm;
-	
+
 	public WQWeightCalculator(AbstractInference<Tripartition> inference) {
 		super(false);
 		this.dataCollection = (WQDataCollection) inference.dataCollection;
@@ -53,7 +52,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 		abstract void setupGeneTrees(WQInference inference);
 
-		
+
 		Long[] calculateWeight(Tripartition [] trips) {
 			int r = 0;
 			Long [] rets = new Long[trips.length];
@@ -72,19 +71,19 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	 */
 	class CondensedTraversalWeightCalculator extends WeightCalculatorAlgorithm {
 		PolytreeA3 polytree;
-		
+
 		Long calculateWeight(Tripartition trip) {
 			return polytree.WQWeightByTraversal(trip);
 		}
-		
+
 		@Override
 		void setupGeneTrees(WQInference inference) {
 			Logging.log("Using polytree-based weight calculation.");
 			polytree = new PolytreeA3(inference.trees, dataCollection);
 		}
 	}
-	
-	
+
+
 	/**
 	 * ASTRAL-II way of calculating weights 
 	 * @author smirarab
@@ -98,7 +97,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 		int[][] overlapind = new int[GlobalMaps.taxonIdentifier.taxonCount() + 1][3];
 
 		int[] geneTreesAsInts;
-		
+
 		public int maxHeight;
 
 		Long calculateWeight(Tripartition trip) {
@@ -141,7 +140,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 					}
 					top++;
 				} else if (gtb == Integer.MIN_VALUE) { // delimiter between
-														// trees
+					// trees
 					top = 0;
 					newTree = true;
 				} else if (gtb == -2) { // Internal nodes
@@ -198,7 +197,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 								}
 						}
 					}
-				
+
 					top = top + gtb + 1;
 
 				} // End of polytomy section
@@ -210,16 +209,16 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 
 		/***
-		* Each gene tree is represented as a list of integers, using positive numbers
-		* for leaves, where the number gives the index of the leaf. 
-		* We use negative numbers for internal nodes, where the value gives the number of children. 
-		* Minus infinity is used for separating different genes. 
-		*/
+		 * Each gene tree is represented as a list of integers, using positive numbers
+		 * for leaves, where the number gives the index of the leaf. 
+		 * We use negative numbers for internal nodes, where the value gives the number of children. 
+		 * Minus infinity is used for separating different genes. 
+		 */
 		@Override
 		void setupGeneTrees(WQInference inference) {
 			Logging.log("Using tree-based weight calculation.");
 			List<Integer> temp = new ArrayList<Integer>();
-			
+
 			Stack<Integer> stackHeight = new Stack<Integer>();
 			maxHeight = 0;
 			for (Tree tr : inference.trees) {
@@ -250,9 +249,9 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 				// Make the tree left-heavy so that the stack gets small
 				// Problem: Phylonet's adoptChild does not work. Only going for leaves. 
 				for (STINode child: toswap) {
-						STINode snode = child.getParent();
-						snode.removeChild((TMutableNode) child, false);
-						snode.createChild(child);
+					STINode snode = child.getParent();
+					snode.removeChild((TMutableNode) child, false);
+					snode.createChild(child);
 				}
 
 				for (TNode node : tr.postTraverse()) {
@@ -268,10 +267,10 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			}
 			geneTreesAsInts = new int[temp.size()];
 			for(int i = 0; i < geneTreesAsInts.length; i++)
-				  geneTreesAsInts[i] = temp.get(i);
+				geneTreesAsInts[i] = temp.get(i);
 
 		}
-		
+
 		public int[] geneTreesAsInts() {
 			return this.geneTreesAsInts;
 		}
@@ -306,7 +305,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 					remaining);
 			geneTreeTripartitonCount.put(trip, geneTreeTripartitonCount
 					.containsKey(trip) ? geneTreeTripartitonCount.get(trip) + 1
-					: 1);
+							: 1);
 		}
 
 		void setupGeneTrees(WQInference inference) {
@@ -318,7 +317,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 			Map<Tripartition, Integer> geneTreeTripartitonCount = new HashMap<Tripartition, Integer>(
 					inference.trees.size()
-							* GlobalMaps.taxonIdentifier.taxonCount());
+					* GlobalMaps.taxonIdentifier.taxonCount());
 
 			int t = 0;
 			for (Tree tr : geneTrees) {
@@ -375,7 +374,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			System.err.println("Using tripartition-based weight calculation.");
 
 			finalTripartitions = new Tripartition[geneTreeTripartitonCount
-					.size()];
+			                                      .size()];
 			finalCounts = new int[geneTreeTripartitonCount.size()];
 			int i = 0;
 			for (Entry<Tripartition, Integer> entry : geneTreeTripartitonCount
@@ -410,7 +409,7 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 					.getBitSet().intersectionSize(other.cluster3.getBitSet());
 
 			return F(I0, I4, I8) + F(I0, I5, I7) + F(I1, I3, I8)
-					+ F(I1, I5, I6) + F(I2, I3, I7) + F(I2, I4, I6);
+			+ F(I1, I5, I6) + F(I2, I3, I7) + F(I2, I4, I6);
 		}
 	}
 
@@ -444,12 +443,12 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 	public Long calculateWeight(Tripartition t) {
 		return this.algorithm.calculateWeight(t);
 	}
-	
+
 	@Override
 	public Long[] calculateWeight(Tripartition[] t) {
 		return this.algorithm.calculateWeight(t);
 	}
-	
+
 	//TODO: this is algorithm-specific should not be exposed. Fix. 
 	public int maxHeight() {
 		return ((TraversalWeightCalculator)tmpalgorithm).maxHeight;

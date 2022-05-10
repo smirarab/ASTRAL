@@ -7,7 +7,7 @@ public class ThreadedLogger implements LoggerInterface {
 	static final String ENDMESSAGE = "&&END&&";
 
 	private static LinkedBlockingQueue<String> messageQueue = new LinkedBlockingQueue<String>();
-	
+
 	@Override
 	public void log(String s) {
 		try {
@@ -16,7 +16,7 @@ public class ThreadedLogger implements LoggerInterface {
 			System.err.println("Message "+s+ " could not be enqueued.");
 		}
 	}
-	
+
 	@Override
 	public void endLogger() {
 		this.log(ENDMESSAGE);

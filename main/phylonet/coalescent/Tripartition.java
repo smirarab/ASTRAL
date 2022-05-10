@@ -3,24 +3,24 @@ package phylonet.coalescent;
 import phylonet.tree.model.sti.STITreeCluster;
 
 public class Tripartition<T extends STITreeCluster> extends AbstractPartition {
-	
+
 	public T cluster1;
 	public T cluster2;	
 	public T cluster3;
 	protected int _hash = 0;
-	
+
 	public Tripartition(T c1, T c2) {
 		T c3 = (T) Factory.instance.newCluster(c1);
 		c3.getBitSet().or(c2.getBitSet());
 		c3.getBitSet().flip(0,c1.getBitSet().size());
 		initialize(c1, c2, c3); 
 	}
-	
+
 	public Tripartition(T c1, T c2, T c3) {
-		
+
 		initialize(c1, c2, c3);
 	}
-	
+
 	public Tripartition(T c1, T c2, T c3, boolean checkRepeats) {
 		if (checkRepeats) initialize(c1, c2, c3);
 		else {
@@ -73,16 +73,16 @@ public class Tripartition<T extends STITreeCluster> extends AbstractPartition {
 			throw new RuntimeException("taxa appear multiple times?\n"+c1+"\n"+c2+"\n"+c3);
 		}
 	}
-	
+
 	public STITreeCluster[] getClusters(){
 		return new STITreeCluster[]{cluster1, cluster2, cluster3};
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if ((obj instanceof Tripartition) == false) return false;
 		Tripartition trip = (Tripartition) obj; 
-		
+
 		return this == obj ||
 				((trip.cluster1.equals(this.cluster1) && trip.cluster2.equals(this.cluster2) && trip.cluster3.equals(this.cluster3)));					
 	}

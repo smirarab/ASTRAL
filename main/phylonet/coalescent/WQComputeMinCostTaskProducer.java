@@ -17,7 +17,7 @@ public class WQComputeMinCostTaskProducer extends  WQComputeMinCostTask{
 	WQDataCollectionMP wqDataCollection;
 	VertexMP v;
 	//public static final VertexPair  POISON_PILL = new VertexPair(null,null,null);
-	
+
 	public WQComputeMinCostTaskProducer(WQInferenceProducer inference, VertexMP v) {
 		super(inference, inference.dataCollection.clusters);
 		this.inference = inference;
@@ -27,59 +27,59 @@ public class WQComputeMinCostTaskProducer extends  WQComputeMinCostTask{
 
 	//final byte getDoneState = 4;	
 	//final byte getProducerDoneState = 3;
-	
-	
+
+
 	@Override
 	protected long computeMinCost() {
-	
+
 		if ( v.isProdDone() ) {
 			return 0l;
 		}
 		//
-	
+
 		final int clusterSize = v.getCluster().getClusterSize();
-	
+
 		// SIA: base case for singelton clusters.
 		if (clusterSize <= 1 || spm.isSingleSP(v.getCluster().getBitSet())) {
 
 			v.setProdDone(true);
-	
+
 			return 0l;
 		}
-	
+
 		final IClusterCollection containedVertecies = this.inference.dataCollection.clusters.getContainedClusters(v);
-		
+
 		final BlockingQueue<VertexPair> clusterResolutions  = new LinkedBlockingQueue<VertexPair>();
-		
+
 		// At the top, there is only one resolution. Find it. 
 		if (clusterSize == GlobalMaps.taxonIdentifier.taxonCount()) {
 			try {
-			Vertex v1 = null;
-			int smallestSize = -1;
-			// If this seem overtly complicated, remember multi-ind cases. 
-			while (v1 == null) {
-				smallestSize++;
-				Set<Vertex> cs = containedVertecies.getSubClusters(smallestSize);
-				for(Vertex csi : cs) {
-					if(csi.getCluster().getBitSet().nextSetBit(0) == 0) {
-						v1 = csi;
+				Vertex v1 = null;
+				int smallestSize = -1;
+				// If this seem overtly complicated, remember multi-ind cases. 
+				while (v1 == null) {
+					smallestSize++;
+					Set<Vertex> cs = containedVertecies.getSubClusters(smallestSize);
+					for(Vertex csi : cs) {
+						if(csi.getCluster().getBitSet().nextSetBit(0) == 0) {
+							v1 = csi;
+							break;
+						}
+					}
+				}
+				for (Vertex v2: containedVertecies.getSubClusters(GlobalMaps.taxonIdentifier.taxonCount()-smallestSize))
+				{
+					if (v1.getCluster().isDisjoint(v2.getCluster())) {
+						VertexPair vp = new VertexPair(v1, v2, v);
+						(clusterResolutions).put(vp);
 						break;
 					}
 				}
-			}
-			for (Vertex v2: containedVertecies.getSubClusters(GlobalMaps.taxonIdentifier.taxonCount()-smallestSize))
-			{
-				if (v1.getCluster().isDisjoint(v2.getCluster())) {
-					VertexPair vp = new VertexPair(v1, v2, v);
-					(clusterResolutions).put(vp);
-					break;
-				}
-			}
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
 
-			
+
 		} else {
 
 			// Find all cluster resolutions; use the hashing technique. 
@@ -89,7 +89,7 @@ public class WQComputeMinCostTaskProducer extends  WQComputeMinCostTask{
 			for (int j = 1; j <= (clusterSize / 2); j++) {
 				final int i = j;
 				futures[j-1] = Threading.submit(new Callable<Integer>() {	
-					
+
 					public Integer call() {
 						Set<Vertex> small = ((HashClusterCollection)containedVertecies).getSmalls(i, clusterSize);
 						if (small == null)
@@ -102,7 +102,7 @@ public class WQComputeMinCostTaskProducer extends  WQComputeMinCostTask{
 								continue;
 							}
 							if (v.getCluster().hash2 == (v1.getCluster().hash2 + v2.getCluster().hash2) ) {
-									//&& v.clusterSize == v1.clusterSize + v2.clusterSize // redundant check 
+								//&& v.clusterSize == v1.clusterSize + v2.clusterSize // redundant check 
 								if (v1.clusterSize != v2.clusterSize || v1.getCluster().hash1 < v2.getCluster().hash1) { // To avoid a pair of the same size twice
 									VertexPair bi = new VertexPair(v1, v2, v);
 									try {
@@ -119,7 +119,7 @@ public class WQComputeMinCostTaskProducer extends  WQComputeMinCostTask{
 						}
 						return 1; 
 					}
-					
+
 				});
 			}
 			// Cluster resolution order matters. Wait for all of them before recursing. 
@@ -134,31 +134,31 @@ public class WQComputeMinCostTaskProducer extends  WQComputeMinCostTask{
 		}
 
 		try {
-			
+
 			GlobalQueues.instance.getQueueClusterResolutions().put(clusterResolutions);
-			
+
 		} catch (Exception c) {
-				throw new RuntimeException(c);
+			throw new RuntimeException(c);
 		}
 
 		for (VertexPair bi: clusterResolutions) {
 			WQInferenceProducer.weightCount += 1;
-			
+
 			newMinCostTask((VertexMP) bi.cluster2, this.wqDataCollection.clusters).compute();
 			newMinCostTask((VertexMP) bi.cluster1, this.wqDataCollection.clusters).compute();
 		}
-		
+
 		v.setProdDone(true);
 
-	
+
 		return 0l;
 	}
-	
-	
+
+
 
 	@Override
 	protected WQComputeMinCostTaskProducer newMinCostTask(Vertex v, 
-					IClusterCollection clusters) {
+			IClusterCollection clusters) {
 		return new WQComputeMinCostTaskProducer((WQInferenceProducer) inference, (VertexMP) v);
 	}
 

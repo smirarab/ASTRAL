@@ -21,10 +21,10 @@ public class Posterior extends cern.jet.math.Constants{
 			+ "Please report the error with the following numbers: ";
 	private static final boolean DEBUG = false;
 	private double lambda;
-	
+
 	public Posterior(double ft1, double ft2, double ft3, double nt, double lambda){
 		this.f1 = ft1;
-	 	this.f2 = ft2;
+		this.f2 = ft2;
 		this.f3 = ft3;
 		this.n  = nt;
 		this.lambda = lambda;
@@ -67,7 +67,7 @@ public class Posterior extends cern.jet.math.Constants{
 		double b = Math.exp(LOG2*(mi-f1)+betaRatio(mi+1,n-mi+2*lambda,f1+1,n-f1+2*lambda));
 		return b;
 	}
-	
+
 	public double rG(double mi) {
 		double x = G(mi,n) * r (mi);
 		if (Double.isNaN(x) || Double.isInfinite(x)) {
@@ -97,7 +97,7 @@ public class Posterior extends cern.jet.math.Constants{
 		}
 		return bl;
 	}
-	
+
 	public double branchLength(){
 		return Posterior.branchLength(f1,n,lambda);
 	}
@@ -107,32 +107,32 @@ public class Posterior extends cern.jet.math.Constants{
 		double x; 
 		x=Math.pow((f1-fThird),2)/fThird+Math.pow((f2-fThird),2)/fThird+Math.pow((f3-fThird),2)/fThird;
 		p = Probability.chiSquareComplemented(2,x);
-		
+
 		System.err.println( f1 + " " + f2 + " " + f3 + " " + n + " " + p );
 		if (n<=15) {				
-				System.err.println("Not enough genes");
-				return -2;
+			System.err.println("Not enough genes");
+			return -2;
 		} else {
 		}
-		
+
 		return p;
 	}
 	private double post(){
-		
+
 		if (this.DEBUG) {
-		 System.out.println(f1 +" "+ f2 +" "+ f3);
-		 System.out.println("G1: " + G(f1,n));
-		 System.out.println("G2: " + G(f2,n));
-		 System.out.println("G3: " + G(f3,n));
-		 System.out.println("r2: " + r(f2));
-		 System.out.println("r3: " + r(f3));
+			System.out.println(f1 +" "+ f2 +" "+ f3);
+			System.out.println("G1: " + G(f1,n));
+			System.out.println("G2: " + G(f2,n));
+			System.out.println("G3: " + G(f3,n));
+			System.out.println("r2: " + r(f2));
+			System.out.println("r3: " + r(f3));
 		}
-		
+
 		double g2 = rG(f2);
 		double g3 = rG(f3);
 
 		double g = G(f1,n)/(G(f1,n)+g2+g3);
-		
+
 		if (Double.isInfinite(g)) {
 			throw new RuntimeException(MESSAGE + "\n" + f1 +" "+ f2 +" "+ f3 +" "+lambda + " " + n);
 		}
@@ -144,26 +144,26 @@ public class Posterior extends cern.jet.math.Constants{
 			if (m1>m2 & m1>m3) g=1.;
 			else g=0;
 		}*/
-		
+
 		posterior = g;
 		return posterior;
 	}    
 
-	 public static void main(String[] args) {
-	/*	double m1 = Double.parseDouble(args[0]);
+	public static void main(String[] args) {
+		/*	double m1 = Double.parseDouble(args[0]);
 		double m2 = Double.parseDouble(args[1]);
 		double m3 = Double.parseDouble(args[2]);
 		double n  = Double.parseDouble(args[3]);
 		Posterior a = new Posterior(m1,m2,m3,n);
 		System.out.println(a.toString());*/
-		 double m1 = 5;
-		 double m2 = 0;
-		 double m3 = 0;
-		 double n =  5;
-		 Posterior p = new Posterior(m1, m2, m3, n, 0.5);
-		 p.f1 = m1;p.f2 = m2;p.f3 = m3;
-		 System.out.println(p.getPost());
-		 System.out.println(p.getPvalue()); 
+		double m1 = 5;
+		double m2 = 0;
+		double m3 = 0;
+		double n =  5;
+		Posterior p = new Posterior(m1, m2, m3, n, 0.5);
+		p.f1 = m1;p.f2 = m2;p.f3 = m3;
+		System.out.println(p.getPost());
+		System.out.println(p.getPvalue()); 
 
-	 }
+	}
 }

@@ -16,7 +16,7 @@ import phylonet.util.BitSet;
  *
  */
 public class SingleIndividualSample {
-	
+
 	/**
 	 * IDs of sampled individuals in the original (global) taxon identifier
 	 */
@@ -46,18 +46,18 @@ public class SingleIndividualSample {
 		/*
 		 * TODO: check if other parts of code need any changes
 		 */
-    	for (int s = 0; s< spm.getSpeciesCount(); s++){
-    		List<Integer> stTaxa = spm.getTaxaForSpecies(s);
-    		int tid = stTaxa.get(GlobalMaps.random.nextInt(stTaxa.size()));
-    		sampleGlobalIDs.add(tid);
+		for (int s = 0; s< spm.getSpeciesCount(); s++){
+			List<Integer> stTaxa = spm.getTaxaForSpecies(s);
+			int tid = stTaxa.get(GlobalMaps.random.nextInt(stTaxa.size()));
+			sampleGlobalIDs.add(tid);
 			sampleNames.add(GlobalMaps.taxonIdentifier.getTaxonName(tid));
 			//sampleSpecificTaxonIdentifier.taxonId(sampleNames.get(sampleNames.size()-1));
-    	}
+		}
 		setSampleSize(sampleGlobalIDs.size());
-		
+
 	}
-	
-	
+
+
 
 	public List<Tree> contractTrees(Iterable<Tree> intrees){
 		List<Tree> outtrees = new ArrayList<Tree>();			
@@ -68,19 +68,19 @@ public class SingleIndividualSample {
 		}
 		return outtrees;
 	}
-	
+
 	public Tree contractTree(Tree intree){	
-		
+
 		STITree ntr = new STITree(intree);
 		ntr.constrainByLeaves(sampleNames); // sampleNames : GlobalMaps.taxonIdentifier.getTaxonName: gene tree names
 		GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt2((MutableTree)ntr);
 		return ntr;
 	}
-	
 
-//	public TaxonIdentifier getTaxonIdentifier() {
-//		return this.sampleSpecificTaxonIdentifier;
-//	}
+
+	//	public TaxonIdentifier getTaxonIdentifier() {
+	//		return this.sampleSpecificTaxonIdentifier;
+	//	}
 
 
 
@@ -92,7 +92,7 @@ public class SingleIndividualSample {
 	public void setSampleSize(int sampleSize) {
 		this.sampleSize = sampleSize;
 	}
-	
+
 	BitSet toOriginalBitSet(BitSet bs) {
 		BitSet ret = new BitSet(GlobalMaps.taxonIdentifier.taxonCount());
 		for (int j = bs.nextSetBit(0); 
@@ -101,5 +101,5 @@ public class SingleIndividualSample {
 		}
 		return ret;
 	}
-	
+
 }

@@ -143,13 +143,13 @@ public class DistanceMatrix extends AbstractMatrix implements Matrix {
 					}
 
 					float dI1I2 = this.matrix[ones.get(i)[pairLeaves[i][0]]][ones
-							.get(i)[pairLeaves[i][1]]];
+					                                                         .get(i)[pairLeaves[i][1]]];
 					float dJ1J2 = this.matrix[ones.get(j)[pairLeaves[j][0]]][ones
-							.get(j)[pairLeaves[j][1]]];
+					                                                         .get(j)[pairLeaves[j][1]]];
 					float dI1J1 = this.matrix[ones.get(i)[pairLeaves[i][0]]][ones
-							.get(j)[pairLeaves[j][0]]];
+					                                                         .get(j)[pairLeaves[j][0]]];
 					float dI2J2 = this.matrix[ones.get(i)[pairLeaves[i][1]]][ones
-							.get(j)[pairLeaves[j][1]]];
+					                                                         .get(j)[pairLeaves[j][1]]];
 
 					internalMatrix[i][j] += (dI1J1 + dI2J2 - dI1I2 - dJ1J2) / 2;
 				}
@@ -224,10 +224,10 @@ public class DistanceMatrix extends AbstractMatrix implements Matrix {
 			SpeciesMapper spm) {
 		this.matrix = new float[n][n]; // master gene matrix
 		float[][] speciesSimilarityMatrix = new float[spm.getSpeciesCount()][spm
-				.getSpeciesCount()]; // master species matrix
+		                                                                     .getSpeciesCount()]; // master species matrix
 		float[][] pairNumMatrix = new float[n][n];
 		float[][] speciesPN = new float[spm.getSpeciesCount()][spm
-				.getSpeciesCount()];
+		                                                       .getSpeciesCount()];
 
 		for (Tree tree : geneTrees) {
 			HashMap<Integer, Integer> distanceMap = new HashMap<Integer, Integer>();
@@ -465,9 +465,9 @@ public class DistanceMatrix extends AbstractMatrix implements Matrix {
 	private SimilarityMatrix convertToSpeciesDistance(SpeciesMapper spm,
 			float[][] SM) {
 		float[][] STsimMatrix = new float[spm.getSpeciesCount()][spm
-				.getSpeciesCount()];
+		                                                         .getSpeciesCount()];
 		float[][] denum = new float[spm.getSpeciesCount()][spm
-				.getSpeciesCount()];
+		                                                   .getSpeciesCount()];
 		for (int i = 0; i < n; i++) {
 			for (int j = i; j < n; j++) {
 				int stI = spm.getSpeciesIdForTaxon(i);

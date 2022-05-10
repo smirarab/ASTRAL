@@ -25,7 +25,7 @@ public class WQInferenceConsumerMP extends WQInference {
 
 
 	static TaxonIdentifierMP taxid = (TaxonIdentifierMP) GlobalMaps.taxonIdentifier;
-	
+
 	public WQInferenceConsumerMP(Options inOptions, List<Tree> trees, List<Tree> extraTrees, List<Tree> toRemoveExtraTrees) {
 		super(inOptions, trees, extraTrees, toRemoveExtraTrees);
 		GlobalQueues.instance.setQueueWeightResults(new LinkedBlockingQueue<Long>());
@@ -49,7 +49,7 @@ public class WQInferenceConsumerMP extends WQInference {
 		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
 		long sum = 0l;
 		boolean poly = false;
-		
+
 		((WQWeightCalculatorMP)weightCalculator).setThreadingOff(true);
 		List<Future<Long[]>> weights = new ArrayList<Future<Long[]>>();
 		final Tripartition [] tripartitionBatch = new Tripartition[Polytree.PTNative.batchSize];
@@ -61,8 +61,8 @@ public class WQInferenceConsumerMP extends WQInference {
 			} else {
 				ArrayList<STITreeCluster> childbslist = handleInternalNode(stack, node);
 				if (childbslist == null) {
-						poly = true;
-						continue;
+					poly = true;
+					continue;
 				}
 
 
@@ -71,15 +71,15 @@ public class WQInferenceConsumerMP extends WQInference {
 						for (int k = j+1; k < childbslist.size(); k++) {
 							final Tripartition trip = new Tripartition(childbslist.get(i), childbslist.get(j), childbslist.get(k));
 							tripartitionBatch[batchPosition++] = trip;
-							
+
 							if (batchPosition == tripartitionBatch.length) {
 								Future<Long[]> s = Threading.submit(new Callable<Long[]>() {
-	
+
 									@Override
 									public Long[] call() throws Exception {
 										return weightCalculator.calculateWeight(tripartitionBatch);
 									}
-	
+
 								});
 								weights.add(s);
 								batchPosition = 0;
@@ -88,10 +88,10 @@ public class WQInferenceConsumerMP extends WQInference {
 					}					       
 				}
 			}
-			
+
 		}
 		if (batchPosition != 0) {
-			
+
 			final Tripartition[] tripartitionlastBatch = Arrays.copyOfRange(tripartitionBatch, 0, batchPosition);
 			Future<Long[]> s = Threading.submit(new Callable<Long[]>() {
 
@@ -104,7 +104,7 @@ public class WQInferenceConsumerMP extends WQInference {
 			});
 			weights.add(s);
 		}
-		
+
 		for (Future<Long[]> ws: weights) {
 			try {
 				for (Long w : ws.get())
@@ -128,7 +128,7 @@ public class WQInferenceConsumerMP extends WQInference {
 	@Override
 	protected double scoreBranches(Tree st) {
 		Logging.logTimeMessage("WQInference 227: " );
-		
+
 		//weightCalculator = (AbstractWeightCalculator<Tripartition>) new BipartitionWeightCalculator(this,((WQWeightCalculator)this.weightCalculator).geneTreesAsInts());
 
 		BipartitionWeightCalculator weightCalculator2 =  new BipartitionWeightCalculator(this,((WQWeightCalculatorMP)this.weightCalculator).geneTreesAsInts()); //(BipartitionWeightCalculator) this.weightCalculator;
@@ -145,7 +145,7 @@ public class WQInferenceConsumerMP extends WQInference {
 		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
 
 		Logging.logTimeMessage("WQInference 274: " );
-			
+
 		/**
 		 * For each node,
 		 *   1. create three quadripartitoins for the edge above it
@@ -192,7 +192,7 @@ public class WQInferenceConsumerMP extends WQInference {
 			e.printStackTrace();
 		}
 		Logging.logTimeMessage("WQInference 390: ");
-			
+
 		return annotateBranch(st, nodeDataList, ni);
 	}
 
@@ -213,7 +213,7 @@ public class WQInferenceConsumerMP extends WQInference {
 			this.processCount = processCount;
 		}
 		public void run() {
-			
+
 			this.compute();
 			processCount.decrementAndGet();
 			synchronized(lock) {
@@ -239,7 +239,7 @@ public class WQInferenceConsumerMP extends WQInference {
 		return new WQWeightCalculatorMP(this, GlobalQueues.instance.getQueueWeightResults());
 
 	}
-	
+
 	@Override
 	public AbstractWeightCalculator<Tripartition> newWeightCalculatorForWeigth() {
 		AbstractWeightCalculator wc =  newWeightCalculator();
@@ -250,16 +250,16 @@ public class WQInferenceConsumerMP extends WQInference {
 	protected int[] getGeneTreesAsInt() {
 		return ((WQWeightCalculatorMP)this.weightCalculator).geneTreesAsInts();
 	}
-	
+
 	@Override
 	public void setupMisc() {
-		
+
 		this.maxpossible = this.calculateMaxPossible();
 		Logging.log("Number of quartet trees in the gene trees: " +
 				this.maxpossible);
 		((HashClusterCollection)this.dataCollection.clusters).preComputeHashValues();
-		
-		
+
+
 		final WQInferenceProducer inferenceProducer = 
 				new WQInferenceProducer(this);
 		inferenceProducer.setup();
@@ -285,7 +285,7 @@ public class WQInferenceConsumerMP extends WQInference {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
+
 		(new Thread(weightDistributor)).start();
 
 	}

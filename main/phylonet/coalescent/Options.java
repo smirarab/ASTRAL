@@ -23,7 +23,7 @@ public class Options {
 	private Integer minLeaves;
 	private Integer geneRepeat;
 	private boolean removeExtraTree;
-	
+
 	private boolean ustarDist;
 
 	public Options(boolean rooted, boolean extrarooted, 
@@ -89,7 +89,7 @@ public class Options {
 	public void setExtrarooted(boolean extrarooted) {
 		this.extrarooted = extrarooted;
 	}
-	
+
 	public void setRooted(boolean rooted) {
 		this.rooted = rooted;
 	}
@@ -107,7 +107,7 @@ public class Options {
 		this.branchannotation = branchannotation;
 	}
 
-	*/
+	 */
 
 	public boolean isOutputCompletedGenes() {
 		return outputCompletedGenes;
@@ -118,12 +118,12 @@ public class Options {
 		return outputSearchSpace;
 	}
 
-	
+
 	public boolean isRunSearch() {
 		return runSearch;
 	}
 
-	
+
 	public int getBranchannotation() {
 		return branchannotation;
 	}
@@ -148,7 +148,7 @@ public class Options {
 	public void setCD(double cD) {
 		CD = cD;
 	}
-	
+
 	public double getCD() {
 		return CD;
 	}
@@ -177,14 +177,14 @@ public class Options {
 		this.samplingrounds = samplingrounds;
 	}
 
-    public boolean isUstarDist() {
-        return ustarDist;
-    }
+	public boolean isUstarDist() {
+		return ustarDist;
+	}
 
-    public void setUstarDist(boolean ustarDist) {
-        this.ustarDist = ustarDist;
-    }
-    
+	public void setUstarDist(boolean ustarDist) {
+		this.ustarDist = ustarDist;
+	}
+
 	public int getPolylimit() {
 		return polylimit;
 	}
@@ -192,7 +192,7 @@ public class Options {
 	public void setPolylimit(int polylimit) {
 		this.polylimit = polylimit;
 	}
-	
+
 	public boolean isRemoveExtraTree() {
 		return removeExtraTree;
 	}
@@ -204,7 +204,7 @@ public class Options {
 	public String getFreqOutputPath() {
 		return freqOutputPath;
 	}
-	
+
 	public void setFreqOutputPath(String freqOutputPath) {
 		this.freqOutputPath = freqOutputPath;
 	}

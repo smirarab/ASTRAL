@@ -14,7 +14,7 @@ public class WQClusterCollection extends AbstractClusterCollection{
 	public AbstractClusterCollection newInstance(int size) {
 		return new WQClusterCollection(size);
 	}
-		
+
 	public void printDiff(WQClusterCollection other) {
 		for (int i = 0; i< this.clusters.size(); i++) {
 			HashSet<Vertex> temp = new HashSet<Vertex>(this.clusters.get(i));

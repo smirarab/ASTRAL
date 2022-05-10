@@ -2,22 +2,21 @@ package phylonet.coalescent;
 
 import phylonet.tree.model.Tree;
 
-public class Solution
-{
+public class Solution {
 
-    public Solution()
-    {
-    }
+	public Solution()
+	{
+	}
 
-    public Tree getTree()
-    {
-        return this._st;
-    }
+	public Tree getTree()
+	{
+		return this._st;
+	}
 
-    public Long getCoalNum()
-    {
+	public Long getCoalNum()
+	{
 		return _totalCoals;
-    }
+	}
 
 
 	public void setCoalNum(Long _totalCoals) {
@@ -29,6 +28,6 @@ public class Solution
 	}
 
 	private Tree _st;
-    private Long _totalCoals;
-    int _clusterIDs[];
+	private Long _totalCoals;
+	int _clusterIDs[];
 }

@@ -3,7 +3,6 @@ package phylonet.coalescent;
 import java.util.Set;
 
 import phylonet.tree.model.sti.STITreeCluster.Vertex;
-import phylonet.tree.model.sti.STITreeCluster.VertexASTRAL3;
 
 /***
  * Contains a set of clusters (used to implement X in ASTRAL/DynaDup). 
@@ -22,7 +21,7 @@ public interface IClusterCollection {
 	int getClusterCount();
 
 	boolean addCluster(Vertex nv, int size);
-	
+
 	boolean removeCluster(Vertex nv, int size);
 
 	boolean contains(Vertex reverse);
@@ -47,21 +46,21 @@ public interface IClusterCollection {
 	 * @return
 	 */
 	Iterable<Set<Vertex>> getSubClusters();
-	
+
 	/***
 	 * Returns the subclusters of a certain size. 
 	 * @param size
 	 * @return
 	 */
 	Set<Vertex> getSubClusters(int size);
-	
+
 	class VertexPair implements Comparable<VertexPair> {
 		public final Vertex cluster1;
 		public final Vertex cluster2;
 		public final Vertex both;
 		public long weight = 0, upperbound = 0;
-		
-		
+
+
 		public VertexPair(Vertex v1, Vertex v2, Vertex v) {
 			cluster1 = v1;
 			cluster2 =  v2;

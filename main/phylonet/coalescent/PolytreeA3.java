@@ -9,15 +9,15 @@ import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STITreeCluster;
 
 public class PolytreeA3 extends Polytree{	
-	
-	
+
+
 	/**
 	 * A node in the input gene trees. Used temporarily to build the polytree. 
 	 * @author smirarab
 	 *
 	 */
 	final class PTNode extends Polytree.PTNode{
-		
+
 		/**
 		 * To be used for leaves
 		 * @param n
@@ -63,7 +63,7 @@ public class PolytreeA3 extends Polytree{
 			}
 			else return new PTCluster(c, n);
 		}
-	
+
 		void addAllPartitions(){
 			for (phylonet.coalescent.Polytree.PTNode child: children){
 				((PTNode) child).addAllPartitions();
@@ -75,9 +75,9 @@ public class PolytreeA3 extends Polytree{
 				}
 			}
 		}
-	
+
 	}
-	
+
 	int listSize = 0;
 	long[] sx = new long[3], sxy = new long[3];
 	int[] treeTotal = new int[3];
@@ -89,26 +89,26 @@ public class PolytreeA3 extends Polytree{
 	@Override
 	protected void initalizePolyTree(List<Tree> trees, WQDataCollection dataCollection) {
 		long t = System.currentTimeMillis();
-		
+
 		// Create singleton clusters and add to map
 		for (int i = 0; i < GlobalMaps.taxonIdentifier.taxonCount(); i++){
 			STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
 			c.getBitSet().set(i);
 			new PTCluster(c);
 		}
-		
+
 		// Represent gene trees as PTNodes
 		Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
 		for (Tree tr: trees){
 			nodeRoots.add(buildTree(tr.getRoot(), tit.next()));
 		}
-		
+
 		// Set the isUsedFlag on gene tree nodes
 		for (Polytree.PTNode nn: nodeRoots){
 			PTNode n = (PTNode) nn;
 			n.addAllPartitions();
 		}
-		
+
 		// For each node of each gene tree, decide how it
 		//  should be treated when calculating weights.
 		// Options (non-exclusive) are:
@@ -119,7 +119,7 @@ public class PolytreeA3 extends Polytree{
 			queueBuilder.add(-1);
 			n.buildInstructionQueue();
 		}
-		
+
 		queue = mapToInt(queueBuilder);
 		clusters = null;
 		partitions = null;
