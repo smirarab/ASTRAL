@@ -1143,7 +1143,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition>
 			if(d > polytomySizeLimit)
 				Logging.log(d+" ");
 		}
-		Logging.log(" "+deg);
+		Logging.log("All polytomy sizes: "+deg);
 		return allGreedies;
 	}
 

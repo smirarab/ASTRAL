@@ -71,44 +71,13 @@ public class PolytreeA3 extends Polytree{
 			if (isFirstResolutionOfCluster()){
 				isUsed = true;
 				for (phylonet.coalescent.Polytree.PTNode child: children){
-					((PTNode) child).addAllClusters();
+					((PTNode) child).setClusterFlagsByClusterPrecedence();
 				}
 			}
 		}
-		void addAllClusters(){
-			if (isUsed) return;
-			if (isFirstClusterAppearence()){
-				isUsed = true;
-				for (phylonet.coalescent.Polytree.PTNode child: children){
-					((PTNode) child).addAllClusters();
-				}
-			}
-			else {
-				cluster.intersectionAlreadyComputed = true;
-				PTNode n = (PTNode) cluster.firstNode;
-				if (n == null || n.isUsed) return;
-				n.isUsed = true;
-				for (phylonet.coalescent.Polytree.PTNode child: n.children){
-					((PTNode) child).addAllClusters();
-				}
-			}
-		}
-		
-		
-		boolean addToStack(){
-			return isUsed && parent != null && parent.isUsed;
-		}
-		boolean addToList(){
-			return isUsed && isFirstClusterAppearence() && cluster.intersectionAlreadyComputed;
-		}
+	
 	}
 	
-	
-	//HashMap<STITreeCluster, PTCluster> clusters = new HashMap<STITreeCluster, PTCluster>();	
-	//ArrayList<PTNode> nodeRoots = new ArrayList<PTNode>();
-	//ArrayList<Integer> queueBuilder = new ArrayList<Integer>();
-	//int[][] stack, list;
-	//int[] queue;
 	int listSize = 0;
 	long[] sx = new long[3], sxy = new long[3];
 	int[] treeTotal = new int[3];

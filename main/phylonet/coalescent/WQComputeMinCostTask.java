@@ -76,12 +76,12 @@ public class WQComputeMinCostTask extends AbstractComputeMinCostTask<Tripartitio
 		
 		if (v.isDone() == 0){
 			long greedyScore = greedy();
-			System.err.println("Greedy score: " + (long) greedyScore / 4);
+			Logging.log("Greedy score: " + (long) greedyScore / 4);
 			estimateUpperBound(v);
-			inference.estimationFactor = v.get_upper_bound() / greedyScore;
-			System.err.println("estimationFactor: " + inference.estimationFactor);
+			inference.estimationFactor = v.get_upper_bound() / (greedyScore+1.0);
+			Logging.log("estimationFactor: " + inference.estimationFactor);
 			long estimateScore = estimateMinCost();
-			System.err.println("Sub-optimal score: " + (long) estimateScore / 4);
+			Logging.log("Sub-optimal score: " + (long) estimateScore / 4);
 		}
 		
 		//
@@ -186,7 +186,7 @@ public class WQComputeMinCostTask extends AbstractComputeMinCostTask<Tripartitio
 		}
 		//
 		if (v.isDone() == 1 && v.get_upper_bound() <= target * inference.estimationFactor) {
-			return v.get_upper_bound() / inference.estimationFactor;
+			return (long) (v.get_upper_bound() / inference.estimationFactor);
 		}
 		
 		int clusterSize = v.getCluster().getClusterSize();
@@ -372,7 +372,7 @@ public class WQComputeMinCostTask extends AbstractComputeMinCostTask<Tripartitio
 		if (v1.isDone() == 3) return v1._max_score;
 		if (v1.isDone() == 2) {
 			if (v1.get_upper_bound() < v1.get_estimated() * inference.estimationFactor) return v1.get_upper_bound();
-			return v1.get_estimated() * inference.estimationFactor;
+			return (long) (v1.get_estimated() * inference.estimationFactor);
 		}
 		if (v1.isDone() == 1) return v1.get_upper_bound();
 		STITreeCluster c = v1.getCluster();

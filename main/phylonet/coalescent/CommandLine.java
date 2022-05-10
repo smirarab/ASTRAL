@@ -534,7 +534,7 @@ public class CommandLine{
 		        		mainTrees, outbuffer, bootstrapInputSets,  options, outgroup);
 	        }
 	        // TODO: debug info
-	        // Logging.log("Weight calculation took " + PolytreeA3.getTime() / 1000000000.0D + " secs");
+	        Logging.log("Weight calculation took " + PolytreeA3.getTime() / 1000000000.0D + " secs");
 	        
 		    Logging.log("ASTRAL finished in " + 
 		            (System.currentTimeMillis() - startTime) / 1000.0D + " secs");
@@ -679,7 +679,7 @@ public class CommandLine{
 		Logging.logTimeMessage(" CommandLine 667: ");
         Logging.log("Optimal tree inferred in "
         		+ (System.currentTimeMillis() - startTime) / 1000.0D + " secs.");
-		Logging.log("Weight calculation using polytrees cumulatively took " + Polytree.time / 1000000000.0D + " secs");
+		//Logging.log("Weight calculation using polytrees cumulatively took " + Polytree.time / 1000000000.0D + " secs");
         
         Tree st = processSolution(outbuffer, bootstraps, outgroup, inference, solutions);
         

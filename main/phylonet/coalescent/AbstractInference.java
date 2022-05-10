@@ -42,7 +42,7 @@ public abstract class AbstractInference<T> {
 	public Options options;
 	protected DecimalFormat df;
 	
-	long estimationFactor = 0;
+	double estimationFactor = 0;
 	
 	public AbstractInference(Options options, List<Tree> trees,
 			List<Tree> extraTrees, List<Tree> toRemoveExtraTrees) {
