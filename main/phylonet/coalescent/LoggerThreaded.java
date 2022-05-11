@@ -28,10 +28,12 @@ public class LoggerThreaded implements LoggerInterface {
 			@Override
 			public void run() {
 				String message = "";
-				while(message!=ENDMESSAGE) {
-					System.err.println(message);
+				while(true) {
 					try {
 						message = messageQueue.take();
+						if (message==ENDMESSAGE)
+							break;
+						System.err.println(message);
 					} catch (InterruptedException e) {
 						System.err.println("Message could not be dequeued.");
 					}
