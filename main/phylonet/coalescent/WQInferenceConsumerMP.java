@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
+import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -73,11 +74,12 @@ public class WQInferenceConsumerMP extends WQInference {
 							tripartitionBatch[batchPosition++] = trip;
 
 							if (batchPosition == tripartitionBatch.length) {
+								final Tripartition[] arrayCopy = Arrays.copyOfRange(tripartitionBatch, 0, batchPosition);
 								Future<Long[]> s = Threading.submit(new Callable<Long[]>() {
 
 									@Override
 									public Long[] call() throws Exception {
-										return weightCalculator.calculateWeight(tripartitionBatch);
+										return weightCalculator.calculateWeight(arrayCopy);
 									}
 
 								});
@@ -92,29 +94,31 @@ public class WQInferenceConsumerMP extends WQInference {
 		}
 		if (batchPosition != 0) {
 
-			final Tripartition[] tripartitionlastBatch = Arrays.copyOfRange(tripartitionBatch, 0, batchPosition);
+			final Tripartition[] arrayCopy = Arrays.copyOfRange(tripartitionBatch, 0, batchPosition);
 			Future<Long[]> s = Threading.submit(new Callable<Long[]>() {
 
 				@Override
 				public Long[] call() throws Exception {
-					return weightCalculator.calculateWeight(tripartitionlastBatch);
-					//return a;
+					return weightCalculator.calculateWeight(arrayCopy);
 				}
 
 			});
 			weights.add(s);
 		}
 
+		//TreeSet<Long> c = new TreeSet<>();
 		for (Future<Long[]> ws: weights) {
 			try {
-				for (Long w : ws.get())
+				for (Long w : ws.get()) {
 					sum += w;
+					//c.add(w);
+				}
 			} catch (InterruptedException | ExecutionException e) {
 				e.printStackTrace();
 				throw new RuntimeException(e);
 			}
 		}
-
+		//System.err.println(c);
 		return logAndSet(st, sum, poly);
 
 	}

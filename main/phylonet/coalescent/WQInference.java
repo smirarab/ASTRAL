@@ -11,6 +11,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
+import java.util.TreeSet;
 
 import phylonet.coalescent.BipartitionWeightCalculator.Quadrapartition;
 import phylonet.coalescent.BipartitionWeightCalculator.Results;
@@ -224,6 +225,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
 		long sum = 0l;
 		boolean poly = false;
+		//TreeSet<Long> c = new TreeSet<>();
 		for (TNode node: st.postTraverse()) {
 			if (node.isLeaf()) {
 				handleLeaf(stack, node);
@@ -238,14 +240,17 @@ public class WQInference extends AbstractInference<Tripartition> {
 				for (int i = 0; i < childbslist.size(); i++) {
 					for (int j = i+1; j < childbslist.size(); j++) {
 						for (int k = j+1; k < childbslist.size(); k++) {
-							sum += weightCalculator.getWeight(
+							Long w = weightCalculator.getWeight(
 									new Tripartition(childbslist.get(i),  childbslist.get(j), childbslist.get(k)), 
 									null);
+							//c.add(w);
+							sum += w;
 						}
 					}					       
 				}
 			}
 		}
+		//System.err.println(c);
 
 		return logAndSet(st, sum, poly);
 

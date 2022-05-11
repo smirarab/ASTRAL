@@ -78,7 +78,7 @@ public class WQComputeMinCostTask extends AbstractComputeMinCostTask<Tripartitio
 			long greedyScore = greedy();
 			Logging.log("Greedy score: " + (long) greedyScore / 4);
 			estimateUpperBound(v);
-			inference.estimationFactor = v.get_upper_bound() / (greedyScore+1.0);
+			inference.estimationFactor = v.get_upper_bound() / (greedyScore+0.0);
 			Logging.log("estimationFactor: " + inference.estimationFactor);
 			long estimateScore = estimateMinCost();
 			Logging.log("Sub-optimal score: " + (long) estimateScore / 4);
@@ -185,8 +185,8 @@ public class WQComputeMinCostTask extends AbstractComputeMinCostTask<Tripartitio
 			return v.get_estimated();
 		}
 		//
-		if (v.isDone() == 1 && v.get_upper_bound() <= target * inference.estimationFactor) {
-			return (long) (v.get_upper_bound() / inference.estimationFactor);
+		if (v.isDone() == 1 && v.get_upper_bound() <= (target+0.0) * inference.estimationFactor) {
+			return (long) ((v.get_upper_bound()+0.0) / inference.estimationFactor);
 		}
 
 		int clusterSize = v.getCluster().getClusterSize();
@@ -283,14 +283,14 @@ public class WQComputeMinCostTask extends AbstractComputeMinCostTask<Tripartitio
 	}
 
 	protected long greedy(){
-		long result = Long.MIN_VALUE;
+		long result = (long) -1e18;
 		int clusterSize = v.getCluster().getClusterSize();
 
-		// SIA: base case for singelton clusters.
+		// SIA: base case for singleton clusters.
 		if (clusterSize <= 1 || spm.isSingleSP(v.getCluster().getBitSet())) {
 
-			v._max_score = 0;
-			v.set_estimated(0);
+			v._max_score = 0l;
+			v.set_estimated(0l);
 			v._min_lc = (v._min_rc = null);
 			v.setDone(3);
 
@@ -364,6 +364,9 @@ public class WQComputeMinCostTask extends AbstractComputeMinCostTask<Tripartitio
 			result = (lscore + rscore + bi.weight);
 			break;
 		}
+		
+		//System.err.println(v);
+		//System.err.println(result);
 		return result;
 	}
 
@@ -371,8 +374,8 @@ public class WQComputeMinCostTask extends AbstractComputeMinCostTask<Tripartitio
 		VertexASTRAL3 v1 = (VertexASTRAL3) v1v;
 		if (v1.isDone() == 3) return v1._max_score;
 		if (v1.isDone() == 2) {
-			if (v1.get_upper_bound() < v1.get_estimated() * inference.estimationFactor) return v1.get_upper_bound();
-			return (long) (v1.get_estimated() * inference.estimationFactor);
+			if (v1.get_upper_bound() < (v1.get_estimated()+0.0) * inference.estimationFactor) return v1.get_upper_bound();
+			return (long) ((v1.get_estimated()+0.0) * inference.estimationFactor);
 		}
 		if (v1.isDone() == 1) return v1.get_upper_bound();
 		STITreeCluster c = v1.getCluster();
@@ -388,7 +391,7 @@ public class WQComputeMinCostTask extends AbstractComputeMinCostTask<Tripartitio
 		if (v1.isDone() == 1) return v1.get_upper_bound();
 		STITreeCluster c = v1.getCluster();
 		v1.set_upper_bound(inference.weightCalculator.getWeight(new Tripartition(c, c, c, false), this));
-		v1.setDone((byte) 1);
+		v1.setDone(1);
 		return v1.get_upper_bound();
 	}
 
