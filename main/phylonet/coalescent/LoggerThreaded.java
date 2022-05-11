@@ -2,7 +2,7 @@ package phylonet.coalescent;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class ThreadedLogger implements LoggerInterface {
+public class LoggerThreaded implements LoggerInterface {
 
 	static final String ENDMESSAGE = "&&END&&";
 

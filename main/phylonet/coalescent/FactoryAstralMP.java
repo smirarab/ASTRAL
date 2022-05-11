@@ -57,7 +57,7 @@ public class FactoryAstralMP extends Factory {
 
 	@Override
 	public LoggerInterface newLogger() {
-		return new ThreadedLogger();
+		return new LoggerThreaded();
 	}
 
 	@Override

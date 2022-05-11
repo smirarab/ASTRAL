@@ -55,7 +55,7 @@ public class FactoryAstral3 extends Factory {
 
 	@Override
 	public LoggerInterface newLogger() {
-		return new StdErrLogging();
+		return new LoggerStdErr();
 	}
 
 	@Override
