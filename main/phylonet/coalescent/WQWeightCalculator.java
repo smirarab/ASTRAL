@@ -222,11 +222,11 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 			Stack<Integer> stackHeight = new Stack<Integer>();
 			maxHeight = 0;
 			for (Tree tr : inference.trees) {
-				List<STINode> toswap = new ArrayList<STINode>();
+				//List<STINode> toswap = new ArrayList<STINode>();
 				for (TNode node : tr.postTraverse()) {
 					if (node.isLeaf()) {                        
 						stackHeight.push(0);
-						toswap.add((STINode) node);
+						//toswap.add((STINode) node);
 					} else {
 						int mh = 0;
 						for (TNode child: node.getChildren()) {
@@ -248,11 +248,11 @@ class WQWeightCalculator extends AbstractWeightCalculator<Tripartition> {
 
 				// Make the tree left-heavy so that the stack gets small
 				// Problem: Phylonet's adoptChild does not work. Only going for leaves. 
-				for (STINode child: toswap) {
-					STINode snode = child.getParent();
-					snode.removeChild((TMutableNode) child, false);
-					snode.createChild(child);
-				}
+				//for (STINode child: toswap) {
+				//	STINode snode = child.getParent();
+				//	snode.removeChild((TMutableNode) child, false);
+				//	snode.createChild(child);
+				//}
 
 				for (TNode node : tr.postTraverse()) {
 					if (node.isLeaf()) {

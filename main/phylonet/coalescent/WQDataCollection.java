@@ -20,6 +20,7 @@ import java.util.Stack;
 import java.util.TreeSet;
 
 import phylonet.lca.SchieberVishkinLCA;
+import phylonet.tree.io.ParseException;
 import phylonet.tree.model.MutableTree;
 import phylonet.tree.model.TMutableNode;
 import phylonet.tree.model.TNode;
@@ -855,7 +856,11 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 			if (tree.getLeafCount() != taxid.taxonCount()) {
 				haveMissing++;
 			}
-			reroot(tree);
+			//System.out.println(tree);
+			rearrange(tree);
+			//System.out.println(tree);
+			//System.out.println("------");
+			
 			Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
 			for (TNode n: tree.postTraverse()) {
 				STINode node = (STINode) n;
@@ -906,12 +911,6 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		TNode newroot = tr.getRoot();
 		for (TNode node : tr.postTraverse()) {
 			if (!node.isLeaf()) {                        
-				for (TNode child : node.getChildren()) {
-					if (child.isLeaf()) {
-						children.add((STINode) child);
-						break;
-					}
-				}
 				if (Math.abs(n - node.getLeafCount()) < dist) {
 					newroot = node;
 					dist = n - node.getLeafCount();
@@ -930,6 +929,128 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 			((STITree)(tr)).rerootTreeAtEdge(newroot);
 
 
+	}
+	
+	class NodeHeight implements Comparable<NodeHeight>{
+		TNode node;
+		int height;
+		public NodeHeight(TNode node, int height) {
+			super();
+			this.node = node;
+			this.height = height;
+		}
+		@Override
+		public int compareTo(NodeHeight o) {
+			if (node == o.node)
+				return 0;
+			else if (height == o.height)
+				return this.node.getID() > (o.node.getID()) ? 1 : -1;
+			else if (height > o.height)
+				return 1;
+			else return -1;
+		} 
+		
+	}
+	private void rearrange(Tree tr) {
+		Stack<NodeHeight> stack = new Stack<NodeHeight>();
+		ArrayList<TreeSet<NodeHeight>> swaps = new ArrayList<TreeSet<NodeHeight>>();
+		int diameter = 0;
+		TNode newroot = tr.getRoot();
+		for (TNode node : tr.postTraverse()) {
+			if (node.isLeaf()) {  
+				stack.push(new NodeHeight(node, 0));
+			} else {
+				int myh = -1;
+				TreeSet<NodeHeight> chordered = new TreeSet<NodeHeight>();
+				boolean swap = false;
+				for (TNode child : node.getChildren()) {
+					NodeHeight pop = stack.pop();
+					chordered.add(pop);
+					if (pop.height > myh) {
+						if (myh != -1)
+							swap = true;
+						myh = pop.height;
+					}
+				}
+				Iterator<NodeHeight> i = chordered.descendingIterator();
+
+				int myd = i.next().height + i.next().height + 2;
+				if (myd > diameter) {
+					diameter = myd;
+				}
+				if (swap) {
+					swaps.add(chordered);
+				}
+				stack.push(new NodeHeight(node, myh+1));
+			}
+		}
+		for (TreeSet<NodeHeight> l: swaps) {
+			sawpChildren(l);
+		}
+		
+		stack = new Stack<NodeHeight>();
+		int diff = diameter;
+		for (TNode node : tr.postTraverse()) {
+			if (node.isLeaf()) {  
+				stack.push(new NodeHeight(node, 0));
+			} else {
+				int myh = -1;
+				for (TNode child : node.getChildren()) {
+					NodeHeight pop = stack.pop();
+					if (pop.height > myh) {
+						myh = pop.height;
+					}
+				}				
+				myh++;
+				stack.push(new NodeHeight(node, myh));
+			
+				if ( Math.abs(diameter/2 - myh) < diff) {
+					diff = Math.abs(diameter/2 - myh);
+					newroot = node;
+				}
+			}
+		}
+		if (newroot != tr.getRoot() && newroot.getParent() != tr.getRoot()) {
+			//System.out.println("   " +tr);
+			((STITree)(tr)).rerootTreeAtEdge(newroot);
+			//System.out.println(tr);
+			//System.out.println(";");
+		}
+		stack = new Stack<NodeHeight>();
+		/*for (TNode node : tr.postTraverse()) {
+			if (node.isLeaf()) {  
+				stack.push(new NodeHeight(node, 0));
+			} else {
+				int myh = -1;
+				for (TNode child : node.getChildren()) {
+					NodeHeight pop = stack.pop();
+					if (pop.height > myh) {
+						myh = pop.height;
+					}
+					System.err.print(pop.height+" ");
+				}				
+				myh++;
+				stack.push(new NodeHeight(node, myh));
+				System.err.print("  ,   ");	
+			}
+		}
+		System.err.println("");*/
+	}
+	
+	void sawpChildren(TreeSet<NodeHeight> children) {
+		STINode node = (STINode) children.first().node.getParent();
+		for (NodeHeight childP : children) {
+			STINode child = (STINode) childP.node;
+			STINode temp;
+			try {
+				temp = new STITree(";").getRoot();
+				temp.createChild(child);
+				child.removeNode();
+				node.adoptChild((TMutableNode) temp.getChildren().iterator().next());
+			} catch (IOException | ParseException e) {
+			}
+		}
+		//System.err.println(node);
 	}
 
 	/*
@@ -1575,4 +1696,30 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 	 * countsC2c.length; i++) { if (countsC1c[i] > countsC2c[i]) { gtbs1.set(i);
 	 * } } return gtbs1; }
 	 */
+	
+	
+	
+	public void main(String [] s) {
+		try {
+			STITree tree = new STITree("(((((A,B),C),D),E),F);");
+			STINode temp = new STITree(";").getRoot();
+			Iterable<STINode> nodes = tree.getNodes();
+			STINode node = tree.getNode(4);
+			System.err.println(tree);
+			System.err.print(node+"     ");
+			STINode firstChild = (STINode) node.getChildren().iterator().next();
+			System.err.println(firstChild);
+			temp.createChild(firstChild);
+			firstChild.removeNode();
+			System.err.println("T  " + temp.getChildren().iterator().next());
+			node.adoptChild((TMutableNode) temp.getChildren().iterator().next());
+			System.err.println(tree);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }
