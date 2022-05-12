@@ -2,9 +2,18 @@ package phylonet.coalescent;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.Random;
+import java.util.TreeSet;
+import java.util.stream.IntStream;
 
+import phylonet.coalescent.WQDataCollection.NodeHeight;
+import phylonet.tree.model.TNode;
+import phylonet.tree.model.Tree;
+import phylonet.tree.model.sti.STINode;
 import phylonet.tree.model.sti.STITreeCluster;
 
 // TODO: why extend the abstract? It doesn't seem to follow the same pattern exactly
@@ -13,12 +22,19 @@ public class BipartitionWeightCalculator {
 	AbstractInference inference;
 	private AbstractDataCollection dataCollection;
 	private int[] geneTreesAsInts;
-
+	ArrayList<Tree> trees;
+	ArrayList<STITreeCluster> alls;
+	private ArrayList<Integer> treeInds;
+	
 	public BipartitionWeightCalculator(AbstractInference inference,
 			int[] geneAsInts) {
 		this.dataCollection = inference.dataCollection;
 		this.inference = inference;
 		this.geneTreesAsInts = geneAsInts;
+		trees = new ArrayList<Tree>(((WQDataCollection)this.dataCollection).originalInompleteGeneTrees);
+		treeInds = new ArrayList<Integer>();
+		for (int i = 0 ; i< trees.size(); i ++) treeInds.add(i);
+		alls = new ArrayList<STITreeCluster>(dataCollection.treeAllClusters);
 	}
 
 
@@ -147,7 +163,7 @@ public class BipartitionWeightCalculator {
 		boolean cruise = false;
 
 		//Quadrapartition []  quad = new Quadrapartition [] {quadm, new Quadrapartition(quadm.cluster1, quadm.cluster3, quadm.cluster2, quadm.cluster4), new Quadrapartition(quadm.cluster1, quadm.cluster4, quadm.cluster2, quadm.cluster3)};
-		Iterator<STITreeCluster> tit = dataCollection.treeAllClusters.iterator();
+		Iterator<STITreeCluster> tit = alls.iterator();
 		Deque<Intersects> [] stack = new Deque [] {new ArrayDeque<Intersects>(), new ArrayDeque<Intersects>(), new ArrayDeque<Intersects>()};
 
 		for (Integer gtb: geneTreesAsInts){
@@ -247,6 +263,129 @@ public class BipartitionWeightCalculator {
 		}
 
 		return  new Results(weight,effectiven);
+	}
+
+	
+	public double getMedianBL(Quadrapartition quad ) {
+
+		boolean leaf = quad.cluster1.getClusterSize() == 0;
+		//for (Integer gtb: geneTreesAsInts){
+		ArrayList<LengthCount> lengths = new ArrayList<LengthCount> ();
+		long sum = 0;
+		ArrayList<Integer> myorder = new ArrayList<Integer>(treeInds);
+		Collections.shuffle(myorder);
+		for (int gId : myorder) {
+			Tree gt = trees.get(gId);
+			STITreeCluster all = alls.get(gId);
+			Deque<Intersects> stack = new ArrayDeque<Intersects>();
+			synchronized (gt) {
+				for (TNode node : gt.postTraverse()) {
+					
+					if (node.isLeaf()){
+						stack.push(getSide(GlobalMaps.taxonIdentifier.taxonId(node.getName()), quad));
+						((STINode)node).setData(stack.peek());
+						continue;
+					}
+					Intersects side1 = stack.pop();
+					Intersects side2 = stack.pop();
+					Intersects newSide = new Intersects(side1, side2);
+					stack.push(newSide);
+					//Intersects side3 = new Intersects(allsides[i]);
+					//side3.subtract(newSide);
+					((STINode)node).setData(stack.peek());
+					
+				}
+				Intersects allsides = new Intersects(
+						quad.cluster1.getBitSet().intersectionSize(all.getBitSet()),
+						quad.cluster2.getBitSet().intersectionSize(all.getBitSet()),
+						quad.cluster3.getBitSet().intersectionSize(all.getBitSet()),
+						quad.cluster4.getBitSet().intersectionSize(all.getBitSet())
+						);
+				for (TNode n : gt.postTraverse()) {
+					STINode node = (STINode) n;
+					if (node.isRoot()) continue;
+					Intersects l;
+					Intersects r;
+					if (node.getChildCount() < 2 && leaf) {
+						l = (Intersects) node.getData(); 
+						r = new Intersects(1, 1, 1, 1);
+					} else if (node.getChildCount() >= 2 && !leaf) {
+						//TODO: ignores gene tree mutlifurcations for now
+						Iterator<STINode> it = (Iterator<STINode>) node.getChildren().iterator();
+						l = (Intersects) it.next().getData(); 
+						r = (Intersects) it.next().getData();
+					} else {
+						continue;
+					}
+					
+					if (node.getSiblings().size() == 0)
+							System.err.println("hmm.");
+					Intersects s = (Intersects) ((STINode) node.getSiblings().get(0)).getData();
+					Intersects o = new Intersects(allsides);
+					o.subtract((Intersects) node.getData());
+					o.subtract(s);
+					//System.err.println(l + " " +r +" ... "+ s + " " +o);
+					long c = sharedQuartetsAround(l,r, o, s);
+					if (c!=0) {
+						double length = node.getParentDistance();
+						if (length < 0)
+							length = 0;
+						lengths.add(new LengthCount(length,c));
+						sum += c;
+					}
+	
+				}
+			}
+		}
+		lengths.sort(new Comparator<LengthCount>() {
+
+			@Override
+			public int compare(LengthCount o1, LengthCount o2) {
+				if (o1.length == o2.length)
+					return 0;
+				else
+					return o1.length > o2.length ? 1 : -1;
+			}
+		});
+		long ps = 0;
+		double median = 0;
+		//Logging.log(lengths+"");
+		for (LengthCount l: lengths) {
+			ps += l.count;
+			median = l.length;
+			if (ps >= sum/2.0)
+				break;
+		}
+		//Logging.log(median+"");
+		return  median;
+	}
+	
+	
+	
+	class LengthCount {
+		long count;
+		double length;
+		public LengthCount(double length, long count) {
+			super();
+			this.count = count;
+			this.length = length;
+		}
+		
+		public String toString() {
+			return this.count+"/" + this.length;
+		}
+		
+	}
+	long sharedQuartetsAround(Intersects l, Intersects r, Intersects o, Intersects s) {
+		return 
+				l.s0 * r.s1 * s.s2 * o.s3 +
+				l.s1 * r.s0 * s.s3 * o.s2 + 
+				l.s0 * r.s1 * s.s3 * o.s2 +
+				l.s1 * r.s0 * s.s2 * o.s3 +
+				l.s2 * r.s3 * s.s0 * o.s1 +
+				l.s3 * r.s2 * s.s0 * o.s1 +
+				l.s2 * r.s3 * s.s1 * o.s0 +
+				l.s3 * r.s2 * s.s1 * o.s0;
 	}
 
 	/*	private boolean checkFutileCalcs(Intersects side1, Intersects side2) {

@@ -1,11 +1,8 @@
 package phylonet.coalescent;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.Stack;
-import java.util.TreeSet;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -27,12 +24,16 @@ public class WQInferenceConsumerMP extends WQInference {
 
 	static TaxonIdentifierMP taxid = (TaxonIdentifierMP) GlobalMaps.taxonIdentifier;
 
+	AtomicInteger processCount = new AtomicInteger();
+	Object locks = new Object();
+
 	public WQInferenceConsumerMP(Options inOptions, List<Tree> trees, List<Tree> extraTrees, List<Tree> toRemoveExtraTrees) {
 		super(inOptions, trees, extraTrees, toRemoveExtraTrees);
 		GlobalQueues.instance.setQueueWeightResults(new LinkedBlockingQueue<Long>());
 		GlobalQueues.instance.setQueueClusterResolutions(new LinkedBlockingQueue<Iterable<VertexPair>>());
 
 		this.forceAlg = inOptions.getAlg();
+
 	}
 
 
@@ -130,89 +131,45 @@ public class WQInferenceConsumerMP extends WQInference {
 	 * @return
 	 */
 	@Override
-	protected double scoreBranches(Tree st) {
-		Logging.logTimeMessage("WQInference 227: " );
-
-		//weightCalculator = (AbstractWeightCalculator<Tripartition>) new BipartitionWeightCalculator(this,((WQWeightCalculator)this.weightCalculator).geneTreesAsInts());
-
-		BipartitionWeightCalculator weightCalculator2 =  new BipartitionWeightCalculator(this,((WQWeightCalculatorMP)this.weightCalculator).geneTreesAsInts()); //(BipartitionWeightCalculator) this.weightCalculator;
-		WQDataCollectionMP wqDataCollection = (WQDataCollectionMP) this.dataCollection;
-		//wqDataCollection.initializeWeightCalculator(this);
-
-		AtomicInteger processCount = new AtomicInteger();
-		Object lock = new Object();
-
-		Set<TNode> skippedNodes = new HashSet<TNode>();
-
-		updateNodeData(st);
-
-		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
-
-		Logging.logTimeMessage("WQInference 274: " );
-
-		/**
-		 * For each node,
-		 *   1. create three quadripartitoins for the edge above it
-		 *   2. score the quadripartition
-		 *   3. save the scores in a list for annotations in the next loop
-		 */
-
-		NodeData [] nodeDataList = new NodeData [st.getLeafCount()*2];
-		int ni = 0;
-		for (TNode n: st.postTraverse()) {
-			STINode node = (STINode) n;
-			if (node.isLeaf()) {
-				stack.push((STITreeCluster) node.getData());
-			} else {
-
-				NodeData nd = null;
-
-				STITreeCluster cluster = (STITreeCluster) node.getData();				
-				STITreeCluster c1 = null, c2 = null;
-				long cs = cluster.getClusterSize()+0l;
-
-				for (int i =0; i< node.getChildCount(); i++) {
-					if (c1 == null)
-						c1 = stack.pop();
-					else if (c2 == null)
-						c2 = stack.pop();
-					else
-						stack.pop();
-				}
-				stack.push(cluster);
-				processCount.incrementAndGet();
-				Threading.execute(scoreBranchesLoop(weightCalculator2, nodeDataList, ni, node, nd, cluster, c1, c2, cs, processCount, lock));
-				ni++;
-			}
-		}
+	protected NodeData[] scoreBranches(Tree st) {
+	
+		NodeData[] nodeList = super.scoreBranches(st);
 		try {
-			synchronized(lock) {
+			synchronized(locks) {
 				while(processCount.get() != 0) {
-					lock.wait();
+					locks.wait();
 				}
 			}
 		}
 		catch(InterruptedException e) {
 			e.printStackTrace();
+			throw new RuntimeException(e);
 		}
-		Logging.logTimeMessage("WQInference 390: ");
+		
+		return nodeList;
+	}
 
-		return annotateBranch(st, nodeDataList, ni);
+
+	
+	@Override
+	public void scoreBranches(BipartitionWeightCalculator weightCalculator2, NodeData[] nodeDataList, int ni,
+			STINode node, STITreeCluster cluster, STITreeCluster c1, STITreeCluster c2, long cs) {
+		processCount.incrementAndGet();
+		Threading.execute(scoreBranchesLoop(weightCalculator2, nodeDataList, ni, node, cluster, c1, c2, cs, processCount, locks));
 	}
 
 
 	public scoreBranchesLoop scoreBranchesLoop(BipartitionWeightCalculator weightCalculator2,NodeData [] nodeDataList, int i, STINode node,
-			NodeData nd, STITreeCluster cluster, STITreeCluster c1, STITreeCluster c2, long cs, AtomicInteger processCount, Object lock) {
-		return new scoreBranchesLoop(weightCalculator2, nodeDataList, i, node, nd, cluster, c1, c2, cs, processCount, lock);
+			 STITreeCluster cluster, STITreeCluster c1, STITreeCluster c2, long cs, AtomicInteger processCount, Object lock) {
+		return new scoreBranchesLoop(weightCalculator2, nodeDataList, i, node, cluster, c1, c2, cs, processCount, lock);
 	}
 
 	public class scoreBranchesLoop extends phylonet.coalescent.WQInference.scoreBranchesLoop implements Runnable {
 		AtomicInteger processCount;
 		Object lock;
-		int i; 
 		public scoreBranchesLoop(BipartitionWeightCalculator weightCalculator2, NodeData []  nodeDataList, int i, STINode node,
-				NodeData nd, STITreeCluster cluster, STITreeCluster c1, STITreeCluster c2, long cs, AtomicInteger processCount, Object lock) {
-			super(weightCalculator2, nodeDataList, i, node, nd, cluster, c1, c2, cs);
+				STITreeCluster cluster, STITreeCluster c1, STITreeCluster c2, long cs, AtomicInteger processCount, Object lock) {
+			super(weightCalculator2, nodeDataList, i, node, cluster, c1, c2, cs);
 			this.lock = lock;
 			this.processCount = processCount;
 		}

@@ -44,7 +44,7 @@ import phylonet.tree.util.Trees;
 public class CommandLine{
 
 	protected String ASTRAL;
-	protected String _version = "5.16.0";
+	protected String _version = "5.16.1";
 
 	protected SimpleJSAP jsap;
 
@@ -727,7 +727,7 @@ public class CommandLine{
 		BufferedReader treeBufferReader = new BufferedReader(new FileReader(file));
 		while ((line = treeBufferReader .readLine()) != null) {
 			if (line.length() > 0) {
-				line = line.replaceAll("\\)[^,);]*", ")");
+				line = line.replaceAll("\\)[^,);:]*", ")");
 				trees.add(line);
 			}
 		}

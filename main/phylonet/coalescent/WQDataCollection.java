@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
 
+import phylonet.coalescent.BipartitionWeightCalculator.Intersects;
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.io.ParseException;
 import phylonet.tree.model.MutableTree;
@@ -852,12 +853,20 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		// n = taxid.taxonCount();
 
 		int haveMissing = 0;
+		ArrayList<Tree> tempCopy = new ArrayList<Tree>(this.originalInompleteGeneTrees);
+		this.originalInompleteGeneTrees.clear();
+		
+		for (Tree tree : tempCopy) {
+			this.originalInompleteGeneTrees.add(rearrange(tree));
+		}
+		
 		for (Tree tree : this.originalInompleteGeneTrees) {
 			if (tree.getLeafCount() != taxid.taxonCount()) {
 				haveMissing++;
 			}
 			//System.out.println(tree);
-			rearrange(tree);
+			//rearrange(tree);
+			
 			//System.out.println(tree);
 			//System.out.println("------");
 			
@@ -898,6 +907,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 			}
 			treeAllClusters.add(gtAll);
 		}
+		
 		Logging.log(haveMissing + " trees have missing taxa");
 
 		return haveMissing;
@@ -951,7 +961,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		} 
 		
 	}
-	private void rearrange(Tree tr) {
+	private Tree rearrange(Tree tr) {
 		Stack<NodeHeight> stack = new Stack<NodeHeight>();
 		ArrayList<TreeSet<NodeHeight>> swaps = new ArrayList<TreeSet<NodeHeight>>();
 		int diameter = 0;
@@ -987,7 +997,6 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		for (TreeSet<NodeHeight> l: swaps) {
 			sawpChildren(l);
 		}
-		
 		stack = new Stack<NodeHeight>();
 		int diff = diameter;
 		for (TNode node : tr.postTraverse()) {
@@ -1010,13 +1019,33 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 				}
 			}
 		}
+		//System.out.println(tr);
 		if (newroot != tr.getRoot() && newroot.getParent() != tr.getRoot()) {
 			//System.out.println("   " +tr);
 			((STITree)(tr)).rerootTreeAtEdge(newroot);
+			Iterable<? extends TNode> children = tr.getRoot().getChildren();
+			double tl = 0;
+			for (TNode child: children)
+				if (child.getParentDistance() >= 0 )
+					tl += child.getParentDistance();
+			for (TNode child: children)
+				child.setParentDistance(tl/(tr.getRoot().getChildCount()+0.0));
 			//System.out.println(tr);
-			//System.out.println(";");
 		}
-		stack = new Stack<NodeHeight>();
+		try {
+			//System.err.println(tr);
+			tr = new STITree(tr.toNewickWD());
+			//System.out.println(tr);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		//System.out.println("----");
+		
+		return tr;
 		/*for (TNode node : tr.postTraverse()) {
 			if (node.isLeaf()) {  
 				stack.push(new NodeHeight(node, 0));
@@ -1044,13 +1073,31 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 			STINode temp;
 			try {
 				temp = new STITree(";").getRoot();
-				temp.createChild(child);
+				//double l = child.getParentDistance();
+				TMutableNode c = createChildWithLength(temp,child);
 				child.removeNode();
-				node.adoptChild((TMutableNode) temp.getChildren().iterator().next());
+				createChildWithLength(node,c);
+				//c = node.createChild((TMutableNode) temp.getChildren().iterator().next());
+				//c.setParentDistance(l);
 			} catch (IOException | ParseException e) {
+				System.err.println(e);
 			}
 		}
-		//System.err.println(node);
+		//System.err.println("----" + node);
+	}
+	
+	STINode createChildWithLength(STINode parent, TNode clade) {
+        STINode node = parent.createChild(clade.getName());
+        if(((STINode)clade).getData()!=null){
+                node.setData(((STINode)clade).getData());
+        }
+        node.setParentDistance(clade.getParentDistance());
+
+        for(TNode child : clade.getChildren()) {
+        	createChildWithLength(node,child);
+        }
+
+        return node;
 	}
 
 	/*
