@@ -2,11 +2,11 @@ DESCRIPTION:
 -----------
 ASTRAL is a tool for estimating an unrooted species tree given a set of unrooted gene trees.
 ASTRAL is statistically consistent under the multi-species coalescent model (and thus is useful for handling incomplete lineage sorting, i.e., ILS).
-ASTRAL finds the species tree that has the maximum number of shared induced quartet trees with the set of gene trees, subject to the constraint that the set of bipartitions in the species tree comes from a predefined set of bipartitions. This predefined set is empirically decided by ASTRAL (but see tutorial on how to expand it). The current code corresponds to **ASTRAL-III** (see below for the publication).
+ASTRAL finds the species tree that has the maximum number of shared induced quartet trees with the set of gene trees, subject to the constraint that the set of bipartitions in the species tree comes from a predefined set of bipartitions. This predefined set is empirically decided by ASTRAL (but see tutorial on how to expand it). The current code corresponds to both **ASTRAL-III** and **ASTRAL-MP** (see below for the publication).
 
 
-The algorithm was designed by Tandy Warnow and Siavash Mirarab originally. ASTRAL-III incorporates many ideas by Chao Zhang and Maryam Rabiee.
-[Code developers](https://github.com/smirarab/ASTRAL/graphs/contributors) are mainly Siavash Mirarab, Chao Zhang, Maryam Rabiee, and Erfan Sayyari.
+The algorithm was designed by Tandy Warnow and Siavash Mirarab originally. ASTRAL-III incorporates many ideas by Chao Zhang and Maryam Rabiee and ASTRAL-MP, which builds on ASTRAL-MP,  is based on ideas by John Yin and Chao Zhang.
+[Code developers](https://github.com/smirarab/ASTRAL/graphs/contributors) are mainly Siavash Mirarab, Chao Zhang, John Yin, Maryam Rabiee, and Erfan Sayyari.
 
 ### Bug Reports:
 
@@ -16,18 +16,18 @@ Contact ``astral-users@googlegroups.com`` or post on [ASTRAL issues page](https:
 ### Other branches
 
 **NOTE**: 
-Several new  features of ASTRAL are not merged in this branch and are available in other branches or git pages. 
+Some features of ASTRAL are not merged in this branch and are available in other branches or git pages. 
 Please use those branches if you find these features useful. 
 
 * **ASTRAL-Pro (Astral for paralogs)**: This new tool, which builds on ASTRAL, can handle multiple copy genes. You can find it here: https://github.com/chaoszhang/A-pro
-* **ASTRAL-MP (Multi-threaded ASTRAL)**: A multi-threaded version of ASTRAL is available on [this branch](https://github.com/smirarab/ASTRAL/tree/MP)
-    * Note: the  link https://github.com/smirarab/ASTRAL/tree/MP-similarity should be replaced with https://github.com/smirarab/ASTRAL/tree/M. 
 * **Astral with user constraints**: A version of ASTRAL that can satisfy user constraints is available [here](https://github.com/maryamrabiee/Constrained-search)
 * **Tree updates**:  An ASTRAL-based algorithm called INSTRAL enables inserting  new species onto and existing ASTRAL tree is available [here](https://github.com/maryamrabiee/INSTRAL)
 
 ## Publications
 
 #### Papers on the current version:
+- Since version 5.9.0, the code includes a multi-threaded version called  **ASTRAL-MP**. The algorithms of ASTRAL-MP and ASTRAL-III  are identical (from user's perspective; that is, in setting up search space and optimization score) and outputs are similar (random choices can pan out differently for ASTRAL-MP):
+    * Yin, John, Chao Zhang, and Siavash Mirarab. “ASTRAL-MP : Scaling ASTRAL to Very Large Datasets Using Randomization and Parallelization.” Bioinformatics, btz211 (2019). [doi:10.1093/bioinformatics/btz211](https://doi.org/10.1093/bioinformatics/btz211)
 - Since version 5.1.1, the code corresponds to **ASTRAL-III**, described in:
     * Zhang, Chao, Maryam Rabiee, Erfan Sayyari, and Siavash Mirarab. 2018. “ASTRAL-III: Polynomial Time Species Tree Reconstruction from Partially Resolved Gene Trees.” BMC Bioinformatics 19 (S6): 153. [doi:10.1186/s12859-018-2129-y](https://doi.org/10.1186/s12859-018-2129-y).
 - For **multi-individual** datasets, the relevant paper to cite is:
@@ -49,7 +49,7 @@ Please use those branches if you find these features useful.
 
 #### Papers with relevance to ASTRAL:
     
-These papers do not describe features in ASTRAL, but are also relveant and we encourage you to read them:
+These papers do not describe features in ASTRAL, but are also releveant and we encourage you to read them:
 
 1. **ASTRAL-Pro**: This paper extends the ASTRAL methodology to multiple copy genes.
 	- Zhang, Chao, Celine Scornavacca, Erin K Molloy, and Siavash Mirarab. “ASTRAL-Pro: Quartet-Based Species-Tree Inference despite Paralogy.” Edited by Jeffrey Thorne. Molecular Biology and Evolution, September 4, 2020, msaa139. https://doi.org/10.1093/molbev/msaa139.
@@ -85,14 +85,16 @@ Documentations
 
 INSTALLATION:
 -----------
-* There is no installation required to run ASTRAL.
+* There is no installation required to run ASTRAL but for ASTRAL-MP to work properly with AVX2 to you may need installation (see below).
+    * If you **do not want to install ASTRAL-MP**, you can access it on [CIPRES](https://www.phylo.org/).
+
+#### Vanilla:
 * Download using one of two approaches:
     * You simply need to download the [zip file](https://github.com/smirarab/ASTRAL/raw/master/__astral.zip__) and extract the contents to a folder of your choice. 
-    * Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/). Then, either:
-    	* simply uncompress the zip file that is included with the repository, or 
-    	* run `make.sh` to build the project.
-* ASTRAL is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed. 
-  Java 1.6 or later is required. We have tested ASTRAL only on Linux and MAC but others have used it on Windows with no reported issues.
+    * Alternatively, you can clone the [github repository](https://github.com/smirarab/ASTRAL/) and simply uncompress the zip file that is included with the repository.
+* Then, you simply use the jar file that is included with the repository, as detailed below.
+* ASTRAL is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed.
+* Java 1.7 or later is required. We have tested ASTRAL only on Linux and MAC but others have used it on Windows with no reported issues.
 * To test your installation, go to the place where you put the uncompressed ASTRAL, and run:
 
   ``` bash

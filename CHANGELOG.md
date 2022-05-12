@@ -1,12 +1,130 @@
 - version 5.16.0:
-	- Combining MP and main branch
-	- Major changes to ASTRAL3:
-		- Double changed to Long many places (score)
+	- Combining MP and main branches into one branch
+	- Somewhat important code changes to ASTRAL3:
+		- Double changed to Long many places (weighting score)
+		- Input gene trees are centroid rooted (and a bit left/right balanced) *before* any other step (including completion); 
+		  this can impact the completed gene trees and hence the set X. 
 		- Some (supposedly) logic-preserving changes to distance matrix code
-		- Changed when gene trees are rerooted and also did a bit of left/right balancing
-	- Major changes to ASTRAL-MP:
-		- Bug fix: detected and fixed an issue with distance matrices
+	- Somewhat important changes to ASTRAL-MP:
+		- Bug fix: detected and fixed an issue with distance matrices. 
+		- Bug fix: with -a, the final quartet score was reported incorrectly. Fixed. 
 
+- version 5.15.4:
+	- Small bug fix for very large k (used to fail); 
+
+- version 5.15.3:
+	- Speed up the final round of scoring using native library. 
+	
+- version 5.15.2:
+	- Concurrency error fixed (issue #69) where ASTRAL would not shut down properly on errors. 
+
+- version 5.15.1:
+	- Small bugfix. native_library_tester.jar was broken
+
+- version 5.15.0:
+	- Bug fix: Change how we generate random numbers. Java's nextLong was not very random, creating collisions in rare cases. We changed how we select random numbers.
+
+- version 5.14.8:
+	- refactoring and improvement of parallelization
+
+- version 5.14.7:
+	- Important bug fix; previously solutions could be optimal due to threading conflicts
+	- Code refactoring
+	- Slightly better logging
+
+- version 5.14.6:
+	- Improve multiple GPU performance
+	- Bug fix for -x
+	- Major refactoring
+	- Small synchronization bug fix for distance calculation and shift load balance
+	
+- version 5.14.5:
+	- Import 5.7.3 changes from master\
+- version 5.14.4:
+	- Bug fix: use all GPUs
+	- Added `-G` to allow choosing specific GPUs
+
+- version 5.14.3:
+	- Merge with 5.7.1 of the master  (bug fix)
+	
+- version 5.14.2:
+	- Fix a bug in ASTRAL-MP for multi-threading
+	- Add a `--matrixcount` option to help reduce memory footprint for large n
+
+- version 5.14.0:
+	- Merge in changes from master (version 5.6.2)
+
+- version 5.13.1:
+	- Better error reporting and handling for ASTRAL-MP
+	
+- version 5.13.0:
+	- Update make files so that AVX and GPU work on more machines
+
+- version 5.12.6:
+	- Compute at most min(# Threads, (10^9/n^2)/2 ) similarity matrices at the same time 
+	
+- version 5.12.5:
+    - added log info to indicate that effni is zero
+    - exception is caught when GPU fails to load and now proceeds without GPU
+
+- version 5.12.4:
+    - Add the `-A` option to use internode distance
+     
+- version 5.12.3:
+    - Fix BitSet by setting BitSets correctly
+
+- version 5.12.2:
+    - Merge fixes from mergedMP
+
+- version 5.12.1:
+    - Fix scoring bug
+     
+- version 5.12.0:
+    - Merge similarity matrix changes of Yuan with multi-threaded
+     
+- version 5.11.9:
+    - Bug fix related to hashed clusters and polytomy creation
+
+- version 5.11.8:
+    - Improve parallelization of scoring
+    - Move to java 1.7
+     
+- version 5.11.7:
+    - Hashing used for building the polytree
+    
+- version 5.11.6:
+    - Fix scoring bugs
+    
+- version 5.11.5:
+    - More refactoring.  
+    - Scoring works again
+        
+- version 5.11.4:
+    - re-parallelized scoreBranches in WQInference
+
+- version 5.11.3:
+    - Bug fix: long to int downcast in native C code
+    - Refactoring
+
+- version 5.11.2:
+    - finish merging ASTRAL-MP and 5.10.0; vectorization, hashing, and MP all work
+    - more refactoring
+
+- version 5.11.1:
+    - Continue merging ASTRAL-MP and 5.10.0; more features working
+    - major refactoring
+
+- version 5.11.0:
+    - Merge ASTRAL-MP and 5.10.0
+
+- version 5.10.0:
+	- Merge vectorization code (5.9.1) with 5.6.1
+
+- version 5.9.1:
+	- New searching algorithm
+
+- version 5.9.0:
+	- AVX batch computation
 - version 5.7.8:
 	- Added `-p 3` option (helpful for *external* completion of gene trees when used with `-e`)
 	
@@ -41,8 +159,6 @@
 
 - version 5.6.2:
 	- add a zero length branch to the root branch that is not the outgroup. Needed for FigTree visualization of multiind
-	
-- version 5.6.2:
 	- added new option to remove bipartitions of a provided extra tree from search space
 
 - version 5.6.1:
@@ -116,6 +232,15 @@
     - polytree
     - better handling of polytomies
     - A*
+
+- version 5.1.2:
+    - Merge changes to similarity matrix and set X calculations from multiind (5.4.4)
+    - Merge linear time final scoring for polytomies from 5.2.7
+
+- version 5.1.1:
+    - Fix a synch bug for GPU+CPU case  (TunrTaskToScores)
+    - Parallelize final scoring 
+    - Implement linear time polytomy in GPU code
 
 - version 5.1.0:
      - Merge polytree and multiind
