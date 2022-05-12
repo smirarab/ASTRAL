@@ -60,6 +60,17 @@ public class CommandLineMP extends CommandLine {
 		return parameters.toArray(new Parameter[]{});
 	}
 
+	protected void exitWithErr(String extraMessage) {
+		Logging.log("");
+		Logging.log(extraMessage);
+		Logging.log("");
+		Logging.log("Usage: java -jar astralmp."+_version+".jar "+ jsap.getUsage());
+		Logging.log("");
+		Logging.log(jsap.getHelp());
+		Threading.shutdown();
+		System.exit( 1 );
+	}
+	
 	@Override
 	protected void setupComputing(JSAPResult config) {
 		if (!config.getBoolean("cpu only")) {

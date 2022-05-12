@@ -98,7 +98,7 @@ public class BipartitionWeightCalculator {
 	}
 
 	private long allcases(Intersects side1, Intersects side2, Intersects side3) {
-		return F(side1.s0,side2.s1,side3.s2,side3.s3)+
+		return  F(side1.s0,side2.s1,side3.s2,side3.s3)+
 				F(side1.s1,side2.s0,side3.s2,side3.s3)+
 				F(side1.s2,side2.s3,side3.s0,side3.s1)+
 				F(side1.s3,side2.s2,side3.s0,side3.s1)+
@@ -279,20 +279,21 @@ public class BipartitionWeightCalculator {
 			STITreeCluster all = alls.get(gId);
 			Deque<Intersects> stack = new ArrayDeque<Intersects>();
 			synchronized (gt) {
+				// First pass: compute intersections and save them on nodes
 				for (TNode node : gt.postTraverse()) {
 					
 					if (node.isLeaf()){
 						stack.push(getSide(GlobalMaps.taxonIdentifier.taxonId(node.getName()), quad));
 						((STINode)node).setData(stack.peek());
-						continue;
+					} else {
+						Intersects newSide = new Intersects(0, 0, 0, 0);
+						for (TNode child : node.getChildren()) {
+							Intersects childi = stack.pop();
+							newSide.addin(childi);
+						}
+						stack.push(newSide);
+						((STINode)node).setData(stack.peek());
 					}
-					Intersects side1 = stack.pop();
-					Intersects side2 = stack.pop();
-					Intersects newSide = new Intersects(side1, side2);
-					stack.push(newSide);
-					//Intersects side3 = new Intersects(allsides[i]);
-					//side3.subtract(newSide);
-					((STINode)node).setData(stack.peek());
 					
 				}
 				Intersects allsides = new Intersects(
@@ -301,37 +302,53 @@ public class BipartitionWeightCalculator {
 						quad.cluster3.getBitSet().intersectionSize(all.getBitSet()),
 						quad.cluster4.getBitSet().intersectionSize(all.getBitSet())
 						);
+				// Second pass: now compute number of matched quartets
 				for (TNode n : gt.postTraverse()) {
 					STINode node = (STINode) n;
 					if (node.isRoot()) continue;
+					if (node.getSiblings().size() == 0)
+						System.err.println("hmm.");
+					
+					// Sibling is parent minus me
+					Intersects s = new Intersects((Intersects) ((STINode) node.getParent()).getData());
+					s.subtract((Intersects) node.getData());
+					
+					// Other is root minus parent. 
+					Intersects o = new Intersects(allsides);
+					o.subtract((Intersects) ((STINode) node.getParent()).getData());
+
 					Intersects l;
 					Intersects r;
+					Intersects [] childI;
 					if (node.getChildCount() < 2 && leaf) {
-						l = (Intersects) node.getData(); 
-						r = new Intersects(1, 1, 1, 1);
+						childI = new Intersects [] {
+							(Intersects) node.getData(),
+							 new Intersects(1, 1, 1, 1)
+						};
 					} else if (node.getChildCount() >= 2 && !leaf) {
-						//TODO: ignores gene tree mutlifurcations for now
-						Iterator<STINode> it = (Iterator<STINode>) node.getChildren().iterator();
-						l = (Intersects) it.next().getData(); 
-						r = (Intersects) it.next().getData();
+						childI = new Intersects[node.getChildCount()];
+						int i = 0;
+						for (TNode child : n.getChildren()) {
+							childI[i] = (Intersects) ((STINode) child).getData(); 
+							i++;
+						}
 					} else {
 						continue;
 					}
 					
-					if (node.getSiblings().size() == 0)
-							System.err.println("hmm.");
-					Intersects s = (Intersects) ((STINode) node.getSiblings().get(0)).getData();
-					Intersects o = new Intersects(allsides);
-					o.subtract((Intersects) node.getData());
-					o.subtract(s);
-					//System.err.println(l + " " +r +" ... "+ s + " " +o);
-					long c = sharedQuartetsAround(l,r, o, s);
-					if (c!=0) {
-						double length = node.getParentDistance();
-						if (length < 0)
-							length = 0;
-						lengths.add(new LengthCount(length,c));
-						sum += c;
+					for (int i =  0; i < childI.length; i++) {
+						for (int j =  i+1; j < childI.length; j++) {							
+							l = (Intersects) childI[i];
+							r = (Intersects) childI[j];
+							long c = sharedQuartetsAround(l,r, o, s);
+							if (c!=0) {
+								double length = node.getParentDistance();
+								if (length < 0)
+									length = 0;
+								lengths.add(new LengthCount(length,c));
+								sum += c;
+							}
+						}
 					}
 	
 				}

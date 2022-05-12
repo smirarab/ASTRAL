@@ -72,7 +72,6 @@ public class CommandLine{
 						+ " the collection of all gene trees. The result of this optimization problem"
 						+ " is statistically consistent under the multi-species coalescent model."
 						+ " This software can also solve MGD and MGDL problems (see options) instead of ASTRAL.",
-
 						getAstralParameters());
 	}
 
@@ -111,6 +110,10 @@ public class CommandLine{
 								+ "8: three alternative quartet scores.\n"
 								+ "16/32: hidden commands useful to create a file called freqQuad.csv.\n"
 								+ "10: p-values of a polytomy null hypothesis test."),
+				
+				new Switch("subunit",
+						'u', "subunit",
+						"Output branch lengths computed by taking the median of input gene trees (often in substitution units) "),
 
 				new FlaggedOption("bootstraps", 
 						FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED,
@@ -458,7 +461,8 @@ public class CommandLine{
 						config.getDouble("trimming threshold"), freqPath, minleaves,
 						config.getInt("gene repetition"), 
 						config.contains("remove extra tree bipartitions"),
-						config.getBoolean("internode-dist"));
+						config.getBoolean("internode-dist"),
+						config.getBoolean("subunit"));
 		options.setDLbdWeigth(wh); 
 		options.setCS(1d);
 		options.setCD(1d);

@@ -1,3 +1,6 @@
+- version 5.16.1:
+	- Added -u to enable branch length estimation in sub. unit from gene tree branches
+
 - version 5.16.0:
 	- Combining MP and main branches into one branch
 	- Somewhat important code changes to ASTRAL3:

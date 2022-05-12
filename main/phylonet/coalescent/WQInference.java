@@ -11,11 +11,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.Stack;
-import java.util.TreeSet;
 
 import phylonet.coalescent.BipartitionWeightCalculator.Quadrapartition;
 import phylonet.coalescent.BipartitionWeightCalculator.Results;
-import phylonet.coalescent.WQInference.NodeData;
 import phylonet.dl.STBipartition;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
@@ -410,7 +408,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 			STITreeCluster cluster = (STITreeCluster) node.getData();	
 			if (node.isLeaf()) {
 				stack.push(cluster);				
-				if (getBranchAnnotation() == 11){
+				if (this.options.isSubUnitBranchLength()){
 					scoreBranches(weightCalculator2, null, ni, node, cluster, cluster, Factory.instance.newCluster(taxid), 1);
 				}
 			} else {
@@ -482,7 +480,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 			nd = nodeDataList[nj]; nj++;
 			if (nd == null ) {
 				node.setData(null);
-				if (getBranchAnnotation() == 11){
+				if (this.options.isSubUnitBranchLength()) {
 					if (node.getParent() != null)
 						node.setParentDistance(0);
 				}
@@ -516,7 +514,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 					f1,f2,f3,(double)effni, options.getLambda());
 			double bl = post.branchLength();
 
-			if (getBranchAnnotation() == 11){
+			if (this.options.isSubUnitBranchLength()){
 				node.setData(null);
 				node.setParentDistance(nd.subunitBranchLength);
 			} else 
@@ -741,7 +739,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 			 */
 			if (cs == 1) {
 				
-				if (getBranchAnnotation() == 11){
+				if (options.isSubUnitBranchLength()){
 					STITreeCluster[] sisterRemaining = getSisterRemaining(node);
 					STITreeCluster sister = sisterRemaining[0]; 
 					STITreeCluster remaining = sisterRemaining[1];
