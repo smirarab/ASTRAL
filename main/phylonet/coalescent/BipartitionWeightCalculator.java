@@ -277,22 +277,20 @@ public class BipartitionWeightCalculator {
 		for (int gId : myorder) {
 			Tree gt = trees.get(gId);
 			STITreeCluster all = alls.get(gId);
-			Deque<Intersects> stack = new ArrayDeque<Intersects>();
 			synchronized (gt) {
 				// First pass: compute intersections and save them on nodes
+				//Deque<Intersects> stack = new ArrayDeque<Intersects>();
 				for (TNode node : gt.postTraverse()) {
 					
 					if (node.isLeaf()){
-						stack.push(getSide(GlobalMaps.taxonIdentifier.taxonId(node.getName()), quad));
-						((STINode)node).setData(stack.peek());
+						((STINode)node).setData(getSide(GlobalMaps.taxonIdentifier.taxonId(node.getName()), quad));
 					} else {
 						Intersects newSide = new Intersects(0, 0, 0, 0);
 						for (TNode child : node.getChildren()) {
-							Intersects childi = stack.pop();
+							Intersects childi = (Intersects) ((STINode) child).getData();
 							newSide.addin(childi);
 						}
-						stack.push(newSide);
-						((STINode)node).setData(stack.peek());
+						((STINode)node).setData(newSide);
 					}
 					
 				}
@@ -309,13 +307,13 @@ public class BipartitionWeightCalculator {
 					if (node.getSiblings().size() == 0)
 						System.err.println("hmm.");
 					
-					// Sibling is parent minus me
-					Intersects s = new Intersects((Intersects) ((STINode) node.getParent()).getData());
-					s.subtract((Intersects) node.getData());
+					// Sibling 
+					Intersects s = new Intersects((Intersects) ((STINode) node.getSiblings().get(0)).getData());
 					
 					// Other is root minus parent. 
 					Intersects o = new Intersects(allsides);
-					o.subtract((Intersects) ((STINode) node.getParent()).getData());
+					o.subtract((Intersects) ((STINode) node).getData());
+					o.subtract(s);
 
 					Intersects l;
 					Intersects r;
@@ -366,14 +364,16 @@ public class BipartitionWeightCalculator {
 		});
 		long ps = 0;
 		double median = 0;
-		//Logging.log(lengths+"");
+		if (!leaf)
+		Logging.log(lengths+"");
 		for (LengthCount l: lengths) {
 			ps += l.count;
 			median = l.length;
 			if (ps >= sum/2.0)
 				break;
 		}
-		//Logging.log(median+"");
+		if (!leaf)
+		Logging.log(median+"");
 		return  median;
 	}
 	
