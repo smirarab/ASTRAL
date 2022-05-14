@@ -307,17 +307,24 @@ public class BipartitionWeightCalculator {
 					if (node.getSiblings().size() == 0)
 						System.err.println("hmm.");
 					
-					// Sibling 
-					Intersects s = new Intersects((Intersects) ((STINode) node.getSiblings().get(0)).getData());
-					
-					// Other is root minus parent. 
-					Intersects o = new Intersects(allsides);
-					o.subtract((Intersects) ((STINode) node).getData());
-					o.subtract(s);
-
-					Intersects l;
-					Intersects r;
 					Intersects [] childI;
+					Intersects [] childO = new Intersects[node.getSiblings().size()+1];
+					
+					
+					// Sibling 
+					//TODO: consider all siblings. 
+					{
+						int i = 0; 
+						for (Object sib: node.getSiblings())
+							childO [i++] = (Intersects) ((STINode)sib).getData();
+					
+					
+						// Other is root minus parent. 
+						Intersects o = new Intersects(allsides);
+						o.subtract((Intersects) ((STINode) node.getParent()).getData());
+						childO[i] = o;
+					}
+
 					if (node.getChildCount() < 2 && leaf) {
 						childI = new Intersects [] {
 							(Intersects) node.getData(),
@@ -334,11 +341,16 @@ public class BipartitionWeightCalculator {
 						continue;
 					}
 					
+					for (int k =  0; k < childO.length; k++) {
+						
+						for (int h =  k+1; h < childO.length; h++) {
 					for (int i =  0; i < childI.length; i++) {
 						for (int j =  i+1; j < childI.length; j++) {							
-							l = (Intersects) childI[i];
-							r = (Intersects) childI[j];
-							long c = sharedQuartetsAround(l,r, o, s);
+							long c = sharedQuartetsAround( 
+									(Intersects) childI[i],
+									(Intersects) childI[j],
+									(Intersects) childO[k], 
+									(Intersects) childO[h]);
 							if (c!=0) {
 								double length = node.getParentDistance();
 								if (length < 0)
@@ -346,6 +358,8 @@ public class BipartitionWeightCalculator {
 								lengths.add(new LengthCount(length,c));
 								sum += c;
 							}
+						}
+					}
 						}
 					}
 	
@@ -364,16 +378,14 @@ public class BipartitionWeightCalculator {
 		});
 		long ps = 0;
 		double median = 0;
-		if (!leaf)
-		Logging.log(lengths+"");
+		//if (!leaf) Logging.log(lengths+"");
 		for (LengthCount l: lengths) {
 			ps += l.count;
 			median = l.length;
 			if (ps >= sum/2.0)
 				break;
 		}
-		if (!leaf)
-		Logging.log(median+"");
+		//if (!leaf) Logging.log(median+"");
 		return  median;
 	}
 	
