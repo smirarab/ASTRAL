@@ -1,7 +1,6 @@
 package phylonet.coalescent;
 
 import java.io.BufferedWriter;
-
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,12 +13,11 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.concurrent.Callable;
 import java.util.Set;
 import java.util.Stack;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
 
-import phylonet.coalescent.BipartitionWeightCalculator.Intersects;
 import phylonet.lca.SchieberVishkinLCA;
 import phylonet.tree.io.ParseException;
 import phylonet.tree.model.MutableTree;
@@ -78,7 +76,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 	/**
 	 * Gene trees after completion.
 	 */
-	protected List<Tree> completedGeeneTrees;
+	protected List<Tree> compatibleCompleteGeneTrees;
 
 	// A reference to user-spcified global options.
 	protected Options options;
@@ -86,9 +84,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 	public WQDataCollection(IClusterCollection clusters,
 			AbstractInference inference) {
 		this.clusters = clusters;
-		this.SLOW = inference.options.getAddExtra() == 2;
+		this.SLOW = inference.options.getAddExtra() == 2; //TODO: correct?
 		this.originalInompleteGeneTrees = inference.trees;
-		this.completedGeeneTrees = new ArrayList<Tree>();
+		this.compatibleCompleteGeneTrees = new ArrayList<Tree>();
 		this.options = inference.options;
 	}
 
@@ -105,7 +103,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 	 *            is the greedy consensus of all gene trees
 	 */
 	protected void addBipartitionsFromSignleIndTreesToX(Tree tr,
-			Collection<Tree> baseTrees, TaxonIdentifier id) {	
+			Collection<Tree> baseTrees, TaxonIdentifier id,
+			boolean resolvePolytomies,
+			boolean saveClusters) {	
 		Stack<STITreeCluster> stack = new Stack<STITreeCluster>();
 
 		for (TNode node : tr.postTraverse()) {
@@ -115,6 +115,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 						.getClusterForNodeName(node.getName());
 				stack.add(cluster);
 				addSpeciesBipartitionToX(cluster);
+				if (saveClusters) {
+					((STINode)node).setData(cluster);
+				}
 
 			} else {
 				ArrayList<BitSet> childbslist = new ArrayList<BitSet>();
@@ -136,6 +139,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 						.getSpeciesIdMapper().getSTTaxonIdentifier());
 				cluster.setCluster(bs);
 				stack.add(cluster);
+				if (saveClusters) {
+					((STINode)node).setData(cluster);
+				}
 
 				//boolean bug = false;
 				try {
@@ -162,15 +168,11 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 				 * when we have polytomies.
 				 */
 
-				if (childbslist.size() > 2) {
+				if (resolvePolytomies && childbslist.size() > 2) {
 					BitSet remaining = (BitSet) bs.clone();
 					remaining.flip(0, GlobalMaps.taxonNameMap
 							.getSpeciesIdMapper().getSTTaxonIdentifier()
-							.taxonCount());
-					//					if (bug) {
-					//						Logging.log(remaining);
-					//					}
-					//					
+							.taxonCount());				
 					boolean isRoot = remaining.isEmpty();
 					int d = childbslist.size() + (isRoot ? 0 : 1);
 					BitSet[] polytomy = new BitSet[d];
@@ -253,10 +255,16 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		}
 		STITree trc = new STITree(tr);
 
+		TreeSet<String> leaves = new TreeSet<String>(Arrays.asList(tr.getLeaves()));
+		
 		Trees.removeBinaryNodes(trc);
 
 		for (int missingId = gtAllBS.nextClearBit(0); missingId < taxid
 				.taxonCount(); missingId = gtAllBS.nextClearBit(missingId + 1)) {
+
+			if (leaves.contains(taxid.getTaxonName(missingId))){
+				continue; // This has been added already by someone else. 
+			}
 
 			int closestId = geneMatrix.getClosestPresentTaxonId(gtAllBS,
 					missingId);
@@ -414,7 +422,8 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 			}
 			ArrayList<Tree> st = new ArrayList<Tree>();
 			st.add(stTrc);
-			addBipartitionsFromSignleIndTreesToX(stTrc,st, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
+			addBipartitionsFromSignleIndTreesToX(stTrc,st, 
+					GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), true, false);
 			return Boolean.TRUE;
 		}
 
@@ -595,17 +604,20 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		calculateDistances();
 
 		if (this.options.getAddExtra() != 3) {
-			if (haveMissing > 0) {
-				completeGeneTrees(); 
-			} else {
-				this.completedGeeneTrees = new ArrayList<Tree>(this.originalInompleteGeneTrees.size()); 
-				for (Tree t: this.originalInompleteGeneTrees) {
-					this.completedGeeneTrees.add(new STITree(t));
-				}
-			}
+			//if (haveMissing > 0) {
+			
+			// Make gene trees compatible and complete
+			completeGeneTrees(haveMissing != 0);
+			
+			//} else {
+			//	this.compatibleCompleteGeneTrees = new ArrayList<Tree>(this.originalInompleteGeneTrees.size()); 
+			//	for (Tree t: this.originalInompleteGeneTrees) {
+			//		this.compatibleCompleteGeneTrees.add(new STITree(t));
+			//	}
+			//}
 		} else {
 			Logging.log("Using extranl trees as completed input gene trees");
-			this.completedGeeneTrees = new ArrayList<Tree>(
+			this.compatibleCompleteGeneTrees = new ArrayList<Tree>(
 					this.originalInompleteGeneTrees.size());
 			if (inference.extraTrees.size() != this.originalInompleteGeneTrees.size())
 				Logging.log("WARNING: you provided fewer trees with -p3 -e than there are gene trees. "
@@ -621,7 +633,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 					throw new RuntimeException("With -p 3, all extra trees should be complete. "
 							+ "The following tree has missing data:\n" + tr);
 				}
-				this.completedGeeneTrees.add(stTrc);
+				this.compatibleCompleteGeneTrees.add(stTrc);
 			}
 		}
 
@@ -645,12 +657,12 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		addToClusters(all, taxid.taxonCount());
 
 
-		int arraySize = this.completedGeeneTrees.size();
+		int arraySize = this.compatibleCompleteGeneTrees.size();
 		List<Tree> [] allGreedies = new List [arraySize];	
 
 		if (GlobalMaps.taxonNameMap.getSpeciesIdMapper().isSingleIndividual()) {
 			int gtindex = 0;
-			for (Tree gt : this.completedGeeneTrees) {
+			for (Tree gt : this.compatibleCompleteGeneTrees) {
 				ArrayList<Tree> tmp = new ArrayList<Tree>();
 				STITree gtrelabelled = new STITree( gt);
 				GlobalMaps.taxonNameMap.getSpeciesIdMapper().gtToSt(
@@ -678,7 +690,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 			Logging.logTimeMessage("TIME TOOK FROM LAST NOTICE WQDataCollection 621-624");
 
 			int gtindex = 0;
-			for (Tree gt : this.completedGeeneTrees) {
+			for (Tree gt : this.compatibleCompleteGeneTrees) {
 				ArrayList<Tree> firstRoundSampleTrees = new ArrayList<Tree>();
 
 				for (SingleIndividualSample sample : firstRoundSamples) {
@@ -721,12 +733,11 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 			sti.setCluster(b);
 			STls.add(sti);
 		}
-		Tree ST = Utils.buildTreeFromClusters(STls, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), false);
-
+		Tree ST = Utils.buildTreeFromClusters(STls, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), false, false);
 
 		baseTrees.add(ST);
 		addBipartitionsFromSignleIndTreesToX(ST, baseTrees,
-				GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier()); 
+				GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), true, false); 
 
 		Logging.logTimeMessage(" WQDataCollection 701-704: ");
 
@@ -800,7 +811,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 
 		public void run() {
 			try {
-				addBipartitionsFromSignleIndTreesToX(tree, baseTrees, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
+				addBipartitionsFromSignleIndTreesToX(tree, baseTrees, GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier(), true, false);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -808,6 +819,14 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 
 	}
 
+	protected List<STITree> preProcessTreesBeforeAddingToX(STITree tree) {
+		return Arrays.asList( new STITree[]{ tree});
+	}
+	
+	protected Collection<Tree> preProcessTreesBeforeAddingToX(Collection<Tree> trees) {
+		return trees;
+	}
+	
 	/**
 	 * Calculates a distance matrix based on input gene trees. To be used for
 	 * gene tree completion.
@@ -1116,9 +1135,14 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 	/**
 	 * Completes all the gene trees using a heuristic algorithm described in
 	 * Siavash's dissertation. Uses the distance matrix for completion.
+	 * @param haveMissing 
 	 */
-	protected void completeGeneTrees() {
-		Logging.log("Will attempt to complete bipartitions from X before adding using a distance matrix.");
+	protected void completeGeneTrees(boolean completionNecessary) {
+		
+	
+		if (completionNecessary) {
+			Logging.log("Will attempt to complete bipartitions from X before adding using a distance matrix.");
+		}
 		int t = 0;
 		BufferedWriter completedFile = null;
 		if (this.options.isOutputCompletedGenes()) {
@@ -1130,19 +1154,51 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 				throw new RuntimeException(e);
 			}
 		}
-		//System.err.println(this.geneMatrix);
-		for (Tree tr : this.originalInompleteGeneTrees) {
-			Tree trc = getCompleteTree(tr, this.treeAllClusters.get(t++)
-					.getBitSet());
-			this.completedGeeneTrees.add(trc);
-			if (completedFile != null) {
-				try {
-					completedFile.write(trc.toNewick() + " \n");
-					completedFile.flush();
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
+		
+		BufferedWriter cFile = null;
+		if (this.options.isOutputCompatibledGenes()) {
+		
+			String fn = options.getOutputFile() + ".compatibled_gene_trees";
+			Logging.log("Outputting compatible gene trees to " + fn);
+			try {
+				cFile = new BufferedWriter(new FileWriter(fn));
+			} catch (IOException e) {
+				throw new RuntimeException(e);
 			}
+		}
+		
+
+		for (Tree tt : this.originalInompleteGeneTrees) {
+			STITree ot = new STITree<>(tt);
+			// 1. Make trees compatible
+			for (STITree tr: preProcessTreesBeforeAddingToX((STITree) ot)) {
+				if (cFile != null) {
+					try {
+						cFile.write(tr.toNewick() + " \n");
+						cFile.flush();
+					} catch (IOException e) {
+						throw new RuntimeException(e);
+					}
+				}
+				
+				Tree trc;
+				if (completionNecessary) {
+					// 2. Make trees Complete
+					trc = getCompleteTree(tr, this.treeAllClusters.get(t).getBitSet());
+					if (completedFile != null) {
+						try {
+							completedFile.write(trc.toNewick() + " \n");
+							completedFile.flush();
+						} catch (IOException e) {
+							throw new RuntimeException(e);
+						}
+					}
+				} else {
+					trc = new STITree(tr);
+				}
+				this.compatibleCompleteGeneTrees.add(trc);
+			}
+			t = t+1;
 		}
 		if (completedFile != null) {
 			try {
@@ -1155,6 +1211,17 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 				System.exit(0);
 			}
 		}
+		
+		if (cFile != null) {
+			try {
+				cFile.close();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		
+		if (options.isCompatibleNorun())
+			System.exit(0);
 	}
 
 	/**
@@ -1201,53 +1268,21 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 				+ clusters.getClusterCount());
 	}
 
-	/**
-	 * Main function implementing new heuristics in ASTRAL-II. At this point, we
-	 * require a subsample with a single individual per species.
-	 * 
-	 * @param trees
-	 *            : the input trees contracted to the subsample
-	 * @param sis
-	 *            : the single-individual subsample information
-	 * @return 
-	 */
-	ArrayList addExtraBipartitionByHeuristics(Collection<Tree> contractedTrees,
-			TaxonIdentifier tid, int polylimit) {
-
-		Collection<Tree> allGreedies = prepareConsensusTrees(contractedTrees, tid, polylimit);
-		int th = 0;
-		//int max= 0;
-		/**
-		 * For each greedy consensus tree, use it to add extra bipartitions to
-		 * the tree.
-		 */
-		ArrayList stringOutput = new ArrayList();
-		for (Tree cons : allGreedies) {
-			double thresh = this.GREEDY_ADDITION_THRESHOLDS[th];
-			myLog("Threshold " + thresh + ":" + "",stringOutput);
-
-			for (TNode greedyNode : cons.postTraverse()) {
-
-				if (greedyNode.isLeaf() || greedyNode.getChildCount() <= 2) {
-					continue;
-				}
-
-				myLog(invokeRunner(new addExtraBipartitionByHeuristicsLoop(
-						greedyNode, tid, th, contractedTrees)), stringOutput);
-			}
-			th = (th + 1) % this.GREEDY_ADDITION_THRESHOLDS.length;
-		}
-		return stringOutput;
+	protected boolean shouldDoQuadratic(int th, TNode greedyNode, int j) {
+		boolean quadratic = (this.SLOW
+				|| (th < this.GREEDY_DIST_ADDITTION_LAST_THRESHOLD_INDX 
+						&& j < this.GREEDY_ADDITION_DEFAULT_RUNS)) 
+				&& greedyNode.getChildCount() <= polytomySizeLimit;
+		return quadratic;
 	}
-
-	protected void myLog(Object res, ArrayList stringOutput) {
-		Logging.log(res.toString());
+	
+	protected void addFromConsensusTreesToX(Collection<Tree> allGreedies) {
+		// We don't need to do anything here
+		// because bipartitions of greedy consensus trees have
+		// already been added to the search space by construction
+		
 	}
-
-	protected Object invokeRunner(addExtraBipartitionByHeuristicsLoop callable) {
-		return callable.call();
-	}
-
+	
 	protected Collection<Tree> prepareConsensusTrees(Collection<Tree> contractedTrees, TaxonIdentifier tid,
 			int polylimit) {
 		// Greedy trees. These will be based on sis taxon identifier
@@ -1269,6 +1304,9 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		 */
 		allGreedies = Factory.instance.greedyCons().greedyConsensus(contractedTrees,
 				this.GREEDY_ADDITION_THRESHOLDS, true, 1, tid, true);
+			
+		allGreedies = preProcessTreesBeforeAddingToX(allGreedies);
+			
 		int sumDegrees = 0;
 
 		Logging.log("took "+ ((System.currentTimeMillis()-t)/1000+" seconds"));
@@ -1313,6 +1351,56 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		Logging.log("All polytomy sizes: "+deg);
 		return allGreedies;
 	}
+	
+	/**
+	 * Main function implementing new heuristics in ASTRAL-II. At this point, we
+	 * require a subsample with a single individual per species.
+	 * 
+	 * @param trees
+	 *            : the input trees contracted to the subsample
+	 * @param sis
+	 *            : the single-individual subsample information
+	 * @return 
+	 */
+	ArrayList addExtraBipartitionByHeuristics(Collection<Tree> contractedTrees,
+			TaxonIdentifier tid, int polylimit) {
+
+		Collection<Tree> allGreedies = prepareConsensusTrees(contractedTrees, tid, polylimit);
+		int th = 0;
+		//int max= 0;
+		/**
+		 * For each greedy consensus tree, use it to add extra bipartitions to
+		 * the tree.
+		 */
+		ArrayList stringOutput = new ArrayList();
+		for (Tree cons : allGreedies) {
+			double thresh = this.GREEDY_ADDITION_THRESHOLDS[th];
+			myLog("Threshold " + thresh + ":" + "",stringOutput);
+
+			addFromConsensusTreesToX(allGreedies);
+			
+			for (TNode greedyNode : cons.postTraverse()) {
+
+				if (greedyNode.isLeaf() || greedyNode.getChildCount() <= 2) {
+					continue;
+				}
+
+				myLog(invokeRunner(new addExtraBipartitionByHeuristicsLoop(
+						greedyNode, tid, th, contractedTrees)), stringOutput);
+			}
+			th = (th + 1) % this.GREEDY_ADDITION_THRESHOLDS.length;
+		}
+		return stringOutput;
+	}
+
+	protected void myLog(Object res, ArrayList stringOutput) {
+		Logging.log(res.toString());
+	}
+
+	protected Object invokeRunner(addExtraBipartitionByHeuristicsLoop callable) {
+		return callable.call();
+	}
+
 
 	public class addExtraBipartitionByHeuristicsLoop implements Callable {
 		TNode greedyNode;
@@ -1367,9 +1455,7 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 
 			for (int j = 0; j < GREEDY_ADDITION_DEFAULT_RUNS + k; j++) {
 
-				boolean quadratic = (SLOW
-						|| (th < GREEDY_DIST_ADDITTION_LAST_THRESHOLD_INDX && j < GREEDY_ADDITION_DEFAULT_RUNS)) 
-						&& greedyNode.getChildCount() <= polytomySizeLimit;
+				boolean quadratic = shouldDoQuadratic(th, greedyNode, j); 
 
 				if (sampleAndResolve(childbs, contractedTrees, quadratic, tid,true, false) && k < GREEDY_ADDITION_MAX) {
 					k += GREEDY_ADDITION_IMPROVEMENT_REWARD;
@@ -1397,21 +1483,6 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 		else
 			return Collections.min(input);
 	}
-
-	/**
-	 * Resolves a polytomy using UPGMA and adds resulting new bipartitions to
-	 * the set X. Make sure bipartitions added to set X are consistent with
-	 * species mapping.
-	 * 
-	 * @param polytomyBSList
-	 * @return
-	 */
-	/*
-	private boolean resolveByUPGMA(BitSet[] polytomyBSList,
-			SingleIndividualSample sis, TaxonIdentifier id) {
-		return this.addSubSampledBitSetToX(sis.getSimilarityMatrix()
-				.resolveByUPGMA(Arrays.asList(polytomyBSList), true), id);
-	}*/
 
 	/**
 	 * This is the first step of the greedy algorithm where one counts how many
@@ -1744,29 +1815,5 @@ public class WQDataCollection extends AbstractDataCollection<Tripartition> imple
 	 * } } return gtbs1; }
 	 */
 	
-	
-	
-	public void main(String [] s) {
-		try {
-			STITree tree = new STITree("(((((A,B),C),D),E),F);");
-			STINode temp = new STITree(";").getRoot();
-			Iterable<STINode> nodes = tree.getNodes();
-			STINode node = tree.getNode(4);
-			System.err.println(tree);
-			System.err.print(node+"     ");
-			STINode firstChild = (STINode) node.getChildren().iterator().next();
-			System.err.println(firstChild);
-			temp.createChild(firstChild);
-			firstChild.removeNode();
-			System.err.println("T  " + temp.getChildren().iterator().next());
-			node.adoptChild((TMutableNode) temp.getChildren().iterator().next());
-			System.err.println(tree);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+
 }

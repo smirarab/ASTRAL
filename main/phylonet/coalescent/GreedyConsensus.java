@@ -102,7 +102,7 @@ public class GreedyConsensus {
 
 	protected Object processOneSet(TaxonIdentifier taxonIdentifier, boolean keepclusters,
 			List<STITreeCluster> clusters) {
-		Object buildTreeFromClusters = Utils.buildTreeFromClusters(clusters, taxonIdentifier, keepclusters);
+		Object buildTreeFromClusters = Utils.buildTreeFromClusters(clusters, taxonIdentifier, keepclusters, false);
 		return buildTreeFromClusters;
 	}
 

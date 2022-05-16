@@ -23,7 +23,7 @@ public abstract class Factory {
 
 	public abstract SimilarityMatrix newSimilarityMatrix(float[][] from);
 
-	public abstract AbstractDataCollection newCounter(IClusterCollection clusters, AbstractInference inference);
+	public abstract AbstractDataCollection newCounter(IClusterCollection clusters, AbstractInference inference, boolean constrained);
 
 	public abstract GreedyConsensus greedyCons();
 

@@ -44,8 +44,11 @@ public class FactoryAstral3 extends Factory {
 	}
 
 	@Override
-	public AbstractDataCollection newCounter(IClusterCollection clusters, AbstractInference inference) {
-		return new WQDataCollection((WQClusterCollection)clusters, inference);
+	public AbstractDataCollection newCounter(IClusterCollection clusters, AbstractInference inference, boolean constrained) {
+		if (constrained)
+			return new WQDataCollectionConstrained((WQClusterCollection)clusters, inference);
+		else
+			return new WQDataCollection((WQClusterCollection)clusters, inference);
 	}
 
 	@Override

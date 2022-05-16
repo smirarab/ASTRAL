@@ -1,3 +1,6 @@
+- version 5.17.0:
+	- Merge in constrained search
+
 - version 5.16.1:
 	- Added -u to enable branch length estimation in sub. unit from gene tree branches
 

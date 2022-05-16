@@ -69,7 +69,7 @@ public class GreedyConsensusMP extends GreedyConsensus{
 			this.clusters = clusters;
 		}
 		public Tree call() {
-			return Utils.buildTreeFromClusters(clusters, taxonIdentifier, keepclusters);
+			return Utils.buildTreeFromClusters(clusters, taxonIdentifier, keepclusters, false);
 		}
 	}
 

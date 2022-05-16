@@ -44,7 +44,7 @@ import phylonet.tree.util.Trees;
 public class CommandLine{
 
 	protected String ASTRAL;
-	protected String _version = "5.16.1";
+	protected String _version = "5.17.0";
 
 	protected SimpleJSAP jsap;
 
@@ -147,7 +147,9 @@ public class CommandLine{
 								+ " -k completed_norun: outputs completed gene trees (i.e. after adding missing taxa) to a file called [output file name].completed_gene_trees.\n"
 								+ " -k bootstraps: outputs individual bootstrap replicates to a file called [output file name].[i].bs\n"
 								+ " -k bootstraps_norun: just like -k bootstraps, but exits after outputting bootstraps.\n"
-								+ " -k searchspace_norun: outputs the search space and exits; use -k searchspace to continue the run after outputting the search space."
+								+ " -k searchspace_norun: outputs the search space and exits; use -k searchspace to continue the run after outputting the search space.\n"
+								+ " -k compatible_trees: outputs gene trees made compatible with constraint tree to a file [output file name].compatible_gene_trees\n"
+								+ " -k compatible_trees_norun: outputs gene trees made compatible with constraint tree to a file and exit [output file name].compatible_gene_trees\n"	                 
 								+ "When -k option is used, -o option needs to be given. "
 								+ "The file name specified using -o is used as the prefix for the name of the extra output files.").setAllowMultipleDeclarations(true),
 
@@ -172,6 +174,11 @@ public class CommandLine{
 								+ "The mapping file has one line per species, with one of two formats:\n"
 								+ " species: gene1,gene2,gene3,gene4\n"
 								+ " species 4 gene1 gene2 gene3 gene4\n"),
+
+                new FlaggedOption("constraint tree", 
+                        FileStringParser.getParser().setMustExist(true), null, JSAP.NOT_REQUIRED, 
+                        'j', "constrain",
+                        "provide constraint tree to be enforced on the search space and hence the final tree"),
 
 				new FlaggedOption("minleaves", 
 						JSAP.INTEGER_PARSER, null, JSAP.NOT_REQUIRED, 
@@ -374,7 +381,9 @@ public class CommandLine{
 						"bootstraps_norun".equals(koption)||
 						"searchspace_norun".equals(koption)||
 						"completed_norun".equals(koption) ||
-						"searchspace".equals(koption)) {
+						"searchspace".equals(koption) ||
+						"compatible_trees".equals(koption)||
+						"compatible_trees_norun".equals(koption)) {
 					keepOptions.add(koption);
 				} else {
 					throw new JSAPException("-k "+koption+" not recognized.");
@@ -462,7 +471,8 @@ public class CommandLine{
 						config.getInt("gene repetition"), 
 						config.contains("remove extra tree bipartitions"),
 						config.getBoolean("internode-dist"),
-						config.getBoolean("subunit"));
+						config.getBoolean("subunit"), 
+						keepOptions.contains("compatible_trees"), keepOptions.contains("compatible_trees_norun"));
 		options.setDLbdWeigth(wh); 
 		options.setCS(1d);
 		options.setCD(1d);
@@ -528,6 +538,8 @@ public class CommandLine{
 			if (config.getBoolean("rename")) {
 				renmaeFromGTtoST(mainTrees, outbuffer);
 			} else if (config.getFile("score species trees") != null) {
+	        	if(config.getFile("constraint tree") != null)
+	        		Logging.log("!!Constraint tree will be ignored!!");
 				Logging.log("Scoring " + config.getFile("score species trees"));
 				toScore = readTreeFileAsString(config.getFile("score species trees"));
 				runScore(rooted, mainTrees, outbuffer,
@@ -606,10 +618,34 @@ public class CommandLine{
 		Logging.log("All output trees will be *arbitrarily* rooted at "+outgroup);
 
 		List<Tree> extraTrees = new ArrayList<Tree>();
+		List<Tree> constraintTree = new ArrayList<Tree>();
+		//List<Tree> completedTrees = new ArrayList<Tree>();
 		List<Tree> toRemoveExtraTrees = new ArrayList<Tree>();
 
+		if (config.getFile("constraint tree") != null) {
+			if (config.getFile("mapping file") != null) {
+				Logging.log("Constrained version can not be used with Multi-individual version of ASTRAL for now. \n"+
+						     "Consider providing your species definitions as a constraint to normal ASTRAL." );
+				System.exit(0);
+			}
+			// TODO: -q: warn that -j is ignored but proceed. 
+			// TODO: error on -x
+			
+		}
 		try {
 
+		    if (config.getFile("constraint tree") != null) {
+		    
+		    	readInputTrees(constraintTree, 
+		        	readTreeFileAsString(config.getFile("constraint tree")), 
+		                false, false, false, null, 1, null);///rooting
+		        Logging.log(constraintTree.size() + " constraint tree read from "
+		                + config.getFile("constraint tree"));
+		        
+	        	Logging.log("All gene trees are converted to be compatible with species tree.");
+	        	
+		    }
+		    
 			if (config.getFile("extra trees") != null) {
 				readInputTrees(extraTrees, 
 						readTreeFileAsString(config.getFile("extra trees")), 
@@ -649,7 +685,7 @@ public class CommandLine{
 			List<Tree> trees = new ArrayList<Tree>();
 			readInputTrees(trees, input, rooted, false, false, options.getMinLeaves(),
 					config.getInt("branch annotation level"), null);
-			bootstraps.add(runOnOneInput( extraTrees,toRemoveExtraTrees, outbuffer, trees, null, outgroup, options));
+			bootstraps.add(runOnOneInput( extraTrees,toRemoveExtraTrees, outbuffer, trees, null, outgroup, options, constraintTree));
 		}
 
 		if (bootstraps != null && bootstraps.size() != 0) {
@@ -663,18 +699,20 @@ public class CommandLine{
 		Logging.logTimeMessage(" ");
 		Logging.log("\n======== Running the main analysis");
 		runOnOneInput(extraTrees, toRemoveExtraTrees,outbuffer, mainTrees, bootstraps, 
-				outgroup, options);
+				outgroup, options, constraintTree);
 
 		outbuffer.close();
 	}
 
 	protected Tree runOnOneInput(List<Tree> extraTrees,
 			List<Tree> toRemoveExtraTrees, BufferedWriter outbuffer, List<Tree> input, 
-			Iterable<Tree> bootstraps, String outgroup, Options options) {
+            Iterable<Tree> bootstraps, String outgroup, Options options, List<Tree> constraintTree) {
 		long startTime;
 		startTime = System.currentTimeMillis();
 		AbstractInference inference =
 				Factory.instance.newInference(options, input, extraTrees, toRemoveExtraTrees);
+		if (constraintTree != null)
+			inference.setConstraintTree(constraintTree);
 
 		inference.setup(); 
 

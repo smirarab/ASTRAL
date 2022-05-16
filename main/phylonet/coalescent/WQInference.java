@@ -262,7 +262,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 		IClusterCollection clusters = newClusterCollection();
 
 
-		this.dataCollection = Factory.instance.newCounter(clusters, this);
+		this.dataCollection = Factory.instance.newCounter(clusters, this, getConstraintTree().size()> 0);
 		weightCalculator = newWeightCalculatorForWeigth();
 
 		WQDataCollection wqDataCollection = (WQDataCollection) this.dataCollection;
@@ -387,7 +387,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 		BipartitionWeightCalculator weightCalculator2 = new BipartitionWeightCalculator(this,getGeneTreesAsInt());
 		WQDataCollection wqDataCollection = (WQDataCollection) this.dataCollection;
 		//wqDataCollection.initializeWeightCalculator(this);
-
+		//for (Tree t : weightCalculator2.trees) System.err.println(t);
 
 		updateNodeData(st);
 
@@ -926,7 +926,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 	}
 
 	public  WQDataCollection newCounter(IClusterCollection clusters) {
-		return (WQDataCollection) Factory.instance.newCounter(clusters, this);
+		return (WQDataCollection) Factory.instance.newCounter(clusters, this, getConstraintTree().size()> 0);
 	}
 
 	@Override

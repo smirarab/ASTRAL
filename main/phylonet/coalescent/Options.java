@@ -7,6 +7,8 @@ public class Options {
 	private int alg;
 	private int addExtra;
 	private boolean outputCompletedGenes;
+	private boolean outputCompatibledGenes;
+	private boolean compatibleNorun;
 	private boolean outputSearchSpace;
 	private boolean runSearch;
 	private int branchannotation; 
@@ -32,7 +34,8 @@ public class Options {
 			boolean outputCompletedGenes, boolean outSearch, boolean run,
 			int branchannotation, double lambda, String outputFile, int samplingrounds, int polylimit,
 			double trim, String freqOutputPath, Integer minimumLeaves, Integer geneRepeat, boolean removeExtraTree, 
-			boolean useInnerNodeDist, boolean subUnitBranchLength) {
+			boolean useInnerNodeDist, boolean subUnitBranchLength, 
+			boolean outputCompatibledGenes, boolean compatibleNorun) {
 
 		this.rooted = rooted;
 		this.extrarooted = extrarooted;
@@ -40,6 +43,8 @@ public class Options {
 		this.alg = alg;
 		this.addExtra = addExtra;
 		this.outputCompletedGenes = outputCompletedGenes;
+		this.outputCompatibledGenes = outputCompatibledGenes;
+		this.compatibleNorun = compatibleNorun;
 		this.outputSearchSpace = outSearch;
 		this.runSearch = run;
 		this.branchannotation = branchannotation;
@@ -114,6 +119,14 @@ public class Options {
 
 	public boolean isOutputCompletedGenes() {
 		return outputCompletedGenes;
+	}
+
+	public boolean isOutputCompatibledGenes() {
+		return outputCompatibledGenes;
+	}
+	
+	public boolean isCompatibleNorun() {
+		return compatibleNorun;
 	}
 
 

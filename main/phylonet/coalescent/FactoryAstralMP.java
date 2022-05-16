@@ -46,8 +46,11 @@ public class FactoryAstralMP extends Factory {
 	}
 
 	@Override
-	public WQDataCollectionMP newCounter(IClusterCollection clusters, AbstractInference inference) {
-		return new WQDataCollectionMP((HashClusterCollection)clusters, inference);
+	public WQDataCollectionMP newCounter(IClusterCollection clusters, AbstractInference inference, boolean constrained) {
+		if (constrained)
+			return new WQDataCollectionConstrainedMP((HashClusterCollection)clusters, inference);
+		else 
+			return new WQDataCollectionMP((HashClusterCollection)clusters, inference);
 	}
 
 	@Override

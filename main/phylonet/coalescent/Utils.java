@@ -59,7 +59,7 @@ public class Utils {
 	 * @return
 	 */
 	public static Tree buildTreeFromClusters(Iterable<STITreeCluster> clusters, 
-			TaxonIdentifier identifier, boolean keepclusters) {
+			TaxonIdentifier identifier, boolean keepclusters, boolean checkCompatibility) {
 
 		if ((clusters == null) || (!clusters.iterator().hasNext())) {
 			throw new RuntimeException("Empty list of clusters. The function returns a null tree.");
@@ -116,6 +116,9 @@ public class Utils {
 			// This should only happen if our set of clusters are not compatible. 
 			// TODO: either update the documentation of the method or remove this check
 			if (movedChildren.size() == 0 || remainingleaves != 0) {
+        	  if(checkCompatibility)
+        		  throw new RuntimeException("Given set of clusters are not compatible");
+        	  else
 				continue;
 			}
 
