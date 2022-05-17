@@ -15,15 +15,15 @@ javac -J-Xmx20m -g -source 1.7 -target 1.7 -classpath ../lib/main.jar:../lib/col
 
 jar -J-Xmx20m cvfm ../astral.$version.jar ../manifest.text phylonet/util/BitSet* phylonet/coalescent/*.* phylonet/tree/model/sti/*.* phylonet/tree/io/NewickWriter.* phylonet/dl/*.*
 jar -J-Xmx20m cvfm ../astralmp.$version.jar ../manifestmp.text phylonet/util/BitSet* phylonet/coalescent/*.* phylonet/tree/model/sti/*.* phylonet/tree/io/NewickWriter.* phylonet/dl/*.*
-jar -J-Xmx20m cvfm ../native_library_tester.jar ../avx_tester_manifest.text phylonet/coalescent/NativeLibraryTester.* phylonet/coalescent/* phylonet/dl/*.*
+jar -J-Xmx20m cvfm ../native_library_tester.jar ../avx_tester_manifest.text phylonet/coalescent/NativeLibraryTester.* phylonet/coalescent/* phylonet/dl/*.* phylonet/tree/model/sti/*.*
 
 cd ..
 
 sh compile_native_c_code.sh
 
 chmod +x astral.$version.jar astralmp.$version.jar
-sed -e "s/__astral.jar__/astral.$version.jar/g" -e "s/__astralmp.jar__/astral.$version.jar/g" -e "s/__astral.zip__/Astral.$version.zip/g" README.template.md > README.md
-sed -e "s/__astral.jar__/astral.$version.jar/g" -e "s/__astralmp.jar__/astral.$version.jar/g" -e "s/__astral.zip__/Astral.$version.zip/g" astral-tutorial-template.md > astral-tutorial.md
+sed -e "s/__astral.jar__/astral.$version.jar/g" -e "s/__astralmp.jar__/astralmp.$version.jar/g" -e "s/__astral.zip__/Astral.$version.zip/g" README.template.md > README.md
+sed -e "s/__astral.jar__/astral.$version.jar/g" -e "s/__astralmp.jar__/astralmp.$version.jar/g" -e "s/__astral.zip__/Astral.$version.zip/g" astral-tutorial-template.md > astral-tutorial.md
 rm -fr Astral/*
 mkdir -p  Astral
 cd Astral

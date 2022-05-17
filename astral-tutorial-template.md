@@ -6,7 +6,6 @@ Read the [README](README.md) file in addition to this tutorial.
 Email: `astral-users@googlegroups.com` for questions. Please subscribe to the mailing list for infrequent updates. 
 
 
-
 * [Installation](#installation)
 * [Running ASTRAL](#running-astral)
   * [ASTRAL Help](#astral-help)
@@ -47,13 +46,17 @@ ASTRAL currently has no GUI. You need to run it through command-line.
 
 * Open a terminal (on Windows, look for a program called `Command Prompt` and run that; on Linux you should know how to do this; on MAC, search for an application called `Terminal`).
 * Once the terminal opens, go the location where you have downloaded the software (e.g. using `cd ~/astral-home/`),
+	* Note that you do not actually need to be in directory to be able to run ASTRAL but if you are in a different directory, you need to change all instances of `./lib/` and `__astral.jar__` to the correct path (e.g., `~/astral-home/lib/` and  `~/astral-home/__astral.jar__`.
 
 ###  ASTRAL Help
 
  To see the help, issue the following command:
 
 ```
+  # For ASTARL-III
   java -jar __astral.jar__
+  # For ASTRAL-MP
+  java -Djava.library.path=./lib/ -jar __astralmp.jar__
 ```
 
 This will print the list of options available in ASTRAL. If no errors are printed, your ASTRAL installation is fine and you can proceed to the next sections. 
@@ -64,12 +67,14 @@ We will next run ASTRAL on an input dataset. From the ASTRAL directory, run:
 
 ```
 java -jar __astral.jar__ -i test_data/song_mammals.424.gene.tre
+java -Djava.library.path=./lib/ -jar __astralmp.jar__ -i test_data/song_mammals.424.gene.tre
 ```
 
 The results will be outputted to the standard output. To save the results in an output file use the `-o` option:
 
 ```
 java -jar __astral.jar__ -i test_data/song_mammals.424.gene.tre -o test_data/song_mammals.tre
+java -Djava.library.path=./lib/ -jar __astralmp.jar__ -i test_data/song_mammals.424.gene.tre -o test_data/song_mammals.tre
 ```
 
 Here, the main input is just a file that contains all the input gene trees in Newick format. The input gene trees are treated as unrooted, whether or not they have a root. Note that the **output of ASTRAL should also be treated as an unrooted tree**. 
@@ -78,6 +83,7 @@ The test file that we are providing here is based on the [Song et. al.](http://w
 
 The input gene trees can have polytomies (unresolved branches) since [version 4.6.0](CHANGELOG.md). 
 
+**Note:** Below, we only show commands for ASTRAL-3. By replacing `java -jar __astral.jar__` with `  java -Djava.library.path=./lib/ -jar __astralmp.jar__` you can switch to ASTRAL-MP.
 ### Running on larger datasets:
 We will now run ASTRAL on a larger dataset. Run:
 
@@ -475,6 +481,20 @@ A similar option `-f` can be used when input trees have species labels instead o
 
 Miscellaneous 
 ---------------
+
+### ASTRAL-MP options
+Use the following options specifically to control ASTRAL-MP
+
+*  `-C` will instruct ASTRALMP  not to use GPUs and only use CPUs. 
+
+* `-T 8` would set the number of threads to use. Has to be at least 2. The default (-1) uses all available. 
+
+* `-G` can be used to specify  the index of GPUs to be used, provided as a comma-separated list. If
+        missing, all GPUs are used. (default)
+
+* `--matrixcount 4` would set the number of concurrent threads used for similarity matrix
+        calculation to 4.  Reducing this can help reducing memory footprint for ASTRAL-MP a bit. 
+        By default it uses $\min(T, (10^9/n^2)/2 )$ where $T$ is the number of taxa and $n$ is the number of taxa. 
 
 ### Memory
 For big datasets (say more than 500 taxa) increasing the memory available to java might be necessary. Note that you should never give java more memory than what you have available on your machine. So, for example, if you have 4GB of free memory, you can invoke ASTRAL using the following command to make 3GB available to java:

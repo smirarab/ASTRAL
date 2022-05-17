@@ -11,6 +11,9 @@ public class NativeLibraryTester {
 	static long[] result = new long[32];
 	public static void main(String[] args) {
 		
+		Factory.instance = new FactoryAstralMP();
+		
+		Logging.initalize(Factory.instance.newLogger());
 		Threading.startThreading(2);
 		Logging.startLogger();
 		// TODO Auto-generated method stub

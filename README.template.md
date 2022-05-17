@@ -20,7 +20,6 @@ Some features of ASTRAL are not merged in this branch and are available in other
 Please use those branches if you find these features useful. 
 
 * **ASTRAL-Pro (Astral for paralogs)**: This new tool, which builds on ASTRAL, can handle multiple copy genes. You can find it here: https://github.com/chaoszhang/A-pro
-* **Astral with user constraints**: A version of ASTRAL that can satisfy user constraints is available [here](https://github.com/maryamrabiee/Constrained-search)
 * **Tree updates**:  An ASTRAL-based algorithm called INSTRAL enables inserting  new species onto and existing ASTRAL tree is available [here](https://github.com/maryamrabiee/INSTRAL)
 
 ## Publications
@@ -49,7 +48,7 @@ Please use those branches if you find these features useful.
 
 #### Papers with relevance to ASTRAL:
     
-These papers do not describe features in ASTRAL, but are also releveant and we encourage you to read them:
+These papers do not describe features in ASTRAL, but are also relevant and we encourage you to read them:
 
 1. **ASTRAL-Pro**: This paper extends the ASTRAL methodology to multiple copy genes.
 	- Zhang, Chao, Celine Scornavacca, Erin K Molloy, and Siavash Mirarab. “ASTRAL-Pro: Quartet-Based Species-Tree Inference despite Paralogy.” Edited by Jeffrey Thorne. Molecular Biology and Evolution, September 4, 2020, msaa139. https://doi.org/10.1093/molbev/msaa139.
@@ -95,10 +94,16 @@ INSTALLATION:
 * Then, you simply use the jar file that is included with the repository, as detailed below.
 * ASTRAL is a java-based application, and should run in any environment (Windows, Linux, Mac, etc.) as long as java is installed.
 * Java 1.7 or later is required. We have tested ASTRAL only on Linux and MAC but others have used it on Windows with no reported issues.
-* To test your installation, go to the place where you put the uncompressed ASTRAL, and run:
+* To test your installation, go to the place where you put the uncompressed ASTRAL; for example, if you cloned GitHub `cd Astral`.  Then,  run:
 
   ``` bash
    java -jar __astral.jar__ -i test_data/song_primates.424.gene.tre
+   ```
+
+* To test ASTRAL-MP you can run
+
+  ``` bash
+  java -D"java.library.path=lib/" -jar __astralmp.jar__ -i test_data/song_primates.424.gene.tre
    ```
 
   This should quickly finish. There are also other sample input files under `test_data/` that can be used.
@@ -106,10 +111,40 @@ INSTALLATION:
 * ASTRAL can be run from any directory (e.g., `/path/to/astral/`). Then, you just need to run:
 
   ``` bash
+  # For ASTRAL-III
   java -jar /path/to/astral/__astral.jar__
+  # For ASTRAL-MP
+  java -D"java.library.path=/path/to/astral/lib/" -jar /path/to/astral/__astralmp.jar__
   ```
 
 * Also, you can move `__astral.jar__` to any location you like and run it from there, but note that you need to move the `lib` directory with it as well.
+
+#### AVX2
+
+To get ASTRAL-MP to correctly use AVX2, some steps may or may not be needed. 
+
+1. To test if AVX2 works as is, from the uncompressed Astral folder (`Astral`) or base ASTRAL reop try:
+
+   ``` bash
+   java -D"java.library.path=lib/" -jar native_library_tester.jar
+   ```
+
+   If this tells you that AVX is working, you are done. No further steps needed. 
+
+2. If not, 
+    * You need to make sure you have cloned the github (as opposed to downloading the zip file). 
+    * If you get a error to the effect of `java.lang.UnsatisfiedLinkError: no Astral in java.library.path`, then check the `lib/` directory exists where you are. If it does not, you are in the wrong directory. Give the correct path to the `lib` directory to the `-D` option. 
+
+3. If `lib` exists and the test command is complaining about other things, like wrong GLBIC version, then you can go to the base of ASTRAL github and run 
+
+   ``` bash
+   ./make.sh
+   java -D"java.library.path=lib/" -jar native_library_tester.jar
+   ```
+
+   This will the build the project for your machine.  For this to work, you need to have cloned the git repo. Test again. If it still does not work, write to us. We will try to help. 
+
+Also, if you couldn't get AVX2 to work, don't worry. AVX2 is only for speed (3-4X). It does not affect results. Just run without it. 
 
 
 EXECUTION:
@@ -117,7 +152,10 @@ EXECUTION:
 ASTRAL currently has no GUI. You need to run it through the command-line. In a terminal, go the location where you have downloaded the software, and issue the following command:
 
 ```
+  # For ASTRAL-III
   java -jar __astral.jar__
+  # For ASTRAL-MP
+  java -D"java.library.path=lib/" -jar __astralmp.jar__
 ```
 
 This will give you a list of options available in ASTRAL.
@@ -126,17 +164,20 @@ To find the species tree given a set of gene trees in a file called `in.tree`, u
 
 ```
 java -jar __astral.jar__ -i in.tree
+java -D"java.library.path=lib/" -jar __astralmp.jar__ -i in.tree
 ```
 
 The results will be outputted to the standard output. To save the results in a file use the `-o` option (**Strongly recommended**):
 
 ```
 java -jar __astral.jar__ -i in.tree -o out.tre
+java -D"java.library.path=lib/" -jar __astralmp.jar__ -i in.tree -o out.tre
 ```
 To save the logs (**also recommended**), run:
 
 ```
 java -jar __astral.jar__ -i in.tree -o out.tre 2>out.log
+java -D"java.library.path=lib/" -jar __astralmp.jar__ -i in.tree -o out.tre 2>out.log
 ```
 
 ###### Input: 
@@ -170,8 +211,10 @@ For big datasets (say more than 1000 taxa), increasing the memory available to J
 
 ```
 java -Xmx8000M -jar __astral.jar__ -i in.tree
+java -Xmx8000M -D"java.library.path=lib/" -jar __astralmp.jar__ -i in.tree
 ```
 
 Acknowledgment
 -----------
-ASTRAL code uses bytecode and some reverse engineered code from PhyloNet package (with permission from the authors). Code is contributed by Siavash Mirarab, Maryam Rabiee, Chao Zhange, Erfan Sayyari, and John Yin.
+ASTRAL code uses bytecode and some reverse engineered code from PhyloNet package (with permission from the authors).
+Code is contributed by Siavash Mirarab, Maryam Rabiee, Chao Zhange, Erfan Sayyari, and John Yin.
