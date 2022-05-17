@@ -1,7 +1,7 @@
-word=`java -XshowSettings:properties -version 2>&1 | grep java.home|sed -e "s/.* =//g"`
+word=`java -XshowSettings:properties -version 2>&1 | grep java.home|sed -e "s/.* =\s*//g"`
 DIR="${word}/../include/"; 
 echo $DIR
-for word in `ls -d "${DIR}*/"`; do SUBDIR=${word}; done || (( DIR=. && SUBDIR=. ))
+for word in `ls -d ${DIR}*/`; do SUBDIR=${word}; done || (( DIR=. && SUBDIR=. ))
 if [ -z ${SUBDIR} ]; then DIR=.; SUBDIR=.; fi
 if [ -z $JAVA_HOME ]; then DIR2=.; SUBDIR2=.; else DIR2=$JAVA_HOME/../include/; for word in `ls -d ${DIR2}*/`; do SUBDIR2=${word}; done || (( DIR2=. && SUBDIR2=. )); fi
 if [ -z ${SUBDIR2} ]; then DIR2=.; SUBDIR2=.; fi
