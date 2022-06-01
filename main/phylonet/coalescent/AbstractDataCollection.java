@@ -55,7 +55,7 @@ public abstract class AbstractDataCollection <T> {
 
 	void addAllPossibleSubClusters(STITreeCluster cluster) {
 		int size = GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier().taxonCount();
-		STITreeCluster c = new STITreeClusterMP((TaxonIdentifierMP)GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
+		STITreeCluster c = Factory.instance.newCluster((TaxonIdentifierMP)GlobalMaps.taxonNameMap.getSpeciesIdMapper().getSTTaxonIdentifier());
 		BitSet bs = c.getBitSet();
 		while (true) {
 			int tsb = bs.nextClearBit(0);

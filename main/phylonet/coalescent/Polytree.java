@@ -286,7 +286,7 @@ public class Polytree {
 		partitions = null;
 		queueBuilder = null;
 
-		STITreeCluster c = (new STITreeClusterMP((TaxonIdentifierMP)GlobalMaps.taxonIdentifier)).complementaryCluster();
+		STITreeCluster c = (Factory.instance.newCluster((TaxonIdentifierMP)GlobalMaps.taxonIdentifier)).complementaryCluster();
 		maxScore = computeUpperbound(c.getBitSet());
 		Logging.log("Polytree max score: " + maxScore / 4);
 		Logging.log("Polytree building time: " + (System.currentTimeMillis() - t) / 1000.0D + " seconds.");

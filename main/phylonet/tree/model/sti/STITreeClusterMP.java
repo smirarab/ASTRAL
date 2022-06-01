@@ -64,8 +64,8 @@ public class STITreeClusterMP extends STITreeCluster
 	@Override
 	public void addLeaf(int i){
 		try {
-		if (i < this.taxonIdentifier.taxonCount() && this._cluster.get(i) == false){
-			this._cluster.set(i);
+		if (i < this.taxonIdentifier.taxonCount() && this.getBitSet().get(i) == false){
+			super.addLeaf(i);
 			if (hash1 != 0){
 				hash1 += taxonid.hash1[i];
 				hash2 += taxonid.hash2[i];
@@ -82,8 +82,8 @@ public class STITreeClusterMP extends STITreeCluster
 	public void removeLeaf(String l)
 	{
 		int i = this.taxonIdentifier.taxonId(l);
-		if (this._cluster.get(i) == false) return;
-		this._cluster.clear(i);
+		if (this.getBitSet().get(i) == false) return;
+		super.removeLeaf(l);
 		if (hash1 != 0){
 			hash1 -= taxonid.hash1[i];
 			hash2 -= taxonid.hash2[i];
@@ -106,17 +106,10 @@ public class STITreeClusterMP extends STITreeCluster
 
 	//  /static HashMap<STITreeCluster,HashSet<STITreeCluster>> contains = new HashMap<STITreeCluster, HashSet<STITreeCluster>>();
 
-	@Override
-	public int hashCode()
-	{ 
-		return _cluster.hashCode();
-	}
-
 
 	public STITreeClusterMP merge(STITreeClusterMP tc)
 	{
-		STITreeClusterMP temp = new STITreeClusterMP(this);
-		temp._cluster.or(tc._cluster);
+		STITreeClusterMP temp = (STITreeClusterMP) super.merge(tc);
 		temp.hash1 = 0;
 		temp.hash2 = 0;
 		return temp;
@@ -124,7 +117,7 @@ public class STITreeClusterMP extends STITreeCluster
 
 	public STITreeClusterMP complementaryCluster() {
 		STITreeClusterMP cc = new STITreeClusterMP( (TaxonIdentifierMP) this.taxonIdentifier);
-		BitSet bs = (BitSet)this._cluster.copy();
+		BitSet bs = (BitSet)this.getBitSet().copy();
 		bs.flip(0,this.taxonIdentifier.taxonCount());
 		/*    for (int i = 0; i < this._taxa.length; i++) {
       if (bs.get(i)) {
@@ -135,7 +128,7 @@ public class STITreeClusterMP extends STITreeCluster
       }
     }
 		 */   
-		if (this._cluster instanceof ImmutableBitSet)
+		if (this.getBitSet() instanceof ImmutableBitSet)
 			bs = bs.new ImmutableBitSet();
 		cc.setCluster(bs);
 		return cc;
@@ -190,7 +183,7 @@ public class STITreeClusterMP extends STITreeCluster
 
 		private VertexMP(int size) {
 			super();
-			STITreeClusterMP.this._cluster = STITreeClusterMP.this._cluster.new ImmutableBitSet();
+			STITreeClusterMP.this.setCluster(STITreeClusterMP.this.getBitSet().new ImmutableBitSet());
 			this.clusterSize = size;
 		}
 

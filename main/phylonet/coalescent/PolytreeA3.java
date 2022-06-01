@@ -24,7 +24,7 @@ public class PolytreeA3 extends Polytree{
 		 */
 		PTNode(TNode n){
 			super();
-			STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
+			STITreeCluster c = Factory.instance.newCluster(GlobalMaps.taxonIdentifier);
 			c.getBitSet().set(GlobalMaps.taxonIdentifier.taxonId(n.getName()));
 			cluster = PolytreeA3.this.clusters.get(c);
 			children = new ArrayList();
@@ -32,7 +32,7 @@ public class PolytreeA3 extends Polytree{
 		PTNode(ArrayList ch, STITreeCluster s){
 			super();
 			children = ch;
-			STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
+			STITreeCluster c = Factory.instance.newCluster(GlobalMaps.taxonIdentifier);
 			ArrayList<STITreeCluster> cs = new ArrayList<STITreeCluster>();
 			for (phylonet.coalescent.Polytree.PTNode child: children){
 				child.parent = this;
@@ -41,7 +41,7 @@ public class PolytreeA3 extends Polytree{
 			}
 			cluster = findCluster(c, this);
 			if (c.equals(s) == false){
-				STITreeCluster xc = new STITreeCluster(GlobalMaps.taxonIdentifier);
+				STITreeCluster xc = Factory.instance.newCluster(GlobalMaps.taxonIdentifier);
 				xc.getBitSet().xor(c.getBitSet());
 				xc.getBitSet().xor(s.getBitSet());
 				cs.add(findCluster(xc, null).clusterRef);
@@ -92,7 +92,7 @@ public class PolytreeA3 extends Polytree{
 
 		// Create singleton clusters and add to map
 		for (int i = 0; i < GlobalMaps.taxonIdentifier.taxonCount(); i++){
-			STITreeCluster c = new STITreeCluster(GlobalMaps.taxonIdentifier);
+			STITreeCluster c = Factory.instance.newCluster(GlobalMaps.taxonIdentifier);
 			c.getBitSet().set(i);
 			new PTCluster(c);
 		}
@@ -125,7 +125,7 @@ public class PolytreeA3 extends Polytree{
 		partitions = null;
 		queueBuilder = null;
 
-		STITreeCluster c = (new STITreeCluster(GlobalMaps.taxonIdentifier)).complementaryCluster();
+		STITreeCluster c = (Factory.instance.newCluster(GlobalMaps.taxonIdentifier)).complementaryCluster();
 		maxScore = WQWeightByTraversal(new Tripartition(c, c, c, false));
 		Logging.log("Polytree max score: " + maxScore / 4);
 		Logging.log("Polytree building time: " + (System.currentTimeMillis() - t) / 1000.0D + " seconds.");

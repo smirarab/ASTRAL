@@ -102,7 +102,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 		int size = cluster.getClusterSize();
 		for (int i = cluster.getBitSet().nextSetBit(0); i >= 0; i = cluster
 				.getBitSet().nextSetBit(i + 1)) {
-			STITreeCluster c = new STITreeCluster(cluster);
+			STITreeCluster c = Factory.instance.newCluster(cluster);
 			c.getBitSet().clear(i);
 
 			Vertex nv = c.newVertex();
@@ -115,7 +115,7 @@ public abstract class AbstractComputeMinCostTask<T> {
 	public Vertex getCompleteryVertx(Vertex x, STITreeCluster refCluster) {
 		STITreeCluster c = x.getCluster();
 
-		STITreeCluster revcluster = new STITreeCluster(refCluster);
+		STITreeCluster revcluster = Factory.instance.newCluster(refCluster);
 		revcluster.getBitSet().xor(c.getBitSet());
 		Vertex reverse = revcluster.newVertex();
 		return reverse;

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import phylonet.coalescent.Factory;
 import phylonet.coalescent.Logging;
 import phylonet.coalescent.TaxonIdentifier;
 import phylonet.coalescent.IClusterCollection.VertexPair;
@@ -18,7 +19,7 @@ import phylonet.util.BitSet;
 public class STITreeCluster implements Iterable<Integer>
 {
 	//protected String[] _taxa;
-	protected BitSet _cluster;
+	private BitSet _cluster;
 
 	private int hashCode = 0;
 
@@ -56,11 +57,7 @@ public class STITreeCluster implements Iterable<Integer>
 
 	public void setCluster(BitSet c)
 	{
-		if (c != null) {
 			this._cluster = c;
-		}
-		else
-			Logging.log("Null bit set.");
 	}
 
 	public BitSet getBitSet()
@@ -203,7 +200,7 @@ public class STITreeCluster implements Iterable<Integer>
 
 	public STITreeCluster merge(STITreeCluster tc)
 	{
-		STITreeCluster temp = new STITreeCluster(this);
+		STITreeCluster temp = Factory.instance.newCluster(this);
 		temp._cluster.or(tc._cluster);
 
 		return temp;

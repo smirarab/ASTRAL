@@ -1,5 +1,6 @@
 package phylonet.dl;
 
+import phylonet.coalescent.Factory;
 import phylonet.coalescent.GlobalMaps;
 import phylonet.coalescent.IClusterCollection;
 import phylonet.tree.model.sti.STITreeCluster;
@@ -15,7 +16,7 @@ public class STBipartition {
 	
 	public STBipartition(STITreeCluster c1, STITreeCluster c2) {
 		this.initizlize(c1,c2);
-		c = new STITreeCluster(c1);
+		c = Factory.instance.newCluster(c1);
 		c.getBitSet().or(c2.getBitSet());
 	}
 	
@@ -77,15 +78,15 @@ public class STBipartition {
 	}
 	
 	public STBipartition getInducedSTB(STITreeCluster cluster) {
-		STITreeCluster lf = new STITreeCluster(GlobalMaps.taxonIdentifier);
+		STITreeCluster lf = Factory.instance.newCluster(GlobalMaps.taxonIdentifier);
 		lf.setCluster((BitSet) this.cluster1.getBitSet().clone());
 		lf.getBitSet().and(cluster.getBitSet());
 		
-		STITreeCluster rf = new STITreeCluster(GlobalMaps.taxonIdentifier);
+		STITreeCluster rf = Factory.instance.newCluster(GlobalMaps.taxonIdentifier);
 		rf.setCluster((BitSet) this.cluster2.getBitSet().clone());
 		rf.getBitSet().and(cluster.getBitSet());
 
-		STITreeCluster cf = new STITreeCluster(GlobalMaps.taxonIdentifier);
+		STITreeCluster cf = Factory.instance.newCluster(GlobalMaps.taxonIdentifier);
 		cf.setCluster((BitSet) this.c.getBitSet().clone());
 		cf.getBitSet().and(cluster.getBitSet());
 		

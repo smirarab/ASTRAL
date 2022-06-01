@@ -763,7 +763,7 @@ public class WQInference extends AbstractInference<Tripartition> {
 				 */
 				BitSet bitSet = cluster.getBitSet();			
 				for (int j = bitSet.nextSetBit(0); j >= 0; j = bitSet.nextSetBit(j + 1)) {
-					c1 = new STITreeCluster(cluster);
+					c1 = Factory.instance.newCluster(cluster);
 					c1.getBitSet().clear(j);
 					c2 = Factory.instance.newCluster(taxid);
 					c2.getBitSet().set(j);

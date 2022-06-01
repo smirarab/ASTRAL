@@ -149,7 +149,7 @@ public class SpeciesMapper {
 	}
 
 	public STITreeCluster getSTClusterForGeneBitSet(BitSet geneBitSet) {
-		STITreeCluster stCluster = new STITreeCluster(this.speciesNameIdMap);
+		STITreeCluster stCluster = Factory.instance.newCluster(this.speciesNameIdMap);
 		stCluster.setCluster(this.getSTBisetForGeneBitset(geneBitSet));
 		return stCluster;
 	}
