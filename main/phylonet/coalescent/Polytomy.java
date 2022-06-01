@@ -12,12 +12,13 @@ public class Polytomy<T extends STITreeCluster> extends AbstractPartition<T> {
 		long[] ns = new long[cs.length];
 		for (int i = 0; i < cs.length; i++){
 			cs[i].updateHash();
-			clusters[i] = (T) new STITreeCluster(cs[i]);
+			clusters[i] = (T) Factory.instance.newCluster(cs[i]);
 			ns[i] = cs[i].partionId();
 		}
 		arrange(cs, ns);
 	}
-
+	
+	@Override
 	public boolean equals(Object obj) {
 		if ((obj instanceof Polytomy) == false) return false;
 		Polytomy p = (Polytomy) obj; 
@@ -28,6 +29,7 @@ public class Polytomy<T extends STITreeCluster> extends AbstractPartition<T> {
 		}
 		return true;					
 	}
+
 
 	protected void arrange(T[] cs, long[] ns) {
 		for (int i = 0; i < cs.length; i++){
@@ -43,7 +45,6 @@ public class Polytomy<T extends STITreeCluster> extends AbstractPartition<T> {
 			}
 		}
 	}
-
 
 	@Override
 	public int hashCode() {

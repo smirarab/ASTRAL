@@ -273,7 +273,7 @@ public class BipartitionWeightCalculator {
 		ArrayList<LengthCount> lengths = new ArrayList<LengthCount> ();
 		long sum = 0;
 		ArrayList<Integer> myorder = new ArrayList<Integer>(treeInds);
-		Collections.shuffle(myorder);
+		Collections.shuffle(myorder, GlobalMaps.random);
 		for (int gId : myorder) {
 			Tree gt = trees.get(gId);
 			STITreeCluster all = alls.get(gId);

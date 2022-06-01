@@ -1,3 +1,10 @@
+- version 5.17.2:
+	- Fix the bug for ASTRAL-MP polytree construction
+	- Should reduce memory usage
+
+- version 5.17.1:
+	- Small fixes on make files and docs
+
 - version 5.17.0:
 	- Merge in constrained search
 

@@ -11,7 +11,10 @@ public class FactoryAstralMP extends Factory {
 
 	@Override
 	public STITreeCluster newCluster(STITreeCluster c1) {
-		return new STITreeClusterMP((STITreeClusterMP) c1);
+		if (c1 instanceof HashOnlyTreeCluster)
+			return new HashOnlyTreeCluster((STITreeClusterMP)c1);
+		else 
+			return new STITreeClusterMP((STITreeClusterMP) c1);
 	}
 
 	@Override

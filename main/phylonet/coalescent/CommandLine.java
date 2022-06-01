@@ -44,7 +44,7 @@ import phylonet.tree.util.Trees;
 public class CommandLine{
 
 	protected String ASTRAL;
-	protected String _version = "5.17.1";
+	protected String _version = "5.17.2";
 
 	protected SimpleJSAP jsap;
 
@@ -130,7 +130,7 @@ public class CommandLine{
 				new FlaggedOption("seed", 
 						JSAP.LONG_PARSER, "692", JSAP.NOT_REQUIRED,
 						's', "seed",
-						"Set the seed number used in multi-locus bootstrapping. "),
+						"Set the seed number. "),
 
 				new Switch("gene-sampling",
 						'g', "gene-resampling",

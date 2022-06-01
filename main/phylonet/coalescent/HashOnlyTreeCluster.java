@@ -9,18 +9,21 @@ public class HashOnlyTreeCluster extends STITreeClusterMP {
 	static TaxonIdentifierMP taxid = (TaxonIdentifierMP) GlobalMaps.taxonIdentifier;
 	public HashOnlyTreeCluster(){
 		super(taxid);
+		this._cluster = null;
 	}
 
 	public HashOnlyTreeCluster(int i){
 		super(taxid);
 		this.hash1 = taxid.hash1[i];
 		this.hash2 = taxid.hash2[i];
+		this._cluster = null;
 	}
 
 	public HashOnlyTreeCluster(long h1, long h2){
 		super(taxid);
 		this.hash1 = h1;
 		this.hash2 = h2;
+		this._cluster = null;
 	}
 
 	public HashOnlyTreeCluster(STITreeClusterMP c){
@@ -28,6 +31,7 @@ public class HashOnlyTreeCluster extends STITreeClusterMP {
 		c.updateHash();
 		this.hash1 = c.hash1;
 		this.hash2 = c.hash2;
+		this._cluster = null;
 	}
 
 	@Override

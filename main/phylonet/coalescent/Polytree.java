@@ -45,7 +45,6 @@ public class Polytree {
 		 */
 
 		PTNode() {
-
 		}
 
 		PTNode(TNode n){
