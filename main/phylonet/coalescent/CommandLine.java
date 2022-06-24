@@ -44,7 +44,7 @@ import phylonet.tree.util.Trees;
 public class CommandLine{
 
 	protected String ASTRAL;
-	protected String _version = "5.17.2";
+	protected String _version = "5.17.3";
 
 	protected SimpleJSAP jsap;
 

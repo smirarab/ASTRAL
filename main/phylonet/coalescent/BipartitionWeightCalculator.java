@@ -6,11 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.Iterator;
-import java.util.Random;
-import java.util.TreeSet;
-import java.util.stream.IntStream;
 
-import phylonet.coalescent.WQDataCollection.NodeHeight;
 import phylonet.tree.model.TNode;
 import phylonet.tree.model.Tree;
 import phylonet.tree.model.sti.STINode;
@@ -154,6 +150,7 @@ public class BipartitionWeightCalculator {
 	}
 
 	public Results getWeight(Quadrapartition [] quad ) {
+		Logging.logTimeMessage("one weight");
 		long [] fi = {0l,0l,0l};
 		long mi = 0l;
 		double [] weight = {0l,0l,0l};
@@ -261,7 +258,7 @@ public class BipartitionWeightCalculator {
 				}
 			}
 		}
-
+		Logging.logTimeMessage("one weight done");
 		return  new Results(weight,effectiven);
 	}
 
@@ -269,6 +266,7 @@ public class BipartitionWeightCalculator {
 	public double getMedianBL(Quadrapartition quad ) {
 
 		boolean leaf = quad.cluster1.getClusterSize() == 0;
+		Logging.logTimeMessage("one median "+leaf);
 		//for (Integer gtb: geneTreesAsInts){
 		ArrayList<LengthCount> lengths = new ArrayList<LengthCount> ();
 		long sum = 0;
@@ -276,12 +274,11 @@ public class BipartitionWeightCalculator {
 		Collections.shuffle(myorder, GlobalMaps.random);
 		for (int gId : myorder) {
 			Tree gt = trees.get(gId);
-			STITreeCluster all = alls.get(gId);
+			//STITreeCluster all = alls.get(gId);
 			synchronized (gt) {
 				// First pass: compute intersections and save them on nodes
 				//Deque<Intersects> stack = new ArrayDeque<Intersects>();
 				for (TNode node : gt.postTraverse()) {
-					
 					if (node.isLeaf()){
 						((STINode)node).setData(getSide(GlobalMaps.taxonIdentifier.taxonId(node.getName()), quad));
 					} else {
@@ -294,6 +291,12 @@ public class BipartitionWeightCalculator {
 					}
 					
 				}
+			}
+		}
+		//Logging.logTimeMessage("one median intersect");
+		for (int gId : myorder) {
+			Tree gt = trees.get(gId);
+			STITreeCluster all = alls.get(gId);
 				Intersects allsides = new Intersects(
 						quad.cluster1.getBitSet().intersectionSize(all.getBitSet()),
 						quad.cluster2.getBitSet().intersectionSize(all.getBitSet()),
@@ -305,66 +308,72 @@ public class BipartitionWeightCalculator {
 					STINode node = (STINode) n;
 					if (node.isRoot()) continue;
 					if (node.getSiblings().size() == 0)
-						System.err.println("hmm.");
-					
-					Intersects [] childI;
-					Intersects [] childO = new Intersects[node.getSiblings().size()+1];
+						System.err.println("hmm. shouldn't have no siblings.");
 					
 					
-					// Sibling 
-					//TODO: consider all siblings. 
+					long c = 0;
+					long so0 = 0, so1 = 0, so2 = 0, so3 = 0, si0 = 0, si1 = 0, si2 = 0, si3 = 0;
+					long so01 = 0, so23 = 0, si01 = 0, si23 = 0;
+					
+					// Siblings and outside 
 					{
-						int i = 0; 
-						for (Object sib: node.getSiblings())
-							childO [i++] = (Intersects) ((STINode)sib).getData();
+						for (Object sib: node.getSiblings()) {
+							Intersects childO = (Intersects) ((STINode)sib).getData();
+							so0 += childO.s0;
+							so1 += childO.s1;
+							so2 += childO.s2;
+							so3 += childO.s3;
+							so01 += childO.s0 * childO.s1;
+							so23 += childO.s2 * childO.s3;
+						}
 					
-					
-						// Other is root minus parent. 
+						// Outside is root minus parent. 
 						Intersects o = new Intersects(allsides);
 						o.subtract((Intersects) ((STINode) node.getParent()).getData());
-						childO[i] = o;
+						so0 += o.s0;
+						so1 += o.s1;
+						so2 += o.s2;
+						so3 += o.s3;
+						so01 += o.s0 * o.s1;
+						so23 += o.s2 * o.s3;
 					}
 
 					if (node.getChildCount() < 2 && leaf) {
-						childI = new Intersects [] {
-							(Intersects) node.getData(),
-							 new Intersects(1, 1, 1, 1)
-						};
+						Intersects childi = (Intersects) node.getData();
+						si0 += childi.s0 + 1;
+						si1 += childi.s1 + 1;
+						si2 += childi.s2 + 1;
+						si3 += childi.s3 + 1;
+						si01 += childi.s0 * childi.s1 + 1;
+						si23 += childi.s2 * childi.s3 + 1;
 					} else if (node.getChildCount() >= 2 && !leaf) {
-						childI = new Intersects[node.getChildCount()];
-						int i = 0;
 						for (TNode child : n.getChildren()) {
-							childI[i] = (Intersects) ((STINode) child).getData(); 
-							i++;
+							Intersects childi = (Intersects) ((STINode) child).getData(); 
+							si0 += childi.s0;
+							si1 += childi.s1;
+							si2 += childi.s2;
+							si3 += childi.s3;
+							si01 += childi.s0 * childi.s1;
+							si23 += childi.s2 * childi.s3;
 						}
 					} else {
 						continue;
 					}
 					
-					for (int k =  0; k < childO.length; k++) {
-						
-						for (int h =  k+1; h < childO.length; h++) {
-					for (int i =  0; i < childI.length; i++) {
-						for (int j =  i+1; j < childI.length; j++) {							
-							long c = sharedQuartetsAround( 
-									(Intersects) childI[i],
-									(Intersects) childI[j],
-									(Intersects) childO[k], 
-									(Intersects) childO[h]);
-							if (c!=0) {
-								double length = node.getParentDistance();
-								if (length < 0)
-									length = 0;
-								lengths.add(new LengthCount(length,c));
-								sum += c;
-							}
-						}
+					c += (si0 * si1 - si01) * (so2 * so3 - so23 ) + 
+						 (si2 * si3 - si23) * (so0 * so1 - so01);
+					
+					
+					double length = node.getParentDistance();
+					if (length < 0)
+						length = 0;
+					
+					if (c!=0) {
+						lengths.add(new LengthCount(length,c));
+						sum += c;
 					}
-						}
-					}
-	
 				}
-			}
+			
 		}
 		lengths.sort(new Comparator<LengthCount>() {
 
@@ -385,6 +394,7 @@ public class BipartitionWeightCalculator {
 			if (ps >= sum/2.0)
 				break;
 		}
+		Logging.logTimeMessage("one median done");
 		//if (!leaf) Logging.log(median+"");
 		return  median;
 	}
@@ -404,17 +414,6 @@ public class BipartitionWeightCalculator {
 			return this.count+"/" + this.length;
 		}
 		
-	}
-	long sharedQuartetsAround(Intersects l, Intersects r, Intersects o, Intersects s) {
-		return 
-				l.s0 * r.s1 * s.s2 * o.s3 +
-				l.s1 * r.s0 * s.s3 * o.s2 + 
-				l.s0 * r.s1 * s.s3 * o.s2 +
-				l.s1 * r.s0 * s.s2 * o.s3 +
-				l.s2 * r.s3 * s.s0 * o.s1 +
-				l.s3 * r.s2 * s.s0 * o.s1 +
-				l.s2 * r.s3 * s.s1 * o.s0 +
-				l.s3 * r.s2 * s.s1 * o.s0;
 	}
 
 	/*	private boolean checkFutileCalcs(Intersects side1, Intersects side2) {

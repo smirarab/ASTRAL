@@ -382,9 +382,10 @@ public class WQInference extends AbstractInference<Tripartition> {
 	protected NodeData[] scoreBranches(Tree st) {
 		Logging.logTimeMessage("WQInference 227: " );
 
-		//weightCalculator = new BipartitionWeightCalculator(this,((WQWeightCalculator)this.weightCalculator).geneTreesAsInts());
 
 		BipartitionWeightCalculator weightCalculator2 = new BipartitionWeightCalculator(this,getGeneTreesAsInt());
+		
+		weightCalculator = null;
 		WQDataCollection wqDataCollection = (WQDataCollection) this.dataCollection;
 		//wqDataCollection.initializeWeightCalculator(this);
 		//for (Tree t : weightCalculator2.trees) System.err.println(t);
@@ -777,7 +778,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 					 * Scores all three quadripartitoins
 					 */
 					Results s = weightCalculator2.getWeight(threequads);
-					double median = weightCalculator2.getMedianBL(threequads[0]);
+					double median = 0; 
+					if (options.isSubUnitBranchLength())
+						median =  weightCalculator2.getMedianBL(threequads[0]);
 
 					nd.mainfreq += s.getQs()[0];
 					nd.alt1freqs += s.getQs()[1];
@@ -816,7 +819,9 @@ public class WQInference extends AbstractInference<Tripartition> {
 				 */
 				Results s = weightCalculator2.getWeight(threequads);
 				//System.err.println(node);
-				double median = weightCalculator2.getMedianBL(threequads[0]);
+				double median = 0;
+				if (options.isSubUnitBranchLength())
+					median = weightCalculator2.getMedianBL(threequads[0]);
 				nd = getNodeData(s.getQs()[0],s.getQs()[1],s.getQs()[2],s.getEffn());
 				nd.subunitBranchLength = median;
 				nodeDataList[i] = nd ;

@@ -1,3 +1,8 @@
+- version 5.17.3:
+	- Improve speed of `-u` in the presence of polytomies
+	- Fix an error where median branch lengths was computed (but not reported) even without `-u`
+	- refactor (better use of factory)
+
 - version 5.17.2:
 	- Fix the bug for ASTRAL-MP polytree construction
 	- Should reduce memory usage
