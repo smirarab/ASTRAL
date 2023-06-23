@@ -1,3 +1,16 @@
+New Version:
+-----------
+
+Note: A new version of this software, implemented in C and with a different algorithm is now available at [https://github.com/chaoszhang/ASTER](https://github.com/chaoszhang/ASTER). This updated version has:
+
+* weightedASTRAL (wASTRAL) which is more accurate than ASTRAL in our tests
+* ASTRAL-Pro2 which can handle duplication and loss and is more scalable than ASTRAL-Pro
+* A new implementation of the unweighted ASTRAL algorithm, without weighting, which may be more robust to missing data (but otherwise quite similar to this implementation)
+
+We encourage using the new code. 
+
+The main features of the Java version (this repository) are available in the C code linked above. Some of the less commonly used features may not be available. Please feel free to submit requests for new features on the other Github as issues. 
+
 DESCRIPTION:
 -----------
 ASTRAL is a tool for estimating an unrooted species tree given a set of unrooted gene trees.
