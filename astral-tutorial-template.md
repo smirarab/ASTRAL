@@ -273,7 +273,15 @@ To enable extra per branch information, you need to use the `-t` option, and var
    * `f1`, `f2`, `f3`: these three values show the total number of quartet trees in all the gene trees that support the main topology, the first alternative, and the second alternative, respectively.
    * `pp1`, `pp2`, `pp3`: these three show the local posterior probabilities (as defined in the description of `-t 4`) for the main topology, the first alternative, and the second alternative, respectively.
    * `QC`: this shows the total number of quartets defined around each branch (this is what our paper calls `m`).
+<<<<<<< HEAD
    * `EN`: this is the effective number of genes for the branch. If you don't have any missing data, this would be the number of branches in your tree. When there are missing data, some gene trees might have nothing to say about a branch. Thus, the effective number of genes might be smaller than the total number of genes. 
+=======
+   * `EN`: this is the effective number of genes for the branch. 
+      * If you don't have any missing data, this would be the number of genes in your dataset. 
+      * When there are missing data, some gene trees might have nothing to say about a branch and these would not count towards EN. Thus, the effective number of genes might be smaller than the total number of genes. 
+      * Things become more complex if your gene trees include polytomies. A fully resolved gene tree would contribute 1 to `f1+f2+f3` if it has at least one quartet around that branch and would contribute 0 if it has no quartet around it. If a gene tree has polytomies, it can contribute less than 1 to `f1+f2+f3`. Let `M` be the total number of fully resolved quartets of species around a branch of interest in the species tree (`M` already takes into account missing data). Let's say that out of `M` quartets, only `R` are resolved in the gene tree due to polytomies. The contribution of this gene tree to `f1+f2+f3` is `R/M<1` in this scenario. Thus, `EN=f1+f2+f3` can be a non-integer when we have multifurcations in the input gene trees. 
+ 
+>>>>>>> 28d7817f3a3f69f74dbec33873631099503a1f4d
 * *Polytomy test* (`-t 10`): runs an experimental test to see if a null hypothesis that the branch is a polytomy could be rejected. See [this paper: doi:10.3390/genes9030132](http://www.mdpi.com/2073-4425/9/3/132). 
 
 Run:
