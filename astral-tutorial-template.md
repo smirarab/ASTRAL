@@ -1,5 +1,16 @@
 
-ASTRAL is a java program for estimating a species tree given a set of unrooted gene trees. ASTRAL is statistically consistent under multi-species coalescent model (and thus is useful for handling ILS). The optimization problem solved by ASTRAL seeks to find the tree that maximizes the number of induced quartet trees in gene trees that are shared by the species tree. The optimization problem is solved exactly for a constrained version of the problem that restricts the search space. An exact solution to the unconstrained version is also implemented and can run on small datasets (less than 18 taxa). The current repository (master branch) includes the ASTRAL-III algorithm.  
+ASTRAL is a Java program for estimating a species tree given a set of unrooted gene trees. ASTRAL is statistically consistent under the multi-species coalescent model (and thus is useful for handling ILS). The optimization problem solved by ASTRAL seeks to find the tree that maximizes the number of induced quartet trees in gene trees that are shared by the species tree. The optimization problem is solved exactly for a constrained version of the problem that restricts the search space. An exact solution to the unconstrained version is also implemented and can run on small datasets (less than 18 taxa). 
+
+* The current repository (master branch) includes the ASTRAL-III algorithm. 
+* For a new C++ implementation, please see [the ASTER package](https://github.com/chaoszhang/ASTER). Some differences:
+	* ASTER optimizes the same score, but using a different optimization algorithm. 
+		* This optimization approach is slower and slightly less effective in terms of the optimization score for inputs without missing data. 
+		* With missing data, it tends to be more effective, though not always faster. 
+		* ASTER also has better running time scaling with the number of genes. So, if you have tens of thousands of inputs, it tends to be quite a bit faster and much more memory efficient. 
+	* ASTER can measure branch length in the expected number of substitutions per site using the CASTLES algorithm. Users will find this feature quite useful. 
+	* ASTER also implements the weighted-ASTRAL method (wASTRAL), which tends to be more accurate than ASTRAL, and ASTRAL-Por-2 method, which can handle multi-copy gene trees. 
+
+
 
 Read the [README](README.md) file in addition to this tutorial. 
 
@@ -100,7 +111,7 @@ A larger real dataset from the [1kp](http://www.pnas.org/content/early/2014/10/2
 java -jar __astral.jar__ -i test_data/1KP-genetrees.tre -o test_data/1kp.tre 2> test_data/1kp.log
 ```
 
-This takes about a minute to run on a laptop. On this dataset, notice in the ASTRAL log information that it originally starts with 11043 clusters in its search space, and using heuristics implemented in ASTRAL-II, it increases the search space slightly to 11085 clusters. For more challenging datasets (i.e., more discordance or fewer genes) this number might increase a lot. 
+This takes about a minute to run on a laptop. On this dataset, notice in the ASTRAL log information that it originally starts with 11043 clusters in its search space, and using heuristics implemented in ASTRAL-III does not change the search space in this example. For more challenging datasets (i.e., more discordance or fewer genes) the number of clusters can increase a lot. 
 
 ### Running with unresolved gene trees
 
@@ -119,9 +130,9 @@ To create a file `1KP-genetrees-BS10.tre` that includes the 1KP dataset with bra
 java -jar __astral.jar__ -i test_data/1KP-genetrees-BS10.tre -o test_data/1kp-BS10.tre 2> test_data/1kp-bs10.log
 ```
 
-Compare the species tree generated here with that generated with the fully resolved gene trees. You can confirm that the tree topology has not changed in this case, but the branch lengths and the branch support have all changed (and that they tend to both increase). By comparing the log files you can also see that after contracting low support branches, the normalized quartet score increases to 0.92321 (from 0.89467 with no contraction). This is expected as low support branches tend to increase not decrease discordance. 
+Compare the species tree generated here with that generated with the fully resolved gene trees. You can confirm that the tree topology has not changed in this case, but the branch lengths and the branch support have all changed (and that they tend to both increase). By comparing the log files you can also see that after contracting low support branches, the normalized quartet score increases to 0.92321 (from 0.89467 with no contraction). This is expected as low support branches tend to increase the discordance. 
 
-### Running on a multi-individual datasets
+### Running on multi-individual datasets
 
 When multiple individuals from the same species are available, to force the species to be monophyletic, a mapping file needs to be provided using the `-a` option. This mapping file should have one line per species, and each line needs to be in one of two formats:
 
@@ -164,11 +175,18 @@ There have been some reports that FigTree and some other tools sometimes have di
 
 ASTRAL measures branch length in coalescent units and also has a fast way of measuring support without a need for bootstrapping. 
 The algorithms to compute branch lengths and support and the meaning of support outputted is further described in [this paper](http://mbe.oxfordjournals.org/content/early/2016/05/12/molbev.msw079.short?rss=1).
-We will return to these in later sections. Some points have to be emphasized:
+We will return to these in later sections. 
 
-* ASTRAL only estimates branch lengths for internal branches and those terminal branches that correspond to species with more than one individuals sampled. 
+Some points have to be emphasized for **branch length**:
+
+* ASTRAL only estimates branch lengths for internal branches and those terminal branches that correspond to species with more than one individual sampled. 
 * Branch lengths are in coalescent units and are a direct measure of the amount of discordance in the gene trees. As such, they are prone to underestimation because of statistical noise in gene tree estimation.   
-* Branch support values measure the support for a quadripartition (the four clusters around a branch) and not the bipartition, as is commonly done. 
+* To get branch length in the substitution per site unit, you can use [CASTLES](https://doi.org/10.1093/bioinformatics/btad221).
+
+
+For branch support, note that:
+
+* Branch support values measure the support for a quadripartition (the four clusters around a branch) and not the bipartition, as is commonly done. Thus, the support of each branch is a function of that branch and the four branches around it. 
 
 
 
@@ -199,17 +217,17 @@ You can use the `-q` option in ASTRAL to score an existing species tree to produ
 To score a tree using ASTRAL, run:
 
 ```
-java -jar __astral.jar__ -q test_data/simulated_14taxon.default.tre -i test_data/simulated_14taxon.gene.tre -o test_data/simulated_scored.tre 2> test_data/simulated_scored.log
+java -jar astral.5.7.8.jar -i test_data/1KP-genetrees.tre -q test_data/1kp.tre -o test_data/1kp-scored.tre  2> test_data/1kp-scored.log
 ```
 
-This will score the species tree given in `test_data/simulated_14taxon.default.tre` with respect to the gene trees given in `test_data/simulated_14taxon.gene.tre`. It will output the following in the log:
+This will score the species tree given in `test_data/1kp.tre` (created in previous steps) with respect to the gene trees given in `test_data/1KP-genetrees.tre`. It will output the following in the log:
 
 ```
-Quartet score is: 4803
-Normalized quartet score is: 0.4798201798201798
+Final quartet score is: 339023690
+Final normalized quartet score is: 0.8946722590876793
 ```
 
-This means 4803 induced quartet trees from the gene trees are in the species tree, and these 4803 quartets are 47.98% of all the quartet trees that could be found in the species tree. As mentioned before, this dataset is one with a *very high* ILS level. 
+This means 339023690 induced quartet trees from the gene trees are in the species tree, and these 339023690 quartets are 89.467% of all the gene tree quartet trees (accounting for multifurcations and missing data).  
 
 In addition to giving an overall score, when you score a tree, branch lengths
 and branch support are also computed and outputted. In the next section, we will
@@ -217,7 +235,7 @@ introduce ways to output even more information per branch.
 
 * When scoring a tree, you probably want to capture the stderr using `2>name_of_a_file` redirection, as described before. 
 
-* Just like the use of ASTRAL for inferring species trees, you can combine `-a` and `-q` to compute branch support values for multi-individual dataset.  
+* Just like the use of ASTRAL for inferring species trees, you can combine `-a` and `-q` to compute branch support values for multi-individual datasets.  
 
 Extensive branch annotations
 --
